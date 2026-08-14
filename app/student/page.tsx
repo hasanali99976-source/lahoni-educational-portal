@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 
 type StudentRecord = Record<string, unknown>;
 
 export default function StudentPage() {
-  const searchParams = useSearchParams();
   const [nationalId, setNationalId] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,10 +46,11 @@ export default function StudentPage() {
   }
 
   useEffect(() => {
-    const id = searchParams.get("nationalId")?.replace(/\D/g, "") || "";
-    if (/^\d{10}$/.test(id)) submit(id);
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("nationalId")?.replace(/\D/g, "") || "";
+    if (/^\d{10}$/.test(id)) void submit(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
   const name = String(student?.name ?? student?.الاسم ?? "الطالب");
   const studentClass = String(student?.class ?? student?.الفئة ?? "غير محدد");
