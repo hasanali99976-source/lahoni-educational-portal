@@ -12,6 +12,15 @@ type AttendanceDoc = { records?: Record<string, AttendanceStatus> };
 
 const units = [["unit1","الوحدة الأولى"],["unit2","الوحدة الثانية"],["unit3","الوحدة الثالثة"],["unit4","الوحدة الرابعة"],["unit5","الوحدة الخامسة"]] as const;
 
+function encouragement(score:number){
+  if(score>=95) return {title:"مبدع يا بطل!",text:"نتيجة رائعة جدًا، استمر بهذا التميز والمحافظة على مستواك العالي.",tone:"excellent"};
+  if(score>=90) return {title:"ممتاز جدًا",text:"أداء قوي ومشرّف، بقيت لمسات بسيطة للوصول إلى القمة.",tone:"excellent"};
+  if(score>=80) return {title:"أحسنت يا بطل",text:"مستواك جميل، ومع قليل من التركيز تستطيع تحقيق نتيجة أعلى.",tone:"good"};
+  if(score>=70) return {title:"تقدم جيد",text:"أنت على الطريق الصحيح، ركّز على البنود الأقل درجة وستتطور بسرعة.",tone:"good"};
+  if(score>=60) return {title:"واصل ولا تتوقف",text:"لديك أساس جيد، تحتاج إلى مزيد من المراجعة والاهتمام بالاختبارات والواجبات.",tone:"needs-work"};
+  return {title:"يبي لك تشد حيلك",text:"ابدأ بخطوات بسيطة، راجع وحداتك أولًا بأول واطلب المساعدة عند الحاجة.",tone:"needs-work"};
+}
+
 export default function StudentPage(){
   const [nationalId,setNationalId]=useState("");
   const [message,setMessage]=useState("");
@@ -63,6 +72,7 @@ export default function StudentPage(){
   }),[student]);
   const research=Number(student?.researchScore||0);
   const finalTotal=unitRows.reduce((sum,u)=>sum+u.total,0)+research;
+  const motivational=encouragement(finalTotal);
   const attendanceSummary=useMemo(()=>{
     const r={present:0,absent:0,late:0,excused:0};
     if(!studentDocId) return r;
@@ -79,6 +89,7 @@ export default function StudentPage(){
         <div className="school-mark">ت</div>
         <div><span>مدرسة التهذيب الثانوية</span><h1>بوابة الطالب وولي الأمر</h1><p>متابعة مباشرة لدرجات مادة التاريخ والحضور.</p><b>الأستاذ حسن علي الطويل</b></div>
       </div>
+      <small className="parent-prepared-by">إعداد / الأستاذ حسن علي الطويل</small>
     </section>
 
     <section className="parent-login-card">
@@ -88,7 +99,13 @@ export default function StudentPage(){
     </section>
 
     {student&&studentDocId&&<section className="parent-report">
-      <header className="parent-student-head"><div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div><div><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div></header>
+      <header className="parent-student-head">
+        <div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div>
+        <div className="parent-score-and-message">
+          <div className="parent-final-score"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div>
+          <div className={`parent-encouragement ${motivational.tone}`}><b>{motivational.title}</b><p>{motivational.text}</p></div>
+        </div>
+      </header>
 
       <section className="parent-stats">
         <article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong></article>
@@ -100,6 +117,7 @@ export default function StudentPage(){
       <section className="parent-unit-cards">{unitRows.map(u=><article key={u.key}><span>{u.label}</span><strong>{u.total}</strong><small>من ١٩</small></article>)}<article className="parent-research"><span>البحث</span><strong>{research}</strong><small>من ٥</small></article></section>
 
       <section className="parent-table-card"><div><h2>تفصيل درجات الوحدات</h2><p>تتحدث البيانات تلقائيًا بعد حفظ المعلم.</p></div><div className="parent-table-wrap"><table><thead><tr><th>الوحدة</th><th>الحضور<br/><small>١</small></th><th>المشاركة<br/><small>٢</small></th><th>الواجبات<br/><small>٢</small></th><th>الاختبار<br/><small>١٤</small></th><th>المجموع<br/><small>١٩</small></th></tr></thead><tbody>{unitRows.map(u=><tr key={u.key}><td><b>{u.label}</b></td><td>{u.attendance}</td><td>{u.participation}</td><td>{u.homework}</td><td>{u.unitExam}</td><td><strong>{u.total}</strong></td></tr>)}</tbody><tfoot><tr><td colSpan={5}>البحث</td><td>{research} / ٥</td></tr><tr><td colSpan={5}>المجموع النهائي</td><td>{finalTotal} / ١٠٠</td></tr></tfoot></table></div></section>
+      <small className="parent-report-credit">إعداد / الأستاذ حسن علي الطويل</small>
     </section>}
   </main>;
 }
