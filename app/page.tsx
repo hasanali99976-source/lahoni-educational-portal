@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 
-const publicStudentUrl = "https://shimmering-rolypoly-0ebda2.netlify.app/student";
+const publicStudentUrl = "https://tahdheeb-history.netlify.app/student";
 
 export default function HomePage() {
   return (
