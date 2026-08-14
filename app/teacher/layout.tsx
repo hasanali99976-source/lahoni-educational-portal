@@ -6,11 +6,11 @@ import { ReactNode, useEffect, useState } from "react";
 import "./teacher-shell.css";
 
 const tabs = [
-  { href: "/teacher/grades", icon: "📝", label: "رصد الدرجات" },
-  { href: "/teacher/research", icon: "🔎", label: "رصد البحث" },
-  { href: "/teacher/attendance", icon: "📅", label: "التحضير اليومي" },
-  { href: "/teacher/reports", icon: "📊", label: "ملخص الطالب" },
-  { href: "/teacher/students", icon: "👥", label: "إدارة الطلاب" },
+  { href: "/teacher/grades", icon: "✎", label: "رصد الدرجات", note: "الوحدات والاختبارات" },
+  { href: "/teacher/research", icon: "⌕", label: "رصد البحث", note: "درجة البحث الفصلية" },
+  { href: "/teacher/attendance", icon: "◷", label: "التحضير اليومي", note: "الحضور والغياب" },
+  { href: "/teacher/reports", icon: "▥", label: "ملخص الطالب", note: "التقارير والطباعة" },
+  { href: "/teacher/students", icon: "♟", label: "إدارة الطلاب", note: "الفصول والبيانات" },
 ];
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
@@ -62,8 +62,8 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             const active = pathname.startsWith(tab.href);
             return (
               <Link key={tab.href} href={tab.href} className={active ? "active" : ""}>
-                <span aria-hidden="true">{tab.icon}</span>
-                <b>{tab.label}</b>
+                <span className="teacher-tab-icon" aria-hidden="true">{tab.icon}</span>
+                <span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span>
               </Link>
             );
           })}
@@ -71,6 +71,16 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
         <button type="button" className="teacher-logout" onClick={logout}>تسجيل خروج</button>
       </header>
+
+      <section className="teacher-welcome-strip" aria-label="لوحة ترحيبية">
+        <div className="teacher-welcome-copy">
+          <span className="teacher-welcome-badge">بوابة التهذيب التعليمية</span>
+          <h2>كل تفاصيل طلابك في مكان واحد</h2>
+          <p>رصد أسهل، متابعة أوضح، وتقارير جاهزة للطالب وولي الأمر.</p>
+          <div className="teacher-welcome-points"><span>✓ واجهة سريعة</span><span>✓ بيانات منظمة</span><span>✓ تقارير فورية</span></div>
+        </div>
+        <img src="/students-learning.svg" alt="طلاب يتعلمون داخل بيئة مدرسية" />
+      </section>
 
       <div className="teacher-page-content">{children}</div>
     </div>
