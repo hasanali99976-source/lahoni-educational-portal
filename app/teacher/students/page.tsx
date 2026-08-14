@@ -1,0 +1,1 @@
+export default function StudentsPage(){return <main className="shell dashboard"><div className="container"><section className="card"><h1>إدارة الطلاب</h1><p>سيتم ربط إضافة وتعديل الطلاب بقاعدة Firebase.</p></section></div></main>}

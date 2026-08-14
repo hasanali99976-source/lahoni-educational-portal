@@ -1,0 +1,1 @@
+export default function GradesPage(){return <main className="shell dashboard"><div className="container"><section className="card"><h1>رصد الدرجات</h1><p>الوحدات الخمس: الواجبات، المشاركة، البحث، واختبار الوحدة.</p></section></div></main>}
