@@ -192,7 +192,7 @@ export default function GradesPage() {
         });
       }));
 
-      setMessage("تم حفظ التحضير والرصد كاملًا بنجاح");
+      setMessage("تم حفظ سجل المتابعة كاملًا بنجاح");
     } catch (error) {
       console.error(error);
       setMessage("تعذر الحفظ. تحقق من الاتصال وقواعد Firebase");
@@ -208,7 +208,7 @@ export default function GradesPage() {
           <div className="school-mark">التـهذيب</div>
           <div>
             <h1>سجل متابعة الطلاب</h1>
-            <p>التحضير الأسبوعي والرصد في جدول واحد</p>
+            <p>الحضور والدرجات في جدول واحد متصل</p>
           </div>
           <div className="register-meta">
             <span>المعلم: حسن علي الطويل</span>
@@ -225,18 +225,17 @@ export default function GradesPage() {
 
         <section className="card register-sheet">
           <div className="register-scroll">
-            <table className="master-register-table">
+            <table className="master-register-table unified-register-table">
               <thead>
                 <tr>
                   <th rowSpan={2}>م</th>
                   <th rowSpan={2}>السجل المدني</th>
                   <th rowSpan={2} className="student-name-head">اسم الطالب</th>
-                  <th colSpan={5} className="attendance-group">التحضير الأسبوعي</th>
-                  <th colSpan={7} className="grade-group">الرصد</th>
+                  <th colSpan={12} className="unified-group">الحضور والدرجات</th>
                 </tr>
                 <tr>
                   {weekDates.map((date, index) => (
-                    <th key={date} className="day-head">
+                    <th key={date} className="day-head unified-head">
                       <span>{dayLabels[index]}</span>
                       <small>{formatHijriDate(date)}</small>
                     </th>
@@ -248,14 +247,14 @@ export default function GradesPage() {
                     ["exam1", "الفترة الأولى"],
                     ["exam2", "الفترة الثانية"],
                   ] as const).map(([key, label]) => (
-                    <th key={key} className="score-head">
+                    <th key={key} className="score-head unified-head">
                       <span>{label}</span>
                       <input type="number" min="0" value={maxGrades[key]} onChange={event => setMaxGrades(current => ({ ...current, [key]: Math.max(0, Number(event.target.value) || 0) }))} />
                       <button type="button" className="apply-all-grade" onClick={() => applyGradeToAll(key)} title={`تطبيق الدرجة على جميع الطلاب في ${label}`}>✓ الكل</button>
                     </th>
                   ))}
-                  <th>المجموع<br /><small>/{maxTotal}</small></th>
-                  <th>الملاحظات</th>
+                  <th className="unified-head">المجموع<br /><small>/{maxTotal}</small></th>
+                  <th className="unified-head">الملاحظات</th>
                 </tr>
               </thead>
               <tbody>
@@ -268,7 +267,7 @@ export default function GradesPage() {
                       <td className="national-id-cell">{student.nationalId}</td>
                       <td className="student-name-cell">{student.name}</td>
                       {weekDates.map(date => (
-                        <td key={date} className="attendance-cell">
+                        <td key={date} className="attendance-cell unified-cell">
                           <select value={attendance[student.id]?.[date] || "present"} onChange={event => updateAttendance(student.id, date, event.target.value as AttendanceStatus)}>
                             <option value="present">ح</option>
                             <option value="absent">غ</option>
@@ -278,7 +277,7 @@ export default function GradesPage() {
                         </td>
                       ))}
                       {(["participation", "homework", "research", "exam1", "exam2"] as const).map(key => (
-                        <td key={key} className="score-cell"><input type="number" min="0" max={maxGrades[key]} value={grade[key]} onChange={event => updateGrade(student.id, key, event.target.value)} /></td>
+                        <td key={key} className="score-cell unified-cell"><input type="number" min="0" max={maxGrades[key]} value={grade[key]} onChange={event => updateGrade(student.id, key, event.target.value)} /></td>
                       ))}
                       <td className="total-cell"><strong>{total}</strong></td>
                       <td className="notes-cell"><input value={grade.notes || ""} onChange={event => updateNotes(student.id, event.target.value)} placeholder="ملاحظة" /></td>
