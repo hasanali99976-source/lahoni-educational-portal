@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
+import "./register.css";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 type GradeRecord = {
