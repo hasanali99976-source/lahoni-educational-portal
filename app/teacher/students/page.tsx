@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 
@@ -19,6 +19,7 @@ function normalizeId(value: unknown) {
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [studentClass, setStudentClass] = useState("");
@@ -34,25 +35,45 @@ export default function StudentsPage() {
     setStudents(list);
   }), []);
 
-  const filtered = useMemo(() => students.filter(student => {
+  const classes = useMemo(() => {
+    const counts = new Map<string, number>();
+    students.forEach(student => {
+      const className = normalizeText(student.class) || "غير محدد";
+      counts.set(className, (counts.get(className) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name, "ar"));
+  }, [students]);
+
+  const visibleStudents = useMemo(() => {
     const term = search.trim();
-    return !term || (student.name || "").includes(term) || (student.nationalId || "").includes(term) || (student.class || "").includes(term);
-  }), [students, search]);
+    return students.filter(student => {
+      const sameClass = !selectedClass || normalizeText(student.class) === selectedClass;
+      const matchesSearch = !term ||
+        (student.name || "").includes(term) ||
+        (student.nationalId || "").includes(term);
+      return sameClass && matchesSearch;
+    });
+  }, [students, selectedClass, search]);
 
   async function saveStudent() {
     setMessage("");
-    if (!name.trim() || !/^\d{10}$/.test(nationalId) || !studentClass.trim()) {
+    const finalClass = studentClass.trim() || selectedClass || "";
+    if (!name.trim() || !/^\d{10}$/.test(nationalId) || !finalClass) {
       setMessage("أدخل الاسم ورقم هوية من 10 أرقام والفصل");
       return;
     }
     try {
       setSaving(true);
       if (editingId) {
-        await updateDoc(doc(db, "students", editingId), { name: name.trim(), nationalId, class: studentClass.trim() });
+        await updateDoc(doc(db, "students", editingId), {
+          name: name.trim(), nationalId, class: finalClass,
+        });
         setMessage("تم تعديل بيانات الطالب");
       } else {
         await setDoc(doc(db, "students", nationalId), {
-          name: name.trim(), nationalId, class: studentClass.trim(),
+          name: name.trim(), nationalId, class: finalClass,
           attendance: 0, homework: 0, participation: 0, research: 0,
           tests: [0, 0, 0, 0, 0], createdAt: serverTimestamp(),
         }, { merge: true });
@@ -61,7 +82,9 @@ export default function StudentsPage() {
       setName(""); setNationalId(""); setStudentClass(""); setEditingId(null);
     } catch {
       setMessage("تعذر الحفظ. تحقق من قواعد Firestore");
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function importExcel(event: ChangeEvent<HTMLInputElement>) {
@@ -91,10 +114,10 @@ export default function StudentsPage() {
         if (idColumn < 0 || nameColumn < 0) continue;
 
         for (const row of rows.slice(headerIndex + 1)) {
-          const nationalIdValue = normalizeId(row[idColumn]);
+          const idValue = normalizeId(row[idColumn]);
           const nameValue = normalizeText(row[nameColumn]);
-          if (!nationalIdValue || !nameValue) continue;
-          imported.push({ name: nameValue, nationalId: nationalIdValue, class: sheetName });
+          if (!idValue || !nameValue) continue;
+          imported.push({ name: nameValue, nationalId: idValue, class: sheetName });
         }
       }
 
@@ -118,7 +141,7 @@ export default function StudentsPage() {
         }, { merge: true });
       }
 
-      setMessage(`تم استيراد ${unique.length} طالبًا وترتيبهم أبجديًا بنجاح`);
+      setMessage(`تم استيراد ${unique.length} طالبًا وتقسيمهم على الفصول`);
     } catch (error) {
       console.error(error);
       setMessage("تعذر استيراد الملف. تأكد أنه ملف Excel صحيح");
@@ -127,53 +150,124 @@ export default function StudentsPage() {
     }
   }
 
+  function openClass(className: string) {
+    setSelectedClass(className);
+    setStudentClass(className);
+    setSearch("");
+    setMessage("");
+    setEditingId(null);
+  }
+
   function startEdit(student: Student) {
     setEditingId(student.id);
-    setName(student.name || ""); setNationalId(student.nationalId || ""); setStudentClass(student.class || "");
+    setName(student.name || "");
+    setNationalId(student.nationalId || "");
+    setStudentClass(student.class || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function removeStudent(student: Student) {
     if (!window.confirm(`هل تريد حذف الطالب ${student.name || ""} نهائيًا؟`)) return;
-    try { await deleteDoc(doc(db, "students", student.id)); setMessage("تم حذف الطالب"); }
-    catch { setMessage("تعذر حذف الطالب"); }
+    try {
+      await deleteDoc(doc(db, "students", student.id));
+      setMessage("تم حذف الطالب");
+    } catch {
+      setMessage("تعذر حذف الطالب");
+    }
   }
 
   return (
-    <main className="shell dashboard"><div className="container">
-      <section className="card">
-        <h1>{editingId ? "تعديل بيانات الطالب" : "إدارة الطلاب"}</h1>
+    <main className="shell dashboard">
+      <div className="container">
+        {!selectedClass ? (
+          <>
+            <section className="card">
+              <h1>إدارة الطلاب</h1>
+              <p>اختر الفصل لعرض طلابه وإدارتهم.</p>
 
-        <div className="import-box">
-          <div>
-            <strong>استيراد الطلاب من Excel</strong>
-            <p>يقرأ جميع أوراق الملف ويستخرج السجل المدني واسم الطالب، ويستخدم اسم الورقة كفصل.</p>
-          </div>
-          <label className="btn secondary import-label">
-            {importing ? "جارٍ الاستيراد..." : "اختيار ملف Excel"}
-            <input type="file" accept=".xlsx,.xls" onChange={importExcel} disabled={importing} hidden />
-          </label>
-        </div>
+              <div className="import-box">
+                <div>
+                  <strong>استيراد الطلاب من Excel</strong>
+                  <p>يقرأ كل ورقة كفصل مستقل ويضيف الطلاب بترتيب أبجدي.</p>
+                </div>
+                <label className="btn secondary import-label">
+                  {importing ? "جارٍ الاستيراد..." : "اختيار ملف Excel"}
+                  <input type="file" accept=".xlsx,.xls" onChange={importExcel} disabled={importing} hidden />
+                </label>
+              </div>
+              {message && <p className="notice">{message}</p>}
+            </section>
 
-        <div className="form-grid">
-          <input className="field" value={name} onChange={e=>setName(e.target.value)} placeholder="اسم الطالب" />
-          <input className="field" inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g, "").slice(0,10))} placeholder="رقم الهوية" />
-          <input className="field" value={studentClass} onChange={e=>setStudentClass(e.target.value)} placeholder="الفصل مثل 2/1" />
-        </div>
-        <div className="button-row">
-          <button className="btn primary" onClick={saveStudent} disabled={saving}>{saving ? "جارٍ الحفظ..." : editingId ? "حفظ التعديل" : "إضافة الطالب"}</button>
-          {editingId && <button className="btn secondary" onClick={()=>{setEditingId(null);setName("");setNationalId("");setStudentClass("");}}>إلغاء</button>}
-        </div>
-        {message && <p className="notice">{message}</p>}
-      </section>
+            <section className="class-grid" style={{ marginTop: 18 }}>
+              {classes.map(item => (
+                <button key={item.name} className="class-card" onClick={() => openClass(item.name)}>
+                  <span className="class-icon">📘</span>
+                  <strong>{item.name}</strong>
+                  <span>{item.count} طالبًا</span>
+                </button>
+              ))}
+              {!classes.length && <section className="card"><p>لا توجد فصول حتى الآن. استورد ملف Excel أولًا.</p></section>}
+            </section>
+          </>
+        ) : (
+          <>
+            <section className="card">
+              <div className="toolbar">
+                <div>
+                  <button className="small-btn edit" onClick={() => { setSelectedClass(null); setStudentClass(""); setSearch(""); }}>
+                    الرجوع إلى الفصول
+                  </button>
+                  <h1 style={{ marginBottom: 0 }}>الفصل: {selectedClass}</h1>
+                  <p>{visibleStudents.length} طالبًا</p>
+                </div>
+                <input className="field search" value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث بالاسم أو الهوية" />
+              </div>
+            </section>
 
-      <section className="card" style={{marginTop:18}}>
-        <div className="toolbar"><h2>الطلاب المسجلون ({students.length})</h2><input className="field search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="بحث بالاسم أو الهوية أو الفصل" /></div>
-        <div className="table-wrap"><table><thead><tr><th>الاسم</th><th>الهوية</th><th>الفصل</th><th>الإجراءات</th></tr></thead><tbody>
-          {filtered.map(student => <tr key={student.id}><td>{student.name}</td><td>{student.nationalId}</td><td>{student.class}</td><td><button className="small-btn edit" onClick={()=>startEdit(student)}>تعديل</button><button className="small-btn delete" onClick={()=>removeStudent(student)}>حذف</button></td></tr>)}
-          {!filtered.length && <tr><td colSpan={4}>لا توجد نتائج</td></tr>}
-        </tbody></table></div>
-      </section>
-    </div></main>
+            <section className="card" style={{ marginTop: 18 }}>
+              <h2>{editingId ? "تعديل بيانات الطالب" : "إضافة طالب إلى هذا الفصل"}</h2>
+              <div className="form-grid">
+                <input className="field" value={name} onChange={e => setName(e.target.value)} placeholder="اسم الطالب" />
+                <input className="field" inputMode="numeric" value={nationalId} onChange={e => setNationalId(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="رقم الهوية" />
+                <input className="field" value={studentClass} onChange={e => setStudentClass(e.target.value)} placeholder="الفصل" />
+              </div>
+              <div className="button-row">
+                <button className="btn primary" onClick={saveStudent} disabled={saving}>
+                  {saving ? "جارٍ الحفظ..." : editingId ? "حفظ التعديل" : "إضافة الطالب"}
+                </button>
+                {editingId && (
+                  <button className="btn secondary" onClick={() => { setEditingId(null); setName(""); setNationalId(""); setStudentClass(selectedClass); }}>
+                    إلغاء
+                  </button>
+                )}
+              </div>
+              {message && <p className="notice">{message}</p>}
+            </section>
+
+            <section className="card" style={{ marginTop: 18 }}>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>#</th><th>اسم الطالب</th><th>رقم الهوية</th><th>الإجراءات</th></tr></thead>
+                  <tbody>
+                    {visibleStudents.map((student, index) => (
+                      <tr key={student.id}>
+                        <td>{index + 1}</td>
+                        <td>{student.name}</td>
+                        <td>{student.nationalId}</td>
+                        <td>
+                          <button className="small-btn edit" onClick={() => startEdit(student)}>تعديل</button>
+                          <button className="small-btn delete" onClick={() => removeStudent(student)}>حذف</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {!visibleStudents.length && <tr><td colSpan={4}>لا يوجد طلاب في هذا الفصل</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </main>
   );
 }
