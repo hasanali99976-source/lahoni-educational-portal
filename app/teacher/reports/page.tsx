@@ -1,0 +1,1 @@
+export default function ReportsPage(){return <main className="shell dashboard"><div className="container"><section className="card"><h1>التقارير</h1><p>ملخص درجات الطلاب والتقارير النهائية.</p></section></div></main>}
