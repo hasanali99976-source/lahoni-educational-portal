@@ -28,17 +28,31 @@ export default function StudentPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState<StudentRecord | null>(null);
+  const [studentDocId, setStudentDocId] = useState("");
+  const [absenceCount, setAbsenceCount] = useState(0);
 
   async function findInCollection(collectionName: string, id: string) {
     const ref = collection(db, collectionName);
     const result = await getDocs(query(ref, where("nationalId", "==", id)));
-    if (!result.empty) return result.docs[0].data() as StudentRecord;
+    if (!result.empty) return { id: result.docs[0].id, data: result.docs[0].data() as StudentRecord };
     return null;
+  }
+
+  async function loadAbsenceCount(studentId: string) {
+    const snapshot = await getDocs(collection(db, "attendance"));
+    let total = 0;
+    snapshot.docs.forEach(item => {
+      const records = (item.data().records || {}) as Record<string, string>;
+      if (records[studentId] === "absent") total += 1;
+    });
+    setAbsenceCount(total);
   }
 
   async function submit(idOverride?: string) {
     const id = (idOverride ?? nationalId).replace(/\D/g, "");
     setStudent(null);
+    setStudentDocId("");
+    setAbsenceCount(0);
     setMessage("");
     if (!/^\d{10}$/.test(id)) return setMessage("أدخل رقم هوية صحيحًا من 10 أرقام");
     try {
@@ -46,7 +60,9 @@ export default function StudentPage() {
       setNationalId(id);
       const found = (await findInCollection("students", id)) ?? (await findInCollection("الطلاب", id));
       if (!found) return setMessage("لم يتم العثور على طالب بهذا الرقم");
-      setStudent(found);
+      setStudent(found.data);
+      setStudentDocId(found.id);
+      await loadAbsenceCount(found.id);
     } catch {
       setMessage("تعذر قراءة البيانات الآن. تحقق من إعدادات Firebase وقواعد Firestore.");
     } finally {
@@ -76,19 +92,20 @@ export default function StudentPage() {
       <section className="panel student-login-panel">
         <div className="student-login-visual" aria-hidden="true"><span>👨‍🎓</span><span>📚</span></div>
         <h1>بوابة الطالب / ولي الأمر</h1>
-        <p>أدخل رقم الهوية للاطلاع على درجات الوحدات والبحث والمجموع النهائي.</p>
+        <p>أدخل رقم الهوية للاطلاع على الدرجات وعدد أيام الغياب.</p>
         <input className="field" inputMode="numeric" value={nationalId} onChange={(e) => setNationalId(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="رقم الهوية الوطنية" onKeyDown={(e) => e.key === "Enter" && submit()} />
         <button className="btn primary" onClick={() => submit()} disabled={loading}>{loading ? "جارٍ البحث..." : "عرض بيانات الطالب"}</button>
         {message && <p className="error">{message}</p>}
       </section>
 
-      {student && (
+      {student && studentDocId && (
         <section className="container card student-result-card" style={{ marginBottom: 40 }}>
           <h2>{name}</h2>
           <p><strong>الفصل:</strong> {studentClass}</p>
           <div className="cards" style={{ marginTop: 18 }}>
             {unitRows.map(unit => <div className="card" key={unit.key}><h3>{unit.label}</h3><p>{unit.total} / 19</p></div>)}
             <div className="card"><h3>البحث</h3><p>{research} / 5</p></div>
+            <div className="card"><h3>عدد أيام الغياب</h3><p><strong>{absenceCount} يوم</strong></p></div>
             <div className="card"><h3>المجموع النهائي</h3><p><strong>{finalTotal} / 100</strong></p></div>
           </div>
         </section>
