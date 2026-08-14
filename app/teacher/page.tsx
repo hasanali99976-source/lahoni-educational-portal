@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TeacherLoginPage() {
@@ -9,11 +9,16 @@ export default function TeacherLoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  useEffect(() => {
+    sessionStorage.removeItem("teacher-auth");
+  }, []);
+
   function submit(event?: FormEvent) {
     event?.preventDefault();
     if (code === "1415") {
       setError("");
-      router.push("/teacher/dashboard");
+      sessionStorage.setItem("teacher-auth", "1");
+      router.push("/teacher/grades");
       return;
     }
     setError("رمز الدخول غير صحيح");
@@ -75,7 +80,7 @@ export default function TeacherLoginPage() {
             </button>
           </form>
 
-          <p className="teacher-login-note">هذه الصفحة مخصصة للمعلم فقط.</p>
+          <p className="teacher-login-note">تُغلق الجلسة تلقائيًا عند تحديث الصفحة لزيادة الأمان.</p>
         </div>
       </section>
     </main>
