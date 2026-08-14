@@ -1,25 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import "./register.css";
 
-type AttendanceStatus = "present" | "absent" | "late" | "excused";
-type GradeRecord = {
-  participation: number;
-  homework: number;
-  research: number;
-  exam1: number;
-  exam2: number;
+type GradeKey = "attendance" | "participation" | "homework" | "research" | "exam1" | "exam2";
+type GradeRecord = Record<GradeKey, number> & {
   notes: string;
+  total?: number;
+  maximumTotal?: number;
+  percentage?: number;
 };
 type Student = {
   id: string;
   name?: string;
   nationalId?: string;
   class?: string;
-  units?: Record<string, GradeRecord>;
+  units?: Record<string, Partial<GradeRecord>>;
 };
 
 const units = [
@@ -30,8 +28,17 @@ const units = [
   ["unit5", "الوحدة الخامسة"],
 ] as const;
 
-const dayLabels = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+const gradeColumns: Array<[GradeKey, string]> = [
+  ["attendance", "الحضور"],
+  ["participation", "المشاركة"],
+  ["homework", "الواجبات"],
+  ["research", "البحث"],
+  ["exam1", "اختبار ١"],
+  ["exam2", "اختبار ٢"],
+];
+
 const emptyGrade: GradeRecord = {
+  attendance: 0,
   participation: 0,
   homework: 0,
   research: 0,
@@ -40,42 +47,28 @@ const emptyGrade: GradeRecord = {
   notes: "",
 };
 
-function toDateInput(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function getWeekDates(start: string) {
-  const base = new Date(`${start}T12:00:00`);
-  return dayLabels.map((_, index) => {
-    const date = new Date(base);
-    date.setDate(base.getDate() + index);
-    return toDateInput(date);
-  });
-}
-
-function formatHijriDate(value: string, withWeekday = false) {
-  if (!value) return "";
-  const date = new Date(`${value}T12:00:00`);
+function formatHijriToday() {
   return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab", {
-    weekday: withWeekday ? "long" : undefined,
+    weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(date);
-}
-
-function safeId(value: string) {
-  return encodeURIComponent(value).replace(/%/g, "_");
+  }).format(new Date());
 }
 
 export default function GradesPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("unit1");
-  const [weekStart, setWeekStart] = useState(toDateInput(new Date()));
-  const [attendance, setAttendance] = useState<Record<string, Record<string, AttendanceStatus>>>({});
   const [grades, setGrades] = useState<Record<string, GradeRecord>>({});
-  const [maxGrades, setMaxGrades] = useState({ participation: 5, homework: 5, research: 5, exam1: 10, exam2: 10 });
+  const [maxGrades, setMaxGrades] = useState<Record<GradeKey, number>>({
+    attendance: 3,
+    participation: 3,
+    homework: 3,
+    research: 5,
+    exam1: 10,
+    exam2: 10,
+  });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -85,51 +78,41 @@ export default function GradesPage() {
     setStudents(list);
   }), []);
 
-  const classes = useMemo(() => Array.from(new Set(students.map(student => (student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
-  const classStudents = useMemo(() => students.filter(student => (student.class || "").trim() === selectedClass), [students, selectedClass]);
-  const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
-  const hijriWeekLabel = useMemo(() => formatHijriDate(weekStart, true), [weekStart]);
+  const classes = useMemo(
+    () => Array.from(new Set(students.map(student => (student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")),
+    [students]
+  );
+
+  const classStudents = useMemo(
+    () => students.filter(student => (student.class || "").trim() === selectedClass),
+    [students, selectedClass]
+  );
 
   useEffect(() => {
     const next: Record<string, GradeRecord> = {};
     classStudents.forEach(student => {
-      next[student.id] = { ...emptyGrade, ...(student.units?.[selectedUnit] || {}) };
+      const saved = student.units?.[selectedUnit] || {};
+      next[student.id] = { ...emptyGrade, ...saved } as GradeRecord;
     });
     setGrades(next);
   }, [classStudents, selectedUnit]);
 
-  useEffect(() => {
-    async function loadAttendance() {
-      if (!selectedClass || !classStudents.length) {
-        setAttendance({});
-        return;
-      }
-      const next: Record<string, Record<string, AttendanceStatus>> = {};
-      classStudents.forEach(student => {
-        next[student.id] = {};
-        weekDates.forEach(date => { next[student.id][date] = "present"; });
-      });
+  const maxTotal = useMemo(
+    () => gradeColumns.reduce((sum, [key]) => sum + Number(maxGrades[key] || 0), 0),
+    [maxGrades]
+  );
 
-      for (const date of weekDates) {
-        const snapshot = await getDoc(doc(db, "attendance", `${safeId(selectedClass)}_${date}`));
-        const records = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;
-        classStudents.forEach(student => {
-          next[student.id][date] = records[student.id] || "present";
-        });
-      }
-      setAttendance(next);
-    }
-    loadAttendance().catch(() => setMessage("تعذر تحميل سجل التحضير لهذا الأسبوع"));
-  }, [selectedClass, classStudents, weekDates]);
+  const classAverage = useMemo(() => {
+    if (!classStudents.length || !maxTotal) return 0;
+    const percentages = classStudents.map(student => {
+      const grade = grades[student.id] || emptyGrade;
+      const total = gradeColumns.reduce((sum, [key]) => sum + Number(grade[key] || 0), 0);
+      return (total / maxTotal) * 100;
+    });
+    return Math.round((percentages.reduce((sum, value) => sum + value, 0) / percentages.length) * 10) / 10;
+  }, [classStudents, grades, maxTotal]);
 
-  function updateAttendance(studentId: string, date: string, status: AttendanceStatus) {
-    setAttendance(current => ({
-      ...current,
-      [studentId]: { ...(current[studentId] || {}), [date]: status },
-    }));
-  }
-
-  function updateGrade(studentId: string, key: keyof Omit<GradeRecord, "notes">, raw: string) {
+  function updateGrade(studentId: string, key: GradeKey, raw: string) {
     const maximum = maxGrades[key];
     const parsed = Number(raw);
     const value = Number.isFinite(parsed) ? Math.max(0, Math.min(maximum, parsed)) : 0;
@@ -139,12 +122,11 @@ export default function GradesPage() {
     }));
   }
 
-  function applyGradeToAll(key: keyof Omit<GradeRecord, "notes">) {
-    const value = maxGrades[key];
+  function applyGradeToAll(key: GradeKey) {
     setGrades(current => {
       const next = { ...current };
       classStudents.forEach(student => {
-        next[student.id] = { ...(next[student.id] || emptyGrade), [key]: value };
+        next[student.id] = { ...(next[student.id] || emptyGrade), [key]: maxGrades[key] };
       });
       return next;
     });
@@ -157,8 +139,6 @@ export default function GradesPage() {
     }));
   }
 
-  const maxTotal = Object.values(maxGrades).reduce((sum, value) => sum + value, 0);
-
   async function saveRegister() {
     if (!selectedClass) {
       setMessage("اختر الفصل أولًا");
@@ -168,31 +148,22 @@ export default function GradesPage() {
     try {
       setSaving(true);
       setMessage("");
-
-      await Promise.all(weekDates.map(date => {
-        const records: Record<string, AttendanceStatus> = {};
-        classStudents.forEach(student => {
-          records[student.id] = attendance[student.id]?.[date] || "present";
-        });
-        return setDoc(doc(db, "attendance", `${safeId(selectedClass)}_${date}`), {
-          class: selectedClass,
-          date,
-          hijriDate: formatHijriDate(date),
-          records,
-          updatedAt: new Date().toISOString(),
-        }, { merge: true });
-      }));
-
       await Promise.all(classStudents.map(student => {
         const grade = grades[student.id] || emptyGrade;
-        const total = grade.participation + grade.homework + grade.research + grade.exam1 + grade.exam2;
+        const total = gradeColumns.reduce((sum, [key]) => sum + Number(grade[key] || 0), 0);
         const percentage = maxTotal ? Math.round((total / maxTotal) * 1000) / 10 : 0;
         return updateDoc(doc(db, "students", student.id), {
-          [`units.${selectedUnit}`]: { ...grade, total, maximumTotal: maxTotal, percentage, maxGrades },
+          [`units.${selectedUnit}`]: {
+            ...grade,
+            total,
+            maximumTotal: maxTotal,
+            percentage,
+            maxGrades,
+            updatedAt: new Date().toISOString(),
+          },
         });
       }));
-
-      setMessage("تم حفظ سجل المتابعة كاملًا بنجاح");
+      setMessage("تم حفظ سجل الدرجات بنجاح");
     } catch (error) {
       console.error(error);
       setMessage("تعذر الحفظ. تحقق من الاتصال وقواعد Firebase");
@@ -202,98 +173,114 @@ export default function GradesPage() {
   }
 
   return (
-    <main className="shell dashboard">
-      <div className="container wide-container">
-        <section className="register-header">
-          <div className="school-mark">التـهذيب</div>
-          <div>
-            <h1>سجل متابعة الطلاب</h1>
-            <p>الحضور والدرجات في جدول واحد متصل</p>
-          </div>
-          <div className="register-meta">
-            <span>المعلم: حسن علي الطويل</span>
-            <span>المادة: التاريخ</span>
-          </div>
+    <main className="gradebook-page" dir="rtl">
+      <div className="gradebook-wrap">
+        <section className="gradebook-summary">
+          <article className="school-info">
+            <div className="school-badge">ت</div>
+            <div>
+              <strong>مدرسة التهذيب الثانوية</strong>
+              <span>مادة التاريخ — الصف الثاني الثانوي</span>
+              <b>الأستاذ حسن علي الطويل</b>
+            </div>
+            <div className="hijri-today">
+              <small>التاريخ الهجري</small>
+              <strong>{formatHijriToday()}</strong>
+            </div>
+          </article>
+
+          <article><span>عدد الطلاب</span><strong>{classStudents.length || students.length}</strong><small>طالب</small></article>
+          <article><span>متوسط الدرجات</span><strong>{classAverage}</strong><small>من ١٠٠</small></article>
+          <article><span>إجمالي الدرجة</span><strong>{maxTotal}</strong><small>درجة</small></article>
         </section>
 
-        <section className="card register-controls">
-          <label>الفصل<select className="compact-field" value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className}>{className}</option>)}</select></label>
-          <label>الوحدة<select className="compact-field" value={selectedUnit} onChange={event => setSelectedUnit(event.target.value)}>{units.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label className="hijri-date-control">بداية الأسبوع (هجري)<span className="hijri-date-display">{hijriWeekLabel}</span><input className="compact-field date-trigger" type="date" value={weekStart} onChange={event => setWeekStart(event.target.value)} aria-label="تغيير بداية الأسبوع" /></label>
-          <div className="compact-stat">عدد الطلاب: <strong>{classStudents.length}</strong></div>
-        </section>
+        <section className="gradebook-card">
+          <header className="gradebook-head">
+            <div>
+              <h1>سجل رصد الدرجات</h1>
+              <p>إدخال الدرجات أو تطبيق درجة موحّدة على جميع الطلاب</p>
+            </div>
+            <div className="gradebook-actions">
+              <label>الفصل
+                <select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}>
+                  <option value="">اختر الفصل</option>
+                  {classes.map(className => <option key={className}>{className}</option>)}
+                </select>
+              </label>
+              <label>الوحدة
+                <select value={selectedUnit} onChange={event => setSelectedUnit(event.target.value)}>
+                  {units.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
+              <button type="button" onClick={saveRegister} disabled={!selectedClass || saving}>
+                {saving ? "جارٍ الحفظ..." : "حفظ سجل المتابعة"}
+              </button>
+            </div>
+          </header>
 
-        <section className="card register-sheet">
-          <div className="register-scroll">
-            <table className="master-register-table unified-register-table">
+          <div className="gradebook-scroll">
+            <table className="gradebook-table">
               <thead>
                 <tr>
-                  <th rowSpan={2}>م</th>
-                  <th rowSpan={2}>السجل المدني</th>
-                  <th rowSpan={2} className="student-name-head">اسم الطالب</th>
-                  <th colSpan={12} className="unified-group">الحضور والدرجات</th>
-                </tr>
-                <tr>
-                  {weekDates.map((date, index) => (
-                    <th key={date} className="day-head unified-head">
-                      <span>{dayLabels[index]}</span>
-                      <small>{formatHijriDate(date)}</small>
-                    </th>
-                  ))}
-                  {([
-                    ["participation", "المشاركة"],
-                    ["homework", "الواجبات"],
-                    ["research", "الأبحاث"],
-                    ["exam1", "الفترة الأولى"],
-                    ["exam2", "الفترة الثانية"],
-                  ] as const).map(([key, label]) => (
-                    <th key={key} className="score-head unified-head">
+                  <th className="sticky-number">م</th>
+                  <th className="sticky-name">اسم الطالب</th>
+                  {gradeColumns.map(([key, label]) => (
+                    <th key={key}>
                       <span>{label}</span>
-                      <input type="number" min="0" value={maxGrades[key]} onChange={event => setMaxGrades(current => ({ ...current, [key]: Math.max(0, Number(event.target.value) || 0) }))} />
-                      <button type="button" className="apply-all-grade" onClick={() => applyGradeToAll(key)} title={`تطبيق الدرجة على جميع الطلاب في ${label}`}>✓ الكل</button>
+                      <small>من</small>
+                      <input
+                        type="number"
+                        min="0"
+                        value={maxGrades[key]}
+                        onChange={event => setMaxGrades(current => ({ ...current, [key]: Math.max(0, Number(event.target.value) || 0) }))}
+                        aria-label={`الدرجة القصوى لـ ${label}`}
+                      />
+                      <button type="button" onClick={() => applyGradeToAll(key)}>✓ الكل</button>
                     </th>
                   ))}
-                  <th className="unified-head">المجموع<br /><small>/{maxTotal}</small></th>
-                  <th className="unified-head">الملاحظات</th>
+                  <th>المجموع<small>من {maxTotal}</small></th>
+                  <th className="notes-head">الملاحظات</th>
                 </tr>
               </thead>
               <tbody>
                 {classStudents.map((student, index) => {
                   const grade = grades[student.id] || emptyGrade;
-                  const total = grade.participation + grade.homework + grade.research + grade.exam1 + grade.exam2;
+                  const total = gradeColumns.reduce((sum, [key]) => sum + Number(grade[key] || 0), 0);
                   return (
                     <tr key={student.id}>
-                      <td className="row-number">{index + 1}</td>
-                      <td className="national-id-cell">{student.nationalId}</td>
-                      <td className="student-name-cell">{student.name}</td>
-                      {weekDates.map(date => (
-                        <td key={date} className="attendance-cell unified-cell">
-                          <select value={attendance[student.id]?.[date] || "present"} onChange={event => updateAttendance(student.id, date, event.target.value as AttendanceStatus)}>
-                            <option value="present">ح</option>
-                            <option value="absent">غ</option>
-                            <option value="late">ت</option>
-                            <option value="excused">م</option>
-                          </select>
+                      <td className="sticky-number">{index + 1}</td>
+                      <td className="sticky-name">
+                        <strong>{student.name}</strong>
+                        <small>{student.nationalId}</small>
+                      </td>
+                      {gradeColumns.map(([key]) => (
+                        <td key={key}>
+                          <input
+                            className="grade-input"
+                            type="number"
+                            min="0"
+                            max={maxGrades[key]}
+                            value={grade[key]}
+                            onChange={event => updateGrade(student.id, key, event.target.value)}
+                          />
                         </td>
                       ))}
-                      {(["participation", "homework", "research", "exam1", "exam2"] as const).map(key => (
-                        <td key={key} className="score-cell unified-cell"><input type="number" min="0" max={maxGrades[key]} value={grade[key]} onChange={event => updateGrade(student.id, key, event.target.value)} /></td>
-                      ))}
-                      <td className="total-cell"><strong>{total}</strong></td>
-                      <td className="notes-cell"><input value={grade.notes || ""} onChange={event => updateNotes(student.id, event.target.value)} placeholder="ملاحظة" /></td>
+                      <td className="student-total">{total}</td>
+                      <td><input className="notes-input" value={grade.notes || ""} onChange={event => updateNotes(student.id, event.target.value)} placeholder="اكتب ملاحظة" /></td>
                     </tr>
                   );
                 })}
-                {!selectedClass && <tr><td colSpan={15}>اختر الفصل لعرض سجل الطلاب</td></tr>}
+                {!selectedClass && <tr><td colSpan={10} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}
               </tbody>
             </table>
           </div>
 
-          <div className="register-footer">
-            <div className="symbols-guide"><strong>دليل الرموز:</strong> ح = حاضر، غ = غائب، ت = متأخر، م = مستأذن</div>
-            <button className="btn primary register-save" onClick={saveRegister} disabled={!selectedClass || saving}>{saving ? "جارٍ حفظ السجل..." : "حفظ سجل المتابعة كاملًا"}</button>
-          </div>
-          {message && <p className="notice">{message}</p>}
+          <footer className="gradebook-footer">
+            <span>عدد الطلاب: {classStudents.length}</span>
+            <span>الاختباران مفعّلان ويمكن إدخال الدرجات مباشرة</span>
+            <span>أقصى مجموع: {maxTotal}</span>
+          </footer>
+          {message && <p className="gradebook-message">{message}</p>}
         </section>
       </div>
     </main>
