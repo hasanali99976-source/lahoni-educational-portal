@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import "./register.css";
 
-type GradeKey = "attendance" | "participation" | "homework" | "research" | "unitExam";
+type GradeKey = "attendance" | "participation" | "homework" | "unitExam";
 type GradeRecord = Record<GradeKey, number> & { notes: string };
 type Student = {
   id: string;
   name?: string;
   nationalId?: string;
   class?: string;
-  researchScore?: number;
-  researchUnit?: string;
   units?: Record<string, Partial<GradeRecord> & { exam1?: number; exam2?: number }>;
 };
 
@@ -29,7 +28,6 @@ const MAX_GRADES: Record<GradeKey, number> = {
   attendance: 1,
   participation: 2,
   homework: 2,
-  research: 5,
   unitExam: 14,
 };
 
@@ -37,17 +35,13 @@ const emptyGrade: GradeRecord = {
   attendance: 0,
   participation: 0,
   homework: 0,
-  research: 0,
   unitExam: 0,
   notes: "",
 };
 
 function formatHijriToday() {
   return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
   }).format(new Date());
 }
 
@@ -65,20 +59,13 @@ export default function GradesPage() {
     setStudents(list);
   }), []);
 
-  const classes = useMemo(
-    () => Array.from(new Set(students.map(s => (s.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")),
-    [students]
-  );
-  const classStudents = useMemo(
-    () => students.filter(s => (s.class || "").trim() === selectedClass),
-    [students, selectedClass]
-  );
+  const classes = useMemo(() => Array.from(new Set(students.map(s => (s.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
+  const classStudents = useMemo(() => students.filter(s => (s.class || "").trim() === selectedClass), [students, selectedClass]);
   const unitInfo = units.find(([value]) => value === selectedUnit) || units[0];
   const columns: Array<[GradeKey, string]> = [
     ["attendance", "الحضور"],
     ["participation", "المشاركة"],
     ["homework", "الواجبات"],
-    ["research", "البحث"],
     ["unitExam", unitInfo[2]],
   ];
 
@@ -86,18 +73,14 @@ export default function GradesPage() {
     const next: Record<string, GradeRecord> = {};
     classStudents.forEach(student => {
       const saved = student.units?.[selectedUnit] || {};
-      const sharedResearch = student.researchUnit === selectedUnit ? Number(student.researchScore || 0) : 0;
       next[student.id] = {
         ...emptyGrade,
         ...saved,
-        research: sharedResearch || Number(saved.research || 0),
         unitExam: Number(saved.unitExam ?? saved.exam1 ?? saved.exam2 ?? 0),
       };
     });
     setGrades(next);
   }, [classStudents, selectedUnit]);
-
-  const currentUnitMax = 19 + (grades && Object.values(grades).some(g => g.research > 0) ? 5 : 0);
 
   function updateGrade(studentId: string, key: GradeKey, raw: string) {
     const value = Math.max(0, Math.min(MAX_GRADES[key], Number(raw) || 0));
@@ -125,34 +108,19 @@ export default function GradesPage() {
       setMessage("");
       await Promise.all(classStudents.map(student => {
         const grade = grades[student.id] || emptyGrade;
-        const unitTotal = grade.attendance + grade.participation + grade.homework + grade.unitExam;
-        const total = unitTotal + grade.research;
-        const updates: Record<string, unknown> = {
+        const total = grade.attendance + grade.participation + grade.homework + grade.unitExam;
+        return updateDoc(doc(db, "students", student.id), {
           [`units.${selectedUnit}`]: {
             ...grade,
-            research: grade.research,
             total,
-            maximumTotal: grade.research > 0 ? 24 : 19,
-            percentage: Math.round((total / (grade.research > 0 ? 24 : 19)) * 1000) / 10,
+            maximumTotal: 19,
+            percentage: Math.round((total / 19) * 1000) / 10,
             maxGrades: MAX_GRADES,
             updatedAt: new Date().toISOString(),
           },
-        };
-
-        if (grade.research > 0) {
-          updates.researchScore = grade.research;
-          updates.researchUnit = selectedUnit;
-          units.forEach(([unitKey]) => {
-            if (unitKey !== selectedUnit) updates[`units.${unitKey}.research`] = 0;
-          });
-        } else if (student.researchUnit === selectedUnit) {
-          updates.researchScore = 0;
-          updates.researchUnit = "";
-        }
-
-        return updateDoc(doc(db, "students", student.id), updates);
+        });
       }));
-      setMessage(`تم حفظ درجات ${unitInfo[1]} — التوزيع النهائي للمادة ١٠٠ درجة`);
+      setMessage(`تم حفظ درجات ${unitInfo[1]} بنجاح — مجموع الوحدة ١٩ درجة`);
     } catch (error) {
       console.error(error);
       setMessage("تعذر الحفظ. تحقق من الاتصال وقواعد Firebase");
@@ -168,23 +136,16 @@ export default function GradesPage() {
       setSaving(true);
       setMessage("");
       setGrades(Object.fromEntries(classStudents.map(student => [student.id, { ...emptyGrade }])));
-      await Promise.all(classStudents.map(student => {
-        const updates: Record<string, unknown> = {
-          [`units.${selectedUnit}`]: {
-            ...emptyGrade,
-            total: 0,
-            maximumTotal: 19,
-            percentage: 0,
-            maxGrades: MAX_GRADES,
-            updatedAt: new Date().toISOString(),
-          },
-        };
-        if (student.researchUnit === selectedUnit) {
-          updates.researchScore = 0;
-          updates.researchUnit = "";
-        }
-        return updateDoc(doc(db, "students", student.id), updates);
-      }));
+      await Promise.all(classStudents.map(student => updateDoc(doc(db, "students", student.id), {
+        [`units.${selectedUnit}`]: {
+          ...emptyGrade,
+          total: 0,
+          maximumTotal: 19,
+          percentage: 0,
+          maxGrades: MAX_GRADES,
+          updatedAt: new Date().toISOString(),
+        },
+      })));
       setMessage(`تم حذف جميع درجات ${unitInfo[1]}`);
     } catch (error) {
       console.error(error);
@@ -200,27 +161,21 @@ export default function GradesPage() {
         <section className="gradebook-summary">
           <article className="school-info">
             <div className="school-badge">ت</div>
-            <div>
-              <strong>مدرسة التهذيب الثانوية</strong>
-              <span>مادة التاريخ — الصف الثاني الثانوي</span>
-              <b>الأستاذ حسن علي الطويل</b>
-            </div>
+            <div><strong>مدرسة التهذيب الثانوية</strong><span>مادة التاريخ — الصف الثاني الثانوي</span><b>الأستاذ حسن علي الطويل</b></div>
             <div className="hijri-today"><small>التاريخ الهجري</small><strong>{formatHijriToday()}</strong></div>
           </article>
           <article><span>عدد الطلاب</span><strong>{classStudents.length || students.length}</strong><small>طالب</small></article>
-          <article><span>درجة الوحدة</span><strong>{currentUnitMax}</strong><small>١٩ + البحث عند إضافته</small></article>
-          <article><span>المجموع النهائي</span><strong>١٠٠</strong><small>خمس وحدات + بحث واحد</small></article>
+          <article><span>درجة الوحدة</span><strong>١٩</strong><small>درجة ثابتة</small></article>
+          <article><span>المجموع النهائي</span><strong>١٠٠</strong><small>٩٥ للوحدات + ٥ للبحث</small></article>
         </section>
 
         <section className="gradebook-card">
           <header className="gradebook-head">
-            <div>
-              <h1>سجل رصد الدرجات — {unitInfo[1]}</h1>
-              <p>الحضور ١، المشاركة ٢، الواجبات ٢، اختبار الوحدة ١٤، والبحث ٥ مرة واحدة فقط.</p>
-            </div>
+            <div><h1>سجل رصد الدرجات — {unitInfo[1]}</h1><p>الحضور ١، المشاركة ٢، الواجبات ٢، اختبار الوحدة ١٤. البحث يُرصد مرة واحدة في صفحة مستقلة.</p></div>
             <div className="gradebook-actions">
               <label>الفصل<select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
               <label>الوحدة<select value={selectedUnit} onChange={e => setSelectedUnit(e.target.value)}>{units.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              <Link href="/teacher/research" className="research-link">🔬 رصد البحث</Link>
               <button type="button" className="save-button" onClick={saveRegister} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ"}</button>
               <button type="button" className="delete-all-button" onClick={clearAllGrades} disabled={!selectedClass || saving}>🗑 حذف الكل</button>
             </div>
@@ -229,44 +184,26 @@ export default function GradesPage() {
           <div className="gradebook-scroll">
             <table className="gradebook-table compact-five-table">
               <thead><tr>
-                <th className="sticky-number">م</th>
-                <th className="national-id-head">السجل المدني</th>
-                <th className="sticky-name">اسم الطالب</th>
-                {columns.map(([key, label]) => <th key={key} className={key === "unitExam" ? "exam-head" : ""}>
-                  <span>{label}</span>
-                  <div className="header-score-control">
-                    <input type="number" value={MAX_GRADES[key]} readOnly aria-label={`الدرجة القصوى لـ ${label}`} />
-                    <button type="button" onClick={() => applyGradeToAll(key)} title="تطبيق الدرجة على الجميع">✓</button>
-                  </div>
-                </th>)}
-                <th>المجموع<small>من ١٩ أو ٢٤</small></th>
-                <th className="notes-head">الملاحظات</th>
-                <th className="delete-head">حذف</th>
+                <th className="sticky-number">م</th><th className="national-id-head">السجل المدني</th><th className="sticky-name">اسم الطالب</th>
+                {columns.map(([key, label]) => <th key={key} className={key === "unitExam" ? "exam-head" : ""}><span>{label}</span><div className="header-score-control"><input type="number" value={MAX_GRADES[key]} readOnly/><button type="button" onClick={() => applyGradeToAll(key)} title="تطبيق الدرجة على الجميع">✓</button></div></th>)}
+                <th>المجموع<small>من ١٩</small></th><th className="notes-head">الملاحظات</th><th className="delete-head">حذف</th>
               </tr></thead>
               <tbody>
                 {classStudents.map((student, index) => {
                   const grade = grades[student.id] || emptyGrade;
-                  const total = grade.attendance + grade.participation + grade.homework + grade.research + grade.unitExam;
+                  const total = grade.attendance + grade.participation + grade.homework + grade.unitExam;
                   return <tr key={student.id}>
-                    <td className="sticky-number">{index + 1}</td>
-                    <td className="national-id-cell">{student.nationalId}</td>
-                    <td className="sticky-name"><strong>{student.name}</strong></td>
-                    {columns.map(([key]) => <td key={key} className={key === "unitExam" ? "exam-cell" : ""}><input className="grade-input" type="number" min="0" max={MAX_GRADES[key]} value={grade[key]} onChange={e => updateGrade(student.id, key, e.target.value)} /></td>)}
-                    <td className="student-total">{total}</td>
-                    <td><input className="notes-input" value={grade.notes || ""} onChange={e => setGrades(current => ({ ...current, [student.id]: { ...(current[student.id] || emptyGrade), notes: e.target.value } }))} placeholder="ملاحظة" /></td>
+                    <td className="sticky-number">{index + 1}</td><td className="national-id-cell">{student.nationalId}</td><td className="sticky-name"><strong>{student.name}</strong></td>
+                    {columns.map(([key]) => <td key={key} className={key === "unitExam" ? "exam-cell" : ""}><input className="grade-input" type="number" min="0" max={MAX_GRADES[key]} value={grade[key]} onChange={e => updateGrade(student.id, key, e.target.value)}/></td>)}
+                    <td className="student-total">{total}</td><td><input className="notes-input" value={grade.notes || ""} onChange={e => setGrades(current => ({ ...current, [student.id]: { ...(current[student.id] || emptyGrade), notes: e.target.value } }))} placeholder="ملاحظة"/></td>
                     <td><button className="row-delete-button" type="button" onClick={() => clearStudent(student.id)} title="تصفير درجات الطالب">🗑</button></td>
                   </tr>;
                 })}
-                {!selectedClass && <tr><td colSpan={11} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}
+                {!selectedClass && <tr><td colSpan={10} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}
               </tbody>
             </table>
           </div>
-
-          <footer className="gradebook-footer">
-            <span>الوحدة المختارة: {unitInfo[1]}</span>
-            <span>الاختبار الحالي: {unitInfo[2]} — ١٤ درجة</span>
-            <span>البحث: ٥ درجات ويُحتسب مرة واحدة فقط</span>
-          </footer>
+          <footer className="gradebook-footer"><span>الوحدة المختارة: {unitInfo[1]}</span><span>{unitInfo[2]} — ١٤ درجة</span><span>البحث مستقل — ٥ درجات مرة واحدة</span></footer>
           {message && <p className="gradebook-message">{message}</p>}
         </section>
       </div>
