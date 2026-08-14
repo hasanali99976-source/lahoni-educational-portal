@@ -1,5 +1,6 @@
 "use client";
 
+import "./dashboard.css";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
