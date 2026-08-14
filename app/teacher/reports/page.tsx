@@ -3,27 +3,206 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
+import "./reports.css";
 
-type Student={id:string;name?:string;class?:string;nationalId?:string;total?:number;percentage?:number};
+type UnitRecord = {
+  attendance?: number;
+  participation?: number;
+  homework?: number;
+  unitExam?: number;
+  total?: number;
+};
 
-export default function ReportsPage(){
-  const [students,setStudents]=useState<Student[]>([]);
-  const [selected,setSelected]=useState("");
-  useEffect(()=>onSnapshot(collection(db,"students"),snap=>setStudents(snap.docs.map(d=>({id:d.id,...d.data()})) as Student[])),[]);
-  const values=students.map(s=>Number(s.percentage??s.total??0));
-  const average=values.length?Math.round(values.reduce((a,b)=>a+b,0)/values.length):0;
-  const highest=values.length?Math.max(...values):0;
-  const distribution=useMemo(()=>[
-    {label:"ممتاز",count:values.filter(v=>v>=90).length},
-    {label:"جيد جدًا",count:values.filter(v=>v>=80&&v<90).length},
-    {label:"جيد",count:values.filter(v=>v>=70&&v<80).length},
-    {label:"مقبول",count:values.filter(v=>v>=60&&v<70).length},
-    {label:"أقل من 60",count:values.filter(v=>v<60).length},
-  ],[students]);
-  const student=students.find(s=>s.id===selected);
-  return <main className="shell dashboard"><div className="container">
-    <section className="cards report-cards"><div className="card"><h3>عدد الطلاب</h3><strong>{students.length}</strong></div><div className="card"><h3>متوسط الدرجات</h3><strong>{average}%</strong></div><div className="card"><h3>أعلى درجة</h3><strong>{highest}%</strong></div></section>
-    <section className="card" style={{marginTop:18}}><h1>توزيع الدرجات</h1>{distribution.map(item=><div className="distribution-row" key={item.label}><span>{item.label}</span><div className="bar"><i style={{width:`${students.length?item.count/students.length*100:0}%`}}/></div><strong>{item.count}</strong></div>)}</section>
-    <section className="card" style={{marginTop:18}}><h2>ملخص طالب</h2><select className="field" value={selected} onChange={e=>setSelected(e.target.value)}><option value="">اختر الطالب</option>{students.map(s=><option key={s.id} value={s.id}>{s.name} — {s.class}</option>)}</select>{student&&<div className="student-summary"><p><b>الاسم:</b> {student.name}</p><p><b>الهوية:</b> {student.nationalId}</p><p><b>الفصل:</b> {student.class}</p><p><b>النسبة:</b> {student.percentage??student.total??0}%</p></div>}<button className="btn secondary" onClick={()=>window.print()}>طباعة التقرير</button></section>
-  </div></main>
+type Student = {
+  id: string;
+  name?: string;
+  class?: string;
+  nationalId?: string;
+  researchScore?: number;
+  units?: Record<string, UnitRecord>;
+};
+
+type AttendanceDoc = {
+  records?: Record<string, "present" | "absent" | "late" | "excused">;
+};
+
+const units = [
+  ["unit1", "الوحدة الأولى"],
+  ["unit2", "الوحدة الثانية"],
+  ["unit3", "الوحدة الثالثة"],
+  ["unit4", "الوحدة الرابعة"],
+  ["unit5", "الوحدة الخامسة"],
+] as const;
+
+export default function ReportsPage() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [attendanceDocs, setAttendanceDocs] = useState<AttendanceDoc[]>([]);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+
+  useEffect(() => onSnapshot(collection(db, "students"), snapshot => {
+    const list = snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[];
+    list.sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"));
+    setStudents(list);
+  }), []);
+
+  useEffect(() => onSnapshot(collection(db, "attendance"), snapshot => {
+    setAttendanceDocs(snapshot.docs.map(item => item.data() as AttendanceDoc));
+  }), []);
+
+  const classes = useMemo(
+    () => Array.from(new Set(students.map(student => (student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")),
+    [students]
+  );
+
+  const classStudents = useMemo(
+    () => selectedClass ? students.filter(student => (student.class || "").trim() === selectedClass) : students,
+    [students, selectedClass]
+  );
+
+  useEffect(() => {
+    if (!classStudents.some(student => student.id === selectedStudent)) {
+      setSelectedStudent(classStudents[0]?.id || "");
+    }
+  }, [classStudents, selectedStudent]);
+
+  const student = classStudents.find(item => item.id === selectedStudent);
+
+  const unitRows = useMemo(() => units.map(([key, label]) => {
+    const record = student?.units?.[key] || {};
+    const attendance = Number(record.attendance || 0);
+    const participation = Number(record.participation || 0);
+    const homework = Number(record.homework || 0);
+    const unitExam = Number(record.unitExam || 0);
+    const total = Number(record.total ?? attendance + participation + homework + unitExam);
+    return { key, label, attendance, participation, homework, unitExam, total };
+  }), [student]);
+
+  const research = Number(student?.researchScore || 0);
+  const finalTotal = unitRows.reduce((sum, unit) => sum + unit.total, 0) + research;
+
+  const attendanceSummary = useMemo(() => {
+    const result = { present: 0, absent: 0, late: 0, excused: 0 };
+    if (!student) return result;
+    attendanceDocs.forEach(document => {
+      const status = document.records?.[student.id];
+      if (status) result[status] += 1;
+    });
+    return result;
+  }, [attendanceDocs, student]);
+
+  const recordedDays = Object.values(attendanceSummary).reduce((sum, value) => sum + value, 0);
+  const attendanceRate = recordedDays ? Math.round((attendanceSummary.present / recordedDays) * 100) : 0;
+  const initial = (student?.name || "ط").trim().charAt(0);
+
+  return (
+    <main className="student-report-page" dir="rtl">
+      <div className="student-report-wrap">
+        <section className="report-selector-card">
+          <div>
+            <h1>ملخص الطالب</h1>
+            <p>عرض شامل لدرجات الوحدات والبحث وسجل الحضور.</p>
+          </div>
+          <div className="report-selectors">
+            <label>الفصل
+              <select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}>
+                <option value="">جميع الفصول</option>
+                {classes.map(className => <option key={className}>{className}</option>)}
+              </select>
+            </label>
+            <label>الطالب
+              <select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}>
+                <option value="">اختر الطالب</option>
+                {classStudents.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </label>
+            <button type="button" onClick={() => window.print()}>طباعة التقرير</button>
+          </div>
+        </section>
+
+        {!student ? (
+          <section className="report-empty">اختر طالبًا لعرض الملخص.</section>
+        ) : (
+          <>
+            <section className="student-hero-card">
+              <div className="student-main-info">
+                <div className="student-avatar">{initial}</div>
+                <div>
+                  <small>اسم الطالب</small>
+                  <h2>{student.name}</h2>
+                  <p>{student.class || "غير محدد"} • السجل المدني: {student.nationalId || "—"}</p>
+                </div>
+              </div>
+              <div className="final-score-box">
+                <span>المجموع النهائي</span>
+                <strong>{finalTotal}</strong>
+                <small>من ١٠٠ درجة</small>
+              </div>
+            </section>
+
+            <section className="unit-score-grid">
+              {unitRows.map(unit => (
+                <article key={unit.key}>
+                  <span>{unit.label}</span>
+                  <strong>{unit.total}</strong>
+                  <small>من ١٩</small>
+                </article>
+              ))}
+              <article className="research-score-card">
+                <span>البحث</span>
+                <strong>{research}</strong>
+                <small>من ٥</small>
+              </article>
+            </section>
+
+            <section className="attendance-summary-grid">
+              <article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong><small>يوم</small></article>
+              <article><span>مرات التأخر</span><strong>{attendanceSummary.late}</strong><small>مرة</small></article>
+              <article><span>مرات الاستئذان</span><strong>{attendanceSummary.excused}</strong><small>مرة</small></article>
+              <article><span>نسبة الحضور</span><strong>{attendanceRate}%</strong><small>من الأيام المسجلة</small></article>
+            </section>
+
+            <section className="unit-details-card">
+              <header>
+                <div>
+                  <h2>ملخص درجات الوحدات الخمس</h2>
+                  <p>تفصيل مباشر لجميع عناصر الرصد.</p>
+                </div>
+              </header>
+              <div className="unit-table-scroll">
+                <table className="unit-details-table">
+                  <thead>
+                    <tr>
+                      <th>الوحدة</th>
+                      <th>الحضور<br/><small>من ١</small></th>
+                      <th>المشاركة<br/><small>من ٢</small></th>
+                      <th>الواجبات<br/><small>من ٢</small></th>
+                      <th>اختبار الوحدة<br/><small>من ١٤</small></th>
+                      <th>مجموع الوحدة<br/><small>من ١٩</small></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {unitRows.map(unit => (
+                      <tr key={unit.key}>
+                        <td><strong>{unit.label}</strong></td>
+                        <td>{unit.attendance}</td>
+                        <td>{unit.participation}</td>
+                        <td>{unit.homework}</td>
+                        <td>{unit.unitExam}</td>
+                        <td><b>{unit.total}</b></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr><td colSpan={5}>درجة البحث</td><td>{research} / ٥</td></tr>
+                    <tr className="final-row"><td colSpan={5}>المجموع النهائي</td><td>{finalTotal} / ١٠٠</td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </main>
+  );
 }
