@@ -37,7 +37,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="shell home-login-page" dir="rtl">
+    <main className="shell home-login-page" dir="rtl" data-version="v2-unified-login">
       <section className="hero">
         <div className="container portal-card unified-portal">
           <div className="portal-image-wrap">
@@ -54,17 +54,17 @@ export default function HomePage() {
 
           <section className="unified-login-card">
             <div className="login-heading">
-              <span>بوابة التهذيب التعليمية</span>
+              <span>الدخول الموحد — النسخة الجديدة</span>
               <h1>مرحبًا بك</h1>
               <p>اختر نوع الدخول ثم أدخل بياناتك</p>
             </div>
 
             <div className="login-mode-tabs">
-              <button className={mode === "student" ? "active" : ""} onClick={() => changeMode("student")}>
+              <button type="button" className={mode === "student" ? "active" : ""} onClick={() => changeMode("student")}>
                 <span>👨‍🎓</span>
                 طالب / ولي أمر
               </button>
-              <button className={mode === "teacher" ? "active" : ""} onClick={() => changeMode("teacher")}>
+              <button type="button" className={mode === "teacher" ? "active" : ""} onClick={() => changeMode("teacher")}>
                 <span>👨‍🏫</span>
                 معلم
               </button>
@@ -75,7 +75,7 @@ export default function HomePage() {
               <input
                 className="unified-login-input"
                 type={mode === "teacher" ? "password" : "text"}
-                inputMode={mode === "teacher" ? "numeric" : "numeric"}
+                inputMode="numeric"
                 value={value}
                 onChange={(event) => {
                   const next = event.target.value.replace(/\D/g, "");
@@ -88,7 +88,7 @@ export default function HomePage() {
             </label>
 
             {error && <p className="login-error">{error}</p>}
-            <button className="unified-login-button" onClick={submit}>دخول إلى البوابة</button>
+            <button type="button" className="unified-login-button" onClick={submit}>دخول إلى البوابة</button>
 
             <div className="login-help">
               <span>🔒 بياناتك محمية</span>
