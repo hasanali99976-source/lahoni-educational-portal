@@ -7,8 +7,8 @@ import "./teacher-shell.css";
 
 const tabs = [
   { href: "/teacher/grades", icon: "📝", label: "رصد الدرجات" },
-  { href: "/teacher/attendance", icon: "📅", label: "التحضير اليومي" },
   { href: "/teacher/research", icon: "🔎", label: "رصد البحث" },
+  { href: "/teacher/attendance", icon: "📅", label: "التحضير اليومي" },
   { href: "/teacher/reports", icon: "📊", label: "ملخص الطالب" },
   { href: "/teacher/students", icon: "👥", label: "إدارة الطلاب" },
 ];
