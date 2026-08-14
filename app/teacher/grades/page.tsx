@@ -53,6 +53,17 @@ function getWeekDates(start: string) {
   });
 }
 
+function formatHijriDate(value: string, withWeekday = false) {
+  if (!value) return "";
+  const date = new Date(`${value}T12:00:00`);
+  return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab", {
+    weekday: withWeekday ? "long" : undefined,
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 function safeId(value: string) {
   return encodeURIComponent(value).replace(/%/g, "_");
 }
@@ -77,6 +88,7 @@ export default function GradesPage() {
   const classes = useMemo(() => Array.from(new Set(students.map(student => (student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
   const classStudents = useMemo(() => students.filter(student => (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
+  const hijriWeekLabel = useMemo(() => formatHijriDate(weekStart, true), [weekStart]);
 
   useEffect(() => {
     const next: Record<string, GradeRecord> = {};
@@ -117,16 +129,6 @@ export default function GradesPage() {
     }));
   }
 
-  function setAllForDay(date: string, status: AttendanceStatus) {
-    setAttendance(current => {
-      const next = { ...current };
-      classStudents.forEach(student => {
-        next[student.id] = { ...(next[student.id] || {}), [date]: status };
-      });
-      return next;
-    });
-  }
-
   function updateGrade(studentId: string, key: keyof Omit<GradeRecord, "notes">, raw: string) {
     const maximum = maxGrades[key];
     const parsed = Number(raw);
@@ -135,6 +137,17 @@ export default function GradesPage() {
       ...current,
       [studentId]: { ...(current[studentId] || emptyGrade), [key]: value },
     }));
+  }
+
+  function applyGradeToAll(key: keyof Omit<GradeRecord, "notes">) {
+    const value = maxGrades[key];
+    setGrades(current => {
+      const next = { ...current };
+      classStudents.forEach(student => {
+        next[student.id] = { ...(next[student.id] || emptyGrade), [key]: value };
+      });
+      return next;
+    });
   }
 
   function updateNotes(studentId: string, notes: string) {
@@ -164,6 +177,7 @@ export default function GradesPage() {
         return setDoc(doc(db, "attendance", `${safeId(selectedClass)}_${date}`), {
           class: selectedClass,
           date,
+          hijriDate: formatHijriDate(date),
           records,
           updatedAt: new Date().toISOString(),
         }, { merge: true });
@@ -205,7 +219,7 @@ export default function GradesPage() {
         <section className="card register-controls">
           <label>الفصل<select className="compact-field" value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className}>{className}</option>)}</select></label>
           <label>الوحدة<select className="compact-field" value={selectedUnit} onChange={event => setSelectedUnit(event.target.value)}>{units.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label>بداية الأسبوع<input className="compact-field" type="date" value={weekStart} onChange={event => setWeekStart(event.target.value)} /></label>
+          <label className="hijri-date-control">بداية الأسبوع (هجري)<span className="hijri-date-display">{hijriWeekLabel}</span><input className="compact-field date-trigger" type="date" value={weekStart} onChange={event => setWeekStart(event.target.value)} aria-label="تغيير بداية الأسبوع" /></label>
           <div className="compact-stat">عدد الطلاب: <strong>{classStudents.length}</strong></div>
         </section>
 
@@ -224,8 +238,7 @@ export default function GradesPage() {
                   {weekDates.map((date, index) => (
                     <th key={date} className="day-head">
                       <span>{dayLabels[index]}</span>
-                      <small>{date.slice(5)}</small>
-                      <button type="button" onClick={() => setAllForDay(date, "present")}>✓ الكل</button>
+                      <small>{formatHijriDate(date)}</small>
                     </th>
                   ))}
                   {([
@@ -238,6 +251,7 @@ export default function GradesPage() {
                     <th key={key} className="score-head">
                       <span>{label}</span>
                       <input type="number" min="0" value={maxGrades[key]} onChange={event => setMaxGrades(current => ({ ...current, [key]: Math.max(0, Number(event.target.value) || 0) }))} />
+                      <button type="button" className="apply-all-grade" onClick={() => applyGradeToAll(key)} title={`تطبيق الدرجة على جميع الطلاب في ${label}`}>✓ الكل</button>
                     </th>
                   ))}
                   <th>المجموع<br /><small>/{maxTotal}</small></th>
