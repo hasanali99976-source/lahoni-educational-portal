@@ -1,0 +1,1 @@
+.teacher-tabs{grid-template-columns:repeat(6,minmax(108px,1fr))}@media(max-width:1250px){.teacher-tabs{grid-template-columns:repeat(6,minmax(140px,1fr))}}@media(max-width:760px){.teacher-tabs{grid-template-columns:repeat(6,minmax(104px,1fr))}}@media(max-width:480px){.teacher-tabs{grid-template-columns:repeat(6,minmax(92px,1fr))}}
