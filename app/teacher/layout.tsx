@@ -80,6 +80,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <div className="teacher-welcome-points"><span>✓ واجهة سريعة</span><span>✓ بيانات منظمة</span><span>✓ تقارير فورية</span></div>
         </div>
         <img src="/students-learning.svg" alt="طلاب يتعلمون داخل بيئة مدرسية" />
+        <small className="teacher-prepared-by">إعداد / الأستاذ حسن علي الطويل</small>
       </section>
 
       <div className="teacher-page-content">{children}</div>
