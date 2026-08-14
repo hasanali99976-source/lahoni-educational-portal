@@ -8,14 +8,6 @@ import "./attendance.css";
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 type Student = { id: string; name?: string; nationalId?: string; class?: string };
 
-const units = [
-  ["unit1", "الوحدة الأولى"],
-  ["unit2", "الوحدة الثانية"],
-  ["unit3", "الوحدة الثالثة"],
-  ["unit4", "الوحدة الرابعة"],
-  ["unit5", "الوحدة الخامسة"],
-] as const;
-
 function toDateInput(date: Date) {
   const offset = date.getTimezoneOffset();
   return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 10);
@@ -37,7 +29,6 @@ function safeId(value: string) {
 export default function AttendancePage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
-  const [selectedUnit, setSelectedUnit] = useState("unit1");
   const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
   const [records, setRecords] = useState<Record<string, AttendanceStatus>>({});
   const [message, setMessage] = useState("");
@@ -95,7 +86,6 @@ export default function AttendancePage() {
       setMessage("");
       await setDoc(doc(db, "attendance", `${safeId(selectedClass)}_${selectedDate}`), {
         class: selectedClass,
-        unit: selectedUnit,
         date: selectedDate,
         hijriDate: formatHijri(selectedDate),
         records,
@@ -116,7 +106,7 @@ export default function AttendancePage() {
         <header className="attendance-head">
           <div>
             <h1>التحضير اليومي</h1>
-            <p>يُحفظ غياب كل طالب بالتاريخ ويظهر تلقائيًا في تقريره وواجهة ولي الأمر.</p>
+            <p>التحضير مرتبط بالفصل والتاريخ فقط، ويظهر الغياب تلقائيًا في تقرير الطالب وواجهة ولي الأمر.</p>
           </div>
           <div className="hijri-card">
             <small>التاريخ الهجري</small>
@@ -131,7 +121,6 @@ export default function AttendancePage() {
 
         <div className="attendance-controls">
           <label>الفصل<select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
-          <label>الوحدة<select value={selectedUnit} onChange={e => setSelectedUnit(e.target.value)}>{units.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>التاريخ<input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></label>
           <button onClick={saveAttendance} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
         </div>
