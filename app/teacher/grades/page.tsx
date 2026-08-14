@@ -1,395 +1,150 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 
-type UnitGrade = {
-  attendance: number;
-  participation: number;
-  research: number;
-  test: number;
-};
+type UnitGrade = { participation:number; research:number; test:number };
+type Student = { id:string; name?:string; nationalId?:string; class?:string; units?:Record<string,UnitGrade> };
+type AttendanceStatus = "present" | "absent" | "late" | "excused";
 
-type Student = {
-  id: string;
-  name?: string;
-  nationalId?: string;
-  class?: string;
-  units?: Record<string, UnitGrade>;
-};
+const units = [
+  ["unit1","الوحدة الأولى"],
+  ["unit2","الوحدة الثانية"],
+  ["unit3","الوحدة الثالثة"],
+  ["unit4","الوحدة الرابعة"],
+  ["unit5","الوحدة الخامسة"],
+] as const;
 
-const unitOptions = [
-  { value: "unit1", label: "الوحدة الأولى" },
-  { value: "unit2", label: "الوحدة الثانية" },
-  { value: "unit3", label: "الوحدة الثالثة" },
-  { value: "unit4", label: "الوحدة الرابعة" },
-  { value: "unit5", label: "الوحدة الخامسة" },
-];
+const emptyGrade:UnitGrade = { participation:0, research:0, test:0 };
+const today = new Date().toISOString().slice(0,10);
+const safeId = (value:string) => encodeURIComponent(value).replace(/%/g,"_");
 
-const emptyGrade: UnitGrade = {
-  attendance: 0,
-  participation: 0,
-  research: 0,
-  test: 0,
-};
+export default function GradesPage(){
+  const [students,setStudents]=useState<Student[]>([]);
+  const [selectedClass,setSelectedClass]=useState("");
+  const [selectedUnit,setSelectedUnit]=useState("unit1");
+  const [date,setDate]=useState(today);
+  const [attendance,setAttendance]=useState<Record<string,AttendanceStatus>>({});
+  const [grades,setGrades]=useState<Record<string,UnitGrade>>({});
+  const [maxGrades,setMaxGrades]=useState<UnitGrade>({participation:5,research:5,test:10});
+  const [savingAttendance,setSavingAttendance]=useState(false);
+  const [savingGrades,setSavingGrades]=useState(false);
+  const [message,setMessage]=useState("");
 
-export default function GradesPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedUnit, setSelectedUnit] = useState("unit1");
-  const [grades, setGrades] = useState<Record<string, UnitGrade>>({});
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  useEffect(()=>onSnapshot(collection(db,"students"),snap=>{
+    const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];
+    list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
+    setStudents(list);
+  }),[]);
 
-  const [maxGrades, setMaxGrades] = useState<UnitGrade>({
-    attendance: 10,
-    participation: 5,
-    research: 5,
-    test: 10,
-  });
+  const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
+  const classStudents=useMemo(()=>students.filter(s=>(s.class||"").trim()===selectedClass),[students,selectedClass]);
 
-  useEffect(
-    () =>
-      onSnapshot(collection(db, "students"), (snapshot) => {
-        const list = snapshot.docs.map((item) => ({
-          id: item.id,
-          ...item.data(),
-        })) as Student[];
+  useEffect(()=>{
+    const next:Record<string,UnitGrade>={};
+    classStudents.forEach(student=>{ next[student.id]={...emptyGrade,...(student.units?.[selectedUnit]||{})}; });
+    setGrades(next);
+  },[classStudents,selectedUnit]);
 
-        list.sort((a, b) =>
-          (a.name || "").localeCompare(b.name || "", "ar")
-        );
-        setStudents(list);
-      }),
-    []
-  );
-
-  const classes = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          students
-            .map((student) => (student.class || "").trim())
-            .filter(Boolean)
-        )
-      ).sort((a, b) => a.localeCompare(b, "ar")),
-    [students]
-  );
-
-  const classStudents = useMemo(
-    () =>
-      students.filter(
-        (student) => (student.class || "").trim() === selectedClass
-      ),
-    [students, selectedClass]
-  );
-
-  useEffect(() => {
-    const nextGrades: Record<string, UnitGrade> = {};
-
-    for (const student of classStudents) {
-      nextGrades[student.id] = {
-        ...emptyGrade,
-        ...(student.units?.[selectedUnit] || {}),
-      };
+  useEffect(()=>{
+    async function loadAttendance(){
+      if(!selectedClass||!date){setAttendance({});return;}
+      const ref=doc(db,"attendance",`${safeId(selectedClass)}_${date}`);
+      const snap=await getDoc(ref);
+      const saved=(snap.data()?.records||{}) as Record<string,AttendanceStatus>;
+      const next:Record<string,AttendanceStatus>={};
+      classStudents.forEach(student=>{next[student.id]=saved[student.id]||"present";});
+      setAttendance(next);
     }
+    loadAttendance().catch(()=>setMessage("تعذر تحميل تحضير هذا اليوم"));
+  },[selectedClass,date,classStudents]);
 
-    setGrades(nextGrades);
-    setMessage("");
-  }, [classStudents, selectedUnit]);
-
-  function setStudentGrade(
-    studentId: string,
-    key: keyof UnitGrade,
-    rawValue: string
-  ) {
-    const maximum = maxGrades[key];
-    const parsed = Number(rawValue);
-    const value = Number.isFinite(parsed)
-      ? Math.max(0, Math.min(maximum, parsed))
-      : 0;
-
-    setGrades((current) => ({
-      ...current,
-      [studentId]: {
-        ...(current[studentId] || emptyGrade),
-        [key]: value,
-      },
-    }));
+  function setAllAttendance(status:AttendanceStatus){
+    const next:Record<string,AttendanceStatus>={};
+    classStudents.forEach(student=>{next[student.id]=status;});
+    setAttendance(next);
   }
 
-  function setMaximum(key: keyof UnitGrade, rawValue: string) {
-    const parsed = Number(rawValue);
-    const value = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+  async function saveAttendance(){
+    if(!selectedClass){setMessage("اختر الفصل أولًا");return;}
+    try{
+      setSavingAttendance(true);setMessage("");
+      await setDoc(doc(db,"attendance",`${safeId(selectedClass)}_${date}`),{
+        class:selectedClass,date,records:attendance,updatedAt:new Date().toISOString()
+      },{merge:true});
+      setMessage(`تم حفظ تحضير ${selectedClass} ليوم ${date}`);
+    }catch{setMessage("تعذر حفظ التحضير");}
+    finally{setSavingAttendance(false);}
+  }
 
-    setMaxGrades((current) => ({
-      ...current,
-      [key]: value,
-    }));
+  function setGrade(studentId:string,key:keyof UnitGrade,raw:string){
+    const parsed=Number(raw); const value=Number.isFinite(parsed)?Math.max(0,Math.min(maxGrades[key],parsed)):0;
+    setGrades(current=>({...current,[studentId]:{...(current[studentId]||emptyGrade),[key]:value}}));
+  }
 
-    setGrades((current) => {
-      const next: Record<string, UnitGrade> = {};
-      for (const [studentId, grade] of Object.entries(current)) {
-        next[studentId] = {
-          ...grade,
-          [key]: Math.min(grade[key], value),
-        };
-      }
+  function setMaximum(key:keyof UnitGrade,raw:string){
+    const parsed=Number(raw); const value=Number.isFinite(parsed)?Math.max(0,parsed):0;
+    setMaxGrades(current=>({...current,[key]:value}));
+  }
+
+  function fillColumn(key:keyof UnitGrade){
+    setGrades(current=>{
+      const next={...current};
+      classStudents.forEach(student=>{next[student.id]={...(next[student.id]||emptyGrade),[key]:maxGrades[key]};});
       return next;
     });
   }
 
-  function giveFullGrade(key: keyof UnitGrade) {
-    setGrades((current) => {
-      const next = { ...current };
-      for (const student of classStudents) {
-        next[student.id] = {
-          ...(next[student.id] || emptyGrade),
-          [key]: maxGrades[key],
-        };
-      }
-      return next;
-    });
+  const maxTotal=maxGrades.participation+maxGrades.research+maxGrades.test;
+
+  async function saveGrades(){
+    if(!selectedClass){setMessage("اختر الفصل أولًا");return;}
+    try{
+      setSavingGrades(true);setMessage("");
+      await Promise.all(classStudents.map(student=>{
+        const grade=grades[student.id]||emptyGrade;
+        const total=grade.participation+grade.research+grade.test;
+        const percentage=maxTotal?Math.round((total/maxTotal)*1000)/10:0;
+        return updateDoc(doc(db,"students",student.id),{
+          [`units.${selectedUnit}`]:{...grade,total,maximumTotal:maxTotal,percentage,maxGrades}
+        });
+      }));
+      setMessage("تم حفظ درجات الفصل");
+    }catch{setMessage("تعذر حفظ الدرجات");}
+    finally{setSavingGrades(false);}
   }
 
-  function totalFor(grade: UnitGrade) {
-    return (
-      grade.attendance +
-      grade.participation +
-      grade.research +
-      grade.test
-    );
-  }
-
-  const maximumTotal =
-    maxGrades.attendance +
-    maxGrades.participation +
-    maxGrades.research +
-    maxGrades.test;
-
-  async function saveAll() {
-    if (!selectedClass) {
-      setMessage("اختر الفصل أولًا");
-      return;
-    }
-
-    if (!classStudents.length) {
-      setMessage("لا يوجد طلاب في هذا الفصل");
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setMessage("");
-
-      await Promise.all(
-        classStudents.map((student) => {
-          const grade = grades[student.id] || emptyGrade;
-          const total = totalFor(grade);
-          const percentage = maximumTotal
-            ? Math.round((total / maximumTotal) * 1000) / 10
-            : 0;
-
-          return updateDoc(doc(db, "students", student.id), {
-            [`units.${selectedUnit}`]: {
-              ...grade,
-              total,
-              maximumTotal,
-              percentage,
-              maxGrades,
-            },
-          });
-        })
-      );
-
-      setMessage(
-        `تم حفظ درجات ${unitOptions.find((u) => u.value === selectedUnit)?.label} للفصل ${selectedClass}`
-      );
-    } catch (error) {
-      console.error(error);
-      setMessage("تعذر حفظ الدرجات. تحقق من الاتصال وقواعد Firebase");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <main className="shell dashboard">
-      <div className="container">
-        <section className="card">
-          <h1>رصد الدرجات</h1>
-          <p>اختر الفصل والوحدة، ثم أدخل درجات الطلاب.</p>
-
-          <div className="form-grid">
-            <label>
-              الفصل
-              <select
-                className="field"
-                value={selectedClass}
-                onChange={(event) => setSelectedClass(event.target.value)}
-              >
-                <option value="">اختر الفصل</option>
-                {classes.map((className) => (
-                  <option key={className} value={className}>
-                    {className}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              الوحدة
-              <select
-                className="field"
-                value={selectedUnit}
-                onChange={(event) => setSelectedUnit(event.target.value)}
-              >
-                {unitOptions.map((unit) => (
-                  <option key={unit.value} value={unit.value}>
-                    {unit.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="summary-box">
-              <strong>عدد الطلاب: {classStudents.length}</strong>
-              <span>المجموع الأعلى: {maximumTotal}</span>
-            </div>
-          </div>
-        </section>
-
-        <section className="card" style={{ marginTop: 18 }}>
-          <h2>تحديد أعلى درجة</h2>
-          <div className="grade-grid">
-            {(
-              [
-                ["attendance", "الحضور"],
-                ["participation", "المشاركة"],
-                ["research", "البحث"],
-                ["test", "الاختبار"],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key}>
-                {label}
-                <input
-                  className="field"
-                  type="number"
-                  min="0"
-                  value={maxGrades[key]}
-                  onChange={(event) => setMaximum(key, event.target.value)}
-                />
-                <button
-                  type="button"
-                  className="small-btn edit"
-                  onClick={() => giveFullGrade(key)}
-                  disabled={!selectedClass}
-                >
-                  إعطاء الدرجة كاملة للجميع
-                </button>
-              </label>
-            ))}
-          </div>
-        </section>
-
-        <section className="card" style={{ marginTop: 18 }}>
-          <div className="toolbar">
-            <div>
-              <h2>
-                {selectedClass || "لم يتم اختيار فصل"} — {" "}
-                {unitOptions.find((unit) => unit.value === selectedUnit)?.label}
-              </h2>
-              <p>الطلاب مرتّبون أبجديًا.</p>
-            </div>
-          </div>
-
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>اسم الطالب</th>
-                  <th>الحضور / {maxGrades.attendance}</th>
-                  <th>المشاركة / {maxGrades.participation}</th>
-                  <th>البحث / {maxGrades.research}</th>
-                  <th>الاختبار / {maxGrades.test}</th>
-                  <th>المجموع / {maximumTotal}</th>
-                  <th>النسبة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classStudents.map((student, index) => {
-                  const grade = grades[student.id] || emptyGrade;
-                  const total = totalFor(grade);
-                  const percentage = maximumTotal
-                    ? Math.round((total / maximumTotal) * 1000) / 10
-                    : 0;
-
-                  return (
-                    <tr key={student.id}>
-                      <td>{index + 1}</td>
-                      <td>{student.name}</td>
-                      {(
-                        [
-                          "attendance",
-                          "participation",
-                          "research",
-                          "test",
-                        ] as const
-                      ).map((key) => (
-                        <td key={key}>
-                          <input
-                            className="grade-input"
-                            type="number"
-                            min="0"
-                            max={maxGrades[key]}
-                            value={grade[key]}
-                            onChange={(event) =>
-                              setStudentGrade(
-                                student.id,
-                                key,
-                                event.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      ))}
-                      <td>
-                        <strong>{total}</strong>
-                      </td>
-                      <td>{percentage}%</td>
-                    </tr>
-                  );
-                })}
-
-                {!selectedClass && (
-                  <tr>
-                    <td colSpan={8}>اختر الفصل لعرض الطلاب</td>
-                  </tr>
-                )}
-
-                {selectedClass && !classStudents.length && (
-                  <tr>
-                    <td colSpan={8}>لا يوجد طلاب في هذا الفصل</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <button
-            className="btn primary"
-            style={{ marginTop: 18, width: "100%" }}
-            onClick={saveAll}
-            disabled={saving || !selectedClass}
-          >
-            {saving ? "جارٍ حفظ الدرجات..." : "حفظ درجات الفصل"}
-          </button>
-
-          {message && <p className="notice">{message}</p>}
-        </section>
+  return <main className="shell dashboard"><div className="container">
+    <section className="card compact-card">
+      <h1>التحضير ورصد الدرجات</h1>
+      <div className="compact-controls">
+        <label>الفصل<select className="compact-field" value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(c=><option key={c}>{c}</option>)}</select></label>
+        <label>الوحدة<select className="compact-field" value={selectedUnit} onChange={e=>setSelectedUnit(e.target.value)}>{units.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
+        <label>التاريخ<input className="compact-field" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>
+        <div className="compact-stat">عدد الطلاب: <strong>{classStudents.length}</strong></div>
       </div>
-    </main>
-  );
+      {message&&<p className="notice">{message}</p>}
+    </section>
+
+    <section className="card compact-card" style={{marginTop:14}}>
+      <div className="section-head"><div><h2>التحضير اليومي</h2><p>كل تاريخ يُحفظ مستقلاً ويمكن الرجوع إليه لاحقًا.</p></div><div className="quick-actions"><button className="tiny-btn" onClick={()=>setAllAttendance("present")}>حاضر للجميع</button><button className="tiny-btn" onClick={()=>setAllAttendance("absent")}>غائب للجميع</button></div></div>
+      <div className="table-wrap"><table className="compact-table"><thead><tr><th>#</th><th>اسم الطالب</th><th>حالة اليوم</th></tr></thead><tbody>
+        {classStudents.map((student,index)=><tr key={student.id}><td>{index+1}</td><td>{student.name}</td><td><select className="status-select" value={attendance[student.id]||"present"} onChange={e=>setAttendance(current=>({...current,[student.id]:e.target.value as AttendanceStatus}))}><option value="present">حاضر</option><option value="absent">غائب</option><option value="late">متأخر</option><option value="excused">مستأذن</option></select></td></tr>)}
+        {!selectedClass&&<tr><td colSpan={3}>اختر الفصل لعرض الطلاب</td></tr>}
+      </tbody></table></div>
+      <button className="btn primary compact-save" onClick={saveAttendance} disabled={!selectedClass||savingAttendance}>{savingAttendance?"جارٍ حفظ التحضير...":"حفظ تحضير اليوم"}</button>
+    </section>
+
+    <section className="card compact-card" style={{marginTop:14}}>
+      <div className="section-head"><div><h2>رصد الدرجات</h2><p>أعلى درجة موجودة في رأس كل عمود ويمكن تعديلها.</p></div><strong>المجموع الأعلى: {maxTotal}</strong></div>
+      <div className="table-wrap"><table className="compact-table grades-table"><thead><tr><th>#</th><th>اسم الطالب</th>
+        {([['participation','المشاركة'],['research','البحث'],['test','الاختبار']] as const).map(([key,label])=><th key={key}><span>{label}</span><div className="header-grade"><input type="number" min="0" value={maxGrades[key]} onChange={e=>setMaximum(key,e.target.value)}/><button title="تطبيق الدرجة الكاملة على الجميع" onClick={()=>fillColumn(key)}>✓</button></div></th>)}
+        <th>المجموع</th><th>النسبة</th></tr></thead><tbody>
+        {classStudents.map((student,index)=>{const grade=grades[student.id]||emptyGrade;const total=grade.participation+grade.research+grade.test;const pct=maxTotal?Math.round((total/maxTotal)*1000)/10:0;return <tr key={student.id}><td>{index+1}</td><td>{student.name}</td>{(['participation','research','test'] as const).map(key=><td key={key}><input className="mini-grade" type="number" min="0" max={maxGrades[key]} value={grade[key]} onChange={e=>setGrade(student.id,key,e.target.value)}/></td>)}<td><strong>{total}</strong></td><td>{pct}%</td></tr>})}
+        {!selectedClass&&<tr><td colSpan={7}>اختر الفصل لعرض الطلاب</td></tr>}
+      </tbody></table></div>
+      <button className="btn primary compact-save" onClick={saveGrades} disabled={!selectedClass||savingGrades}>{savingGrades?"جارٍ حفظ الدرجات...":"حفظ درجات الفصل"}</button>
+    </section>
+  </div></main>;
 }
