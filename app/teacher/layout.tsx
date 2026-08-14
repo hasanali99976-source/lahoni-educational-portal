@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import "./teacher-shell.css";
+import "./tab-fix.css";
 
 const tabs = [
   { href: "/teacher/grades", icon: "✎", label: "رصد الدرجات", note: "الوحدات والاختبارات" },
