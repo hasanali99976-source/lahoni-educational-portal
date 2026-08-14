@@ -39,6 +39,7 @@ export default function ReportsPage() {
   const [attendanceDocs, setAttendanceDocs] = useState<AttendanceDoc[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [printingUnit, setPrintingUnit] = useState("");
 
   useEffect(() => onSnapshot(collection(db, "students"), snapshot => {
     const list = snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[];
@@ -49,6 +50,12 @@ export default function ReportsPage() {
   useEffect(() => onSnapshot(collection(db, "attendance"), snapshot => {
     setAttendanceDocs(snapshot.docs.map(item => item.data() as AttendanceDoc));
   }), []);
+
+  useEffect(() => {
+    const finishPrint = () => setPrintingUnit("");
+    window.addEventListener("afterprint", finishPrint);
+    return () => window.removeEventListener("afterprint", finishPrint);
+  }, []);
 
   const classes = useMemo(
     () => Array.from(new Set(students.map(student => (student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")),
@@ -95,8 +102,13 @@ export default function ReportsPage() {
   const attendanceRate = recordedDays ? Math.round((attendanceSummary.present / recordedDays) * 100) : 0;
   const initial = (student?.name || "ط").trim().charAt(0);
 
+  function printUnitCard(unitKey: string) {
+    setPrintingUnit(unitKey);
+    window.setTimeout(() => window.print(), 120);
+  }
+
   return (
-    <main className="student-report-page" dir="rtl">
+    <main className={`student-report-page ${printingUnit ? "printing-unit-card" : ""}`} dir="rtl">
       <div className="student-report-wrap">
         <section className="report-selector-card">
           <div>
@@ -142,10 +154,18 @@ export default function ReportsPage() {
 
             <section className="unit-score-grid">
               {unitRows.map(unit => (
-                <article key={unit.key}>
+                <article key={unit.key} className={`unit-print-card ${printingUnit === unit.key ? "print-target" : ""}`}>
                   <span>{unit.label}</span>
                   <strong>{unit.total}</strong>
                   <small>من ١٩</small>
+                  <em>{student.name}</em>
+                  <button type="button" onClick={() => printUnitCard(unit.key)}>🖨 طباعة البطاقة</button>
+                  <div className="printed-unit-details">
+                    <b>مدرسة التهذيب الثانوية</b>
+                    <small>الفصل: {student.class || "—"}</small>
+                    <small>السجل المدني: {student.nationalId || "—"}</small>
+                    <small>الأستاذ حسن علي الطويل</small>
+                  </div>
                 </article>
               ))}
               <article className="research-score-card">
