@@ -6,7 +6,7 @@ import { db } from "../../lib/firebase";
 import "./student.css";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number };
-type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; researchScore?: number; units?: Record<string, UnitRecord>; [key: string]: unknown };
+type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord>; [key: string]: unknown };
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 type AttendanceDoc = { records?: Record<string, AttendanceStatus> };
 
@@ -64,6 +64,7 @@ export default function StudentPage(){
 
   const name=String(student?.name??student?.الاسم??"الطالب");
   const studentClass=String(student?.class??student?.الفئة??"غير محدد");
+  const teacherNote=String(student?.teacherNote||"").trim();
   const unitRows=useMemo(()=>units.map(([key,label])=>{
     const r=student?.units?.[key]||{};
     const attendance=Number(r.attendance||0),participation=Number(r.participation||0),homework=Number(r.homework||0),unitExam=Number(r.unitExam||0);
@@ -83,36 +84,16 @@ export default function StudentPage(){
   const attendanceRate=recorded?Math.round(attendanceSummary.present/recorded*100):0;
 
   return <main className="parent-portal" dir="rtl">
-    <section className="parent-hero">
-      <div className="parent-hero-image" />
-      <div className="parent-hero-overlay">
-        <div className="school-mark">ت</div>
-        <div><span>مدرسة التهذيب الثانوية</span><h1>بوابة الطالب وولي الأمر</h1><p>متابعة مباشرة لدرجات مادة التاريخ والحضور.</p><b>الأستاذ حسن علي الطويل</b></div>
-      </div>
-      <small className="parent-prepared-by">إعداد / الأستاذ حسن علي الطويل</small>
-    </section>
+    <section className="parent-hero"><div className="parent-hero-image"/><div className="parent-hero-overlay"><div className="school-mark">ت</div><div><span>مدرسة التهذيب الثانوية</span><h1>بوابة الطالب وولي الأمر</h1><p>متابعة مباشرة لدرجات مادة التاريخ والحضور.</p><b>الأستاذ حسن علي الطويل</b></div></div><small className="parent-prepared-by">إعداد / الأستاذ حسن علي الطويل</small></section>
 
-    <section className="parent-login-card">
-      <div><h2>الدخول إلى التقرير</h2><p>أدخل السجل المدني للطالب.</p></div>
-      <div className="parent-login-form"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="رقم الهوية الوطنية"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحميل...":"عرض التقرير"}</button></div>
-      {message&&<p className="parent-error">{message}</p>}
-    </section>
+    <section className="parent-login-card"><div><h2>الدخول إلى التقرير</h2><p>أدخل السجل المدني للطالب.</p></div><div className="parent-login-form"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="رقم الهوية الوطنية"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحميل...":"عرض التقرير"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
 
     {student&&studentDocId&&<section className="parent-report">
-      <header className="parent-student-head">
-        <div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div>
-        <div className="parent-score-and-message">
-          <div className="parent-final-score"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div>
-          <div className={`parent-encouragement ${motivational.tone}`}><b>{motivational.title}</b><p>{motivational.text}</p></div>
-        </div>
-      </header>
+      <header className="parent-student-head"><div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div><div className="parent-score-and-message"><div className="parent-final-score"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div><div className={`parent-encouragement ${motivational.tone}`}><b>{motivational.title}</b><p>{motivational.text}</p></div></div></header>
 
-      <section className="parent-stats">
-        <article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong></article>
-        <article><span>مرات التأخر</span><strong>{attendanceSummary.late}</strong></article>
-        <article><span>مرات الاستئذان</span><strong>{attendanceSummary.excused}</strong></article>
-        <article><span>نسبة الحضور</span><strong>{attendanceRate}%</strong></article>
-      </section>
+      {teacherNote&&<section className="parent-teacher-note"><div>✦</div><article><span>ملاحظة المعلم</span><p>{teacherNote}</p><small>الأستاذ حسن علي الطويل</small></article></section>}
+
+      <section className="parent-stats"><article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong></article><article><span>مرات التأخر</span><strong>{attendanceSummary.late}</strong></article><article><span>مرات الاستئذان</span><strong>{attendanceSummary.excused}</strong></article><article><span>نسبة الحضور</span><strong>{attendanceRate}%</strong></article></section>
 
       <section className="parent-unit-cards">{unitRows.map(u=><article key={u.key}><span>{u.label}</span><strong>{u.total}</strong><small>من ١٩</small></article>)}<article className="parent-research"><span>البحث</span><strong>{research}</strong><small>من ٥</small></article></section>
 
