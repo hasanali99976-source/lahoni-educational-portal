@@ -1,0 +1,33 @@
+{
+  "name": "ostadh-lahooni-desktop",
+  "version": "1.0.0",
+  "description": "تطبيق أستاذ لحوني للمتابعة والتقارير المدرسية",
+  "main": "main.js",
+  "author": "Hassan Ali Al-Taweel",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.ostadlahooni.desktop",
+    "productName": "أستاذ لحوني",
+    "asar": true,
+    "files": ["main.js", "assets/**/*", "package.json"],
+    "directories": { "output": "dist" },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "أستاذ لحوني"
+    }
+  }
+}
