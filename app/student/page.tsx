@@ -6,7 +6,7 @@ import { db } from "../../lib/firebase";
 import "./student.css";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number };
-type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord>; [key: string]: unknown };
+type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; accessCode?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord>; [key: string]: unknown };
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 type AttendanceDoc = { records?: Record<string, AttendanceStatus> };
 
@@ -23,36 +23,39 @@ function encouragement(score:number){
 
 export default function StudentPage(){
   const [nationalId,setNationalId]=useState("");
+  const [accessCode,setAccessCode]=useState("");
   const [message,setMessage]=useState("");
   const [loading,setLoading]=useState(false);
   const [student,setStudent]=useState<StudentRecord|null>(null);
   const [studentDocId,setStudentDocId]=useState("");
   const [attendanceDocs,setAttendanceDocs]=useState<AttendanceDoc[]>([]);
 
-  async function findStudent(id:string){
-    const result=await getDocs(query(collection(db,"students"),where("nationalId","==",id)));
+  async function findStudent(id:string,code:string){
+    const cleanCode=code.trim().toUpperCase();
+    const result=await getDocs(query(collection(db,"students"),where("nationalId","==",id),where("accessCode","==",cleanCode)));
     if(!result.empty) return {id:result.docs[0].id,data:result.docs[0].data() as StudentRecord};
-    const legacy=await getDocs(query(collection(db,"الطلاب"),where("nationalId","==",id)));
-    if(!legacy.empty) return {id:legacy.docs[0].id,data:legacy.docs[0].data() as StudentRecord};
     return null;
   }
 
-  async function submit(idOverride?:string){
+  async function submit(idOverride?:string,codeOverride?:string){
     const id=(idOverride??nationalId).replace(/\D/g,"");
+    const code=(codeOverride??accessCode).trim().toUpperCase();
     setMessage(""); setStudent(null); setStudentDocId("");
     if(!/^\d{10}$/.test(id)) return setMessage("أدخل رقم هوية صحيحًا من 10 أرقام");
+    if(!/^[A-Z0-9]{4}-?[A-Z0-9]{4}$/.test(code)) return setMessage("أدخل كود الطالب الموجود في البطاقة");
     try{
-      setLoading(true); setNationalId(id);
-      const found=await findStudent(id);
-      if(!found) return setMessage("لم يتم العثور على طالب بهذا الرقم");
+      setLoading(true); setNationalId(id); setAccessCode(code.includes("-")?code:`${code.slice(0,4)}-${code.slice(4)}`);
+      const found=await findStudent(id,code.includes("-")?code:`${code.slice(0,4)}-${code.slice(4)}`);
+      if(!found) return setMessage("رقم الهوية أو كود الطالب غير صحيح");
       setStudent(found.data); setStudentDocId(found.id);
     }catch{setMessage("تعذر قراءة البيانات الآن. حاول مرة أخرى.");}
     finally{setLoading(false);}
   }
 
   useEffect(()=>{
-    const id=new URLSearchParams(window.location.search).get("nationalId")?.replace(/\D/g,"")||"";
-    if(/^\d{10}$/.test(id)) void submit(id);
+    const params=new URLSearchParams(window.location.search);
+    const code=(params.get("code")||"").trim().toUpperCase();
+    if(code) setAccessCode(code);
   },[]);
 
   useEffect(()=>{
@@ -86,7 +89,7 @@ export default function StudentPage(){
   return <main className="parent-portal" dir="rtl">
     <section className="parent-hero"><div className="parent-hero-image"/><div className="parent-hero-overlay"><div className="school-mark">ت</div><div><span>مدرسة التهذيب الثانوية</span><h1>بوابة الطالب وولي الأمر</h1><p>متابعة مباشرة لدرجات مادة التاريخ والحضور.</p><b>الأستاذ حسن علي الطويل</b></div></div><small className="parent-prepared-by">إعداد / الأستاذ حسن علي الطويل</small></section>
 
-    <section className="parent-login-card"><div><h2>الدخول إلى التقرير</h2><p>أدخل السجل المدني للطالب.</p></div><div className="parent-login-form"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="رقم الهوية الوطنية"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحميل...":"عرض التقرير"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
+    <section className="parent-login-card"><div><h2>الدخول الآمن إلى التقرير</h2><p>أدخل رقم الهوية وكود الطالب الموجود في البطاقة.</p></div><div className="parent-login-form parent-secure-login"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} placeholder="رقم الهوية الوطنية"/><input dir="ltr" autoCapitalize="characters" value={accessCode} onChange={e=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,"").slice(0,9))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="كود الطالب مثل ABCD-2345"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحقق...":"عرض التقرير"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
 
     {student&&studentDocId&&<section className="parent-report">
       <header className="parent-student-head"><div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div><div className="parent-score-and-message"><div className="parent-final-score"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div><div className={`parent-encouragement ${motivational.tone}`}><b>{motivational.title}</b><p>{motivational.text}</p></div></div></header>
