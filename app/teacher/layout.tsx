@@ -18,25 +18,31 @@ const tabs = [
 export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [ready, setReady] = useState(pathname === "/teacher");
   const isLoginPage = pathname === "/teacher";
+  const [ready, setReady] = useState(isLoginPage);
 
   useEffect(() => {
     if (isLoginPage) { setReady(true); return; }
-    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-    const refreshed = navigation?.type === "reload";
-    const authenticated = sessionStorage.getItem("teacher-auth") === "1";
-    if (refreshed || !authenticated) {
-      sessionStorage.removeItem("teacher-auth");
-      router.replace("/teacher");
-      return;
-    }
-    setReady(true);
-  }, [isLoginPage, router]);
+    let active = true;
+    fetch("/api/teacher-session", { cache: "no-store" })
+      .then(response => {
+        if (!response.ok) throw new Error("unauthorized");
+        if (active) setReady(true);
+      })
+      .catch(() => {
+        if (active) router.replace("/teacher");
+      });
+    return () => { active = false; };
+  }, [isLoginPage, pathname, router]);
 
-  function logout() { sessionStorage.removeItem("teacher-auth"); router.replace("/teacher"); }
+  async function logout() {
+    await fetch("/api/teacher-logout", { method: "POST" });
+    router.replace("/teacher");
+    router.refresh();
+  }
+
   if (isLoginPage) return <>{children}</>;
-  if (!ready) return <main className="teacher-shell-loading">جارٍ التحقق من الدخول...</main>;
+  if (!ready) return <main className="teacher-shell-loading">جارٍ التحقق من الدخول الآمن...</main>;
 
   return <div className="teacher-app-shell" dir="rtl">
     <header className="teacher-fixed-header">
