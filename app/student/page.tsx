@@ -41,12 +41,12 @@ export default function StudentPage(){
     const code=(codeOverride??accessCode).trim().toUpperCase();
     setMessage(""); setStudent(null); setStudentDocId("");
     if(!/^\d{10}$/.test(id)) return setMessage("أدخل رقم هوية صحيحًا من 10 أرقام");
-    if(!/^TH\d{4}$/.test(code)) return setMessage("أدخل الكود بصيغة TH ثم آخر 4 أرقام من الهوية");
-    if(code!==`TH${id.slice(-4)}`) return setMessage("الكود لا يطابق آخر 4 أرقام من الهوية");
+    if(!/^TH\d{4}$/.test(code)) return setMessage("أدخل كود ولي الأمر الصحيح");
+    if(code!==`TH${id.slice(-4)}`) return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");
     try{
       setLoading(true); setNationalId(id); setAccessCode(code);
       const found=await findStudent(id,code);
-      if(!found) return setMessage("رقم الهوية أو كود الطالب غير صحيح");
+      if(!found) return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");
       setStudent(found.data); setStudentDocId(found.id);
     }catch{setMessage("تعذر قراءة البيانات الآن. حاول مرة أخرى.");}
     finally{setLoading(false);}
@@ -87,7 +87,7 @@ export default function StudentPage(){
   return <main className="parent-portal" dir="rtl">
     <section className="parent-hero"><div className="parent-hero-image"/><div className="parent-hero-overlay"><div className="school-mark">ت</div><div><span>مدرسة التهذيب الثانوية</span><h1>بوابة الطالب وولي الأمر</h1><p>متابعة مباشرة لدرجات مادة التاريخ والحضور.</p><b>الأستاذ حسن علي الطويل</b></div></div><small className="parent-prepared-by">إعداد / الأستاذ حسن علي الطويل</small></section>
 
-    <section className="parent-login-card"><div><h2>الدخول الآمن إلى التقرير</h2><p>أدخل رقم الهوية، ثم TH وآخر 4 أرقام من الهوية.</p></div><div className="parent-login-form parent-secure-login"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} placeholder="رقم الهوية الوطنية"/><input dir="ltr" autoCapitalize="characters" value={accessCode} onChange={e=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="مثال TH1234"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحقق...":"عرض التقرير"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
+    <section className="parent-login-card"><div><h2>الدخول الآمن إلى التقرير</h2></div><div className="parent-login-form parent-secure-login"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} placeholder="رقم الهوية الوطنية"/><input dir="ltr" autoCapitalize="characters" value={accessCode} onChange={e=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="كود ولي الأمر"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحقق...":"عرض التقرير"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
 
     {student&&studentDocId&&<section className="parent-report">
       <header className="parent-student-head"><div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div><div className="parent-score-and-message"><div className="parent-final-score"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div><div className={`parent-encouragement ${motivational.tone}`}><b>{motivational.title}</b><p>{motivational.text}</p></div></div></header>
