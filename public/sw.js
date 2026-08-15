@@ -1,5 +1,12 @@
-const CACHE_NAME = "ostadh-lahooni-v1";
-const APP_SHELL = ["/", "/student", "/teacher", "/icon.svg", "/icons/ostadh-lahooni-192.jpg"];
+const CACHE_NAME = "ostadh-lahooni-v2";
+const APP_SHELL = [
+  "/",
+  "/student",
+  "/teacher",
+  "/manifest.webmanifest",
+  "/icon.svg",
+  "/icons/ostadh-lahooni-192.jpg",
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).catch(() => undefined));
@@ -24,7 +31,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  if (["style", "script", "font", "image"].includes(request.destination)) {
+  if (["style", "script", "font", "image", "manifest"].includes(request.destination)) {
     event.respondWith(
       caches.match(request).then(cached => cached || fetch(request).then(response => {
         const copy = response.clone();
