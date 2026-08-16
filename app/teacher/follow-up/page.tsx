@@ -70,7 +70,7 @@ export default function FollowUpPage(){
         return updateDoc(doc(db,"students",s.id),{parentCounselorNoticeSentAt:now});
       }));
     }
-    window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href=`mailto:husain.alabdullah@al-tahtheeb.com,jasem.albarrak@al-tahtheeb.com,ali.binahmad@al-tahtheeb.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setSaved(notifyParents?"تم تجهيز البلاغ، وسيظهر تنبيه ولي الأمر عند دخوله البوابة لأول مرة.":"تم تجهيز بلاغ الموجه الطلابي");
     setReportOpen(false);
     setTimeout(()=>setSaved(""),3500);
