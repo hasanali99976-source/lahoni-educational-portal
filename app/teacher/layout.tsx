@@ -14,7 +14,7 @@ const tabs = [
   { href: "/teacher/follow-up", key: "follow", label: "المتابعة والإتقان", note: "التنبيهات والتحسين" },
   { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول والبيانات" },
 ];
-const IDLE_LIMIT = 10 * 60 * 1000;
+const IDLE_LIMIT = 3 * 60 * 1000;
 
 function TabIcon({ type }: { type: string }) {
   const c={width:26,height:26,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
@@ -35,7 +35,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     try{const A=window.AudioContext||(window as typeof window&{webkitAudioContext?:typeof AudioContext}).webkitAudioContext;if(!A)return;const ctx=new A(),g=ctx.createGain();g.connect(ctx.destination);g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.08,ctx.currentTime+.015);(kind==="off"?[440,330]:[659.25,783.99]).forEach((f,i)=>{const o=ctx.createOscillator();o.type="sine";o.frequency.value=f;o.connect(g);const s=ctx.currentTime+i*.07;o.start(s);o.stop(s+.12)});g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.34);setTimeout(()=>void ctx.close(),500)}catch{}
   }
   function toggleSound(){const n=!soundOn;setSoundOn(n);localStorage.setItem("lahooni-sound",n?"on":"off");if(!n)playTone("off")}
-  async function logout(){await fetch("/api/teacher-logout",{method:"POST"});router.replace("/teacher");router.refresh()}
+  async function logout(){try{await fetch("/api/teacher-logout",{method:"POST",cache:"no-store"})}finally{router.replace("/teacher");router.refresh()}}
   useEffect(()=>setSoundOn(localStorage.getItem("lahooni-sound")!=="off"),[]);
   useEffect(()=>{
     if(isLoginPage){setReady(true);return}
@@ -43,8 +43,11 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     const check=async()=>{const r=await fetch("/api/teacher-session",{cache:"no-store"});if(!r.ok)throw new Error();if(active)setReady(true)};
     const reset=()=>{if(idleTimer.current)clearTimeout(idleTimer.current);idleTimer.current=setTimeout(()=>void logout(),IDLE_LIMIT)};
     const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error();lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
-    const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload"){void logout();return()=>{active=false}};
-    check().catch(()=>active&&router.replace("/teacher"));reset();const events=["pointerdown","keydown","touchstart","scroll","mousemove"];events.forEach(e=>window.addEventListener(e,activity,{passive:true}));return()=>{active=false;if(idleTimer.current)clearTimeout(idleTimer.current);events.forEach(e=>window.removeEventListener(e,activity))}
+    const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;
+    if(nav?.type==="reload"){void logout();return()=>{active=false}};
+    const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void logout()};
+    window.addEventListener("pageshow",onPageShow);
+    check().catch(()=>active&&router.replace("/teacher"));reset();const events=["pointerdown","keydown","touchstart","scroll","mousemove"];events.forEach(e=>window.addEventListener(e,activity,{passive:true}));return()=>{active=false;if(idleTimer.current)clearTimeout(idleTimer.current);events.forEach(e=>window.removeEventListener(e,activity));window.removeEventListener("pageshow",onPageShow)}
   },[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;
   if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة أستاذ لحوني...</main>;
