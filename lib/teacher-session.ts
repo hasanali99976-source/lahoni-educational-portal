@@ -1,22 +1,45 @@
 import "server-only";
 import { createHash, timingSafeEqual } from "crypto";
+import type { SubjectKey } from "./teacher-tenant";
 
 export const TEACHER_COOKIE = "tahdheeb_teacher_session";
 export const TEACHER_SESSION_MAX_AGE = 60 * 3;
 
-export type TeacherAccount = { username: string; password: string; teacherId: string; subject: string };
+export type TeacherAccount = {
+  username: string;
+  password: string;
+  teacherId: string;
+  subjectKey: SubjectKey;
+  subject: string;
+};
 
 export const TEACHER_ACCOUNTS: TeacherAccount[] = [
-  { username: "حسن الطويل", password: "1415", teacherId: "hasan-history", subject: "التاريخ" },
-  { username: "عبد الله الرويشد", password: "1415", teacherId: "abdullah-critical-thinking", subject: "التفكير الناقد" },
+  {
+    username: "حسن الطويل",
+    password: "1415",
+    teacherId: "hasan-history",
+    subjectKey: "history",
+    subject: "التاريخ",
+  },
+  {
+    username: "عبد الله الرويشد",
+    password: "1415",
+    teacherId: "abdullah-critical-thinking",
+    subjectKey: "critical-thinking",
+    subject: "التفكير الناقد",
+  },
 ];
 
 export function findTeacherAccount(username: string, password: string) {
-  return TEACHER_ACCOUNTS.find(account => account.username === username.trim() && account.password === password) || null;
+  return TEACHER_ACCOUNTS.find(
+    account => account.username === username.trim() && account.password === password,
+  ) || null;
 }
 
 export function teacherSessionToken(account: TeacherAccount) {
-  return createHash("sha256").update(`tahdheeb:${account.teacherId}:${account.username}:${account.password}`).digest("hex");
+  return createHash("sha256")
+    .update(`tahdheeb:${account.teacherId}:${account.subjectKey}:${account.username}:${account.password}`)
+    .digest("hex");
 }
 
 export function isTeacherCredentialsValid(username: string, password: string) {
