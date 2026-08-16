@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { isTeacherCodeValid, TEACHER_COOKIE, teacherSessionToken } from "../../../lib/teacher-session";
+import { isTeacherCredentialsValid, TEACHER_COOKIE, teacherSessionToken, TEACHER_SESSION_MAX_AGE } from "../../../lib/teacher-session";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const code = String(body?.code || "");
-    if (!isTeacherCodeValid(code)) {
-      return NextResponse.json({ ok: false, message: "رمز الدخول غير صحيح" }, { status: 401 });
+    const username = String(body?.username || "").trim();
+    const password = String(body?.password || "");
+    if (!isTeacherCredentialsValid(username, password)) {
+      return NextResponse.json({ ok: false, message: "اسم المستخدم أو كلمة المرور غير صحيحة" }, { status: 401 });
     }
     const response = NextResponse.json({ ok: true });
     response.cookies.set(TEACHER_COOKIE, teacherSessionToken(), {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 60 * 60 * 8,
+      maxAge: TEACHER_SESSION_MAX_AGE,
     });
     return response;
   } catch {
