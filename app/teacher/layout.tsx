@@ -140,7 +140,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     </header>
     <section className="teacher-welcome-strip" aria-label="لوحة ترحيبية">
       <div className="teacher-welcome-copy"><span className="teacher-welcome-badge">منصة تعليمية تفاعلية</span><h2>أهلًا أستاذ حسن، جاهز لصناعة أثر اليوم؟</h2><p>تنقّل بين أدواتك بسرعة، وارصد تقدم الطلاب بطريقة أوضح وأكثر متعة.</p><div className="teacher-welcome-points"><span>رصد ذكي</span><span>تقارير فورية</span><span>متابعة دقيقة</span></div></div>
-      <div className="welcome-portrait"><img src="https://shimmering-rolypoly-0ebda2.netlify.app/portal.png" alt="الأستاذ حسن علي الطويل" /></div>
+      <div className="welcome-portrait"><img src="/portal-cover.webp" alt="غلاف بوابة أستاذ لحوني التعليمية" /></div>
       <small className="teacher-prepared-by">بوابة أستاذ لحوني التعليمية</small>
     </section>
     <div className="teacher-page-content">{children}</div>
