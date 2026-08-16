@@ -8,7 +8,7 @@ import "./register.css";
 
 type GradeKey = "attendance" | "participation" | "homework" | "unitExam";
 type GradeRecord = Record<GradeKey, number> & { notes: string };
-type Student = { id:string; name?:string; nationalId?:string; class?:string; units?:Record<string, Partial<GradeRecord> & { exam1?:number; exam2?:number }> };
+type Student = { id:string; name?:string; nationalId?:string; class?:string; units?:Record<string, Partial<GradeRecord> & { exam1?:number; exam2?:number; total?:number; maximumTotal?:number; percentage?:number; maxGrades?:Record<string,number>; updatedAt?:string }> };
 
 const units = [
   ["unit1", "الوحدة الأولى", "اختبار الوحدة الأولى"],
@@ -78,7 +78,8 @@ export default function GradesPage(){
       await Promise.all(classStudents.map(student=>{
         const grade=grades[student.id]||emptyGrade;
         const total=grade.attendance+grade.participation+grade.homework+grade.unitExam;
-        return updateDoc(doc(db,"students",student.id),{[`units.${selectedUnit}`]:{...grade,total,maximumTotal:19,percentage:Math.round(total/19*1000)/10,maxGrades:MAX_GRADES,updatedAt:new Date().toISOString()}});
+        const previous=student.units?.[selectedUnit]||{};
+        return updateDoc(doc(db,"students",student.id),{[`units.${selectedUnit}`]:{...previous,...grade,total,maximumTotal:19,percentage:Math.round(total/19*1000)/10,maxGrades:MAX_GRADES,updatedAt:new Date().toISOString()}});
       }));
       setMessage(`تم حفظ درجات ${unitInfo[1]} بنجاح — مجموع الوحدة ١٩ درجة`);
     }catch(error){console.error(error);setMessage("تعذر الحفظ. تحقق من الاتصال وقواعد Firebase");}
@@ -91,7 +92,10 @@ export default function GradesPage(){
     try{
       setSaving(true);setMessage("");
       setGrades(Object.fromEntries(classStudents.map(student=>[student.id,{...emptyGrade}])));
-      await Promise.all(classStudents.map(student=>updateDoc(doc(db,"students",student.id),{[`units.${selectedUnit}`]:{...emptyGrade,total:0,maximumTotal:19,percentage:0,maxGrades:MAX_GRADES,updatedAt:new Date().toISOString()}})));
+      await Promise.all(classStudents.map(student=>{
+        const previous=student.units?.[selectedUnit]||{};
+        return updateDoc(doc(db,"students",student.id),{[`units.${selectedUnit}`]:{...previous,...emptyGrade,total:0,maximumTotal:19,percentage:0,maxGrades:MAX_GRADES,updatedAt:new Date().toISOString()}});
+      }));
       setMessage(`تم حذف جميع درجات ${unitInfo[1]}`);
     }catch(error){console.error(error);setMessage("تعذر حذف الدرجات");}
     finally{setSaving(false);}
