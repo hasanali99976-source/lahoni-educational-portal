@@ -44,11 +44,6 @@ export default function GradesPage(){
   const unitInfo=units.find(([value])=>value===selectedUnit)||units[0];
   const columns:Array<[GradeKey,string]>=[["attendance","الحضور"],["participation","المشاركة"],["homework","الواجبات"],["unitExam",unitInfo[2]]];
 
-  // عند فتح تبويب الرصد على الموقع، افتح أول فصل متاح تلقائيًا بدل إبقاء الجدول فارغًا.
-  useEffect(()=>{
-    if(!selectedClass && classes.length) setSelectedClass(classes[0]);
-  },[classes,selectedClass]);
-
   useEffect(()=>{
     const next:Record<string,GradeRecord>={};
     classStudents.forEach(student=>{
@@ -109,13 +104,13 @@ export default function GradesPage(){
   return <main className="gradebook-page" dir="rtl"><div className="gradebook-wrap">
     <section className="gradebook-summary">
       <article className="school-info"><div className="school-badge">ت</div><div><strong>مدرسة التهذيب الثانوية</strong><span>مادة التاريخ — الصف الثاني الثانوي</span><b>الأستاذ حسن علي الطويل</b></div><div className="hijri-today"><small>التاريخ الهجري</small><strong>{formatHijriToday()}</strong></div></article>
-      <article><span>عدد الطلاب</span><strong>{classStudents.length}</strong><small>طالب</small></article>
+      <article><span>عدد الطلاب</span><strong>{classStudents.length||students.length}</strong><small>طالب</small></article>
       <article><span>درجة الوحدة</span><strong>١٩</strong><small>درجة ثابتة</small></article>
       <article><span>المجموع النهائي</span><strong>١٠٠</strong><small>٩٥ للوحدات + ٥ للبحث</small></article>
     </section>
 
     <section className="gradebook-card">
-      <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo[1]}</h1><p>أدخل الدرجة مباشرة أو استخدم أزرار الزيادة والنقصان بجانب كل خانة.</p></div><div className="gradebook-actions">
+      <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo[1]}</h1><p>في الجوال اضغط + أو −، أو اضغط الرقم واكتبه مباشرة.</p></div><div className="gradebook-actions">
         <label>الفصل<select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(name=><option key={name}>{name}</option>)}</select></label>
         <label>الوحدة<select value={selectedUnit} onChange={e=>setSelectedUnit(e.target.value)}>{units.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         <Link href="/teacher/research" className="research-link">🔬 رصد البحث</Link>
@@ -131,7 +126,7 @@ export default function GradesPage(){
           return <tr key={student.id}><td className="sticky-number">{index+1}</td><td className="national-id-cell">{student.nationalId}</td><td className="sticky-name"><strong>{student.name}</strong></td>
             {columns.map(([key])=><td key={key} className={key==="unitExam"?"exam-cell":""}><div className="mobile-grade-control"><button type="button" className="grade-step minus" onClick={()=>adjustGrade(student.id,key,-1)} aria-label="إنقاص الدرجة">−</button><input className="grade-input" type="number" inputMode="decimal" min="0" max={MAX_GRADES[key]} step="1" value={grade[key]} onFocus={e=>e.currentTarget.select()} onChange={e=>updateGrade(student.id,key,e.target.value)}/><button type="button" className="grade-step plus" onClick={()=>adjustGrade(student.id,key,1)} aria-label="زيادة الدرجة">+</button></div></td>)}
             <td className="student-total">{total}</td><td><input className="notes-input" value={grade.notes||""} onChange={e=>setGrades(current=>({...current,[student.id]:{...(current[student.id]||emptyGrade),notes:e.target.value}}))} placeholder="ملاحظة"/></td><td><button className="row-delete-button" type="button" onClick={()=>clearStudent(student.id)} title="تصفير درجات الطالب">🗑</button></td></tr>;
-        })}{!selectedClass&&<tr><td colSpan={10} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}{selectedClass&&!classStudents.length&&<tr><td colSpan={10} className="empty-row">لا يوجد طلاب مسجلون في هذا الفصل.</td></tr>}</tbody>
+        })}{!selectedClass&&<tr><td colSpan={10} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}</tbody>
       </table></div>
       <footer className="gradebook-footer"><span>الوحدة المختارة: {unitInfo[1]}</span><span>{unitInfo[2]} — ١٤ درجة</span><span>البحث مستقل — ٥ درجات مرة واحدة</span></footer>
       {message&&<p className="gradebook-message">{message}</p>}
