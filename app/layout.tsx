@@ -1,5 +1,6 @@
 import "./globals.css";
 import "./identity.css";
+import "./student/subject.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
