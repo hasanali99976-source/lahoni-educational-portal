@@ -1,0 +1,36 @@
+:root{--lahooni-teal:#0e6374;--lahooni-teal-2:#1491a0;--lahooni-gold:#d39a24;--lahooni-green:#2a9c5c;--lahooni-ink:#173f4d;--lahooni-soft:#f3f8f8;--lahooni-line:#dce9ea}
+
+/* هوية بوابة الطالب وولي الأمر */
+.parent-portal{background:radial-gradient(circle at 90% 0,rgba(33,150,168,.12),transparent 25%),linear-gradient(135deg,#f3f9f9,#fbfdfd)!important;color:var(--lahooni-ink)!important}
+.parent-hero{height:300px!important;background:#eaf4f4!important;border:1px solid var(--lahooni-line)!important;box-shadow:0 20px 48px rgba(21,77,89,.12)!important}
+.parent-hero-image{background-image:url('https://shimmering-rolypoly-0ebda2.netlify.app/portal.png')!important;background-size:185%!important;background-position:100% 18%!important;filter:none!important}
+.parent-hero:after{background:linear-gradient(90deg,rgba(9,74,87,.86),rgba(9,74,87,.22) 55%,transparent)!important}
+.school-mark,.parent-hero-overlay span{display:none!important}
+.parent-hero-overlay{right:34px!important;bottom:34px!important}
+.parent-hero-overlay h1{font-size:36px!important;margin:0 0 7px!important}
+.parent-hero-overlay h1:before{content:"بوابة أستاذ لحوني التعليمية";display:block;font-size:14px;color:#f2cf83;margin-bottom:8px}
+.parent-hero-overlay p{font-size:15px!important}
+.parent-login-card,.parent-report{border-color:var(--lahooni-line)!important;box-shadow:0 12px 30px rgba(21,77,89,.08)!important}
+.parent-login-card h2,.parent-table-card h2{color:var(--lahooni-teal)!important}
+.parent-login-form button{background:linear-gradient(135deg,var(--lahooni-teal),var(--lahooni-teal-2))!important}
+.parent-student-head{background:linear-gradient(135deg,var(--lahooni-teal),var(--lahooni-teal-2))!important}
+.parent-stats strong,.parent-unit-cards strong{color:var(--lahooni-teal)!important}
+.parent-table-wrap thead th{background:linear-gradient(135deg,var(--lahooni-teal),#147b8b)!important}
+
+/* هوية بوابة المعلم */
+.teacher-login-page{background:radial-gradient(circle at 12% 12%,rgba(41,160,172,.15),transparent 27%),linear-gradient(135deg,#f1f8f8,#fbfdfd)!important}
+.teacher-login-card{border-color:var(--lahooni-line)!important;box-shadow:0 28px 72px rgba(21,77,89,.16)!important}
+.teacher-login-photo{background-size:185%!important;background-position:100% 18%!important}
+.teacher-login-photo-shade{background:linear-gradient(180deg,rgba(8,70,82,.02),rgba(8,70,82,.78))!important}
+.teacher-login-logo{background:linear-gradient(135deg,var(--lahooni-teal),var(--lahooni-teal-2))!important}
+.teacher-login-brand strong,.teacher-login-heading h1{color:var(--lahooni-teal)!important}
+.teacher-login-badge{background:#e7f5f5!important;color:var(--lahooni-teal)!important}
+.teacher-login-submit{background:linear-gradient(135deg,var(--lahooni-teal),var(--lahooni-teal-2))!important}
+.teacher-code-box:focus-within{border-color:var(--lahooni-teal-2)!important;box-shadow:0 0 0 4px rgba(20,145,160,.12)!important}
+
+/* توحيد المظهر العام للبوابات الداخلية */
+.teacher-shell,.gradebook-page,.research-page,.attendance-page,.mastery-page{background:linear-gradient(135deg,#f2f8f8,#fbfdfd)!important}
+.teacher-tabs a,.teacher-nav a{border-radius:14px!important}
+.teacher-tabs a.active,.teacher-nav a.active{background:linear-gradient(135deg,var(--lahooni-teal),var(--lahooni-teal-2))!important;color:#fff!important}
+
+@media(max-width:700px){.parent-hero{height:260px!important}.parent-hero-image{background-size:220%!important;background-position:100% 13%!important}.parent-hero-overlay{right:18px!important;bottom:20px!important}.parent-hero-overlay h1{font-size:25px!important}.teacher-login-photo{background-size:220%!important;background-position:100% 13%!important}}
