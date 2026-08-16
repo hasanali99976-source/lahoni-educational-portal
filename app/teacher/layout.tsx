@@ -16,6 +16,13 @@ const tabs = [
 ];
 const IDLE_LIMIT = 3 * 60 * 1000;
 
+type TeacherSession = {
+  authenticated?: boolean;
+  teacherName?: string;
+  subject?: string;
+  subjectKey?: "history" | "critical-thinking";
+};
+
 function TabIcon({ type }: { type: string }) {
   const c={width:26,height:26,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
   if(type==="grades")return <svg {...c}><path d="M4 19.5h16"/><path d="M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
@@ -29,6 +36,8 @@ function TabIcon({ type }: { type: string }) {
 export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname=usePathname(),router=useRouter(),isLoginPage=pathname==="/teacher";
   const [ready,setReady]=useState(isLoginPage),[soundOn,setSoundOn]=useState(true);
+  const [teacherName,setTeacherName]=useState("المعلم");
+  const [subject,setSubject]=useState("المادة");
   const idleTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastHeartbeat=useRef(0);
   function playTone(kind:"tab"|"off"="tab"){
     if(!soundOn&&kind!=="off")return;
@@ -40,9 +49,9 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   useEffect(()=>{
     if(isLoginPage){setReady(true);return}
     let active=true,busy=false;
-    const check=async()=>{const r=await fetch("/api/teacher-session",{cache:"no-store"});if(!r.ok)throw new Error();if(active)setReady(true)};
+    const check=async()=>{const r=await fetch("/api/teacher-session",{cache:"no-store"});if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active){setTeacherName(session.teacherName||"المعلم");setSubject(session.subject||"المادة");setReady(true)}};
     const reset=()=>{if(idleTimer.current)clearTimeout(idleTimer.current);idleTimer.current=setTimeout(()=>void logout(),IDLE_LIMIT)};
-    const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error();lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
+    const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active){setTeacherName(session.teacherName||"المعلم");setSubject(session.subject||"المادة")};lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
     const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;
     if(nav?.type==="reload"){void logout();return()=>{active=false}};
     const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void logout()};
@@ -50,15 +59,15 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     check().catch(()=>active&&router.replace("/teacher"));reset();const events=["pointerdown","keydown","touchstart","scroll","mousemove"];events.forEach(e=>window.addEventListener(e,activity,{passive:true}));return()=>{active=false;if(idleTimer.current)clearTimeout(idleTimer.current);events.forEach(e=>window.removeEventListener(e,activity));window.removeEventListener("pageshow",onPageShow)}
   },[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;
-  if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة أستاذ لحوني...</main>;
+  if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة المعلم...</main>;
   return <div className="teacher-app-shell" dir="rtl">
     <aside className="teacher-sidebar">
-      <div className="teacher-shell-brand"><div className="teacher-shell-logo">ح</div><div><strong>أستاذ لحوني</strong><small>بوابة التاريخ التعليمية</small></div></div>
+      <div className="teacher-shell-brand"><div className="teacher-shell-logo">ح</div><div><strong>أستاذ لحوني</strong><small>بوابة {subject} التعليمية</small></div></div>
       <nav className="teacher-tabs" aria-label="أقسام بوابة المعلم">{tabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>playTone()}><span className="teacher-tab-icon"><TabIcon type={tab.key}/></span><span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
       <div className="teacher-header-actions"><button className={`sound-toggle ${soundOn?"on":"off"}`} onClick={toggleSound}>{soundOn?"🔊 تشغيل الصوت":"🔇 الصوت مكتوم"}</button><button className="teacher-logout" onClick={logout}>تسجيل خروج</button></div>
     </aside>
     <main className="teacher-main">
-      <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">لوحة المعلم</span><h2>أهلًا أستاذ حسن، كل أدواتك في مكان واحد</h2><p>رصد الدرجات والحضور والمتابعة والتقارير بتصميم واضح وسريع.</p><div className="teacher-welcome-points"><span>رصد ذكي</span><span>تقارير فورية</span><span>متابعة دقيقة</span></div></div><div className="welcome-illustration"><img src="/students-learning.svg" alt="تعليم تفاعلي"/></div></section>
+      <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">لوحة المعلم — {subject}</span><h2>أهلًا أستاذ {teacherName}، كل أدواتك في مكان واحد</h2><p>رصد درجات {subject} والحضور والمتابعة والتقارير بتصميم واضح وسريع.</p><div className="teacher-welcome-points"><span>رصد ذكي</span><span>تقارير فورية</span><span>متابعة دقيقة</span></div></div><div className="welcome-illustration"><img src="/students-learning.svg" alt="تعليم تفاعلي"/></div></section>
       <div className="teacher-page-content">{children}</div>
     </main>
   </div>
