@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import "./teacher-shell.css";
 import "./tab-fix.css";
 
@@ -15,31 +15,67 @@ const tabs = [
   { href: "/teacher/students", icon: "♟", label: "إدارة الطلاب", note: "الفصول والبيانات" },
 ];
 
+const IDLE_LIMIT = 10 * 60 * 1000;
+
 export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === "/teacher";
   const [ready, setReady] = useState(isLoginPage);
-
-  useEffect(() => {
-    if (isLoginPage) { setReady(true); return; }
-    let active = true;
-    fetch("/api/teacher-session", { cache: "no-store" })
-      .then(response => {
-        if (!response.ok) throw new Error("unauthorized");
-        if (active) setReady(true);
-      })
-      .catch(() => {
-        if (active) router.replace("/teacher");
-      });
-    return () => { active = false; };
-  }, [isLoginPage, pathname, router]);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastHeartbeat = useRef(0);
 
   async function logout() {
     await fetch("/api/teacher-logout", { method: "POST" });
     router.replace("/teacher");
     router.refresh();
   }
+
+  useEffect(() => {
+    if (isLoginPage) { setReady(true); return; }
+
+    let active = true;
+    let heartbeatBusy = false;
+
+    const checkSession = async () => {
+      const response = await fetch("/api/teacher-session", { cache: "no-store" });
+      if (!response.ok) throw new Error("unauthorized");
+      if (active) setReady(true);
+    };
+
+    const resetIdleTimer = () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      idleTimer.current = setTimeout(() => { void logout(); }, IDLE_LIMIT);
+    };
+
+    const activity = () => {
+      resetIdleTimer();
+      const now = Date.now();
+      if (now - lastHeartbeat.current < 30_000 || heartbeatBusy) return;
+      heartbeatBusy = true;
+      fetch("/api/teacher-session", { cache: "no-store" })
+        .then(response => { if (!response.ok) throw new Error("unauthorized"); lastHeartbeat.current = Date.now(); })
+        .catch(() => { void logout(); })
+        .finally(() => { heartbeatBusy = false; });
+    };
+
+    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    if (navigation?.type === "reload") {
+      void logout();
+      return () => { active = false; };
+    }
+
+    checkSession().catch(() => { if (active) router.replace("/teacher"); });
+    resetIdleTimer();
+    const events = ["pointerdown", "keydown", "touchstart", "scroll", "mousemove"];
+    events.forEach(event => window.addEventListener(event, activity, { passive: true }));
+
+    return () => {
+      active = false;
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      events.forEach(event => window.removeEventListener(event, activity));
+    };
+  }, [isLoginPage, pathname, router]);
 
   if (isLoginPage) return <>{children}</>;
   if (!ready) return <main className="teacher-shell-loading">جارٍ التحقق من الدخول الآمن...</main>;
