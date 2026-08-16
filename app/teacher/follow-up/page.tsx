@@ -5,9 +5,10 @@ import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import "./follow-up.css";
 
-type UnitRecord={attendance?:number;participation?:number;homework?:number;unitExam?:number;total?:number};
+type UnitRecord={attendance?:number;participation?:number;homework?:number;unitExam?:number;total?:number;maximumTotal?:number;percentage?:number};
 type Student={id:string;name?:string;class?:string;nationalId?:string;researchScore?:number;teacherNote?:string;units?:Record<string,UnitRecord>};
 const unitKeys=["unit1","unit2","unit3","unit4","unit5"];
+const unitLabels:Record<string,string>={unit1:"الوحدة الأولى",unit2:"الوحدة الثانية",unit3:"الوحدة الثالثة",unit4:"الوحدة الرابعة",unit5:"الوحدة الخامسة"};
 
 function studentTotal(student:Student){
   const unitsTotal=unitKeys.reduce((sum,key)=>{
@@ -37,6 +38,35 @@ function level(total:number){
   return {label:"يحتاج تدخلاً",className:"danger"};
 }
 
+function unitSummary(student:Student){
+  const items=unitKeys.map(key=>{
+    const record=student.units?.[key];
+    if(!record) return null;
+    const total=Number(record.total??((record.attendance||0)+(record.participation||0)+(record.homework||0)+(record.unitExam||0)));
+    const maximum=Number(record.maximumTotal||19);
+    const percentage=Number(record.percentage??Math.round(total/maximum*100));
+    return percentage<80?`${unitLabels[key]} (${percentage}٪)`:null;
+  }).filter(Boolean) as string[];
+  return items.length?items.join("، "):"غير محدد";
+}
+
+function formatToday(){
+  return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab",{day:"numeric",month:"long",year:"numeric"}).format(new Date());
+}
+
+function reportText(students:Student[],threshold:number){
+  const lines=[
+    "تقرير الطلاب غير المتقنين - مادة التاريخ",
+    "الأستاذ حسن علي الطويل",
+    `التاريخ: ${formatToday()}`,
+    `المعيار: أقل من ${threshold}%`,
+    "",
+    "الطلاب غير المتقنين:",
+    ...students.map((s,i)=>`${i+1}. ${s.name||"—"} | الفصل: ${s.class||"—"} | الوحدة/المهارة: ${unitSummary(s)} | الدرجة: ${studentTotal(s)}/100`)
+  ];
+  return lines.join("\n");
+}
+
 export default function FollowUpPage(){
   const [students,setStudents]=useState<Student[]>([]);
   const [selectedClass,setSelectedClass]=useState("");
@@ -44,6 +74,7 @@ export default function FollowUpPage(){
   const [noteStudent,setNoteStudent]=useState<Student|null>(null);
   const [note,setNote]=useState("");
   const [saved,setSaved]=useState("");
+  const [reportOpen,setReportOpen]=useState(false);
 
   useEffect(()=>onSnapshot(collection(db,"students"),snap=>{
     const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];
@@ -58,17 +89,39 @@ export default function FollowUpPage(){
   const average=ranked.length?Math.round(ranked.reduce((sum,s)=>sum+s.total,0)/ranked.length):0;
   const incomplete=ranked.filter(s=>s.missing>0);
 
-  async function copyList(){
-    const lines=["الطلاب غير المتقنين في مادة التاريخ",`الفصل: ${selectedClass||"جميع الفصول"}`,`المعيار: أقل من ${threshold}%`,"",...nonMastered.map((s,i)=>`${i+1}. ${s.name||"—"} | ${s.class||"—"} | ${s.nationalId||"—"} | ${s.total}/100`)];
-    await navigator.clipboard.writeText(lines.join("\n"));
-    setSaved("تم نسخ القائمة للموجّه الطلابي");
-    setTimeout(()=>setSaved(""),2200);
+  function openReport(){
+    if(!nonMastered.length){
+      setSaved("لا يوجد طلاب يحتاجون متابعة حالياً.");
+      setTimeout(()=>setSaved(""),2500);
+      return;
+    }
+    setReportOpen(true);
   }
 
   function printList(){
     document.body.classList.add("printing-follow-up");
     window.print();
     setTimeout(()=>document.body.classList.remove("printing-follow-up"),300);
+  }
+
+  function exportPdf(){
+    document.body.classList.add("printing-follow-up");
+    window.print();
+    setTimeout(()=>document.body.classList.remove("printing-follow-up"),300);
+  }
+
+  function sendToCounselor(){
+    const subject="تقرير الطلاب غير المتقنين - مادة التاريخ";
+    const body=reportText(nonMastered,threshold);
+    window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setReportOpen(false);
+  }
+
+  async function copyList(){
+    const lines=["الطلاب غير المتقنين في مادة التاريخ",`الفصل: ${selectedClass||"جميع الفصول"}`,`المعيار: أقل من ${threshold}%`,"",...nonMastered.map((s,i)=>`${i+1}. ${s.name||"—"} | ${s.class||"—"} | ${s.nationalId||"—"} | ${s.total}/100`)];
+    await navigator.clipboard.writeText(lines.join("\n"));
+    setSaved("تم نسخ القائمة للموجّه الطلابي");
+    setTimeout(()=>setSaved(""),2200);
   }
 
   async function saveNote(){
@@ -100,10 +153,12 @@ export default function FollowUpPage(){
     </section>
 
     <section className="follow-card nonmastered-card print-follow-target">
-      <header><div><h2>الطلاب غير المتقنين</h2><p>أقل من {threshold}% — جاهزة للنسخ أو الطباعة والإرسال للموجّه الطلابي.</p></div><div className="follow-actions"><button onClick={copyList}>نسخ القائمة</button><button onClick={printList}>طباعة القائمة</button></div></header>
+      <header><div><h2>الطلاب غير المتقنين</h2><p>أقل من {threshold}% — جاهزة للنسخ أو الطباعة والإبلاغ للموجّه الطلابي.</p></div><div className="follow-actions"><button onClick={copyList}>نسخ القائمة</button><button className="counselor-button" onClick={openReport}>📧 إبلاغ الموجه الطلابي</button><button onClick={printList}>طباعة القائمة</button></div></header>
       <div className="follow-print-title"><h2>مدرسة التهذيب الثانوية</h2><p>قائمة الطلاب غير المتقنين في مادة التاريخ</p><small>إعداد / الأستاذ حسن علي الطويل</small></div>
       <div className="follow-table-wrap"><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>السجل المدني</th><th>المجموع</th><th>المستوى</th><th>مقارنة بالمتوسط</th><th>ملاحظة</th></tr></thead><tbody>{nonMastered.map((s,i)=>{const l=level(s.total);return <tr key={s.id}><td>{i+1}</td><td><b>{s.name}</b></td><td>{s.class}</td><td>{s.nationalId||"—"}</td><td><strong>{s.total}/100</strong></td><td><span className={`level ${l.className}`}>{l.label}</span></td><td>{s.total-average>=0?`+${s.total-average}`:s.total-average}</td><td><button className="note-btn" onClick={()=>{setNoteStudent(s);setNote(s.teacherNote||"")}}>إضافة ملاحظة</button></td></tr>})}</tbody></table>{!nonMastered.length&&<p className="empty">لا يوجد طلاب أقل من معيار الإتقان المحدد.</p>}</div>
     </section>
+
+    {reportOpen&&<div className="report-modal" onClick={()=>setReportOpen(false)}><section onClick={e=>e.stopPropagation()}><div className="report-modal-head"><div><span>تقرير جاهز للإرسال</span><h3>إبلاغ الموجه الطلابي</h3><p>{nonMastered.length} طالبًا غير متقن — المعيار أقل من {threshold}%</p></div><button className="report-close" onClick={()=>setReportOpen(false)} aria-label="إغلاق">×</button></div><div className="report-table-wrap"><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الصف</th><th>الوحدة/المهارة</th><th>درجة الإتقان</th></tr></thead><tbody>{nonMastered.map((s,i)=><tr key={s.id}><td>{i+1}</td><td><b>{s.name||"—"}</b></td><td>{s.class||"—"}</td><td>{unitSummary(s)}</td><td>{s.total}/100</td></tr>)}</tbody></table></div><div className="report-modal-actions"><button onClick={()=>setReportOpen(false)}>إلغاء</button><button onClick={exportPdf}>📄 تصدير PDF</button><button onClick={printList}>🖨️ طباعة</button><button className="primary" onClick={sendToCounselor}>📧 إرسال للموجه الطلابي</button></div></section></div>}
 
     {noteStudent&&<div className="note-modal" onClick={()=>setNoteStudent(null)}><section onClick={e=>e.stopPropagation()}><h3>ملاحظة المعلم</h3><p>{noteStudent.name}</p><textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="مثال: يحتاج إلى متابعة في اختبارات الوحدات وأداء الواجبات..."/><div><button onClick={()=>setNoteStudent(null)}>إلغاء</button><button onClick={saveNote}>حفظ وإظهارها لولي الأمر</button></div></section></div>}
     {saved&&<div className="follow-toast">{saved}</div>}
