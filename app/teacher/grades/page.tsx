@@ -21,10 +21,6 @@ const units = [
 const MAX_GRADES: Record<GradeKey, number> = { attendance:1, participation:2, homework:2, unitExam:14 };
 const emptyGrade: GradeRecord = { attendance:0, participation:0, homework:0, unitExam:0, notes:"" };
 
-function formatHijriToday(){
-  return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
-}
-
 export default function GradesPage(){
   const [students,setStudents]=useState<Student[]>([]);
   const [selectedClass,setSelectedClass]=useState("");
@@ -101,35 +97,26 @@ export default function GradesPage(){
     finally{setSaving(false);}
   }
 
-  return <main className="gradebook-page" dir="rtl"><div className="gradebook-wrap">
-    <section className="gradebook-summary">
-      <article className="school-info"><div className="school-badge">ت</div><div><strong>مدرسة التهذيب الثانوية</strong><span>مادة التاريخ — الصف الثاني الثانوي</span><b>الأستاذ حسن علي الطويل</b></div><div className="hijri-today"><small>التاريخ الهجري</small><strong>{formatHijriToday()}</strong></div></article>
-      <article><span>عدد الطلاب</span><strong>{classStudents.length||students.length}</strong><small>طالب</small></article>
-      <article><span>درجة الوحدة</span><strong>١٩</strong><small>درجة ثابتة</small></article>
-      <article><span>المجموع النهائي</span><strong>١٠٠</strong><small>٩٥ للوحدات + ٥ للبحث</small></article>
-    </section>
+  return <main className="gradebook-page grades-page" dir="rtl"><div className="gradebook-wrap"><section className="gradebook-card">
+    <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo[1]}</h1><p>رصد درجات الوحدة من ١٩ درجة، مع إمكانية تعديل كل خانة وحفظها مباشرة.</p></div><div className="gradebook-actions">
+      <label>الفصل<select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(name=><option key={name}>{name}</option>)}</select></label>
+      <label>الوحدة<select value={selectedUnit} onChange={e=>setSelectedUnit(e.target.value)}>{units.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+      <Link href="/teacher/research" className="research-link">🔬 رصد البحث</Link>
+      <button type="button" className="save-button" onClick={saveRegister} disabled={!selectedClass||saving}>{saving?"جارٍ الحفظ...":"💾 حفظ"}</button>
+      <button type="button" className="delete-all-button" onClick={clearAllGrades} disabled={!selectedClass||saving}>🗑 حذف الكل</button>
+    </div></header>
 
-    <section className="gradebook-card">
-      <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo[1]}</h1><p>في الجوال اضغط + أو −، أو اضغط الرقم واكتبه مباشرة.</p></div><div className="gradebook-actions">
-        <label>الفصل<select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(name=><option key={name}>{name}</option>)}</select></label>
-        <label>الوحدة<select value={selectedUnit} onChange={e=>setSelectedUnit(e.target.value)}>{units.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
-        <Link href="/teacher/research" className="research-link">🔬 رصد البحث</Link>
-        <button type="button" className="save-button" onClick={saveRegister} disabled={!selectedClass||saving}>{saving?"جارٍ الحفظ...":"💾 حفظ"}</button>
-        <button type="button" className="delete-all-button" onClick={clearAllGrades} disabled={!selectedClass||saving}>🗑 حذف الكل</button>
-      </div></header>
-
-      <div className="gradebook-scroll"><table className="gradebook-table compact-five-table">
-        <thead><tr><th className="sticky-number">م</th><th className="national-id-head">السجل المدني</th><th className="sticky-name">اسم الطالب</th>{columns.map(([key,label])=><th key={key} className={key==="unitExam"?"exam-head":""}><span>{label}</span><div className="header-score-control"><input type="number" value={MAX_GRADES[key]} readOnly/><button type="button" onClick={()=>applyGradeToAll(key)} title="تطبيق الدرجة على الجميع">✓</button></div></th>)}<th>المجموع<small>من ١٩</small></th><th className="notes-head">الملاحظات</th><th className="delete-head">حذف</th></tr></thead>
-        <tbody>{classStudents.map((student,index)=>{
-          const grade=grades[student.id]||emptyGrade;
-          const total=grade.attendance+grade.participation+grade.homework+grade.unitExam;
-          return <tr key={student.id}><td className="sticky-number">{index+1}</td><td className="national-id-cell">{student.nationalId}</td><td className="sticky-name"><strong>{student.name}</strong></td>
-            {columns.map(([key])=><td key={key} className={key==="unitExam"?"exam-cell":""}><div className="mobile-grade-control"><button type="button" className="grade-step minus" onClick={()=>adjustGrade(student.id,key,-1)} aria-label="إنقاص الدرجة">−</button><input className="grade-input" type="number" inputMode="decimal" min="0" max={MAX_GRADES[key]} step="1" value={grade[key]} onFocus={e=>e.currentTarget.select()} onChange={e=>updateGrade(student.id,key,e.target.value)}/><button type="button" className="grade-step plus" onClick={()=>adjustGrade(student.id,key,1)} aria-label="زيادة الدرجة">+</button></div></td>)}
-            <td className="student-total">{total}</td><td><input className="notes-input" value={grade.notes||""} onChange={e=>setGrades(current=>({...current,[student.id]:{...(current[student.id]||emptyGrade),notes:e.target.value}}))} placeholder="ملاحظة"/></td><td><button className="row-delete-button" type="button" onClick={()=>clearStudent(student.id)} title="تصفير درجات الطالب">🗑</button></td></tr>;
-        })}{!selectedClass&&<tr><td colSpan={10} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}</tbody>
-      </table></div>
-      <footer className="gradebook-footer"><span>الوحدة المختارة: {unitInfo[1]}</span><span>{unitInfo[2]} — ١٤ درجة</span><span>البحث مستقل — ٥ درجات مرة واحدة</span></footer>
-      {message&&<p className="gradebook-message">{message}</p>}
-    </section>
-  </div></main>;
+    <div className="gradebook-scroll"><table className="gradebook-table compact-five-table">
+      <thead><tr><th className="sticky-number">م</th><th className="national-id-head">السجل المدني</th><th className="sticky-name">اسم الطالب</th>{columns.map(([key,label])=><th key={key} className={key==="unitExam"?"exam-head":""}><span>{label}</span><div className="header-score-control"><input type="number" value={MAX_GRADES[key]} readOnly/><button type="button" onClick={()=>applyGradeToAll(key)} title="تطبيق الدرجة على الجميع">✓</button></div></th>)}<th>المجموع<small>من ١٩</small></th><th className="notes-head">الملاحظات</th><th className="delete-head">حذف</th></tr></thead>
+      <tbody>{classStudents.map((student,index)=>{
+        const grade=grades[student.id]||emptyGrade;
+        const total=grade.attendance+grade.participation+grade.homework+grade.unitExam;
+        return <tr key={student.id}><td className="sticky-number">{index+1}</td><td className="national-id-cell">{student.nationalId}</td><td className="sticky-name"><strong>{student.name}</strong></td>
+          {columns.map(([key])=><td key={key} className={key==="unitExam"?"exam-cell":""}><div className="mobile-grade-control"><button type="button" className="grade-step minus" onClick={()=>adjustGrade(student.id,key,-1)} aria-label="إنقاص الدرجة">−</button><input className="grade-input" type="number" inputMode="decimal" min="0" max={MAX_GRADES[key]} step="1" value={grade[key]} onFocus={e=>e.currentTarget.select()} onChange={e=>updateGrade(student.id,key,e.target.value)}/><button type="button" className="grade-step plus" onClick={()=>adjustGrade(student.id,key,1)} aria-label="زيادة الدرجة">+</button></div></td>)}
+          <td className="student-total">{total}</td><td><input className="notes-input" value={grade.notes||""} onChange={e=>setGrades(current=>({...current,[student.id]:{...(current[student.id]||emptyGrade),notes:e.target.value}}))} placeholder="ملاحظة"/></td><td><button className="row-delete-button" type="button" onClick={()=>clearStudent(student.id)} title="تصفير درجات الطالب">🗑</button></td></tr>;
+      })}{!selectedClass&&<tr><td colSpan={10} className="empty-row">اختر الفصل لعرض سجل الطلاب</td></tr>}</tbody>
+    </table></div>
+    <footer className="gradebook-footer"><span>الوحدة المختارة: {unitInfo[1]}</span><span>{unitInfo[2]} — ١٤ درجة</span><span>درجة الوحدة: ١٩ — المجموع النهائي: ١٠٠</span><span>البحث مستقل — ٥ درجات مرة واحدة</span><span>عدد الطلاب: {classStudents.length}</span></footer>
+    {message&&<p className="gradebook-message">{message}</p>}
+  </section></div></main>;
 }
