@@ -37,11 +37,11 @@ export default function TeacherLoginPage() {
 
   return (
     <main className="teacher-login-page">
-      <Link href="/" className="teacher-login-back">العودة للبوابة</Link>
+      <Link href="/" className="teacher-login-back">العودة للبوابة الرئيسية</Link>
       <section className="teacher-login-card">
-        <div className="teacher-login-photo" aria-label="صورة المعلم الحالية"><div className="teacher-login-photo-shade" /><div className="teacher-login-photo-copy"><span>بوابة التهذيب التعليمية</span><h2>التعليم يصنع الأثر</h2><p>إدارة التحضير والدرجات والتقارير في مكان واحد.</p></div></div>
+        <div className="teacher-login-photo" aria-label="صورة الأستاذ حسن علي الطويل"><div className="teacher-login-photo-shade" /><div className="teacher-login-photo-copy"><span>بوابة أستاذ لحوني التعليمية</span><h2>التعليم يصنع الأثر</h2><p>إدارة التحضير والدرجات والتقارير في مكان واحد.</p></div></div>
         <div className="teacher-login-form-wrap">
-          <div className="teacher-login-brand"><div className="teacher-login-logo">ت</div><div><strong>مدرسة التهذيب الثانوية</strong><small>نظام متابعة مادة التاريخ</small></div></div>
+          <div className="teacher-login-brand"><div className="teacher-login-logo">ح</div><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>نظام متابعة مادة التاريخ</small></div></div>
           <div className="teacher-login-heading"><span className="teacher-login-badge">دخول المعلم الآمن</span><h1>مرحبًا أ. حسن علي الطويل</h1><p>أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة التحكم.</p></div>
           <form onSubmit={submit} className="teacher-login-form">
             <label htmlFor="teacher-username">اسم المستخدم</label>
@@ -51,7 +51,7 @@ export default function TeacherLoginPage() {
             {error && <p className="teacher-login-error">{error}</p>}
             <button type="submit" className="teacher-login-submit" disabled={loading || !username || !password}>{loading ? "جارٍ التحقق..." : "دخول إلى لوحة المعلم"}<span>←</span></button>
           </form>
-          <p className="teacher-login-note">الجلسة محفوظة في Cookie آمنة، وتنتهي تلقائيًا بعد 10 دقائق من عدم النشاط.</p>
+          <p className="teacher-login-note">الجلسة آمنة وتنتهي تلقائيًا بعد 10 دقائق من عدم النشاط.</p>
         </div>
       </section>
     </main>
