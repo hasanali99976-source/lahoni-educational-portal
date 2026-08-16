@@ -6,7 +6,8 @@ import { db } from "../../lib/firebase";
 import "./student.css";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number };
-type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; accessCode?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord>; [key: string]: unknown };
+type ParentNotice = { title?: string; message?: string; createdAt?: string; percentage?: number };
+type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; accessCode?: string; researchScore?: number; teacherNote?: string; parentCounselorNoticeCount?: number; parentCounselorLastNotice?: ParentNotice; units?: Record<string, UnitRecord>; [key: string]: unknown };
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 type AttendanceDoc = { records?: Record<string, AttendanceStatus> };
 
@@ -41,19 +42,22 @@ export default function StudentPage(){
     const code=(codeOverride??accessCode).trim().toUpperCase();
     setMessage(""); setStudent(null); setStudentDocId("");
     if(!/^\d{10}$/.test(id)) return setMessage("أدخل رقم هوية صحيحًا من 10 أرقام");
-    if(!/^TH\d{4}$/.test(code)) return setMessage("أدخل كود ولي الأمر الصحيح");
-    if(code!==`TH${id.slice(-4)}`) return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");
+    if(!/^TH\d{4}$/.test(code)) return setMessage("أدخل كود الطالب الصحيح");
+    if(code!==`TH${id.slice(-4)}`) return setMessage("رقم الهوية أو كود الطالب غير صحيح");
     try{
       setLoading(true); setNationalId(id); setAccessCode(code);
       const found=await findStudent(id,code);
-      if(!found) return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");
+      if(!found) return setMessage("رقم الهوية أو كود الطالب غير صحيح");
       setStudent(found.data); setStudentDocId(found.id);
     }catch{setMessage("تعذر قراءة البيانات الآن. حاول مرة أخرى.");}
     finally{setLoading(false);}
   }
 
   useEffect(()=>{
-    const code=(new URLSearchParams(window.location.search).get("code")||"").trim().toUpperCase();
+    const params=new URLSearchParams(window.location.search);
+    const id=(params.get("nationalId")||"").replace(/\D/g,"");
+    const code=(params.get("code")||"").trim().toUpperCase();
+    if(/^\d{10}$/.test(id)) setNationalId(id);
     if(/^TH\d{4}$/.test(code)) setAccessCode(code);
   },[]);
 
@@ -67,6 +71,8 @@ export default function StudentPage(){
   const name=String(student?.name??student?.الاسم??"الطالب");
   const studentClass=String(student?.class??student?.الفئة??"غير محدد");
   const teacherNote=String(student?.teacherNote||"").trim();
+  const noticeCount=Number(student?.parentCounselorNoticeCount||0);
+  const lastNotice=student?.parentCounselorLastNotice;
   const unitRows=useMemo(()=>units.map(([key,label])=>{
     const r=student?.units?.[key]||{};
     const attendance=Number(r.attendance||0),participation=Number(r.participation||0),homework=Number(r.homework||0),unitExam=Number(r.unitExam||0);
@@ -86,8 +92,9 @@ export default function StudentPage(){
 
   return <main className="parent-portal" dir="rtl">
     <section className="parent-hero"><div className="parent-hero-image"/><div className="parent-hero-overlay"><div className="school-mark">ت</div><div><span>مدرسة التهذيب الثانوية</span><h1>بوابة الطالب وولي الأمر</h1><p>متابعة مباشرة لدرجات مادة التاريخ والحضور.</p><b>الأستاذ حسن علي الطويل</b></div></div><small className="parent-prepared-by">إعداد / الأستاذ حسن علي الطويل</small></section>
-    <section className="parent-login-card"><div><h2>الدخول الآمن إلى التقرير</h2></div><div className="parent-login-form parent-secure-login"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} placeholder="رقم الهوية الوطنية"/><input dir="ltr" autoCapitalize="characters" value={accessCode} onChange={e=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="كود ولي الأمر"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحقق...":"عرض التقرير"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
+    <section className="parent-login-card"><div><h2>الدخول إلى بوابة الطالب</h2><p>أدخل رقم الهوية الوطنية ثم كود الطالب.</p></div><div className="parent-login-form parent-secure-login"><input inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} placeholder="رقم الهوية الوطنية"/><input dir="ltr" autoCapitalize="characters" value={accessCode} onChange={e=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6))} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="كود الطالب"/><button onClick={()=>submit()} disabled={loading}>{loading?"جارٍ التحقق...":"دخول إلى البوابة"}</button></div>{message&&<p className="parent-error">{message}</p>}</section>
     {student&&studentDocId&&<section className="parent-report">
+      {noticeCount>0&&<section className="parent-counselor-notice"><div className="parent-counselor-icon">🔔</div><div><strong>لديك {noticeCount} {noticeCount===1?"تنبيهًا":"تنبيهات"} من متابعة المعلم</strong><p>{lastNotice?.message||"يوجد تنبيه جديد من المعلم حول متابعة مستوى الطالب."}</p>{lastNotice?.createdAt&&<small>آخر تنبيه: {new Date(lastNotice.createdAt).toLocaleString("ar-SA")}</small>}</div></section>}
       <header className="parent-student-head"><div><small>اسم الطالب</small><h2>{name}</h2><p>{studentClass} • السجل المدني: {student.nationalId??nationalId}</p></div><div className="parent-score-and-message"><div className="parent-final-score"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠</small></div><div className={`parent-encouragement ${motivational.tone}`}><b>{motivational.title}</b><p>{motivational.text}</p></div></div></header>
       {teacherNote&&<section className="parent-teacher-note"><div>✦</div><article><span>ملاحظة المعلم</span><p>{teacherNote}</p><small>الأستاذ حسن علي الطويل</small></article></section>}
       <section className="parent-stats"><article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong></article><article><span>مرات التأخر</span><strong>{attendanceSummary.late}</strong></article><article><span>مرات الاستئذان</span><strong>{attendanceSummary.excused}</strong></article><article><span>نسبة الحضور</span><strong>{attendanceRate}%</strong></article></section>
