@@ -5,7 +5,8 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TeacherLoginPage() {
-  const [code, setCode] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -18,11 +19,11 @@ export default function TeacherLoginPage() {
       const response = await fetch("/api/teacher-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ username, password }),
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data?.message || "رمز الدخول غير صحيح");
+        setError(data?.message || "اسم المستخدم أو كلمة المرور غير صحيحة");
         return;
       }
       router.replace("/teacher/grades");
@@ -41,14 +42,16 @@ export default function TeacherLoginPage() {
         <div className="teacher-login-photo" aria-label="صورة المعلم الحالية"><div className="teacher-login-photo-shade" /><div className="teacher-login-photo-copy"><span>بوابة التهذيب التعليمية</span><h2>التعليم يصنع الأثر</h2><p>إدارة التحضير والدرجات والتقارير في مكان واحد.</p></div></div>
         <div className="teacher-login-form-wrap">
           <div className="teacher-login-brand"><div className="teacher-login-logo">ت</div><div><strong>مدرسة التهذيب الثانوية</strong><small>نظام متابعة مادة التاريخ</small></div></div>
-          <div className="teacher-login-heading"><span className="teacher-login-badge">دخول المعلم الآمن</span><h1>مرحبًا أ. حسن علي الطويل</h1><p>أدخل رمز المعلم للوصول إلى لوحة التحكم.</p></div>
+          <div className="teacher-login-heading"><span className="teacher-login-badge">دخول المعلم الآمن</span><h1>مرحبًا أ. حسن علي الطويل</h1><p>أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة التحكم.</p></div>
           <form onSubmit={submit} className="teacher-login-form">
-            <label htmlFor="teacher-code">رمز الدخول</label>
-            <div className="teacher-code-box"><span>🔒</span><input id="teacher-code" type="password" inputMode="numeric" maxLength={12} value={code} onChange={(event) => { setCode(event.target.value.replace(/\D/g, "")); setError(""); }} placeholder="أدخل رمز المعلم" autoFocus autoComplete="current-password" /></div>
+            <label htmlFor="teacher-username">اسم المستخدم</label>
+            <div className="teacher-code-box"><span>👤</span><input id="teacher-username" type="text" value={username} onChange={(event) => { setUsername(event.target.value); setError(""); }} placeholder="أدخل اسم المستخدم" autoFocus autoComplete="username" /></div>
+            <label htmlFor="teacher-password">كلمة المرور</label>
+            <div className="teacher-code-box"><span>🔒</span><input id="teacher-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} placeholder="أدخل كلمة المرور" autoComplete="current-password" /></div>
             {error && <p className="teacher-login-error">{error}</p>}
-            <button type="submit" className="teacher-login-submit" disabled={loading || !code}>{loading ? "جارٍ التحقق..." : "دخول إلى لوحة المعلم"}<span>←</span></button>
+            <button type="submit" className="teacher-login-submit" disabled={loading || !username || !password}>{loading ? "جارٍ التحقق..." : "دخول إلى لوحة المعلم"}<span>←</span></button>
           </form>
-          <p className="teacher-login-note">الجلسة محفوظة في Cookie آمنة ولا يظهر رمز المعلم داخل صفحة الموقع.</p>
+          <p className="teacher-login-note">الجلسة محفوظة في Cookie آمنة، وتنتهي تلقائيًا بعد 10 دقائق من عدم النشاط.</p>
         </div>
       </section>
     </main>
