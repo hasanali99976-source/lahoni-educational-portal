@@ -13,40 +13,40 @@ export default function HomePage() {
   const router = useRouter();
   const [mode, setMode] = useState<LoginMode>("student");
 
-  function switchMode(nextMode: LoginMode) {
-    setMode(nextMode);
-  }
-
   function submit() {
-    if (mode === "teacher") {
-      router.push("/teacher");
-      return;
-    }
-    router.push("/student");
+    router.push(mode === "teacher" ? "/teacher" : "/student");
   }
 
   return (
     <main className="portal-home" dir="rtl">
-      <section className="portal-card">
-        <div className="portal-visual">
-          <img src={teacherImage} alt="بوابة التهذيب وصورة المعلم" />
-          <div className="portal-shade" />
-          <div className="portal-copy"><span>مدرسة التهذيب الثانوية</span><h2>بوابة التهذيب التعليمية</h2><p>متابعة الحضور والدرجات والتقارير في مكان واحد.</p></div>
-          <a className="portal-qr" href="/student" aria-label="الدخول إلى بوابة الطالب"><QRCodeSVG value={studentUrl} size={122} includeMargin /><strong>الدخول السريع للطالب</strong></a>
+      <section className="portal-shell">
+        <div className="portal-header">
+          <div className="brand-mark">ح</div>
+          <div>
+            <h1>بوابة أستاذ لحوني التعليمية</h1>
+            <p>نظام تعليمي لمتابعة الطلاب والدرجات والإتقان</p>
+          </div>
         </div>
-        <div className="portal-login">
-          <div className="portal-brand"><div className="portal-logo">ت</div><div><strong>بوابة التهذيب</strong><small>نظام متابعة مادة التاريخ</small></div></div>
-          <div className="portal-welcome"><span>النسخة الجديدة</span><h1>أهلًا وسهلًا بكم</h1><p>اختر نوع الدخول.</p></div>
-          <div className="portal-tabs"><button type="button" className={mode === "student" ? "active" : ""} onClick={() => switchMode("student")}>👨‍🎓<br />بوابة الطالب / ولي الأمر</button><button type="button" className={mode === "teacher" ? "active" : ""} onClick={() => switchMode("teacher")}>👨‍🏫<br />معلم</button></div>
-          {mode === "teacher" ? <div><p className="portal-teacher-hint">سيتم نقلك إلى صفحة دخول المعلم الآمنة.</p><button type="button" className="portal-submit" onClick={submit}>دخول المعلم</button></div> : <div>
-            <p className="portal-student-hint">من هنا تدخل مباشرة إلى بوابة الطالب، وستظهر لك في الصفحة التالية خانتا رقم الهوية الوطنية وكود الطالب فقط.</p>
-            <button type="button" className="portal-submit" onClick={submit}>دخول بوابة الطالب</button>
-          </div>}
-          <div className="portal-notes"><span>🔒 بيانات آمنة</span><span>📱 مناسب للجوال</span></div>
+        <div className="portal-content">
+          <div className="portal-visual">
+            <div className="portrait-frame"><img src={teacherImage} alt="صورة الأستاذ حسن علي الطويل" /></div>
+            <div className="visual-caption"><strong>الأستاذ حسن علي الطويل</strong><span>التعليم • المتابعة • الأثر</span></div>
+            <div className="learning-shapes" aria-hidden="true"><span>📚</span><span>✏️</span><span>🎓</span></div>
+          </div>
+          <div className="portal-login">
+            <div className="welcome"><span className="eyebrow">أهلًا وسهلًا</span><h2>ابدأ من هنا</h2><p>اختر نوع الدخول للوصول إلى البوابة.</p></div>
+            <div className="portal-tabs">
+              <button type="button" className={mode === "student" ? "active" : ""} onClick={() => setMode("student")}><span className="tab-icon">👨‍🎓</span><span>بوابة الطالب / ولي الأمر</span></button>
+              <button type="button" className={mode === "teacher" ? "active" : ""} onClick={() => setMode("teacher")}><span className="tab-icon">👨‍🏫</span><span>بوابة المعلم</span></button>
+            </div>
+            {mode === "teacher" ? <div><p className="hint">سيتم نقلك إلى صفحة دخول المعلم الآمنة.</p><button type="button" className="portal-submit" onClick={submit}>دخول بوابة المعلم</button></div> : <div><p className="hint">للطالب وولي الأمر: اضغط للدخول، ثم أدخل رقم الهوية الوطنية وكود الطالب.</p><button type="button" className="portal-submit" onClick={submit}>دخول بوابة الطالب</button></div>}
+            <div className="portal-footer"><div><span>🔒</span><small>بيانات آمنة</small></div><div><span>📱</span><small>مصمم للجوال</small></div><div><span>🎯</span><small>متابعة تعليمية</small></div></div>
+            <a className="quick-student" href="/student" aria-label="الدخول السريع للطالب"><QRCodeSVG value={studentUrl} size={64} includeMargin /><span><strong>دخول سريع للطالب</strong><small>امسح الرمز بالكاميرا</small></span></a>
+          </div>
         </div>
       </section>
       <style jsx global>{`
-        .portal-home{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at 15% 12%,rgba(51,170,181,.16),transparent 26%),linear-gradient(135deg,#eef7f8,#fbfdfd 55%,#eaf2f6);font-family:Tahoma,Arial,sans-serif;color:#17384a}.portal-card{width:min(1180px,100%);min-height:700px;background:#fff;border:1px solid rgba(13,102,116,.09);border-radius:34px;overflow:hidden;display:grid;grid-template-columns:1.18fr .82fr;box-shadow:0 30px 80px rgba(20,69,91,.16)}.portal-visual{position:relative;min-height:700px;background:#dceef2;overflow:hidden}.portal-visual>img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}.portal-shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 34%,rgba(4,50,64,.84))}.portal-copy{position:absolute;z-index:2;right:38px;left:38px;bottom:34px;color:#fff;padding-left:170px}.portal-copy span{display:inline-block;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);font-size:12px;font-weight:700}.portal-copy h2{font-size:34px;margin:14px 0 8px}.portal-copy p{margin:0;color:rgba(255,255,255,.84);font-size:17px}.portal-qr{position:absolute;z-index:3;left:28px;bottom:28px;background:#fff;padding:9px;border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;gap:3px;color:#0d6674;font-size:11px;text-decoration:none}.portal-login{padding:48px 42px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(180deg,#fff,#f8fcfd)}.portal-brand{display:flex;align-items:center;gap:13px;margin-bottom:44px}.portal-logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#0a5260,#25a8b1);color:#fff;font-size:25px;font-weight:900;box-shadow:0 12px 28px rgba(13,102,116,.25)}.portal-brand>div:last-child{display:flex;flex-direction:column;gap:3px}.portal-brand strong{font-size:20px;color:#0a5260}.portal-brand small{color:#718895}.portal-welcome>span{display:inline-flex;padding:7px 11px;border-radius:999px;background:#e8f6f7;color:#147382;font-size:12px;font-weight:800}.portal-welcome h1{font-size:34px;margin:15px 0 8px;color:#143f53}.portal-welcome p{margin:0 0 26px;color:#6d8490}.portal-tabs{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px}.portal-tabs button{border:1px solid #d8e7ec;background:#fff;border-radius:16px;padding:15px 10px;color:#496b79;font-weight:800;cursor:pointer;transition:.2s}.portal-tabs button.active{background:linear-gradient(135deg,#0a5260,#1a99a5);color:#fff;border-color:transparent;box-shadow:0 12px 26px rgba(13,97,125,.2);transform:translateY(-1px)}.portal-student-hint,.portal-teacher-hint{margin:0 0 16px;color:#6d8490;font-size:14px;line-height:1.8}.portal-submit{width:100%;height:54px;margin-top:19px;border:0;border-radius:14px;background:linear-gradient(135deg,#0a5260,#1895a3);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 13px 28px rgba(13,97,125,.22)}.portal-notes{display:flex;justify-content:space-between;gap:10px;margin-top:18px;padding-top:15px;border-top:1px solid #e5eff2;color:#7c919b;font-size:12px}@media(max-width:850px){.portal-card{grid-template-columns:1fr}.portal-visual{min-height:390px}.portal-login{padding:34px 26px}.portal-brand{margin-bottom:28px}.portal-copy{padding-left:150px}}@media(max-width:520px){.portal-home{padding:14px}.portal-card{border-radius:24px}.portal-visual{min-height:330px}.portal-copy{right:20px;left:20px;bottom:18px;padding-left:0;padding-bottom:140px}.portal-copy h2{font-size:25px}.portal-copy p{font-size:14px}.portal-qr{left:18px;bottom:18px}.portal-tabs{grid-template-columns:1fr}.portal-welcome h1{font-size:28px}.portal-login{padding:28px 20px}}
+        .portal-home{min-height:100vh;padding:30px;display:grid;place-items:center;background:linear-gradient(135deg,#f4fafb,#eef6f7 48%,#f9fcfd);font-family:Tahoma,Arial,sans-serif;color:#173f4c}.portal-shell{width:min(1080px,100%);background:#fff;border:1px solid #dcebed;border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(25,78,91,.12)}.portal-header{display:flex;align-items:center;gap:14px;padding:25px 32px;border-bottom:1px solid #e6f0f2}.brand-mark{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#e6f5f6;color:#147181;font-size:24px;font-weight:900}.portal-header h1{margin:0 0 5px;font-size:25px;color:#123f4d}.portal-header p{margin:0;color:#708891;font-size:13px}.portal-content{display:grid;grid-template-columns:.92fr 1.08fr;min-height:610px}.portal-visual{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:42px 35px;background:linear-gradient(180deg,#edf8f8,#e5f3f5);overflow:hidden}.portrait-frame{width:min(330px,78%);aspect-ratio:3/4;border-radius:170px 170px 35px 35px;overflow:hidden;background:#d9edf0;border:9px solid rgba(255,255,255,.82);box-shadow:0 22px 45px rgba(35,101,113,.18)}.portrait-frame img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}.visual-caption{margin-top:22px;text-align:center;display:flex;flex-direction:column;gap:7px}.visual-caption strong{font-size:20px;color:#174d5b}.visual-caption span{font-size:13px;color:#6c8991}.learning-shapes{position:absolute;inset:0;pointer-events:none}.learning-shapes span{position:absolute;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.82);box-shadow:0 10px 25px rgba(40,100,110,.08);font-size:20px}.learning-shapes span:nth-child(1){top:60px;right:45px}.learning-shapes span:nth-child(2){bottom:100px;left:40px}.learning-shapes span:nth-child(3){top:145px;left:35px}.portal-login{padding:52px 55px;display:flex;flex-direction:column;justify-content:center}.welcome .eyebrow{display:inline-block;padding:7px 12px;border-radius:999px;background:#e8f6f7;color:#157180;font-size:12px;font-weight:800}.welcome h2{margin:14px 0 7px;font-size:34px;color:#143f4d}.welcome p{margin:0 0 27px;color:#718790;font-size:14px}.portal-tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}.portal-tabs button{min-height:76px;border:1px solid #dce9ec;background:#fbfdfd;border-radius:17px;padding:12px 10px;color:#496b76;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;flex-direction:column;transition:.2s}.portal-tabs button:hover{border-color:#b9dce0;transform:translateY(-1px)}.portal-tabs button.active{background:#eaf7f8;border-color:#2a9aaa;color:#126878;box-shadow:0 8px 20px rgba(31,139,153,.1)}.tab-icon{font-size:21px;line-height:1}.hint{margin:0;color:#6f858d;font-size:14px;line-height:1.9}.portal-submit{width:100%;height:54px;margin-top:18px;border:0;border-radius:14px;background:#167789;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 10px 24px rgba(22,119,137,.18)}.portal-footer{display:flex;justify-content:space-between;gap:8px;margin-top:25px;padding-top:18px;border-top:1px solid #e7f0f2;color:#789098}.portal-footer div{display:flex;align-items:center;gap:6px;font-size:12px}.portal-footer span{font-size:15px}.portal-footer small{font-size:11px}.quick-student{margin-top:20px;padding:10px;border:1px solid #e3eef0;border-radius:14px;background:#f9fcfc;display:flex;align-items:center;gap:12px;text-decoration:none;color:#205766}.quick-student span{display:flex;flex-direction:column;gap:4px}.quick-student strong{font-size:12px}.quick-student small{font-size:10px;color:#7a9097}@media(max-width:800px){.portal-home{padding:15px}.portal-content{grid-template-columns:1fr}.portal-visual{min-height:480px;padding:35px 20px}.portal-login{padding:35px 25px}.portal-header{padding:20px}.portal-header h1{font-size:21px}.portrait-frame{width:250px}}@media(max-width:500px){.portal-shell{border-radius:22px}.portal-header{align-items:flex-start}.brand-mark{width:45px;height:45px}.portal-header h1{font-size:18px;line-height:1.5}.portal-header p{font-size:11px}.portal-visual{min-height:390px}.portrait-frame{width:210px}.learning-shapes span{transform:scale(.82)}.portal-login{padding:28px 18px}.welcome h2{font-size:28px}.portal-tabs{grid-template-columns:1fr}.portal-footer small{font-size:10px}}
       `}</style>
     </main>
   );
