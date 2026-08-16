@@ -16,11 +16,12 @@ const tabs = [
 ];
 const IDLE_LIMIT = 3 * 60 * 1000;
 
+type SubjectKey = "history" | "critical-thinking";
 type TeacherSession = {
   authenticated?: boolean;
   teacherName?: string;
   subject?: string;
-  subjectKey?: "history" | "critical-thinking";
+  subjectKey?: SubjectKey;
 };
 
 function TabIcon({ type }: { type: string }) {
@@ -38,6 +39,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const [ready,setReady]=useState(isLoginPage),[soundOn,setSoundOn]=useState(true);
   const [teacherName,setTeacherName]=useState("المعلم");
   const [subject,setSubject]=useState("المادة");
+  const [subjectKey,setSubjectKey]=useState<SubjectKey>("history");
   const idleTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastHeartbeat=useRef(0);
   function playTone(kind:"tab"|"off"="tab"){
     if(!soundOn&&kind!=="off")return;
@@ -49,9 +51,10 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   useEffect(()=>{
     if(isLoginPage){setReady(true);return}
     let active=true,busy=false;
-    const check=async()=>{const r=await fetch("/api/teacher-session",{cache:"no-store"});if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active){setTeacherName(session.teacherName||"المعلم");setSubject(session.subject||"المادة");setReady(true)}};
+    const applySession=(session:TeacherSession)=>{setTeacherName(session.teacherName||"المعلم");setSubject(session.subject||"المادة");setSubjectKey(session.subjectKey||"history")};
+    const check=async()=>{const r=await fetch("/api/teacher-session",{cache:"no-store"});if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active){applySession(session);setReady(true)}};
     const reset=()=>{if(idleTimer.current)clearTimeout(idleTimer.current);idleTimer.current=setTimeout(()=>void logout(),IDLE_LIMIT)};
-    const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active){setTeacherName(session.teacherName||"المعلم");setSubject(session.subject||"المادة")};lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
+    const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active)applySession(session);lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
     const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;
     if(nav?.type==="reload"){void logout();return()=>{active=false}};
     const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void logout()};
@@ -60,14 +63,14 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   },[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;
   if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة المعلم...</main>;
-  return <div className="teacher-app-shell" dir="rtl">
+  return <div className={`teacher-app-shell theme-${subjectKey}`} dir="rtl">
     <aside className="teacher-sidebar">
-      <div className="teacher-shell-brand"><div className="teacher-shell-logo">ح</div><div><strong>أستاذ لحوني</strong><small>بوابة {subject} التعليمية</small></div></div>
+      <div className="teacher-shell-brand"><div className="teacher-shell-logo">{subjectKey==="history"?"ح":"ف"}</div><div><strong>أستاذ لحوني</strong><small>بوابة {subject} التعليمية</small></div></div>
       <nav className="teacher-tabs" aria-label="أقسام بوابة المعلم">{tabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>playTone()}><span className="teacher-tab-icon"><TabIcon type={tab.key}/></span><span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
       <div className="teacher-header-actions"><button className={`sound-toggle ${soundOn?"on":"off"}`} onClick={toggleSound}>{soundOn?"🔊 تشغيل الصوت":"🔇 الصوت مكتوم"}</button><button className="teacher-logout" onClick={logout}>تسجيل خروج</button></div>
     </aside>
     <main className="teacher-main">
-      <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">لوحة المعلم — {subject}</span><h2>أهلًا أستاذ {teacherName}، كل أدواتك في مكان واحد</h2><p>رصد درجات {subject} والحضور والمتابعة والتقارير بتصميم واضح وسريع.</p><div className="teacher-welcome-points"><span>رصد ذكي</span><span>تقارير فورية</span><span>متابعة دقيقة</span></div></div><div className="welcome-illustration"><img src="/students-learning.svg" alt="تعليم تفاعلي"/></div></section>
+      <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">لوحة المعلم — {subject}</span><h2>أهلًا أستاذ {teacherName}، كل أدواتك في مكان واحد</h2><p>رصد درجات {subject} والحضور والمتابعة والتقارير بتصميم واضح وسريع.</p><div className="teacher-welcome-points"><span>{subjectKey==="history"?"سجل الحضارات":"تحليل منطقي"}</span><span>تقارير فورية</span><span>{subjectKey==="history"?"متابعة دقيقة":"تفكير متعمق"}</span></div></div><div className="welcome-illustration"><img src="/students-learning.svg" alt="تعليم تفاعلي"/></div></section>
       <div className="teacher-page-content">{children}</div>
     </main>
   </div>
