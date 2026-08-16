@@ -1,10 +1,11 @@
-const CACHE_NAME = "ostadh-lahooni-v2";
+const CACHE_NAME = "ostadh-lahooni-v4";
 const APP_SHELL = [
   "/",
   "/student",
   "/teacher",
   "/manifest.webmanifest",
   "/icon.svg",
+  "/portal-cover.webp",
   "/icons/ostadh-lahooni-192.jpg",
 ];
 
@@ -33,11 +34,11 @@ self.addEventListener("fetch", event => {
 
   if (["style", "script", "font", "image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(response => {
+      fetch(request).then(response => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
         return response;
-      }))
+      }).catch(() => caches.match(request))
     );
   }
 });
