@@ -2,7 +2,7 @@ import "server-only";
 import { createHash, timingSafeEqual } from "crypto";
 
 export const TEACHER_COOKIE = "tahdheeb_teacher_session";
-export const TEACHER_SESSION_MAX_AGE = 60 * 10;
+export const TEACHER_SESSION_MAX_AGE = 60 * 3;
 
 function teacherUsername() {
   return process.env.TEACHER_USERNAME || "حسن الطويل";
