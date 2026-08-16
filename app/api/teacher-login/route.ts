@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { findTeacherAccount, TEACHER_COOKIE, teacherSessionToken, TEACHER_SESSION_MAX_AGE } from "../../../lib/teacher-session";
+import {
+  findTeacherAccount,
+  TEACHER_COOKIE,
+  teacherSessionToken,
+  TEACHER_SESSION_MAX_AGE,
+} from "../../../lib/teacher-session";
 
 export async function POST(request: Request) {
   try {
@@ -7,11 +12,35 @@ export async function POST(request: Request) {
     const username = String(body?.username || "").trim();
     const password = String(body?.password || "");
     const account = findTeacherAccount(username, password);
-    if (!account) return NextResponse.json({ ok: false, message: "اسم المستخدم أو كلمة المرور غير صحيحة" }, { status: 401 });
-    const response = NextResponse.json({ ok: true, teacherId: account.teacherId, subject: account.subject, teacherName: account.username });
-    response.cookies.set(TEACHER_COOKIE, teacherSessionToken(account), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: TEACHER_SESSION_MAX_AGE });
+
+    if (!account) {
+      return NextResponse.json(
+        { ok: false, message: "اسم المستخدم أو كلمة المرور غير صحيحة" },
+        { status: 401 },
+      );
+    }
+
+    const response = NextResponse.json({
+      ok: true,
+      teacherId: account.teacherId,
+      teacherName: account.username,
+      subjectKey: account.subjectKey,
+      subject: account.subject,
+    });
+
+    response.cookies.set(TEACHER_COOKIE, teacherSessionToken(account), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: TEACHER_SESSION_MAX_AGE,
+    });
+
     return response;
   } catch {
-    return NextResponse.json({ ok: false, message: "تعذر تسجيل الدخول" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, message: "تعذر تسجيل الدخول" },
+      { status: 400 },
+    );
   }
 }
