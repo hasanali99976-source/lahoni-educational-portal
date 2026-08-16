@@ -4,30 +4,34 @@ import { createHash, timingSafeEqual } from "crypto";
 export const TEACHER_COOKIE = "tahdheeb_teacher_session";
 export const TEACHER_SESSION_MAX_AGE = 60 * 3;
 
-function teacherUsername() {
-  return process.env.TEACHER_USERNAME || "حسن الطويل";
+export type TeacherAccount = { username: string; password: string; teacherId: string; subject: string };
+
+export const TEACHER_ACCOUNTS: TeacherAccount[] = [
+  { username: "حسن الطويل", password: "1415", teacherId: "hasan-history", subject: "التاريخ" },
+  { username: "عبد الله الرويشد", password: "1415", teacherId: "abdullah-critical-thinking", subject: "التفكير الناقد" },
+];
+
+export function findTeacherAccount(username: string, password: string) {
+  return TEACHER_ACCOUNTS.find(account => account.username === username.trim() && account.password === password) || null;
 }
 
-function teacherSecret() {
-  return process.env.TEACHER_PASSWORD || process.env.TEACHER_ACCESS_CODE || "1415";
-}
-
-export function teacherSessionToken() {
-  return createHash("sha256").update(`tahdheeb:${teacherUsername()}:${teacherSecret()}`).digest("hex");
+export function teacherSessionToken(account: TeacherAccount) {
+  return createHash("sha256").update(`tahdheeb:${account.teacherId}:${account.username}:${account.password}`).digest("hex");
 }
 
 export function isTeacherCredentialsValid(username: string, password: string) {
-  const expectedUsername = Buffer.from(teacherUsername());
-  const receivedUsername = Buffer.from(username);
-  const expectedPassword = Buffer.from(teacherSecret());
-  const receivedPassword = Buffer.from(password);
-  return expectedUsername.length === receivedUsername.length && timingSafeEqual(expectedUsername, receivedUsername)
-    && expectedPassword.length === receivedPassword.length && timingSafeEqual(expectedPassword, receivedPassword);
+  return !!findTeacherAccount(username, password);
+}
+
+export function teacherAccountFromSession(value?: string) {
+  if (!value) return null;
+  return TEACHER_ACCOUNTS.find(account => {
+    const expected = Buffer.from(teacherSessionToken(account));
+    const received = Buffer.from(value);
+    return expected.length === received.length && timingSafeEqual(expected, received);
+  }) || null;
 }
 
 export function isTeacherSessionValid(value?: string) {
-  if (!value) return false;
-  const expected = Buffer.from(teacherSessionToken());
-  const received = Buffer.from(value);
-  return expected.length === received.length && timingSafeEqual(expected, received);
+  return !!teacherAccountFromSession(value);
 }
