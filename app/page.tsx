@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 
-const teacherImage = "https://shimmering-rolypoly-0ebda2.netlify.app/portal.png";
 const studentUrl = "https://tahdheeb-history.vercel.app/student";
 
 export default function HomePage() {
@@ -12,20 +11,48 @@ export default function HomePage() {
   return (
     <main className="lahooni-home" dir="rtl">
       <section className="lahooni-shell">
-        <div className="lahooni-photo"><img src={teacherImage} alt="صورة الأستاذ حسن علي الطويل" /><div className="photo-wave" /></div>
-        <div className="lahooni-content">
-          <header><span>بوابة</span><h1>أستاذ لحوني</h1><h2>التعليمية</h2><div className="title-line">🎓</div><p>منصة تعليمية متكاملة لخدمة المعلم والطالب وولي الأمر</p><b>إدارة سهلة • متابعة دقيقة • تعليم بإتقان</b></header>
+        <div className="lahooni-cover" aria-label="غلاف بوابة أستاذ لحوني التعليمية">
+          <img src="/portal-cover.webp" alt="التصميم الجديد لبوابة أستاذ لحوني التعليمية" />
+        </div>
+
+        <div className="lahooni-actions">
+          <header>
+            <span>مرحبًا بكم في</span>
+            <h1>بوابة أستاذ لحوني التعليمية</h1>
+            <p>منصة تعليمية لمتابعة الدرجات والحضور والإتقان والتواصل مع ولي الأمر.</p>
+          </header>
+
           <div className="entry-cards">
-            <article className="entry-card student-card"><div className="entry-icon">👥</div><h3>بوابة الطالب<br/>وولي الأمر</h3><p>عرض الدرجات والتنبيهات<br/>ومتابعة الأداء الدراسي</p><button onClick={()=>router.push('/student')}>دخول البوابة ‹</button></article>
-            <article className="entry-card teacher-card"><div className="entry-icon">👨‍🏫</div><h3>بوابة المعلم</h3><p>إدارة الفصول ورصد الدرجات<br/>والتقارير والإشعارات</p><button onClick={()=>router.push('/teacher')}>دخول البوابة ‹</button></article>
+            <button className="entry-card student-card" onClick={() => router.push("/student")}>
+              <span className="entry-icon">🎓</span>
+              <strong>بوابة الطالب وولي الأمر</strong>
+              <small>عرض الدرجات والتنبيهات ومتابعة الأداء</small>
+              <b>دخول البوابة ←</b>
+            </button>
+
+            <button className="entry-card teacher-card" onClick={() => router.push("/teacher")}>
+              <span className="entry-icon">👨‍🏫</span>
+              <strong>بوابة المعلم</strong>
+              <small>إدارة الطلاب والرصد والتقارير والمتابعة</small>
+              <b>دخول البوابة ←</b>
+            </button>
           </div>
-          <a className="real-qr" href="/student" aria-label="الدخول السريع لبوابة الطالب وولي الأمر"><QRCodeSVG value={studentUrl} size={104} includeMargin/><div><strong>الدخول السريع لولي الأمر</strong><span>امسح رمز QR للدخول مباشرة</span></div><div className="phone-icon">▣</div></a>
-          <div className="portal-help"><article>🛡️<b>خصوصية وأمان</b><span>بياناتك آمنة ومحمية</span></article><article>💳<b>بيانات الدخول</b><span>رقم الهوية وكود الطالب</span></article><article>🎧<b>الدعم والمساعدة</b><span>تواصل مع معلم المادة</span></article></div>
-          <footer>جميع الحقوق محفوظة © أستاذ لحوني التعليمية 2026</footer>
+
+          <a className="real-qr" href="/student" aria-label="الدخول السريع لبوابة الطالب وولي الأمر">
+            <QRCodeSVG value={studentUrl} size={96} includeMargin />
+            <div><strong>الدخول السريع لولي الأمر</strong><span>امسح رمز QR للانتقال مباشرة إلى صفحة الدخول</span></div>
+          </a>
+
+          <div className="portal-help">
+            <span>🔒 بيانات آمنة</span>
+            <span>📱 متوافق مع التطبيق</span>
+            <span>📚 متابعة تعليمية</span>
+          </div>
         </div>
       </section>
+
       <style jsx global>{`
-        .lahooni-home{min-height:100vh;padding:22px;background:#f4f8f8;font-family:Tahoma,Arial,sans-serif;color:#174b59}.lahooni-shell{width:min(1240px,100%);margin:auto;display:grid;grid-template-columns:44% 56%;background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(27,76,87,.13)}.lahooni-photo{position:relative;min-height:850px;background:linear-gradient(180deg,#edf6f5,#fff);overflow:hidden}.lahooni-photo img{width:100%;height:100%;object-fit:cover;object-position:100% 22%;display:block;transform:scale(1.18);transform-origin:75% 20%}.photo-wave{position:absolute;right:-8%;bottom:-6%;width:120%;height:32%;background:linear-gradient(135deg,rgba(58,151,156,.42),rgba(255,255,255,.85));border-radius:50% 50% 0 0/35% 35% 0 0;transform:rotate(-7deg)}.lahooni-content{padding:42px 48px 24px;display:flex;flex-direction:column}.lahooni-content header{text-align:center}.lahooni-content header>span{font-size:25px}.lahooni-content h1{margin:5px 0 0;font-size:54px;line-height:1;color:#0e5d70}.lahooni-content h2{margin:0;color:#c99023;font-size:29px}.title-line{margin:18px auto;color:#0f7180}.lahooni-content header p{font-weight:800;margin:8px 0;color:#174b59}.lahooni-content header b{font-size:15px;color:#2d6975}.entry-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}.entry-card{padding:24px;border:1px solid #dce8e8;border-radius:21px;background:#fff;text-align:center;box-shadow:0 10px 25px rgba(28,80,90,.08)}.entry-icon{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;margin:auto;font-size:29px;color:#fff}.student-card .entry-icon{background:#2da664}.teacher-card .entry-icon{background:#d79a20}.entry-card h3{font-size:23px;margin:16px 0 12px}.student-card h3{color:#299559}.teacher-card h3{color:#c78a17}.entry-card p{font-size:13px;line-height:1.9;color:#687d83;border-top:1px solid #e8eeee;padding-top:12px}.entry-card button{width:100%;height:48px;border:0;border-radius:10px;color:#fff;font-weight:900;font-size:15px;cursor:pointer}.student-card button{background:#269759}.teacher-card button{background:#d49418}.real-qr{margin-top:20px;padding:12px 20px;border:1px solid #e0e9e9;border-radius:18px;background:#fff;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;text-decoration:none;color:#18596a;box-shadow:0 10px 24px rgba(23,77,89,.06)}.real-qr>div:nth-child(2){display:flex;flex-direction:column;gap:7px}.real-qr strong{font-size:20px}.real-qr span{font-size:13px;color:#617c83}.phone-icon{font-size:38px;color:#0d7282}.portal-help{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:20px;border:1px solid #e3ebeb;border-radius:18px;padding:18px;background:#fff}.portal-help article{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;padding:8px;border-left:1px solid #e7eded}.portal-help article:last-child{border-left:0}.portal-help b{font-size:14px}.portal-help span{font-size:11px;color:#74888d}.lahooni-content footer{text-align:center;margin-top:18px;font-size:12px;color:#7a8e92}@media(max-width:900px){.lahooni-shell{grid-template-columns:1fr}.lahooni-photo{min-height:520px}.lahooni-photo img{object-position:100% 18%;transform:scale(1.1)}.lahooni-content{padding:32px 24px}.lahooni-content h1{font-size:44px}}@media(max-width:560px){.lahooni-home{padding:10px}.lahooni-shell{border-radius:22px}.lahooni-photo{min-height:390px}.lahooni-photo img{object-position:100% 15%;transform:scale(1.08)}.lahooni-content{padding:27px 16px 20px}.lahooni-content h1{font-size:37px}.entry-cards{grid-template-columns:1fr}.real-qr{grid-template-columns:auto 1fr}.phone-icon{display:none}.portal-help{grid-template-columns:1fr}.portal-help article{border-left:0;border-bottom:1px solid #e7eded}.portal-help article:last-child{border-bottom:0}}
+        .lahooni-home{min-height:100vh;padding:18px;background:linear-gradient(135deg,#eef7f6,#f8fbfb);font-family:inherit;color:#164b58}.lahooni-shell{width:min(1400px,100%);min-height:760px;margin:auto;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 26px 80px rgba(23,77,89,.15)}.lahooni-cover{position:relative;min-height:760px;background:#edf7f6;overflow:hidden}.lahooni-cover img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}.lahooni-actions{padding:42px 34px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(180deg,#fff,#f8fcfb)}.lahooni-actions header{text-align:center}.lahooni-actions header>span{display:inline-block;padding:7px 13px;border-radius:999px;background:#e8f6f4;color:#127568;font-size:12px;font-weight:800}.lahooni-actions h1{margin:14px 0 9px;font-size:36px;line-height:1.35;color:#0d6170}.lahooni-actions header p{margin:0;color:#6e858d;line-height:1.9;font-size:14px}.entry-cards{display:grid;gap:14px;margin-top:28px}.entry-card{width:100%;border:1px solid #dbe9e8;border-radius:20px;padding:19px;background:#fff;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:14px;row-gap:5px;text-align:right;cursor:pointer;box-shadow:0 10px 25px rgba(28,80,90,.07);transition:.22s}.entry-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(28,80,90,.13)}.entry-icon{grid-row:1/4;width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:27px;color:#fff}.student-card .entry-icon{background:linear-gradient(135deg,#299a61,#43ba78)}.teacher-card .entry-icon{background:linear-gradient(135deg,#cb8e1c,#e3ad3c)}.entry-card strong{font-size:18px}.student-card strong{color:#278a57}.teacher-card strong{color:#b97a0c}.entry-card small{color:#75898f;font-size:12px}.entry-card b{font-size:12px;color:#0d6f7e}.real-qr{margin-top:18px;padding:12px 15px;border:1px solid #dfeae9;border-radius:18px;background:#fff;display:flex;align-items:center;gap:14px;text-decoration:none;color:#185967;box-shadow:0 9px 22px rgba(23,77,89,.06)}.real-qr div{display:flex;flex-direction:column;gap:5px}.real-qr strong{font-size:16px}.real-qr span{font-size:11px;color:#71868c;line-height:1.6}.portal-help{display:flex;justify-content:space-between;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid #e5eeed;color:#667e85;font-size:11px}.portal-help span{padding:7px 9px;border-radius:10px;background:#f3f9f8}@media(max-width:950px){.lahooni-shell{grid-template-columns:1fr}.lahooni-cover{min-height:520px}.lahooni-actions{padding:34px 24px}.lahooni-actions h1{font-size:31px}}@media(max-width:600px){.lahooni-home{padding:8px}.lahooni-shell{border-radius:20px}.lahooni-cover{min-height:330px}.lahooni-cover img{object-fit:cover}.lahooni-actions{padding:26px 16px}.lahooni-actions h1{font-size:27px}.portal-help{flex-direction:column}.real-qr{align-items:flex-start}.entry-card{padding:15px}.entry-icon{width:50px;height:50px}}
       `}</style>
     </main>
   );
