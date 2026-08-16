@@ -1,52 +1,31 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-
-type LoginMode = "teacher" | "student";
 
 const teacherImage = "https://shimmering-rolypoly-0ebda2.netlify.app/portal.png";
 const studentUrl = "https://tahdheeb-history.vercel.app/student";
 
 export default function HomePage() {
   const router = useRouter();
-  const [mode, setMode] = useState<LoginMode>("student");
-
-  function submit() {
-    router.push(mode === "teacher" ? "/teacher" : "/student");
-  }
 
   return (
-    <main className="portal-home" dir="rtl">
-      <section className="portal-shell">
-        <div className="portal-header">
-          <div className="brand-mark">ح</div>
-          <div>
-            <h1>بوابة أستاذ لحوني التعليمية</h1>
-            <p>نظام تعليمي لمتابعة الطلاب والدرجات والإتقان</p>
+    <main className="lahooni-home" dir="rtl">
+      <section className="lahooni-shell">
+        <div className="lahooni-photo"><img src={teacherImage} alt="صورة الأستاذ حسن علي الطويل" /><div className="photo-wave" /></div>
+        <div className="lahooni-content">
+          <header><span>بوابة</span><h1>أستاذ لحوني</h1><h2>التعليمية</h2><div className="title-line">🎓</div><p>منصة تعليمية متكاملة لخدمة المعلم والطالب وولي الأمر</p><b>إدارة سهلة • متابعة دقيقة • تعليم بإتقان</b></header>
+          <div className="entry-cards">
+            <article className="entry-card student-card"><div className="entry-icon">👥</div><h3>بوابة الطالب<br/>وولي الأمر</h3><p>عرض الدرجات والتنبيهات<br/>ومتابعة الأداء الدراسي</p><button onClick={()=>router.push('/student')}>دخول البوابة ‹</button></article>
+            <article className="entry-card teacher-card"><div className="entry-icon">👨‍🏫</div><h3>بوابة المعلم</h3><p>إدارة الفصول ورصد الدرجات<br/>والتقارير والإشعارات</p><button onClick={()=>router.push('/teacher')}>دخول البوابة ‹</button></article>
           </div>
-        </div>
-        <div className="portal-content">
-          <div className="portal-visual">
-            <div className="portrait-frame"><img src={teacherImage} alt="صورة الأستاذ حسن علي الطويل" /></div>
-            <div className="visual-caption"><strong>الأستاذ حسن علي الطويل</strong><span>التعليم • المتابعة • الأثر</span></div>
-            <div className="learning-shapes" aria-hidden="true"><span>📚</span><span>✏️</span><span>🎓</span></div>
-          </div>
-          <div className="portal-login">
-            <div className="welcome"><span className="eyebrow">أهلًا وسهلًا</span><h2>ابدأ من هنا</h2><p>اختر نوع الدخول للوصول إلى البوابة.</p></div>
-            <div className="portal-tabs">
-              <button type="button" className={mode === "student" ? "active" : ""} onClick={() => setMode("student")}><span className="tab-icon">👨‍🎓</span><span>بوابة الطالب / ولي الأمر</span></button>
-              <button type="button" className={mode === "teacher" ? "active" : ""} onClick={() => setMode("teacher")}><span className="tab-icon">👨‍🏫</span><span>بوابة المعلم</span></button>
-            </div>
-            {mode === "teacher" ? <div><p className="hint">سيتم نقلك إلى صفحة دخول المعلم الآمنة.</p><button type="button" className="portal-submit" onClick={submit}>دخول بوابة المعلم</button></div> : <div><p className="hint">للطالب وولي الأمر: اضغط للدخول، ثم أدخل رقم الهوية الوطنية وكود الطالب.</p><button type="button" className="portal-submit" onClick={submit}>دخول بوابة الطالب</button></div>}
-            <div className="portal-footer"><div><span>🔒</span><small>بيانات آمنة</small></div><div><span>📱</span><small>مصمم للجوال</small></div><div><span>🎯</span><small>متابعة تعليمية</small></div></div>
-            <a className="quick-student" href="/student" aria-label="الدخول السريع للطالب"><QRCodeSVG value={studentUrl} size={64} includeMargin /><span><strong>دخول سريع للطالب</strong><small>امسح الرمز بالكاميرا</small></span></a>
-          </div>
+          <a className="real-qr" href="/student" aria-label="الدخول السريع لبوابة الطالب وولي الأمر"><QRCodeSVG value={studentUrl} size={104} includeMargin/><div><strong>الدخول السريع لولي الأمر</strong><span>امسح رمز QR للدخول مباشرة</span></div><div className="phone-icon">▣</div></a>
+          <div className="portal-help"><article>🛡️<b>خصوصية وأمان</b><span>بياناتك آمنة ومحمية</span></article><article>💳<b>بيانات الدخول</b><span>رقم الهوية وكود الطالب</span></article><article>🎧<b>الدعم والمساعدة</b><span>تواصل مع معلم المادة</span></article></div>
+          <footer>جميع الحقوق محفوظة © أستاذ لحوني التعليمية 2026</footer>
         </div>
       </section>
       <style jsx global>{`
-        .portal-home{min-height:100vh;padding:30px;display:grid;place-items:center;background:linear-gradient(135deg,#f4fafb,#eef6f7 48%,#f9fcfd);font-family:Tahoma,Arial,sans-serif;color:#173f4c}.portal-shell{width:min(1080px,100%);background:#fff;border:1px solid #dcebed;border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(25,78,91,.12)}.portal-header{display:flex;align-items:center;gap:14px;padding:25px 32px;border-bottom:1px solid #e6f0f2}.brand-mark{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#e6f5f6;color:#147181;font-size:24px;font-weight:900}.portal-header h1{margin:0 0 5px;font-size:25px;color:#123f4d}.portal-header p{margin:0;color:#708891;font-size:13px}.portal-content{display:grid;grid-template-columns:.92fr 1.08fr;min-height:610px}.portal-visual{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:42px 35px;background:linear-gradient(180deg,#edf8f8,#e5f3f5);overflow:hidden}.portrait-frame{width:min(330px,78%);aspect-ratio:3/4;border-radius:170px 170px 35px 35px;overflow:hidden;background:#d9edf0;border:9px solid rgba(255,255,255,.82);box-shadow:0 22px 45px rgba(35,101,113,.18)}.portrait-frame img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}.visual-caption{margin-top:22px;text-align:center;display:flex;flex-direction:column;gap:7px}.visual-caption strong{font-size:20px;color:#174d5b}.visual-caption span{font-size:13px;color:#6c8991}.learning-shapes{position:absolute;inset:0;pointer-events:none}.learning-shapes span{position:absolute;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.82);box-shadow:0 10px 25px rgba(40,100,110,.08);font-size:20px}.learning-shapes span:nth-child(1){top:60px;right:45px}.learning-shapes span:nth-child(2){bottom:100px;left:40px}.learning-shapes span:nth-child(3){top:145px;left:35px}.portal-login{padding:52px 55px;display:flex;flex-direction:column;justify-content:center}.welcome .eyebrow{display:inline-block;padding:7px 12px;border-radius:999px;background:#e8f6f7;color:#157180;font-size:12px;font-weight:800}.welcome h2{margin:14px 0 7px;font-size:34px;color:#143f4d}.welcome p{margin:0 0 27px;color:#718790;font-size:14px}.portal-tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}.portal-tabs button{min-height:76px;border:1px solid #dce9ec;background:#fbfdfd;border-radius:17px;padding:12px 10px;color:#496b76;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;flex-direction:column;transition:.2s}.portal-tabs button:hover{border-color:#b9dce0;transform:translateY(-1px)}.portal-tabs button.active{background:#eaf7f8;border-color:#2a9aaa;color:#126878;box-shadow:0 8px 20px rgba(31,139,153,.1)}.tab-icon{font-size:21px;line-height:1}.hint{margin:0;color:#6f858d;font-size:14px;line-height:1.9}.portal-submit{width:100%;height:54px;margin-top:18px;border:0;border-radius:14px;background:#167789;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 10px 24px rgba(22,119,137,.18)}.portal-footer{display:flex;justify-content:space-between;gap:8px;margin-top:25px;padding-top:18px;border-top:1px solid #e7f0f2;color:#789098}.portal-footer div{display:flex;align-items:center;gap:6px;font-size:12px}.portal-footer span{font-size:15px}.portal-footer small{font-size:11px}.quick-student{margin-top:20px;padding:10px;border:1px solid #e3eef0;border-radius:14px;background:#f9fcfc;display:flex;align-items:center;gap:12px;text-decoration:none;color:#205766}.quick-student span{display:flex;flex-direction:column;gap:4px}.quick-student strong{font-size:12px}.quick-student small{font-size:10px;color:#7a9097}@media(max-width:800px){.portal-home{padding:15px}.portal-content{grid-template-columns:1fr}.portal-visual{min-height:480px;padding:35px 20px}.portal-login{padding:35px 25px}.portal-header{padding:20px}.portal-header h1{font-size:21px}.portrait-frame{width:250px}}@media(max-width:500px){.portal-shell{border-radius:22px}.portal-header{align-items:flex-start}.brand-mark{width:45px;height:45px}.portal-header h1{font-size:18px;line-height:1.5}.portal-header p{font-size:11px}.portal-visual{min-height:390px}.portrait-frame{width:210px}.learning-shapes span{transform:scale(.82)}.portal-login{padding:28px 18px}.welcome h2{font-size:28px}.portal-tabs{grid-template-columns:1fr}.portal-footer small{font-size:10px}}
+        .lahooni-home{min-height:100vh;padding:22px;background:#f4f8f8;font-family:Tahoma,Arial,sans-serif;color:#174b59}.lahooni-shell{width:min(1240px,100%);margin:auto;display:grid;grid-template-columns:44% 56%;background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(27,76,87,.13)}.lahooni-photo{position:relative;min-height:850px;background:linear-gradient(180deg,#edf6f5,#fff);overflow:hidden}.lahooni-photo img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}.photo-wave{position:absolute;right:-8%;bottom:-6%;width:120%;height:32%;background:linear-gradient(135deg,rgba(58,151,156,.42),rgba(255,255,255,.85));border-radius:50% 50% 0 0/35% 35% 0 0;transform:rotate(-7deg)}.lahooni-content{padding:42px 48px 24px;display:flex;flex-direction:column}.lahooni-content header{text-align:center}.lahooni-content header>span{font-size:25px}.lahooni-content h1{margin:5px 0 0;font-size:54px;line-height:1;color:#0e5d70}.lahooni-content h2{margin:0;color:#c99023;font-size:29px}.title-line{margin:18px auto;color:#0f7180}.lahooni-content header p{font-weight:800;margin:8px 0;color:#174b59}.lahooni-content header b{font-size:15px;color:#2d6975}.entry-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}.entry-card{padding:24px;border:1px solid #dce8e8;border-radius:21px;background:#fff;text-align:center;box-shadow:0 10px 25px rgba(28,80,90,.08)}.entry-icon{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;margin:auto;font-size:29px;color:#fff}.student-card .entry-icon{background:#2da664}.teacher-card .entry-icon{background:#d79a20}.entry-card h3{font-size:23px;margin:16px 0 12px}.student-card h3{color:#299559}.teacher-card h3{color:#c78a17}.entry-card p{font-size:13px;line-height:1.9;color:#687d83;border-top:1px solid #e8eeee;padding-top:12px}.entry-card button{width:100%;height:48px;border:0;border-radius:10px;color:#fff;font-weight:900;font-size:15px;cursor:pointer}.student-card button{background:#269759}.teacher-card button{background:#d49418}.real-qr{margin-top:20px;padding:12px 20px;border:1px solid #e0e9e9;border-radius:18px;background:#fff;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;text-decoration:none;color:#18596a;box-shadow:0 10px 24px rgba(23,77,89,.06)}.real-qr>div:nth-child(2){display:flex;flex-direction:column;gap:7px}.real-qr strong{font-size:20px}.real-qr span{font-size:13px;color:#617c83}.phone-icon{font-size:38px;color:#0d7282}.portal-help{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:20px;border:1px solid #e3ebeb;border-radius:18px;padding:18px;background:#fff}.portal-help article{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;padding:8px;border-left:1px solid #e7eded}.portal-help article:last-child{border-left:0}.portal-help b{font-size:14px}.portal-help span{font-size:11px;color:#74888d}.lahooni-content footer{text-align:center;margin-top:18px;font-size:12px;color:#7a8e92}@media(max-width:900px){.lahooni-shell{grid-template-columns:1fr}.lahooni-photo{min-height:520px}.lahooni-content{padding:32px 24px}.lahooni-content h1{font-size:44px}}@media(max-width:560px){.lahooni-home{padding:10px}.lahooni-shell{border-radius:22px}.lahooni-photo{min-height:390px}.lahooni-content{padding:27px 16px 20px}.lahooni-content h1{font-size:37px}.entry-cards{grid-template-columns:1fr}.real-qr{grid-template-columns:auto 1fr}.phone-icon{display:none}.portal-help{grid-template-columns:1fr}.portal-help article{border-left:0;border-bottom:1px solid #e7eded}.portal-help article:last-child{border-bottom:0}}
       `}</style>
     </main>
   );
