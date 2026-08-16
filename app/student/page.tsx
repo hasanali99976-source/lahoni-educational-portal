@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDocs, onSnapshot, query, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import "./student.css";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number };
-type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; accessCode?: string; researchScore?: number; teacherNote?: string; parentCounselorNoticeSentAt?: string; parentCounselorNoticeSeenAt?: string; units?: Record<string, UnitRecord>; [key: string]: unknown };
+type StudentRecord = { name?: string; الاسم?: string; class?: string; الفئة?: string; nationalId?: string; accessCode?: string; researchScore?: number; teacherNote?: string; parentCounselorNoticeSentAt?: string; units?: Record<string, UnitRecord>; [key: string]: unknown };
 type AttendanceStatus = "present" | "absent" | "late" | "excused";
 type AttendanceDoc = { records?: Record<string, AttendanceStatus> };
 
@@ -30,6 +30,11 @@ export default function StudentPage(){
   const [attendanceDocs,setAttendanceDocs]=useState<AttendanceDoc[]>([]);
   const [showCounselorNotice,setShowCounselorNotice]=useState(false);
 
+  function shouldShowCounselorNotice(data:StudentRecord,docId:string){
+    const sentAt=data.parentCounselorNoticeSentAt;
+    if(!sentAt||typeof window==="undefined")return false;
+    return window.localStorage.getItem(`counselor-notice:${docId}`)!==sentAt;
+  }
   async function findStudent(id:string,code:string){
     const result=await getDocs(query(collection(db,"students"),where("nationalId","==",id),where("accessCode","==",code)));
     if(!result.empty)return{id:result.docs[0].id,data:result.docs[0].data() as StudentRecord};
@@ -42,11 +47,11 @@ export default function StudentPage(){
     if(!/^\d{10}$/.test(id))return setMessage("أدخل رقم هوية صحيحًا من 10 أرقام");
     if(!/^TH\d{4}$/.test(code))return setMessage("أدخل كود ولي الأمر الصحيح");
     if(code!==`TH${id.slice(-4)}`)return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");
-    try{setLoading(true);setNationalId(id);setAccessCode(code);const found=await findStudent(id,code);if(!found)return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");setStudent(found.data);setStudentDocId(found.id);setShowCounselorNotice(Boolean(found.data.parentCounselorNoticeSentAt&&!found.data.parentCounselorNoticeSeenAt));}catch{setMessage("تعذر قراءة البيانات الآن. حاول مرة أخرى.");}finally{setLoading(false);}
+    try{setLoading(true);setNationalId(id);setAccessCode(code);const found=await findStudent(id,code);if(!found)return setMessage("رقم الهوية أو كود ولي الأمر غير صحيح");setStudent(found.data);setStudentDocId(found.id);setShowCounselorNotice(shouldShowCounselorNotice(found.data,found.id));}catch{setMessage("تعذر قراءة البيانات الآن. حاول مرة أخرى.");}finally{setLoading(false);}
   }
   useEffect(()=>{const code=(new URLSearchParams(window.location.search).get("code")||"").trim().toUpperCase();if(/^TH\d{4}$/.test(code))setAccessCode(code);},[]);
-  useEffect(()=>{if(!studentDocId)return;const unsubStudent=onSnapshot(doc(db,"students",studentDocId),snap=>{if(snap.exists()){const data=snap.data() as StudentRecord;setStudent(data);setShowCounselorNotice(Boolean(data.parentCounselorNoticeSentAt&&!data.parentCounselorNoticeSeenAt));}});const unsubAttendance=onSnapshot(collection(db,"attendance"),snap=>setAttendanceDocs(snap.docs.map(d=>d.data() as AttendanceDoc));return()=>{unsubStudent();unsubAttendance();};},[studentDocId]);
-  useEffect(()=>{if(!showCounselorNotice||!studentDocId)return;const timer=window.setTimeout(async()=>{try{await updateDoc(doc(db,"students",studentDocId),{parentCounselorNoticeSeenAt:new Date().toISOString()});}catch{}},3000);return()=>window.clearTimeout(timer);},[showCounselorNotice,studentDocId]);
+  useEffect(()=>{if(!studentDocId)return;const unsubStudent=onSnapshot(doc(db,"students",studentDocId),snap=>{if(snap.exists()){const data=snap.data() as StudentRecord;setStudent(data);setShowCounselorNotice(shouldShowCounselorNotice(data,studentDocId));}});const unsubAttendance=onSnapshot(collection(db,"attendance"),snap=>setAttendanceDocs(snap.docs.map(d=>d.data() as AttendanceDoc));return()=>{unsubStudent();unsubAttendance();};},[studentDocId]);
+  useEffect(()=>{if(!showCounselorNotice||!studentDocId||!student?.parentCounselorNoticeSentAt)return;const sentAt=student.parentCounselorNoticeSentAt;const timer=window.setTimeout(()=>{window.localStorage.setItem(`counselor-notice:${studentDocId}`,sentAt);setShowCounselorNotice(false);},3000);return()=>window.clearTimeout(timer);},[showCounselorNotice,studentDocId,student?.parentCounselorNoticeSentAt]);
 
   const name=String(student?.name??student?.الاسم??"الطالب");
   const studentClass=String(student?.class??student?.الفئة??"غير محدد");
