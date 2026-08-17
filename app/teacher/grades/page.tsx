@@ -11,7 +11,7 @@ import "./register.css";
 type GradeKey = "attendance" | "participation" | "homework" | "unitExam";
 type GradeRecord = Record<GradeKey, number> & { notes: string };
 type UnitRecord=Partial<GradeRecord>&{exam1?:number;exam2?:number;total?:number;maximumTotal?:number;percentage?:number;maxGrades?:Record<string,number>;updatedAt?:string};
-type Student = { id:string; name?:string; nationalId?:string; class?:string; research?:number; units?:Record<string,UnitRecord> };
+type Student = { id:string; name?:string; nationalId?:string; class?:string; research?:number; researchScore?:number; units?:Record<string,UnitRecord> };
 
 const units = [["unit1","الوحدة الأولى","اختبار الوحدة الأولى"],["unit2","الوحدة الثانية","اختبار الوحدة الثانية"],["unit3","الوحدة الثالثة","اختبار الوحدة الثالثة"],["unit4","الوحدة الرابعة","اختبار الوحدة الرابعة"],["unit5","الوحدة الخامسة","اختبار الوحدة الخامسة"]] as const;
 const MAX_GRADES: Record<GradeKey, number> = { attendance:3, participation:4, homework:2, unitExam:10 };
@@ -39,7 +39,7 @@ export default function GradesPage(){
    const row:Record<string,string|number>={"م":index+1,"اسم الطالب":s.name||"","السجل المدني":s.nationalId||"","الفصل":s.class||""};
    let grand=0;
    targetUnits.forEach(([key,label])=>{const u=s.units?.[key]||{},attendance=Number(u.attendance||0),participation=Number(u.participation||0),homework=Number(u.homework||0),exam=Number(u.unitExam??u.exam1??u.exam2??0),total=Number(u.total??attendance+participation+homework+exam);row[`${label} - الحضور`]=attendance;row[`${label} - المشاركة`]=participation;row[`${label} - الواجبات`]=homework;row[`${label} - الاختبار`]=exam;row[`${label} - المجموع`]=total;row[`${label} - النسبة`]=Number(u.percentage||0);row[`${label} - ملاحظات`]=u.notes||"";grand+=total});
-   if(mode==="all"){row["درجة البحث"]=Number(s.research||0);row["المجموع الكلي للوحدات والبحث"]=grand+Number(s.research||0)}
+   if(mode==="all"){const research=Number(s.researchScore??s.research??0);row["درجة البحث"]=research;row["المجموع الكلي للوحدات والبحث"]=grand+research}
    return row
   });
   const ws=XLSX.utils.json_to_sheet(rows);ws["!cols"]=[{wch:6},{wch:28},{wch:16},{wch:18},...Array(mode==="all"?38:8).fill({wch:16})];const wb=XLSX.utils.book_new();
