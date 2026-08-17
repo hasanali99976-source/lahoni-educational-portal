@@ -1,4 +1,6 @@
-export type SubjectKey = "history" | "critical-thinking";
+import { getSubjectConfig, type SubjectKey } from "./subject-config";
+
+export type { SubjectKey } from "./subject-config";
 
 export type TeacherTenant = {
   teacherId: string;
@@ -9,6 +11,10 @@ export type TeacherTenant = {
 
 export function subjectKeyFromTeacherId(teacherId: string): SubjectKey {
   return teacherId === "abdullah-critical-thinking" ? "critical-thinking" : "history";
+}
+
+export function subjectLabel(subjectKey: SubjectKey) {
+  return getSubjectConfig(subjectKey).label;
 }
 
 export function tenantRoot(teacherId: string, subjectKey: SubjectKey) {
