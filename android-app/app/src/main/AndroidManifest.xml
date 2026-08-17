@@ -6,8 +6,8 @@
     <application
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
-        android:icon="@drawable/app_launcher_icon"
-        android:roundIcon="@drawable/app_launcher_icon"
+        android:icon="@drawable/app_icon"
+        android:roundIcon="@drawable/app_icon"
         android:label="أستاذ لحوني"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
