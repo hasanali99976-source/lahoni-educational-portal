@@ -6,6 +6,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import "./teacher-shell.css";
 import "./teacher-themes-v2.css";
 import "./mobile-shell.css";
+import "./print-theme.css";
 import "./tab-fix.css";
 
 const tabs = [
