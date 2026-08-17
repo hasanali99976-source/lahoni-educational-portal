@@ -2,6 +2,8 @@ package com.ostadlahooni.app;
 
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -52,7 +54,9 @@ public class MainActivity extends Activity {
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(false);
         settings.setTextZoom(100);
-        settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/1.3");
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setSupportMultipleWindows(false);
+        settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/1.4");
 
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(true);
@@ -70,8 +74,9 @@ public class MainActivity extends Activity {
                     printCurrentPage("أستاذ لحوني");
                     return true;
                 }
+                String scheme = uri.getScheme();
                 String host = uri.getHost();
-                if (host != null && (host.equals("tahdheeb-history.vercel.app") || host.endsWith(".vercel.app"))) {
+                if (("http".equals(scheme) || "https".equals(scheme)) && host != null && (host.equals("tahdheeb-history.vercel.app") || host.endsWith(".vercel.app"))) {
                     return false;
                 }
                 openExternal(uri);
@@ -84,13 +89,19 @@ public class MainActivity extends Activity {
                 String bridgeScript = "(function(){" +
                     "window.__OSTADH_ANDROID__=true;" +
                     "window.ostadhNativePrint=function(title){try{OstadhApp.printPage(title||document.title||'أستاذ لحوني');return true;}catch(e){return false;}};" +
+                    "window.ostadhNativeShare=function(title,text,url){try{OstadhApp.shareText(title||document.title||'',text||'',url||location.href);return true;}catch(e){return false;}};" +
+                    "window.ostadhNativeCopy=function(text){try{OstadhApp.copyText(text||location.href);return true;}catch(e){return false;}};" +
                     "window.print=function(){window.ostadhNativePrint(document.title||'أستاذ لحوني');};" +
-                    "if(!navigator.share){navigator.share=function(data){OstadhApp.shareText((data&&data.title)||'',(data&&data.text)||'',(data&&data.url)||location.href);return Promise.resolve();};}" +
+                    "navigator.share=function(data){window.ostadhNativeShare((data&&data.title)||'',(data&&data.text)||'',(data&&data.url)||location.href);return Promise.resolve();};" +
+                    "if(navigator.clipboard){var oldWrite=navigator.clipboard.writeText.bind(navigator.clipboard);navigator.clipboard.writeText=function(text){try{window.ostadhNativeCopy(text);return Promise.resolve();}catch(e){return oldWrite(text);}};}" +
                     "document.addEventListener('click',function(e){" +
                     "var button=e.target.closest('button,a');if(!button)return;" +
-                    "var text=(button.innerText||button.textContent||'').trim();" +
+                    "var text=(button.innerText||button.textContent||'').trim();var h=button.href||'';" +
                     "if(button.classList.contains('print-sheet-button')||button.dataset.nativePrint==='true'||text.indexOf('طباعة')>-1){e.preventDefault();e.stopImmediatePropagation();window.ostadhNativePrint(document.title||'كشف أستاذ لحوني');return;}" +
-                    "var h=button.href||'';if(h.indexOf('wa.me/')>-1||h.indexOf('whatsapp:')===0||h.indexOf('mailto:')===0||h.indexOf('tel:')===0){e.preventDefault();OstadhApp.openUrl(h);}" +
+                    "if(button.dataset.nativeShare==='true'||text.indexOf('مشاركة')>-1||text.indexOf('إرسال')>-1){if(!h||h.indexOf('wa.me/')<0){e.preventDefault();window.ostadhNativeShare(document.title,text,location.href);return;}}" +
+                    "if(button.dataset.copyLink==='true'||text.indexOf('نسخ الرابط')>-1){e.preventDefault();window.ostadhNativeCopy(h||location.href);return;}" +
+                    "if(h.indexOf('wa.me/')>-1||h.indexOf('whatsapp:')===0||h.indexOf('mailto:')===0||h.indexOf('tel:')===0||h.indexOf('sms:')===0){e.preventDefault();OstadhApp.openUrl(h);return;}" +
+                    "if(button.hasAttribute('download')&&h){e.preventDefault();OstadhApp.openUrl(h);return;}" +
                     "},true);" +
                     "})();";
                 view.evaluateJavascript(bridgeScript, null);
@@ -203,6 +214,17 @@ public class MainActivity extends Activity {
                 share.putExtra(Intent.EXTRA_SUBJECT, title == null ? "أستاذ لحوني" : title);
                 share.putExtra(Intent.EXTRA_TEXT, body);
                 startActivity(Intent.createChooser(share, "مشاركة عبر"));
+            });
+        }
+
+        @JavascriptInterface
+        public void copyText(String text) {
+            runOnUiThread(() -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(ClipData.newPlainText("أستاذ لحوني", text == null ? "" : text));
+                    Toast.makeText(MainActivity.this, "تم النسخ", Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
