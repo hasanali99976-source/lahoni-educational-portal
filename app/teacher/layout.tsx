@@ -52,21 +52,21 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     if(!soundOn&&kind!=="off")return;
     try{const A=window.AudioContext||(window as typeof window&{webkitAudioContext?:typeof AudioContext}).webkitAudioContext;if(!A)return;const ctx=new A(),g=ctx.createGain();g.connect(ctx.destination);g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.08,ctx.currentTime+.015);(kind==="off"?[440,330]:[659.25,783.99]).forEach((f,i)=>{const o=ctx.createOscillator();o.type="sine";o.frequency.value=f;o.connect(g);const s=ctx.currentTime+i*.07;o.start(s);o.stop(s+.12)});g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.34);setTimeout(()=>void ctx.close(),500)}catch{}
   }
-  function toggleSound(){const n=!soundOn;setSoundOn(n);localStorage.setItem("lahooni-sound",n?"on":"off");if(!n)playTone("off")}
+  function toggleSound(){const next=!soundOn;setSoundOn(next);localStorage.setItem("lahooni-sound",next?"on":"off");if(!next)playTone("off")}
   async function logout(){try{await fetch("/api/teacher-logout",{method:"POST",cache:"no-store"})}finally{router.replace("/teacher");router.refresh()}}
   useEffect(()=>setSoundOn(localStorage.getItem("lahooni-sound")!=="off"),[]);
   useEffect(()=>{
     if(isLoginPage){setReady(true);return}
     let active=true,busy=false;
     const applySession=(session:TeacherSession)=>{setTeacherName(session.teacherName||"المعلم");setSubjectKey(session.subjectKey||"history")};
-    const check=async()=>{const r=await fetch("/api/teacher-session",{cache:"no-store"});if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active){applySession(session);setReady(true)}};
+    const check=async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store"});if(!response.ok)throw new Error();const session=await response.json() as TeacherSession;if(active){applySession(session);setReady(true)}};
     const reset=()=>{if(idleTimer.current)clearTimeout(idleTimer.current);idleTimer.current=setTimeout(()=>void logout(),IDLE_LIMIT)};
-    const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error();const session=await r.json() as TeacherSession;if(active)applySession(session);lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
-    const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;
-    if(nav?.type==="reload"){void logout();return()=>{active=false}};
-    const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void logout()};
-    window.addEventListener("pageshow",onPageShow);
-    check().catch(()=>active&&router.replace("/teacher"));reset();const events=["pointerdown","keydown","touchstart","scroll","mousemove"];events.forEach(e=>window.addEventListener(e,activity,{passive:true}));return()=>{active=false;if(idleTimer.current)clearTimeout(idleTimer.current);events.forEach(e=>window.removeEventListener(e,activity));window.removeEventListener("pageshow",onPageShow)}
+    const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async response=>{if(!response.ok)throw new Error();const session=await response.json() as TeacherSession;if(active)applySession(session);lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
+    check().catch(()=>active&&router.replace("/teacher"));
+    reset();
+    const events=["pointerdown","keydown","touchstart","scroll","mousemove"];
+    events.forEach(eventName=>window.addEventListener(eventName,activity,{passive:true}));
+    return()=>{active=false;if(idleTimer.current)clearTimeout(idleTimer.current);events.forEach(eventName=>window.removeEventListener(eventName,activity))}
   },[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;
   if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة المعلم...</main>;
