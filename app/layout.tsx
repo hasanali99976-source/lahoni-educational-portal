@@ -5,6 +5,7 @@ import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
 import IntroSound from "./intro-sound";
+import SmartLaunch from "./smart-launch";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -20,5 +21,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#0e6374", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><body className={tajawal.className}><PwaRegister /><IntroSound />{children}</body></html>;
+  return <html lang="ar" dir="rtl"><body className={tajawal.className}><SmartLaunch /><PwaRegister /><IntroSound />{children}</body></html>;
 }
