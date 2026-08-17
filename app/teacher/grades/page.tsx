@@ -18,7 +18,7 @@ const units = [
   ["unit4", "الوحدة الرابعة", "اختبار الوحدة الرابعة"],
   ["unit5", "الوحدة الخامسة", "اختبار الوحدة الخامسة"],
 ] as const;
-const MAX_GRADES: Record<GradeKey, number> = { attendance:1, participation:2, homework:2, unitExam:14 };
+const MAX_GRADES: Record<GradeKey, number> = { attendance:3, participation:4, homework:2, unitExam:10 };
 const emptyGrade: GradeRecord = { attendance:0, participation:0, homework:0, unitExam:0, notes:"" };
 
 export default function GradesPage(){
