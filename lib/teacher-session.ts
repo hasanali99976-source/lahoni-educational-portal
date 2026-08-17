@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, timingSafeEqual } from "crypto";
-import type { SubjectKey } from "./teacher-tenant";
+import { getSubjectConfig, type SubjectKey } from "./subject-config";
 
 export const TEACHER_COOKIE = "tahdheeb_teacher_session";
 export const TEACHER_SESSION_MAX_AGE = 60 * 3;
@@ -13,22 +13,25 @@ export type TeacherAccount = {
   subject: string;
 };
 
-export const TEACHER_ACCOUNTS: TeacherAccount[] = [
+const ACCOUNT_DEFINITIONS: Array<Omit<TeacherAccount, "subject">> = [
   {
     username: "حسن الطويل",
     password: "1415",
     teacherId: "hasan-history",
     subjectKey: "history",
-    subject: "التاريخ",
   },
   {
     username: "عبد الله الرويشد",
     password: "1415",
     teacherId: "abdullah-critical-thinking",
     subjectKey: "critical-thinking",
-    subject: "التفكير الناقد",
   },
 ];
+
+export const TEACHER_ACCOUNTS: TeacherAccount[] = ACCOUNT_DEFINITIONS.map(account => ({
+  ...account,
+  subject: getSubjectConfig(account.subjectKey).label,
+}));
 
 export function findTeacherAccount(username: string, password: string) {
   return TEACHER_ACCOUNTS.find(
