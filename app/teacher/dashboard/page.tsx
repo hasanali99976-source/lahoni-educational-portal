@@ -5,60 +5,34 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
+import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 
-type Student = { id: string; class?: string; units?: Record<string, { percentage?: number }> };
+type UnitGrade={percentage?:number;total?:number;maximumTotal?:number;updatedAt?:string};
+type Student={id:string;name?:string;class?:string;research?:number;units?:Record<string,UnitGrade>};
+type Session={authenticated?:boolean;teacherId?:string;teacherName?:string;subject?:string;subjectKey?:SubjectKey};
 
-const links = [
-  { href: "/teacher/dashboard", icon: "⌂", label: "الرئيسية" },
-  { href: "/teacher/students", icon: "👥", label: "إدارة الطلاب" },
-  { href: "/teacher/grades", icon: "✓", label: "رصد الوحدات" },
-  { href: "/teacher/research", icon: "🔬", label: "رصد البحث" },
-  { href: "/teacher/reports", icon: "▥", label: "التقارير" },
-];
+const unitKeys=["unit1","unit2","unit3","unit4","unit5"];
 
-export default function TeacherDashboardPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-
-  useEffect(() => onSnapshot(collection(db, "students"), snapshot => {
-    setStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[]);
-  }), []);
-
-  const classes = useMemo(() => new Set(students.map(student => student.class).filter(Boolean)).size, [students]);
-  const average = useMemo(() => {
-    const values = students.flatMap(student => Object.values(student.units || {}).map(unit => Number(unit.percentage || 0)).filter(value => value > 0));
-    return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;
-  }, [students]);
-
-  return (
-    <main className="v2-shell">
-      <aside className="v2-sidebar">
-        <div className="v2-brand"><div className="v2-logo">ت</div><div><strong>بوابة التهذيب</strong><small>نظام المتابعة التعليمية</small></div></div>
-        <nav>{links.map(link => <Link key={link.href} href={link.href} className={link.href.endsWith("dashboard") ? "active" : ""}><span>{link.icon}</span>{link.label}</Link>)}</nav>
-        <Link className="v2-logout" href="/">العودة للبوابة</Link>
-      </aside>
-
-      <section className="v2-content">
-        <header className="v2-topbar"><div><h1>مرحبًا أ. حسن علي الطويل</h1><p>لوحة متابعة مادة التاريخ — الصف الثاني الثانوي</p></div><div className="v2-teacher-chip"><span>معلم التاريخ</span><b>ح</b></div></header>
-
-        <section className="v2-hero">
-          <div className="v2-hero-copy"><span className="v2-pill">مدرسة التهذيب الثانوية</span><h2>إدارة تعليمية أسهل، أسرع، وأكثر وضوحًا</h2><p>تابع الطلاب وارصد درجات الوحدات والبحث في صفحات واضحة ومستقلة.</p><div className="v2-hero-actions"><Link href="/teacher/grades">رصد الوحدات</Link><Link href="/teacher/research">رصد البحث</Link></div></div>
-          <div className="v2-teacher-photo" aria-label="صورة المعلم الحالية" />
-        </section>
-
-        <section className="v2-stats">
-          <article><i>👨‍🎓</i><div><span>إجمالي الطلاب</span><strong>{students.length}</strong></div></article>
-          <article><i>🏫</i><div><span>عدد الفصول</span><strong>{classes}</strong></div></article>
-          <article><i>📈</i><div><span>متوسط الأداء</span><strong>{average}%</strong></div></article>
-          <article><i>📚</i><div><span>الوحدات</span><strong>٥</strong></div></article>
-        </section>
-
-        <section className="v2-section-title"><div><h2>الوصول السريع</h2><p>اختر المهمة التي تريد تنفيذها الآن</p></div></section>
-        <section className="v2-quick-grid">
-          <Link href="/teacher/students"><span className="v2-quick-icon blue">👥</span><div><h3>إدارة الطلاب</h3><p>الفصول والإضافة والتعديل</p></div><b>←</b></Link>
-          <Link href="/teacher/grades"><span className="v2-quick-icon green">✓</span><div><h3>رصد الوحدات</h3><p>كل وحدة من ١٩ درجة</p></div><b>←</b></Link>
-          <Link href="/teacher/research"><span className="v2-quick-icon gold">🔬</span><div><h3>رصد البحث</h3><p>٥ درجات مرة واحدة فقط</p></div><b>←</b></Link>
-        </section>
-      </section>
-    </main>
-  );
+export default function TeacherDashboardPage(){
+ const[session,setSession]=useState<Session|null>(null);const[students,setStudents]=useState<Student[]>([]);const[msg,setMsg]=useState("");
+ useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw 0;setSession(await r.json())}).catch(()=>setMsg("انتهت الجلسة. سجل الدخول من جديد."))},[]);
+ useEffect(()=>{if(!session?.teacherId||!session.subjectKey)return;const path=tenantCollection(session.teacherId,session.subjectKey,"students");return onSnapshot(collection(db,path),snap=>setStudents(snap.docs.map(d=>({id:d.id,...d.data()})) as Student[]),()=>setMsg("تعذر تحميل بيانات المتابعة"))},[session]);
+ const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))),[students]);
+ const studentAverages=useMemo(()=>students.map(student=>{const values=Object.values(student.units||{}).map(u=>Number(u.percentage||0)).filter(v=>v>0);return{...student,average:values.length?Math.round(values.reduce((a,b)=>a+b,0)/values.length):0,ratedUnits:values.length}}),[students]);
+ const rated=studentAverages.filter(s=>s.ratedUnits>0),low=studentAverages.filter(s=>s.ratedUnits>0&&s.average<60),excellent=studentAverages.filter(s=>s.average>=90),unrated=studentAverages.filter(s=>s.ratedUnits===0);
+ const overall=rated.length?Math.round(rated.reduce((sum,s)=>sum+s.average,0)/rated.length):0;
+ const incompleteClasses=classes.filter(c=>students.filter(s=>(s.class||"").trim()===c).some(s=>!s.units||unitKeys.every(k=>!Number(s.units?.[k]?.total||0))));
+ const subject=session?.subject||"المادة",teacher=session?.teacherName||"المعلم";
+ return <main className="smart-dashboard" dir="rtl">
+  <section className="smart-head"><div><span>لوحة المتابعة الذكية</span><h1>أهلًا أستاذ {teacher}</h1><p>مؤشرات لحظية من رصد {subject} الحالي، بدون تخزين بيانات إضافية.</p></div><Link href="/teacher/grades">فتح سجل الدرجات</Link></section>
+  {msg&&<p className="smart-message">{msg}</p>}
+  <section className="smart-stats">
+   <article><b>{students.length}</b><span>إجمالي الطلاب</span></article><article><b>{classes.length}</b><span>الفصول</span></article><article><b>{overall}%</b><span>متوسط الأداء</span></article><article className="warn"><b>{low.length}</b><span>يحتاجون متابعة</span></article><article className="good"><b>{excellent.length}</b><span>متميزون</span></article><article><b>{unrated.length}</b><span>لم يبدأ رصدهم</span></article>
+  </section>
+  <section className="smart-grid">
+   <article className="smart-panel"><header><div><h2>طلاب يحتاجون متابعة</h2><p>متوسطهم أقل من ٦٠٪</p></div><Link href="/teacher/follow-up">المتابعة</Link></header><div className="smart-list">{low.slice(0,8).map(s=><div key={s.id}><span><strong>{s.name||"طالب"}</strong><small>{s.class||"بدون فصل"}</small></span><b>{s.average}%</b></div>)}{!low.length&&<p className="empty-smart">لا توجد حالات منخفضة حاليًا 🎉</p>}</div></article>
+   <article className="smart-panel"><header><div><h2>الفصول غير المكتملة</h2><p>بها طلاب لم تُرصد لهم وحدات</p></div><Link href="/teacher/grades">الرصد</Link></header><div className="smart-list">{incompleteClasses.map(c=><div key={c}><span><strong>{c}</strong><small>{students.filter(s=>(s.class||"").trim()===c).length} طالبًا</small></span><b>غير مكتمل</b></div>)}{!incompleteClasses.length&&<p className="empty-smart">جميع الفصول مكتملة الرصد.</p>}</div></article>
+  </section>
+  <section className="smart-actions"><Link href="/teacher/attendance"><span>🕘</span><b>التحضير اليومي</b><small>تسجيل الحضور والغياب</small></Link><Link href="/teacher/grades"><span>📊</span><b>رصد الدرجات</b><small>الوحدات والحضور والمشاركة</small></Link><Link href="/teacher/research"><span>🔬</span><b>رصد البحث</b><small>درجة البحث الفصلية</small></Link><Link href="/teacher/reports"><span>📄</span><b>تقارير الطلاب</b><small>الطباعة والتصدير</small></Link></section>
+ </main>;
 }
