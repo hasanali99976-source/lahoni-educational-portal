@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
@@ -25,6 +29,7 @@ public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
+    private ToneGenerator introTone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +37,7 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         setContentView(webView);
+        playIntroSound();
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -46,7 +52,7 @@ public class MainActivity extends Activity {
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(false);
         settings.setTextZoom(100);
-        settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/1.2");
+        settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/1.3");
 
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(true);
@@ -60,6 +66,10 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
+                if ("ostadh".equals(uri.getScheme()) && "print".equals(uri.getHost())) {
+                    printCurrentPage("أستاذ لحوني");
+                    return true;
+                }
                 String host = uri.getHost();
                 if (host != null && (host.equals("tahdheeb-history.vercel.app") || host.endsWith(".vercel.app"))) {
                     return false;
@@ -73,9 +83,15 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 String bridgeScript = "(function(){" +
                     "window.__OSTADH_ANDROID__=true;" +
-                    "window.print=function(){OstadhApp.printPage(document.title||'أستاذ لحوني');};" +
+                    "window.ostadhNativePrint=function(title){try{OstadhApp.printPage(title||document.title||'أستاذ لحوني');return true;}catch(e){return false;}};" +
+                    "window.print=function(){window.ostadhNativePrint(document.title||'أستاذ لحوني');};" +
                     "if(!navigator.share){navigator.share=function(data){OstadhApp.shareText((data&&data.title)||'',(data&&data.text)||'',(data&&data.url)||location.href);return Promise.resolve();};}" +
-                    "document.addEventListener('click',function(e){var el=e.target.closest('a');if(!el)return;var h=el.href||'';if(h.indexOf('wa.me/')>-1||h.indexOf('whatsapp:')===0||h.indexOf('mailto:')===0||h.indexOf('tel:')===0){e.preventDefault();OstadhApp.openUrl(h);}},true);" +
+                    "document.addEventListener('click',function(e){" +
+                    "var button=e.target.closest('button,a');if(!button)return;" +
+                    "var text=(button.innerText||button.textContent||'').trim();" +
+                    "if(button.classList.contains('print-sheet-button')||button.dataset.nativePrint==='true'||text.indexOf('طباعة')>-1){e.preventDefault();e.stopImmediatePropagation();window.ostadhNativePrint(document.title||'كشف أستاذ لحوني');return;}" +
+                    "var h=button.href||'';if(h.indexOf('wa.me/')>-1||h.indexOf('whatsapp:')===0||h.indexOf('mailto:')===0||h.indexOf('tel:')===0){e.preventDefault();OstadhApp.openUrl(h);}" +
+                    "},true);" +
                     "})();";
                 view.evaluateJavascript(bridgeScript, null);
             }
@@ -118,6 +134,23 @@ public class MainActivity extends Activity {
         else webView.restoreState(savedInstanceState);
     }
 
+    private void playIntroSound() {
+        try {
+            introTone = new ToneGenerator(AudioManager.STREAM_MUSIC, 45);
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(() -> introTone.startTone(ToneGenerator.TONE_DTMF_1, 130), 80);
+            handler.postDelayed(() -> introTone.startTone(ToneGenerator.TONE_DTMF_5, 130), 240);
+            handler.postDelayed(() -> introTone.startTone(ToneGenerator.TONE_DTMF_9, 190), 400);
+            handler.postDelayed(() -> {
+                if (introTone != null) {
+                    introTone.release();
+                    introTone = null;
+                }
+            }, 800);
+        } catch (Exception ignored) {
+        }
+    }
+
     private void openExternal(Uri uri) {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, uri));
@@ -129,16 +162,23 @@ public class MainActivity extends Activity {
     private void printCurrentPage(String title) {
         runOnUiThread(() -> {
             try {
+                if (webView == null) return;
                 PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
-                PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(title == null || title.trim().isEmpty() ? "أستاذ لحوني" : title);
+                if (printManager == null) {
+                    Toast.makeText(this, "خدمة الطباعة غير متاحة على هذا الجهاز", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String jobTitle = title == null || title.trim().isEmpty() ? "أستاذ لحوني" : title.trim();
+                PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(jobTitle);
                 PrintAttributes attributes = new PrintAttributes.Builder()
                     .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
                     .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                    .setResolution(new PrintAttributes.Resolution("ostadh", "أستاذ لحوني", 300, 300))
                     .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                     .build();
-                printManager.print("أستاذ لحوني", adapter, attributes);
+                printManager.print(jobTitle, adapter, attributes);
             } catch (Exception error) {
-                Toast.makeText(this, "تعذر فتح نافذة الطباعة", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "تعذر فتح الطباعة: " + error.getClass().getSimpleName(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -187,6 +227,19 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         webView.saveState(outState);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (introTone != null) {
+            introTone.release();
+            introTone = null;
+        }
+        if (webView != null) {
+            webView.removeJavascriptInterface("OstadhApp");
+            webView.destroy();
+        }
+        super.onDestroy();
     }
 
     @Override
