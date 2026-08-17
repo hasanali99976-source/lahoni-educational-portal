@@ -1,0 +1,59 @@
+/* تحسينات الجوال العامة لبوابة المعلم */
+.teacher-app-shell,.teacher-main,.teacher-page-content{max-width:100%;overflow-x:hidden}
+.teacher-page-content *{box-sizing:border-box}
+.teacher-page-content table{min-width:680px}
+.teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea,.teacher-page-content button{max-width:100%;font-family:inherit}
+
+@media(max-width:700px){
+  .teacher-app-shell{display:block;min-height:100dvh}
+  .teacher-sidebar{position:sticky;top:0;z-index:100;height:auto;min-height:0;padding:9px 10px 8px;grid-template-columns:minmax(0,1fr) auto;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+  .teacher-shell-brand{min-width:0;gap:8px}
+  .teacher-shell-logo{width:40px;height:40px;border-radius:13px;font-size:20px;flex:0 0 auto}
+  .teacher-shell-brand>div:last-child{min-width:0}
+  .teacher-shell-brand strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .teacher-shell-brand small{display:block;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .teacher-header-actions{gap:6px}
+  .teacher-header-actions button{height:38px;border-radius:11px}
+  .teacher-logout{padding:0 10px!important;font-size:9px}
+  .sound-toggle{width:38px;padding:0!important}
+  .teacher-tabs{display:flex;grid-column:1/-1;gap:7px;margin:9px -2px 0;padding:2px 2px 7px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .teacher-tabs::-webkit-scrollbar{display:none}
+  .teacher-tabs a{flex:0 0 92px;min-width:92px;min-height:58px;border-radius:15px;padding:6px 5px;scroll-snap-align:start;box-shadow:none}
+  .teacher-tabs a.active{transform:none;box-shadow:0 7px 18px rgba(0,0,0,.16)}
+  .teacher-tabs a.active:after{right:50%;bottom:-5px;top:auto;width:28px;height:4px;transform:translateX(50%)}
+  .teacher-tab-icon{width:31px;height:31px;border-radius:10px}
+  .teacher-tab-icon svg{width:20px;height:20px}
+  .teacher-tab-copy b{font-size:9px;line-height:1.25}
+  .teacher-main{padding:9px}
+  .teacher-welcome-strip{padding:18px 17px;border-radius:20px;min-height:0;margin-bottom:8px}
+  .teacher-welcome-copy h2{font-size:18px;line-height:1.55;margin:10px 0 6px}
+  .teacher-welcome-copy p{font-size:11px;line-height:1.7}
+  .teacher-welcome-badge{font-size:9px;padding:6px 9px}
+  .teacher-welcome-points{margin-top:12px;gap:6px}
+  .teacher-welcome-points span{font-size:8px;padding:6px 8px;border-radius:9px}
+  .teacher-page-content{min-height:0;width:100%}
+  .teacher-page-content main{padding-left:0!important;padding-right:0!important;width:100%;max-width:100%}
+  .teacher-page-content section,.teacher-page-content article{max-width:100%}
+  .teacher-page-content h1{font-size:22px!important;line-height:1.45}
+  .teacher-page-content h2{line-height:1.5}
+  .teacher-page-content label{min-width:0}
+  .teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea{font-size:16px!important;min-height:44px}
+  .teacher-page-content button{min-height:42px;touch-action:manipulation}
+  .teacher-page-content [class*="table-wrap"],.teacher-page-content [class*="table-scroll"],.teacher-page-content .unit-table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
+  .teacher-page-content table{font-size:11px}
+}
+
+/* الوضع الأفقي على الجوال: تقليل الرأس وإعطاء المحتوى مساحة أكبر */
+@media(max-height:520px) and (orientation:landscape){
+  .teacher-sidebar{position:relative;padding:7px 10px;grid-template-columns:auto 1fr auto;gap:8px}
+  .teacher-shell-brand{grid-column:auto}
+  .teacher-tabs{grid-column:auto;order:0;margin:0;align-items:center;padding:0;overflow-x:auto}
+  .teacher-tabs a{flex-basis:78px;min-width:78px;min-height:48px;display:grid;grid-template-columns:24px 1fr;text-align:right;gap:5px}
+  .teacher-tab-icon{width:25px;height:25px}
+  .teacher-tab-copy b{font-size:8px}
+  .teacher-header-actions{display:flex}
+  .teacher-welcome-strip{grid-template-columns:1fr;padding:13px 18px;border-radius:16px}
+  .teacher-welcome-copy h2{font-size:17px;margin:6px 0 3px}
+  .teacher-welcome-copy p,.teacher-welcome-points,.welcome-illustration{display:none}
+  .teacher-main{padding:7px 10px}
+}
