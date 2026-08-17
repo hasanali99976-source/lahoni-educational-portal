@@ -7,7 +7,7 @@ import { db } from "../../../lib/firebase";
 import { ClientTenant, migrateLegacyHistoryStudents, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
 import "../grades/register.css";
 
-type Student = { id: string; name?: string; nationalId?: string; class?: string; researchScore?: number };
+type Student = { id: string; name?: string; nationalId?: string; class?: string; research?: number; researchScore?: number };
 
 export default function ResearchPage() {
   const [tenant,setTenant]=useState<ClientTenant|null>(null);
@@ -30,13 +30,13 @@ export default function ResearchPage() {
 
   const classes = useMemo(() => Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")), [students]);
   const classStudents = useMemo(() => students.filter(s=>(s.class||"").trim()===selectedClass), [students,selectedClass]);
-  useEffect(() => { setScores(Object.fromEntries(classStudents.map(student=>[student.id,Number(student.researchScore||0)]))); }, [classStudents]);
+  useEffect(() => { setScores(Object.fromEntries(classStudents.map(student=>[student.id,Number(student.researchScore??student.research??0)]))); }, [classStudents]);
   function updateScore(studentId:string,raw:string){ const value=Math.max(0,Math.min(5,Number(raw)||0)); setScores(current=>({...current,[studentId]:value})); }
   function adjustScore(studentId:string,amount:number){updateScore(studentId,String((scores[studentId]||0)+amount));}
   function applyAll(){ setScores(Object.fromEntries(classStudents.map(student=>[student.id,5]))); }
   function studentRef(studentId:string){if(!tenant)throw new Error("missing tenant");return doc(db,tenantStudentsPath(tenant),studentId);}
-  async function save(){ if(!selectedClass||!tenant)return setMessage("اختر الفصل أولًا"); try{setSaving(true);setMessage("");await Promise.all(classStudents.map(student=>updateDoc(studentRef(student.id),{researchScore:Number(scores[student.id]||0),researchUpdatedAt:new Date().toISOString(),teacherId:tenant.teacherId,subjectKey:tenant.subjectKey})));setMessage("تم حفظ درجات البحث بنجاح");}catch(error){console.error(error);setMessage("تعذر حفظ درجات البحث")}finally{setSaving(false)} }
-  async function clearAll(){ if(!selectedClass||!tenant)return setMessage("اختر الفصل أولًا");if(!window.confirm(`هل تريد حذف جميع درجات البحث للفصل ${selectedClass}؟`))return;try{setSaving(true);setScores(Object.fromEntries(classStudents.map(student=>[student.id,0])));await Promise.all(classStudents.map(student=>updateDoc(studentRef(student.id),{researchScore:0,researchUpdatedAt:new Date().toISOString()})));setMessage("تم حذف جميع درجات البحث")}catch(error){console.error(error);setMessage("تعذر حذف درجات البحث")}finally{setSaving(false)} }
+  async function save(){ if(!selectedClass||!tenant)return setMessage("اختر الفصل أولًا"); try{setSaving(true);setMessage("");await Promise.all(classStudents.map(student=>{const score=Number(scores[student.id]||0);return updateDoc(studentRef(student.id),{researchScore:score,research:score,researchUpdatedAt:new Date().toISOString(),teacherId:tenant.teacherId,subjectKey:tenant.subjectKey})}));setMessage("تم حفظ درجات البحث بنجاح");}catch(error){console.error(error);setMessage("تعذر حفظ درجات البحث")}finally{setSaving(false)} }
+  async function clearAll(){ if(!selectedClass||!tenant)return setMessage("اختر الفصل أولًا");if(!window.confirm(`هل تريد حذف جميع درجات البحث للفصل ${selectedClass}؟`))return;try{setSaving(true);setScores(Object.fromEntries(classStudents.map(student=>[student.id,0])));await Promise.all(classStudents.map(student=>updateDoc(studentRef(student.id),{researchScore:0,research:0,researchUpdatedAt:new Date().toISOString()})));setMessage("تم حذف جميع درجات البحث")}catch(error){console.error(error);setMessage("تعذر حذف درجات البحث")}finally{setSaving(false)} }
   const subjectLabel=tenant?.subjectKey==="critical-thinking"?"التفكير الناقد":"التاريخ";
 
   return <main className="gradebook-page research-page" dir="rtl"><div className="gradebook-wrap"><section className="gradebook-card">
