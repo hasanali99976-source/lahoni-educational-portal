@@ -12,6 +12,7 @@ import "./tab-fix.css";
 
 const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "اللوحة الذكية", note: "المؤشرات والتنبيهات" },
+  { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الإنجاز المهني والإصدار" },
   { href: "/teacher/grades", key: "grades", label: "رصد الدرجات", note: "الوحدات والاختبارات" },
   { href: "/teacher/research", key: "research", label: "رصد البحث", note: "درجة البحث الفصلية" },
   { href: "/teacher/attendance", key: "attendance", label: "التحضير اليومي", note: "الحضور والغياب" },
@@ -31,6 +32,7 @@ type TeacherSession = {
 function TabIcon({ type }: { type: string }) {
   const c={width:26,height:26,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
   if(type==="dashboard")return <svg {...c}><path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/></svg>;
+  if(type==="portfolio")return <svg {...c}><path d="M8 4h8l1 3h3v13H4V7h3z"/><path d="M9 11h6M9 15h6"/><path d="M10 4h4"/></svg>;
   if(type==="grades")return <svg {...c}><path d="M4 19.5h16"/><path d="M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
   if(type==="research")return <svg {...c}><path d="M9 3h6M10 3v5.4l-4.4 7.4A3.4 3.4 0 0 0 8.5 21h7a3.4 3.4 0 0 0 2.9-5.2L14 8.4V3"/><path d="M7.5 15h9M10 12h4"/></svg>;
   if(type==="attendance")return <svg {...c}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
