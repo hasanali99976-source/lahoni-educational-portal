@@ -22,7 +22,30 @@ const subjects:{key:SubjectKey;label:string;teacher:string;teacherId:string;icon
 const units=[["unit1","الوحدة الأولى"],["unit2","الوحدة الثانية"],["unit3","الوحدة الثالثة"],["unit4","الوحدة الرابعة"],["unit5","الوحدة الخامسة"]] as const;
 const tenantPath=(teacherId:string,subject:SubjectKey,name:string)=>`teacherData/${teacherId}/subjects/${subject}/${name}`;
 function gradeLabel(score:number){if(score>=17)return"ممتاز";if(score>=15)return"جيد جدًا";if(score>=12)return"جيد";if(score>0)return"يحتاج متابعة";return"لم يُرصد"}
-function encouragement(score:number){if(score>=90)return{title:"أداء ممتاز",text:"استمر على هذا المستوى الجميل.",tone:"excellent"};if(score>=75)return{title:"أداء جيد جدًا",text:"ركّز على الوحدة الأقل لرفع نتيجتك.",tone:"good"};if(score>=60)return{title:"تقدم جيد",text:"المراجعة المنتظمة سترفع مستواك.",tone:"good"};return{title:"شد حيلك",text:"ابدأ بالوحدة الأضعف واطلب المساعدة.",tone:"needs-work"}}
+const encouragementLevels=[
+ {title:"ابدأ خطوتك الأولى",text:"كل تقدم يبدأ بدرجة واحدة. ركّز على أول وحدة وابدأ اليوم.",tone:"needs-work"},
+ {title:"بداية تحتاج همة",text:"لديك فرصة كبيرة للتحسن؛ ابدأ بالمهمات السهلة ثم تقدّم.",tone:"needs-work"},
+ {title:"خطوة بسيطة للأمام",text:"بدأت تجمع الدرجات، استمر ولا تترك أي مهمة دون إنجاز.",tone:"needs-work"},
+ {title:"التقدم بدأ يظهر",text:"أكمل الرصد وراجع نقاط الضعف، وستلاحظ فرقًا سريعًا.",tone:"needs-work"},
+ {title:"واصل المحاولة",text:"أنت تتحرك في الاتجاه الصحيح، واجعل هدفك القادم خمس درجات إضافية.",tone:"needs-work"},
+ {title:"جهدك بدأ يثمر",text:"حافظ على الاستمرار وركّز على الحضور والمشاركة والواجبات.",tone:"needs-work"},
+ {title:"أنت قادر على الأفضل",text:"اقتربت من مستوى أقوى، راجع الوحدة الأقل درجة أولًا.",tone:"needs-work"},
+ {title:"تقدم ملحوظ",text:"هناك تحسن واضح، ومع تنظيم المراجعة ستقفز للمستوى التالي.",tone:"needs-work"},
+ {title:"استمر ولا تتوقف",text:"كل خمس درجات تصنع فرقًا؛ أكمل مهامك واطلب المساعدة عند الحاجة.",tone:"needs-work"},
+ {title:"اقتربت من المنتصف",text:"عمل جيد حتى الآن، ركّز على الاختبارات لتعزيز مجموعك.",tone:"needs-work"},
+ {title:"نصف الطريق تقريبًا",text:"لديك أساس جيد، والمراجعة المنتظمة سترفع نتيجتك بسرعة.",tone:"needs-work"},
+ {title:"تقدّم جيد",text:"أصبحت أقرب لمستوى الإتقان، لا تهمل أي درجة متاحة.",tone:"needs-work"},
+ {title:"دخلت المستوى الجيد",text:"أداؤك يتحسن، وحان وقت التركيز على التفاصيل الصغيرة.",tone:"good"},
+ {title:"مستواك يتطور",text:"واصل بهذا النسق، وحاول رفع أضعف وحدة خمس درجات.",tone:"good"},
+ {title:"أداء جيد",text:"أنت على الطريق الصحيح، وثباتك سيقودك إلى نتيجة أعلى.",tone:"good"},
+ {title:"أداء جيد جدًا",text:"بقي القليل للوصول إلى التميز؛ ركّز على الوحدة الأقل.",tone:"good"},
+ {title:"قريب من التميز",text:"نتيجتك قوية، والمحافظة على الانضباط سترفعك أكثر.",tone:"good"},
+ {title:"متميز يا بطل",text:"أداء رائع، استمر في إكمال كل بند بنفس الجدية.",tone:"excellent"},
+ {title:"ممتاز جدًا",text:"أنت في مستوى عالٍ، حافظ عليه وراجع التفاصيل الأخيرة.",tone:"excellent"},
+ {title:"إبداع وتميز",text:"نتيجة مبهرة، بقيت لمسات قليلة للوصول إلى الدرجة الكاملة.",tone:"excellent"},
+ {title:"بطل الدرجة الكاملة",text:"إنجاز رائع جدًا! حافظ على هذا المستوى وكن قدوة لزملائك.",tone:"excellent"},
+] as const;
+function encouragement(score:number){const safe=Math.max(0,Math.min(100,Math.floor(Number(score)||0)));return encouragementLevels[Math.floor(safe/5)]}
 
 export default function StudentPage(){
  const[nationalId,setNationalId]=useState("");const[accessCode,setAccessCode]=useState("");const[subject,setSubject]=useState<SubjectKey>("history");const[message,setMessage]=useState("");const[loading,setLoading]=useState(false);const[student,setStudent]=useState<StudentRecord|null>(null);const[studentDocId,setStudentDocId]=useState("");const[attendanceDocs,setAttendanceDocs]=useState<AttendanceDoc[]>([]);
