@@ -1,0 +1,26 @@
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important;color:#172033!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .teacher-sidebar,.teacher-welcome-strip,.teacher-header-actions,.sound-toggle,.teacher-logout,.print-sheet-button,.follow-actions,.report-modal,.note-modal{display:none!important}
+  .teacher-app-shell,.teacher-main,.teacher-page-content{display:block!important;min-height:0!important;background:#fff!important;padding:0!important;margin:0!important;box-shadow:none!important}
+  .teacher-page-content{animation:none!important}
+  .print-grade-sheet,.print-follow-target,.unit-details-card,.student-report-wrap{width:100%!important;max-width:none!important;margin:0!important;border:0!important;box-shadow:none!important;background:#fff!important}
+  .print-sheet-heading,.follow-print-title{display:block!important;padding:18px 20px!important;margin:0 0 16px!important;border-radius:16px!important;color:#fff!important;text-align:center!important;break-inside:avoid}
+  .theme-history .print-sheet-heading,.theme-history .follow-print-title{background:linear-gradient(125deg,#17263d,#294b6b 62%,#b77819)!important;border-bottom:5px solid #ffd166!important}
+  .theme-critical-thinking .print-sheet-heading,.theme-critical-thinking .follow-print-title{background:linear-gradient(125deg,#171b4b,#46339a 62%,#168f9d)!important;border-bottom:5px solid #22d3c5!important}
+  .print-sheet-heading h2,.follow-print-title h2{font-size:24px!important;margin:0 0 6px!important;color:#fff!important}
+  .print-sheet-heading p,.follow-print-title p,.print-sheet-heading span,.follow-print-title small{color:#fff!important}
+  table{width:100%!important;border-collapse:collapse!important;font-size:11px!important;page-break-inside:auto!important}
+  thead{display:table-header-group!important}
+  tr{page-break-inside:avoid!important;page-break-after:auto!important}
+  th,td{border:1px solid #cbd5e1!important;padding:7px 5px!important;text-align:center!important;background:#fff!important;color:#172033!important}
+  .theme-history th{background:#17263d!important;color:#fff!important;border-color:#294b6b!important}
+  .theme-critical-thinking th{background:#28256f!important;color:#fff!important;border-color:#46339a!important}
+  tfoot td,.final-row td{font-weight:900!important}
+  .theme-history tfoot td,.theme-history .final-row td{background:#fff3d6!important;color:#6f4700!important}
+  .theme-critical-thinking tfoot td,.theme-critical-thinking .final-row td{background:#eeebff!important;color:#382b82!important}
+  .print-attendance-line{margin-top:14px!important;padding:12px!important;border-radius:12px!important;font-weight:800!important;text-align:center!important}
+  .theme-history .print-attendance-line{background:#fff3d6!important;border:1px solid #d89b2b!important}
+  .theme-critical-thinking .print-attendance-line{background:#eeebff!important;border:1px solid #22d3c5!important}
+  button,input,select,textarea{box-shadow:none!important}
+}
