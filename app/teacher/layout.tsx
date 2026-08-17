@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import "./teacher-shell.css";
 import "./teacher-themes-v2.css";
+import "./mobile-shell.css";
 import "./tab-fix.css";
 
 const tabs = [
