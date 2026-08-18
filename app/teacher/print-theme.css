@@ -1,6 +1,7 @@
 @media print{
-  @page{size:A4;margin:12mm}
+  @page{size:A4;margin:12mm 12mm 18mm}
   html,body{background:#fff!important;color:#172033!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body::after{content:"بوابة المعلم الذكية — أستاذ لحوني";position:fixed;right:0;left:0;bottom:-12mm;height:8mm;padding-top:2mm;border-top:1px solid #cbd5e1;background:#fff;color:#526b78;font-size:9px;font-weight:800;text-align:center;letter-spacing:.2px;z-index:99999}
   .teacher-sidebar,.teacher-welcome-strip,.teacher-header-actions,.sound-toggle,.teacher-logout,.print-sheet-button,.follow-actions,.report-modal,.note-modal{display:none!important}
   .teacher-app-shell,.teacher-main,.teacher-page-content{display:block!important;min-height:0!important;background:#fff!important;padding:0!important;margin:0!important;box-shadow:none!important}
   .teacher-page-content{animation:none!important}
