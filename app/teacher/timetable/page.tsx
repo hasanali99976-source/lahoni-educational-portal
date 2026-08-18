@@ -46,20 +46,37 @@ export default function TimetablePage(){
   const mostClass=[...classCounts.entries()].sort((a,b)=>b[1]-a[1])[0];
   const imbalance=busiest&&quietest?busiest.count-quietest.count:0;
   const suggestion=total===0?"ابدأ بإضافة أول حصة، وسيحلل المساعد توزيع أسبوعك تلقائيًا.":imbalance>=3?`توزيعك غير متوازن قليلًا؛ ${busiest.day} مزدحم أكثر من ${quietest.day}.`:empty>10?`باقي ${ar.format(empty)} خانة فارغة. يمكنك إكمالها تدريجيًا بدون ضغط.`:"جدولك متوازن ومكتمل بدرجة جيدة.";
-  return{total,empty,busiest,quietest,mostClass,imbalance,suggestion};
+  return{total,empty,busiest,quietest,mostClass,imbalance,suggestion,dayLoads,classCounts};
  },[schedule]);
 
  function openCell(day:string,period:number){const current=schedule[keyFor(day,period)]||emptyLesson();setSelected({day,period});setDraft({...current,subject:current.subject||subject.label});setMessage("")}
  function closeEditor(){setSelected(null);setDraft(emptyLesson())}
- async function saveLesson(){if(!selected||!timetablePath)return;if(!draft.subject.trim()||!draft.className.trim())return setMessage("اختر المادة والفصل قبل الحفظ.");const cellKey=keyFor(selected.day,selected.period),next={...schedule,[cellKey]:{subject:draft.subject.trim(),className:draft.className.trim(),notes:draft.notes.trim()}};try{setSaving(true);await setDoc(doc(db,timetablePath,"weekly"),{lessons:next,teacherId,teacherName:session?.teacherName||"",subjectKey,updatedAt:new Date().toISOString()},{merge:true});setSchedule(next);setMessage("تم حفظ الحصة");closeEditor()}catch{setMessage("تعذر حفظ الحصة")}finally{setSaving(false)}}
- async function clearLesson(){if(!selected||!timetablePath)return;const next={...schedule};delete next[keyFor(selected.day,selected.period)];try{setSaving(true);await setDoc(doc(db,timetablePath,"weekly"),{lessons:next,teacherId,teacherName:session?.teacherName||"",subjectKey,updatedAt:new Date().toISOString()},{merge:true});setSchedule(next);setMessage("تم حذف الحصة");closeEditor()}catch{setMessage("تعذر حذف الحصة")}finally{setSaving(false)}}
- async function clearAll(){if(!timetablePath||!window.confirm("سيتم حذف جميع حصص الجدول الأسبوعي. هل أنت متأكد؟"))return;try{setSaving(true);await setDoc(doc(db,timetablePath,"weekly"),{lessons:{},teacherId,teacherName:session?.teacherName||"",subjectKey,updatedAt:new Date().toISOString()},{merge:true});setSchedule({});setMessage("تم تفريغ الجدول بالكامل")}catch{setMessage("تعذر تفريغ الجدول")}finally{setSaving(false)}}
+ async function persist(next:Schedule,success:string){if(!timetablePath)return;try{setSaving(true);await setDoc(doc(db,timetablePath,"weekly"),{lessons:next,teacherId,teacherName:session?.teacherName||"",subjectKey,updatedAt:new Date().toISOString()},{merge:true});setSchedule(next);setMessage(success)}catch{setMessage("تعذر حفظ الجدول")}finally{setSaving(false)}}
+ async function saveLesson(){if(!selected||!timetablePath)return;if(!draft.subject.trim()||!draft.className.trim())return setMessage("اختر المادة والفصل قبل الحفظ.");const cellKey=keyFor(selected.day,selected.period),next={...schedule,[cellKey]:{subject:draft.subject.trim(),className:draft.className.trim(),notes:draft.notes.trim()}};await persist(next,"تم حفظ الحصة");closeEditor()}
+ async function clearLesson(){if(!selected||!timetablePath)return;const next={...schedule};delete next[keyFor(selected.day,selected.period)];await persist(next,"تم حذف الحصة");closeEditor()}
+ async function clearAll(){if(!timetablePath||!window.confirm("سيتم حذف جميع حصص الجدول الأسبوعي. هل أنت متأكد؟"))return;await persist({},"تم تفريغ الجدول بالكامل")}
+ async function smartAdd(){
+  if(!classes.length)return setMessage("أضف الفصول أولًا من تبويب إدارة الطلاب حتى يعمل الاقتراح الذكي.");
+  if(smart.empty===0)return setMessage("الجدول مكتمل ولا توجد خانة فارغة للاقتراح.");
+  const className=[...classes].sort((a,b)=>(smart.classCounts.get(a)||0)-(smart.classCounts.get(b)||0))[0];
+  const candidate=[...smart.dayLoads].sort((a,b)=>a.count-b.count).flatMap(day=>periods.map(period=>({day:day.key,dayLabel:day.day,period}))).find(item=>{
+    if(schedule[keyFor(item.day,item.period)])return false;
+    const before=schedule[keyFor(item.day,item.period-1)]?.className;
+    const after=schedule[keyFor(item.day,item.period+1)]?.className;
+    return before!==className&&after!==className;
+  })||[...smart.dayLoads].sort((a,b)=>a.count-b.count).flatMap(day=>periods.map(period=>({day:day.key,dayLabel:day.day,period}))).find(item=>!schedule[keyFor(item.day,item.period)]);
+  if(!candidate)return setMessage("لم أجد خانة مناسبة الآن.");
+  const approved=window.confirm(`الاقتراح الذكي:\n${subject.label} — ${className}\n${candidate.dayLabel}، الحصة ${ar.format(candidate.period)}\n\nتم اختيارها لأنها تحافظ على توازن الأيام وتجنب تكرار الفصل في حصتين متتاليتين قدر الإمكان. هل تريد إضافتها؟`);
+  if(!approved)return;
+  const next={...schedule,[keyFor(candidate.day,candidate.period)]:{subject:subject.label,className,notes:"اقتراح ذكي"}};
+  await persist(next,`أضاف المساعد الذكي ${subject.label} لفصل ${className} في ${candidate.dayLabel}`);
+ }
 
  if(!session)return <main className="timetable-page"><section className="timetable-hero"><h1>الجدول الدراسي</h1><p>{message||"جارٍ تحميل الجدول..."}</p></section></main>;
  return <main className="timetable-page" dir="rtl">
   <section className="timetable-hero"><div><span>📅 تنظيم أسبوعك</span><h1>الجدول الدراسي الذكي</h1><p>جدول مختصر وسريع من الأحد إلى الخميس — سبع حصص يوميًا.</p></div><div className="timetable-actions no-print"><button className="print-main" onClick={()=>window.print()}>🖨 طباعة صفحة واحدة</button><button className="danger" onClick={clearAll} disabled={saving}>تفريغ الجدول</button></div></section>
   {message&&<p className="timetable-message no-print">{message}</p>}
-  <section className="smart-strip no-print"><div className="smart-head"><span>✨ مساعد الجدول الذكي</span><strong>{smart.suggestion}</strong></div><div className="smart-stats"><article><small>الحصص المسجلة</small><b>{ar.format(smart.total)}</b></article><article><small>الخانات الفارغة</small><b>{ar.format(smart.empty)}</b></article><article><small>أكثر يوم ازدحامًا</small><b>{smart.busiest?.count?smart.busiest.day:"—"}</b></article><article><small>أكثر فصل تكرارًا</small><b>{smart.mostClass?smart.mostClass[0]:"—"}</b></article></div></section>
+  <section className="smart-strip no-print"><div className="smart-head"><span>✨ مساعد الجدول الذكي</span><strong>{smart.suggestion}</strong><button className="smart-action" onClick={smartAdd} disabled={saving}>🤖 اقترح وأضف أفضل حصة</button></div><div className="smart-stats"><article><small>الحصص المسجلة</small><b>{ar.format(smart.total)}</b></article><article><small>الخانات الفارغة</small><b>{ar.format(smart.empty)}</b></article><article><small>أكثر يوم ازدحامًا</small><b>{smart.busiest?.count?smart.busiest.day:"—"}</b></article><article><small>أكثر فصل تكرارًا</small><b>{smart.mostClass?smart.mostClass[0]:"—"}</b></article></div></section>
   <section className="timetable-meta"><strong>{session.teacherName}</strong><span>{subject.label}</span><span>{ar.format(smart.total)} حصة مسجلة</span></section>
   <section className="table-wrap"><table className="weekly-table"><thead><tr><th>اليوم</th>{periods.map(period=><th key={period}>الحصة {ar.format(period)}</th>)}</tr></thead><tbody>{days.map(day=><tr key={day.key}><th>{day.label}</th>{periods.map(period=>{const lesson=schedule[keyFor(day.key,period)];return <td key={period}><button className={`lesson-cell ${lesson?"filled":""}`} onClick={()=>openCell(day.key,period)}><small>{ar.format(period)}</small>{lesson?<><strong>{lesson.subject}</strong><span>{lesson.className}</span>{lesson.notes&&<em>{lesson.notes}</em>}</>:<b>＋</b>}</button></td>})}</tr>)}</tbody></table></section>
   <section className="mobile-days">{days.map(day=><article key={day.key}><h2>{day.label}</h2><div>{periods.map(period=>{const lesson=schedule[keyFor(day.key,period)];return <button key={period} className={lesson?"filled":""} onClick={()=>openCell(day.key,period)}><span>الحصة {ar.format(period)}</span>{lesson?<><strong>{lesson.subject}</strong><small>{lesson.className}</small></>:<b>إضافة مادة وفصل</b>}</button>})}</div></article>)}</section>
