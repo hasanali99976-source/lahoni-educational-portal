@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     response.cookies.set(TEACHER_COOKIE, teacherSessionToken(account), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+          sameSite: "lax",
       path: "/",
       maxAge: TEACHER_SESSION_MAX_AGE,
     });
