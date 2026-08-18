@@ -6,7 +6,7 @@ export async function POST() {
   response.cookies.set(TEACHER_COOKIE, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+      sameSite: "lax",
     path: "/",
     maxAge: 0,
   });
