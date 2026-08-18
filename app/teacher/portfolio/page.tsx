@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
-import { QRCodeSVG } from "qrcode.react";
+const QRCodeSVG = dynamic(() => import('qrcode.react').then(m => m.QRCodeSVG), { ssr: false });
 import { db } from "../../../lib/firebase";
 import { ACADEMIC_UNITS, FINAL_MAX, RESEARCH_MAX, UNIT_MAX } from "../../../lib/academic-config";
 import { getSubjectConfig, type SubjectKey } from "../../../lib/subject-config";
