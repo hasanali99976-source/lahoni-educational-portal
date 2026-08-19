@@ -33,10 +33,6 @@ export const TEACHER_ACCOUNTS: TeacherAccount[] = ACCOUNT_DEFINITIONS.map(accoun
   subject: getSubjectConfig(account.subjectKey).label,
 }));
 
-function subjectKeyFromTeacherId(teacherId: string): SubjectKey {
-  return TEACHER_ACCOUNTS.find((account) => account.teacherId === teacherId)?.subjectKey || "history";
-}
-
 export function findTeacherAccount(username: string, password: string) {
   return TEACHER_ACCOUNTS.find(
     account => account.username === username.trim() && account.password === password,
@@ -69,9 +65,7 @@ export function teacherAccountFromSession(value?: string) {
       const expectedBuf = Buffer.from(expected);
       const receivedBuf = Buffer.from(received);
       if (expectedBuf.length === receivedBuf.length && timingSafeEqual(expectedBuf, receivedBuf)) {
-        const subjectKey = subjectKeyFromTeacherId(parsed.teacherId);
-        const subject = getSubjectConfig(subjectKey).label;
-        return { username: parsed.teacherId, password: "", teacherId: parsed.teacherId, subjectKey, subject } as TeacherAccount;
+        return TEACHER_ACCOUNTS.find(account => account.teacherId === parsed.teacherId) || null;
       }
     }
   } catch {
