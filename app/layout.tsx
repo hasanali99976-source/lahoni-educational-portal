@@ -7,6 +7,7 @@ import "./ai-light-portal.css";
 import "./portal-contrast.css";
 import "./comfort-theme.css";
 import "./teacher-tabs-redesign.css";
+import "./layered-glass-portal.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
