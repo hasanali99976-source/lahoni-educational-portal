@@ -36,7 +36,7 @@ export default function TeacherSubjectsPage() {
   const session = useTeacherClient();
   const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
   const [subjectId, setSubjectId] = useState("history");
-  const [subjectName, setSubjectName] = useState(getSubjectConfig("history").label);
+  const [subjectName, setSubjectName] = useState<string>(getSubjectConfig("history").label);
   const [grade, setGrade] = useState("");
   const [sectionsText, setSectionsText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -67,14 +67,14 @@ export default function TeacherSubjectsPage() {
 
   function choosePreset(value: string) {
     setSubjectId(value);
-    setSubjectName(getSubjectConfig(value).label);
+    setSubjectName(value === "custom" ? "" : getSubjectConfig(value).label);
   }
 
   async function saveSubject(event: FormEvent) {
     event.preventDefault();
     if (!session?.teacherId) return setMessage("انتهت الجلسة. سجل الدخول من جديد.");
     const name = subjectName.trim();
-    const finalId = editingId || normalizeSubjectId(subjectId || name);
+    const finalId = editingId || normalizeSubjectId(subjectId === "custom" ? name : subjectId || name);
     const classSections = sectionsText.split(/[،,\n]/).map((item) => item.trim()).filter(Boolean);
     if (!name) return setMessage("اكتب اسم المادة.");
     if (!grade.trim()) return setMessage("حدد الصف أو المرحلة.");
