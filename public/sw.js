@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v4";
+const CACHE_NAME = "ostadh-lahooni-v6";
 const APP_SHELL = [
   "/",
   "/student",
@@ -28,13 +28,21 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match(request).then(hit => hit || caches.match("/"))));
+    event.respondWith(
+      fetch(request, { cache: "no-store" })
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then(hit => hit || caches.match("/")))
+    );
     return;
   }
 
   if (["style", "script", "font", "image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      fetch(request).then(response => {
+      fetch(request, { cache: "no-store" }).then(response => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
         return response;
