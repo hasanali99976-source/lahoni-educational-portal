@@ -7,13 +7,9 @@ import "./portal-login.css";
 
 type LastTeacher = { teacherName: string; subject: string };
 const LAST_TEACHER_KEY = "lahooni-last-teacher";
-
 type Subject = { subjectId: string; subjectName: string };
 
-const TEACHERS = [
-  { name: "حسن الطويل", subject: "التاريخ" },
-  { name: "عبد الله الرويشد", subject: "التفكير الناقد" },
-] as const;
+const TEACHERS = ["حسن الطويل", "عبد الله الرويشد"] as const;
 
 export default function TeacherLoginPage() {
   const [username, setUsername] = useState("");
@@ -100,9 +96,7 @@ export default function TeacherLoginPage() {
   }
 
   const welcomeName = lastTeacher?.teacherName ? `مرحبًا أستاذ ${lastTeacher.teacherName}` : "مرحبًا بك في بوابة المعلم";
-  const welcomeLead = lastTeacher?.subject
-    ? `يمكنك الدخول مجددًا إلى بوابة مادة ${lastTeacher.subject}، أو اختيار معلم آخر.`
-    : "اختر اسم المعلم ثم أدخل كلمة المرور للوصول إلى اللوحة.";
+  const welcomeLead = "اختر اسم المعلم ثم أدخل كلمة المرور للوصول إلى اللوحة.";
 
   if (subjects && subjects.length > 0) {
     return (
@@ -134,10 +128,10 @@ export default function TeacherLoginPage() {
         <div className="portal-login-form"><Link href="/" className="portal-back">← العودة للبوابة الرئيسية</Link><div className="portal-brand"><div className="portal-brand-mark">ح</div><div><strong>أستاذ لحوني</strong><small>بوابة المعلم</small></div></div><span className="badge">دخول المعلم الآمن</span><h2>{welcomeName}</h2><p className="lead">{welcomeLead}</p>
           <form onSubmit={submit}>
             <label className="portal-field">اسم المعلم</label>
-            <div className="portal-input"><span>👤</span><select value={username} onChange={e=>{setUsername(e.target.value);setError("")}} autoFocus required style={{width:"100%",border:0,outline:0,background:"transparent",font:"inherit",color:"#17384a"}}><option value="">اختر اسم المعلم</option>{TEACHERS.map((teacher)=><option key={teacher.name} value={teacher.name}>{teacher.name} — {teacher.subject}</option>)}</select></div>
+            <div className="portal-input"><span>👤</span><select value={username} onChange={e=>{setUsername(e.target.value);setError("")}} autoFocus required style={{width:"100%",border:0,outline:0,background:"transparent",font:"inherit",color:"#17384a"}}><option value="">اختر اسم المعلم</option>{TEACHERS.map((teacher)=><option key={teacher} value={teacher}>{teacher}</option>)}</select></div>
             <label className="portal-field">كلمة المرور</label><div className="portal-input"><span>🔒</span><input type="password" value={password} onChange={e=>{setPassword(e.target.value);setError("")}} placeholder="أدخل كلمة المرور" autoComplete="current-password"/></div>{error&&<p className="portal-error">{error}</p>}<button className="portal-submit" type="submit" disabled={loading||!username||!password}>{loading?"جارٍ التحقق...":"دخول إلى بوابة المعلم  ←"}</button>
           </form>
-          <p className="portal-note">حسن الطويل — التاريخ • عبد الله الرويشد — التفكير الناقد</p></div>
+          <p className="portal-note">اختر اسمك فقط، ثم أدخل كلمة المرور.</p></div>
       </section>
     </main>
   );
