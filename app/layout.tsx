@@ -3,6 +3,7 @@ import "./identity.css";
 import "./print.css";
 import "./student/subject.css";
 import "./teacher/scientific-ai.css";
+import "./ai-light-portal.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#071c2c", colorScheme: "dark light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#f4f6ff", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}><div className="print-header">بوابة أستاذ لحوني التعليمية</div><SmartLaunch /><SmartTransition /><PwaRegister /><IntroSound />{children}<div className="print-footer"><span className="page-number"/></div></body></html>;
