@@ -8,6 +8,8 @@ import {
 } from "../../../lib/teacher-session";
 import { ensureTeacherSubject } from "../../../lib/teacher-subjects";
 import { db } from "../../../lib/firebase";
+import { migrateLegacyHistoryStudents } from "../../../lib/firestore-tenant-client";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export async function POST(request: Request) {
   try {
@@ -30,6 +32,20 @@ export async function POST(request: Request) {
     // ensure teacher's subject entries exist (migration step)
     try{
           await ensureTeacherSubject(account.teacherId, account.subjectKey);
+    }catch(e){/* ignore migration errors */}
+
+    // ensure teacher profile doc exists with a display name
+    try{
+      const ref = doc(db, `teachers/${account.teacherId}`);
+      const snap = await getDoc(ref);
+      if(!snap.exists()){
+        await setDoc(ref, { name: account.username }, { merge: true });
+      }
+    }catch(e){/* ignore */}
+
+    // attempt to migrate legacy history students into the tenant path for Hasan
+    try{
+      await migrateLegacyHistoryStudents(db, { teacherId: account.teacherId, teacherName: account.username, subjectKey: account.subjectKey });
     }catch(e){/* ignore migration errors */}
 
     const response = NextResponse.json({
