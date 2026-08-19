@@ -50,20 +50,23 @@ export default function TeacherLoginPage() {
       localStorage.setItem(LAST_TEACHER_KEY, JSON.stringify(saved));
       setLastTeacher(saved);
 
-      // fetch session to discover subjects
       try {
-        const sres = await fetch('/api/teacher-session');
+        const sres = await fetch("/api/teacher-session", { cache: "no-store" });
         if (sres.ok) {
           const sdata = await sres.json();
-          const list = Array.isArray(sdata?.subjects) ? sdata.subjects as Subject[] : [];
+          const list = Array.isArray(sdata?.subjects) ? (sdata.subjects as Subject[]) : [];
+          if (list.length === 0) {
+            router.replace("/teacher/subjects");
+            router.refresh();
+            return;
+          }
           if (list.length > 1) {
             setSubjects(list);
-            return; // render selector
+            return;
           }
         }
       } catch {}
 
-      // default continue to grades
       router.replace("/teacher/grades");
       router.refresh();
     } catch {
@@ -76,12 +79,16 @@ export default function TeacherLoginPage() {
   async function select(subjectId: string) {
     setLoading(true);
     try {
-      const res = await fetch('/api/teacher-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subjectId }) });
-      if (!res.ok) throw new Error('لم يكن بالإمكان اختيار المادة');
-      router.replace('/teacher/grades');
+      const res = await fetch("/api/teacher-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subjectId }),
+      });
+      if (!res.ok) throw new Error("لم يكن بالإمكان اختيار المادة");
+      router.replace("/teacher/grades");
       router.refresh();
     } catch (err) {
-      setError(String((err as any)?.message || err));
+      setError(String((err as Error)?.message || err));
     } finally {
       setLoading(false);
     }
@@ -92,22 +99,22 @@ export default function TeacherLoginPage() {
     ? `يمكنك الدخول مجددًا إلى بوابة مادة ${lastTeacher.subject}، أو استخدام حساب المعلم الآخر.`
     : "أدخل بياناتك للوصول إلى لوحة المعلم.";
 
-  // If subjects is set with more than one, render selector UI
   if (subjects && subjects.length > 0) {
     return (
       <main className="portal-login" dir="rtl">
         <section className="portal-login-shell">
-          <div className="portal-login-visual"><h1>اختر المادة</h1><p>اختر المادة للعمل عليها هذه الجلسة.</p></div>
+          <div className="portal-login-visual"><h1>اختر المادة</h1><p>اختر المادة التي تريد العمل عليها في هذه الجلسة.</p></div>
           <div className="portal-login-form">
-            <h2>Choose Subject</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-              {subjects.map(s => (
-                <button key={s.subjectId} onClick={() => select(s.subjectId)} className="portal-subject-card" style={{ padding: 16, borderRadius: 8, border: '1px solid #eee', background: '#fff', textAlign: 'center' }}>
+            <h2>اختيار المادة</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+              {subjects.map((item) => (
+                <button key={item.subjectId} onClick={() => select(item.subjectId)} className="portal-subject-card" style={{ padding: 16, borderRadius: 8, border: "1px solid #eee", background: "#fff", textAlign: "center" }}>
                   <div style={{ fontSize: 36 }}>📘</div>
-                  <div style={{ fontWeight: 700, marginTop: 8 }}>{s.subjectName}</div>
+                  <div style={{ fontWeight: 700, marginTop: 8 }}>{item.subjectName}</div>
                 </button>
               ))}
             </div>
+            <Link href="/teacher/subjects" style={{ display: "inline-block", marginTop: 16, fontWeight: 800 }}>إدارة موادي</Link>
             {error && <p className="portal-error" style={{ marginTop: 12 }}>{error}</p>}
           </div>
         </section>
