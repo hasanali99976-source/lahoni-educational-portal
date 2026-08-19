@@ -7,7 +7,7 @@ import "./ai-light-portal.css";
 import "./portal-contrast.css";
 import "./comfort-theme.css";
 import "./teacher-tabs-redesign.css";
-import "./layered-glass-portal.css";
+import "./educational-platform-v4.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -29,14 +29,13 @@ export const metadata: Metadata = {
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#123f51", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#28775b", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
-    <div className="portal-ambient" aria-hidden="true"><i/><i/><i/><span/><span/></div>
     <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
     <SmartLaunch /><SmartTransition /><PwaRegister /><IntroSound /><PortalLabelSync /><TeacherSubjectSwitcher />
-    <div className="portal-stage"><div className="portal-stage-glow" aria-hidden="true"/>{children}</div>
+    <div className="portal-stage">{children}</div>
     <SmartEduAssistant />
     <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
   </body></html>;
