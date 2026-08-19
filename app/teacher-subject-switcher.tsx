@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
+import { getSubjectConfig } from "../lib/subject-config";
 import "./teacher-subject-switcher.css";
 
 type SubjectItem = { subjectId: string; subjectName: string };
@@ -13,8 +15,19 @@ export default function TeacherSubjectSwitcher() {
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
   const [current, setCurrent] = useState("");
   const [changing, setChanging] = useState(false);
+  const [target, setTarget] = useState<Element | null>(null);
 
   const visible = pathname.startsWith("/teacher/") && pathname !== "/teacher/subjects";
+  const currentSubject = useMemo(() => subjects.find((item) => item.subjectId === current), [subjects, current]);
+  const config = getSubjectConfig(current || "history");
+
+  useEffect(() => {
+    if (!visible) return;
+    const findTarget = () => setTarget(document.querySelector(".teacher-welcome-strip"));
+    findTarget();
+    const timer = window.setInterval(findTarget, 250);
+    return () => window.clearInterval(timer);
+  }, [visible, pathname]);
 
   useEffect(() => {
     if (!visible) return;
@@ -50,17 +63,25 @@ export default function TeacherSubjectSwitcher() {
     }
   }
 
-  if (!visible || subjects.length < 2) return null;
+  if (!visible || !target || subjects.length < 1) return null;
 
-  return (
-    <div className="teacher-subject-switcher no-print" dir="rtl" aria-label="تبديل المادة الحالية">
-      <span>المادة الحالية</span>
-      <select value={current} disabled={changing} onChange={(event) => changeSubject(event.target.value)}>
-        {subjects.map((subject) => (
-          <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>
-        ))}
-      </select>
-      <small>{changing ? "جارٍ فتح المادة..." : "كل مادة لها طلابها ودرجاتها وتقاريرها"}</small>
-    </div>
+  return createPortal(
+    <div className="teacher-subject-switcher no-print" dir="rtl" aria-label="المادة المفتوحة">
+      <div className="subject-switcher-mark" aria-hidden="true">{config.shortMark || "م"}</div>
+      <div className="subject-switcher-copy">
+        <small>مساحة العمل الحالية</small>
+        <strong>{currentSubject?.subjectName || config.label}</strong>
+        <span>{changing ? "جارٍ تجهيز هوية المادة..." : "الطلاب والدرجات والتقارير مرتبطة بهذه المادة"}</span>
+      </div>
+      {subjects.length > 1 ? (
+        <label className="subject-switcher-control">
+          <span>تبديل المادة</span>
+          <select value={current} disabled={changing} onChange={(event) => changeSubject(event.target.value)}>
+            {subjects.map((subject) => <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>)}
+          </select>
+        </label>
+      ) : <a className="subject-switcher-manage" href="/teacher/subjects">إدارة المواد</a>}
+    </div>,
+    target,
   );
 }
