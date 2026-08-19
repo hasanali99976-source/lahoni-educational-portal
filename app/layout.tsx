@@ -9,6 +9,8 @@ import "./comfort-theme.css";
 import "./teacher-tabs-redesign.css";
 import "./educational-platform-v4.css";
 import "./final-platform-overrides.css";
+import "./subject-artwork.css";
+import "./subject-scenes.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
