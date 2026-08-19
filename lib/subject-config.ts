@@ -32,8 +32,16 @@ export const SUBJECT_CONFIG = {
 
 export type SubjectKey = keyof typeof SUBJECT_CONFIG;
 export type SubjectConfig = (typeof SUBJECT_CONFIG)[SubjectKey];
+export type SubjectConfigView = {
+  key: string;
+  label: string;
+  shortMark: string;
+  themeClass: string;
+  welcomePoints: readonly string[];
+  printTitle: string;
+};
 
-export function getSubjectConfig(subjectKey?: string) {
+export function getSubjectConfig(subjectKey?: string): SubjectConfigView {
   if (subjectKey && subjectKey in SUBJECT_CONFIG) return SUBJECT_CONFIG[subjectKey as SubjectKey];
   return SUBJECT_CONFIG.history;
 }
