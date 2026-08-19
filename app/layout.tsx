@@ -12,6 +12,7 @@ import "./final-platform-overrides.css";
 import "./subject-artwork.css";
 import "./subject-scenes.css";
 import "./subject-identity-v3.css";
+import "./subject-worlds-v4.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
