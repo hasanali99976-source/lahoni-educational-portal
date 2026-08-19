@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import {
   teacherAccountFromSession,
   TEACHER_COOKIE,
-  teacherSessionToken,
+  teacherSessionTokenForId,
   TEACHER_SESSION_MAX_AGE,
 } from "../../../lib/teacher-session";
 import { listTeacherSubjects } from "../../../lib/teacher-subjects";
@@ -45,13 +45,20 @@ export async function GET() {
   );
 
   if (account) {
-    response.cookies.set(TEACHER_COOKIE, teacherSessionToken(account), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: TEACHER_SESSION_MAX_AGE,
-    });
+    // Set stable teacherId-based token cookie (base64 JSON)
+    try {
+      const token = teacherSessionTokenForId(account.teacherId);
+      const cookiePayload = Buffer.from(JSON.stringify({ teacherId: account.teacherId, token })).toString("base64");
+      response.cookies.set(TEACHER_COOKIE, cookiePayload, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: TEACHER_SESSION_MAX_AGE,
+      });
+    } catch (e) {
+      // fallback: do not block
+    }
     if (currentSubject) {
       response.cookies.set("tahdheeb_teacher_subject", String(currentSubject), {
         httpOnly: false,

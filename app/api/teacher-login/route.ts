@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   findTeacherAccount,
   TEACHER_COOKIE,
-  teacherSessionToken,
+  teacherSessionTokenForId,
   TEACHER_SESSION_MAX_AGE,
 } from "../../../lib/teacher-session";
 import { ensureTeacherSubject } from "../../../lib/teacher-subjects";
@@ -35,7 +35,11 @@ export async function POST(request: Request) {
           subject: account.subject,
     });
 
-    response.cookies.set(TEACHER_COOKIE, teacherSessionToken(account), {
+    // Create a stable token based on teacherId and a server secret and store as base64(JSON)
+    const token = teacherSessionTokenForId(account.teacherId);
+    const cookiePayload = Buffer.from(JSON.stringify({ teacherId: account.teacherId, token })).toString("base64");
+
+    response.cookies.set(TEACHER_COOKIE, cookiePayload, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
