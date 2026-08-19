@@ -28,6 +28,20 @@ export async function GET() {
     const subjectCookie = store.get("tahdheeb_teacher_subject")?.value;
     if (subjectCookie) currentSubject = subjectCookie;
     if (!currentSubject && subjects.length === 1) currentSubject = subjects[0].subjectId;
+
+    // attempt to read a friendly teacher name from Firestore teacher profile
+    try {
+      const { doc, getDoc } = await import("firebase/firestore");
+      const { db } = await import("../../../lib/firebase");
+      const ref = doc(db, `teachers/${account.teacherId}`);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data() as any;
+        account.username = data.name || data.displayName || account.username;
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   const response = NextResponse.json(
