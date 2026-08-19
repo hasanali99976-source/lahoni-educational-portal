@@ -35,6 +35,9 @@ export async function ensureTeacherSubject(teacherId: string, subjectId: string)
 export async function listTeacherSubjects(teacherId: string, includeInactive = false): Promise<TeacherSubject[]> {
   const col = collection(db, `teachers/${teacherId}/subjects`);
   const snap = await getDocs(col);
-  const subjects = snap.docs.map((item) => ({ subjectId: item.id, ...(item.data() as TeacherSubject) }));
+  const subjects = snap.docs.map((item) => {
+    const data = item.data() as Omit<TeacherSubject, "subjectId"> & { subjectId?: string };
+    return { ...data, subjectId: item.id } as TeacherSubject;
+  });
   return includeInactive ? subjects : subjects.filter((subject) => subject.isActive !== false);
 }
