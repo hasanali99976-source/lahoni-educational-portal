@@ -5,6 +5,7 @@ import "./student/subject.css";
 import "./teacher/scientific-ai.css";
 import "./ai-light-portal.css";
 import "./portal-contrast.css";
+import "./comfort-theme.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -22,11 +23,11 @@ export const metadata: Metadata = {
   description: "منصة تعليمية ذكية للمتابعة والتقارير المدرسية",
   applicationName: "أستاذ لحوني",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "default" },
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#0f5f6d", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#176b73", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}><div className="print-header">بوابة أستاذ لحوني التعليمية</div><SmartLaunch /><SmartTransition /><PwaRegister /><IntroSound /><PortalLabelSync /><TeacherSubjectSwitcher />{children}<SmartEduAssistant /><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></body></html>;
