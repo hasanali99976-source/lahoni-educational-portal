@@ -20,6 +20,25 @@ const ACCOUNT_DEFINITIONS: Array<Omit<TeacherAccount, "subject">> = [
     teacherId: "hasan-history",
     subjectKey: "history",
   },
+  // Additional aliases for the same teacher to ensure legacy logins (English/variants) map to history
+  {
+    username: "Hasan Al-Taweel",
+    password: "1415",
+    teacherId: "hasan-history",
+    subjectKey: "history",
+  },
+  {
+    username: "Hassan Ali Al-Taweel",
+    password: "1415",
+    teacherId: "hasan-history",
+    subjectKey: "history",
+  },
+  {
+    username: "حسن علي الطويل",
+    password: "1415",
+    teacherId: "hasan-history",
+    subjectKey: "history",
+  },
   {
     username: "عبد الله الرويشد",
     password: "1415",
