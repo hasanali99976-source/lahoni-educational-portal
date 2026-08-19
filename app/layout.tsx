@@ -13,6 +13,7 @@ import SmartLaunch from "./smart-launch";
 import SmartTransition from "./smart-transition";
 import SmartEduAssistant from "./smart-edu-assistant";
 import PortalLabelSync from "./portal-label-sync";
+import TeacherSubjectSwitcher from "./teacher-subject-switcher";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -25,8 +26,8 @@ export const metadata: Metadata = {
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#6557e8", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#0f5f6d", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><body className={tajawal.className}><div className="print-header">بوابة أستاذ لحوني التعليمية</div><SmartLaunch /><SmartTransition /><PwaRegister /><IntroSound /><PortalLabelSync />{children}<SmartEduAssistant /><div className="print-footer"><span className="page-number"/></div></body></html>;
+  return <html lang="ar" dir="rtl"><body className={tajawal.className}><div className="print-header">بوابة أستاذ لحوني التعليمية</div><SmartLaunch /><SmartTransition /><PwaRegister /><IntroSound /><PortalLabelSync /><TeacherSubjectSwitcher />{children}<SmartEduAssistant /><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></body></html>;
 }
