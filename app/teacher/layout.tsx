@@ -13,6 +13,7 @@ import "./tab-fix.css";
 
 const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "اللوحة الذكية", note: "المؤشرات والتنبيهات" },
+  { href: "/teacher/subjects", key: "subjects", label: "إدارة المواد", note: "إضافة المواد والتبديل بينها" },
   { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", note: "الحصص والفصول الأسبوعية" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الإنجاز المهني والإصدار" },
   { href: "/teacher/grades", key: "grades", label: "رصد الدرجات", note: "الوحدات والاختبارات" },
@@ -34,6 +35,7 @@ type TeacherSession = {
 function TabIcon({ type }: { type: string }) {
   const c={width:26,height:26,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
   if(type==="dashboard")return <svg {...c}><path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/></svg>;
+  if(type==="subjects")return <svg {...c}><path d="M4 5.5h6.5A3.5 3.5 0 0 1 14 9v10H7.5A3.5 3.5 0 0 0 4 22z"/><path d="M20 5.5h-6.5A3.5 3.5 0 0 0 10 9v10h6.5A3.5 3.5 0 0 1 20 22z"/></svg>;
   if(type==="timetable")return <svg {...c}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>;
   if(type==="portfolio")return <svg {...c}><path d="M8 4h8l1 3h3v13H4V7h3z"/><path d="M9 11h6M9 15h6"/><path d="M10 4h4"/></svg>;
   if(type==="grades")return <svg {...c}><path d="M4 19.5h16"/><path d="M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
@@ -74,7 +76,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   },[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;
   if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة المعلم...</main>;
-  // provide client-side teacher session context so components can react to subject changes instantly
   const providerValue = {
     authenticated: true,
     teacherId,
@@ -85,7 +86,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       try {
         const r = await fetch('/api/teacher-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subjectId }), cache: 'no-store' });
         if (!r.ok) throw new Error('subject select failed');
-        // update local state without reload
         setSubjectKey(subjectId as SubjectKey);
       } catch (err) {
         console.error('setSubject error', err);
