@@ -101,7 +101,7 @@ export default function StudentPage() {
             </form>
           </> : <section className="student-subject-choices">
             <div className="student-choice-heading"><small>تم تسجيل الدخول بنجاح</small><h2>اختر المادة</h2><p>اختر المادة لعرض لوحة الأداء والدرجات.</p></div>
-            <div className="student-choice-grid">{matches.map((match)=><button key={`${match.id}-${match.subjectKey}`} onClick={()=>setSelected(match)}><span className="subject-icon">{match.icon}</span><div><strong>{match.subjectLabel}</strong><small>{match.teacherName}</small></div><b>دخول ←</b></button>)}</div>
+            <div className="student-choice-grid">{matches.map((match)=><button data-subject={match.subjectKey} key={`${match.id}-${match.subjectKey}`} onClick={()=>setSelected(match)}><span className="subject-icon">{match.icon}</span><div><strong>{match.subjectLabel}</strong><small>{match.teacherName}</small></div><b>دخول ←</b></button>)}</div>
             <button className="student-login-reset" onClick={()=>{setMatches([]);setNationalId("");setAccessCode("")}}>تسجيل دخول آخر</button>
           </section>}
         </div>
@@ -109,7 +109,7 @@ export default function StudentPage() {
     </main>
   );
 
-  return <main className="student-clean" dir="rtl">
+  return <main className={`student-clean student-theme-${selected.subjectKey}`} data-subject={selected.subjectKey} dir="rtl">
     <header className="student-clean-head"><div><span>{selected.icon} {selected.subjectLabel}</span><h1>{selected.data.name || "الطالب"}</h1><p>{selected.data.class || "الفصل غير محدد"} • {selected.teacherName}</p></div><div className="student-head-actions"><button onClick={()=>window.print()}>طباعة / PDF</button><button className="ghost" onClick={()=>setSelected(null)}>المواد</button></div></header>
     <section className="student-main-summary"><div className="student-score-ring" style={{"--score":percentage} as React.CSSProperties}><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div><div><small>المساعد التعليمي الذكي</small><h2>{percentage >= 90 ? "أداء متميز" : percentage >= 75 ? "تقدم جيد" : "تحتاج إلى خطة تحسين"}</h2><p>{percentage >= 75 ? "واصل المراجعة المنتظمة وحافظ على إنجاز الواجبات." : "ابدأ بالوحدات الأقل درجة وراجع ملاحظات المعلم."}</p></div></section>
     <section className="student-mini-stats"><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>مجموع الوحدات</span><strong>{ar(unitsTotal)}</strong></article><article><span>البحث</span><strong>{ar(research)}/{ar(RESEARCH_MAX)}</strong></article><article><span>المادة</span><strong>{selected.subjectLabel}</strong></article></section>
