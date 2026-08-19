@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "./reports.css";
 
 type UnitRecord={attendance?:number;participation?:number;homework?:number;unitExam?:number;total?:number};
@@ -14,13 +15,20 @@ const units=[["unit1","الوحدة الأولى"],["unit2","الوحدة الث
 function hijriToday(){return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab",{day:"numeric",month:"long",year:"numeric"}).format(new Date())}
 
 export default function ReportsPage(){
- const[students,setStudents]=useState<Student[]>([]),[attendanceDocs,setAttendanceDocs]=useState<AttendanceDoc[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedStudent,setSelectedStudent]=useState("");
- const[teacherId,setTeacherId]=useState(""),[teacherName,setTeacherName]=useState(""),[subjectKey,setSubjectKey]=useState<SubjectKey>("history"),[subject,setSubject]=useState(""),[ready,setReady]=useState(false),[message,setMessage]=useState("");
- const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"students"):"",[teacherId,subjectKey]);
- const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"attendance"):"",[teacherId,subjectKey]);
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{const s=await r.json() as Session;if(!r.ok||!s.authenticated||!s.teacherId||!s.subjectKey)throw new Error();setTeacherId(s.teacherId);setTeacherName(s.teacherName||"");setSubjectKey(s.subjectKey);setSubject(s.subject||"");setReady(true)}).catch(()=>setMessage("انتهت الجلسة. سجّل الدخول من جديد."))},[]);
- useEffect(()=>{if(!ready||!studentsPath)return;return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب"))},[ready,studentsPath]);
- useEffect(()=>{if(!ready||!attendancePath)return;return onSnapshot(collection(db,attendancePath),snap=>setAttendanceDocs(snap.docs.map(d=>d.data() as AttendanceDoc)),()=>setMessage("تعذر تحميل حضور هذا الحساب"))},[ready,attendancePath]);
+  const session = useTeacherClient();
+  const teacherId = session?.teacherId || "";
+  const teacherName = session?.teacherName || "";
+  const subjectKey = session?.subjectKey || "history";
+  const subject = session?.subject || "";
+  const ready = !!session?.teacherId && !!session?.subjectKey;
+
+  const [students,setStudents]=useState<Student[]>([]),[attendanceDocs,setAttendanceDocs]=useState<AttendanceDoc[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedStudent,setSelectedStudent]=useState("");
+  const [message,setMessage]=useState("");
+  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"students"):"",[teacherId,subjectKey]);
+  const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"attendance"):"",[teacherId,subjectKey]);
+
+  useEffect(()=>{ if(!ready){ setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب")) },[ready,studentsPath]);
+  useEffect(()=>{ if(!ready){ setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,attendancePath),snap=>setAttendanceDocs(snap.docs.map(d=>d.data() as AttendanceDoc)),()=>setMessage("تعذر تحميل حضور هذا الحساب")) },[ready,attendancePath]);
  const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
  const classStudents=useMemo(()=>selectedClass?students.filter(s=>(s.class||"").trim()===selectedClass):students,[students,selectedClass]);
  useEffect(()=>{if(!classStudents.some(s=>s.id===selectedStudent))setSelectedStudent(classStudents[0]?.id||"")},[classStudents,selectedStudent]);

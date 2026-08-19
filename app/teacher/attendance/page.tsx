@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "./attendance.css";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
@@ -15,12 +16,18 @@ function formatHijri(value:string){return new Intl.DateTimeFormat("ar-SA-u-ca-is
 function safeId(value:string){return encodeURIComponent(value).replace(/%/g,"_");}
 
 export default function AttendancePage(){
- const [students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedDate,setSelectedDate]=useState(toDateInput(new Date())),[records,setRecords]=useState<Record<string,AttendanceStatus>>({}),[message,setMessage]=useState(""),[saving,setSaving]=useState(false);
- const [teacherId,setTeacherId]=useState(""),[subjectKey,setSubjectKey]=useState<SubjectKey>("history"),[teacherName,setTeacherName]=useState(""),[subject,setSubject]=useState(""),[ready,setReady]=useState(false);
- const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"students"):"",[teacherId,subjectKey]);
- const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"attendance"):"",[teacherId,subjectKey]);
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{const s=await r.json() as Session;if(!r.ok||!s.authenticated||!s.teacherId||!s.subjectKey)throw new Error();setTeacherId(s.teacherId);setTeacherName(s.teacherName||"");setSubjectKey(s.subjectKey);setSubject(s.subject||"");setReady(true)}).catch(()=>setMessage("انتهت الجلسة. سجّل الدخول من جديد."))},[]);
- useEffect(()=>{if(!ready||!studentsPath)return;return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب"))},[ready,studentsPath]);
+  const session = useTeacherClient();
+  const teacherId = session?.teacherId || "";
+  const subjectKey = session?.subjectKey || "history";
+  const teacherName = session?.teacherName || "";
+  const subject = session?.subject || "";
+  const ready = !!session?.teacherId && !!session?.subjectKey;
+
+  const [students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedDate,setSelectedDate]=useState(toDateInput(new Date())),[records,setRecords]=useState<Record<string,AttendanceStatus>>({}),[message,setMessage]=useState(""),[saving,setSaving]=useState(false);
+  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"students"):"",[teacherId,subjectKey]);
+  const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"attendance"):"",[teacherId,subjectKey]);
+
+  useEffect(()=>{ if(!ready){ setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب")) },[ready,studentsPath]);
  const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
  const classStudents=useMemo(()=>students.filter(s=>(s.class||"").trim()===selectedClass),[students,selectedClass]);
  useEffect(()=>{async function load(){if(!selectedClass||!attendancePath){setRecords({});return}const snap=await getDoc(doc(db,attendancePath,`${safeId(selectedClass)}_${selectedDate}`));const saved=(snap.data()?.records||{}) as Record<string,AttendanceStatus>;setRecords(Object.fromEntries(classStudents.map(s=>[s.id,saved[s.id]||"present"])))}load().catch(()=>setMessage("تعذر تحميل التحضير لهذا اليوم"))},[selectedClass,selectedDate,classStudents,attendancePath]);

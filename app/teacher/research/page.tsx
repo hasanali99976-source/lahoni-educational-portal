@@ -6,20 +6,21 @@ import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { ClientTenant, migrateLegacyHistoryStudents, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
 import { RESEARCH_MAX, subjectLabel as getSubjectLabel } from "../../../lib/academic-config";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "../grades/register.css";
 
 type Student = { id: string; name?: string; nationalId?: string; class?: string; research?: number; researchScore?: number };
 
 export default function ResearchPage() {
-  const [tenant,setTenant]=useState<ClientTenant|null>(null);
+  const session = useTeacherClient();
+  const tenant: ClientTenant | null = session?.teacherId && session?.subjectKey ? { teacherId: session.teacherId, teacherName: session.teacherName||"", subjectKey: session.subjectKey as any } : null;
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [scores, setScores] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async response=>{if(!response.ok)throw new Error("unauthorized");const session=await response.json();setTenant({teacherId:String(session.teacherId),teacherName:String(session.teacherName),subjectKey:session.subjectKey});}).catch(()=>setMessage("انتهت جلسة المعلم. سجّل الدخول من جديد."));},[]);
-  useEffect(()=>{if(!tenant)return;let unsubscribe=()=>{};let cancelled=false;migrateLegacyHistoryStudents(db,tenant).catch(()=>{}).finally(()=>{if(cancelled)return;unsubscribe=onSnapshot(collection(db,tenantStudentsPath(tenant)),snapshot=>{const list=snapshot.docs.map(item=>({id:item.id,...item.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list);},()=>setMessage("تعذر تحميل طلاب مادة المعلم الحالي"));});return()=>{cancelled=true;unsubscribe();};},[tenant]);
+  useEffect(()=>{ if(!tenant){ setMessage("انتهت جلسة المعلم. سجّل الدخول من جديد."); return; } let unsubscribe=()=>{};let cancelled=false; migrateLegacyHistoryStudents(db,tenant).catch(()=>{}).finally(()=>{ if(cancelled) return; unsubscribe=onSnapshot(collection(db,tenantStudentsPath(tenant)),snapshot=>{const list=snapshot.docs.map(item=>({id:item.id,...item.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list);},()=>setMessage("تعذر تحميل طلاب مادة المعلم الحالي"));}); return ()=>{cancelled=true;unsubscribe();}; },[tenant]);
 
   const classes = useMemo(() => Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")), [students]);
   const classStudents = useMemo(() => students.filter(s=>(s.class||"").trim()===selectedClass), [students,selectedClass]);

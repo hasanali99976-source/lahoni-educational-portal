@@ -5,6 +5,7 @@ import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc, update
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "./students.css";
 
 type Student={id:string;name?:string;nationalId?:string;class?:string;accessCode?:string;teacherId?:string;subjectKey?:string;[key:string]:unknown};
@@ -21,13 +22,16 @@ const arabicSort=(a:Student,b:Student)=>clean(a.name).localeCompare(clean(b.name
 function downloadBlob(name:string,data:Blob){const url=URL.createObjectURL(data),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 
 export default function StudentsPage(){
- const[teacherId,setTeacherId]=useState("");const[teacherName,setTeacherName]=useState("المعلم");const[subjectKey,setSubjectKey]=useState<SubjectKey>("history");const[ready,setReady]=useState(false);
+  const session = useTeacherClient();
+  const teacherId = session?.teacherId || "";
+  const teacherName = session?.teacherName || "المعلم";
+  const subjectKey = (session?.subjectKey as SubjectKey) || "history";
+  const ready = !!session?.teacherId && !!session?.subjectKey;
  const[students,setStudents]=useState<Student[]>([]);const[classesData,setClassesData]=useState<SavedClass[]>([]);const[selectedClass,setSelectedClass]=useState<string|null>(null);
  const[name,setName]=useState("");const[nationalId,setNationalId]=useState("");const[studentClass,setStudentClass]=useState("");const[newClass,setNewClass]=useState("");const[search,setSearch]=useState("");const[editingId,setEditingId]=useState<string|null>(null);const[msg,setMsg]=useState("");const[busy,setBusy]=useState(false);
  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"students"):"",[teacherId,subjectKey]);
  const classesPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"classes"):"",[teacherId,subjectKey]);
 
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{const s=await r.json() as Session;if(!r.ok||!s.authenticated||!s.teacherId||!s.subjectKey)throw 0;setTeacherId(s.teacherId);setTeacherName(s.teacherName||"المعلم");setSubjectKey(s.subjectKey);setReady(true)}).catch(()=>setMsg("انتهت الجلسة. سجّل الدخول من جديد."))},[]);
  useEffect(()=>{if(!ready||!studentsPath||!classesPath)return;const a=onSnapshot(collection(db,studentsPath),s=>setStudents((s.docs.map(x=>({id:x.id,...x.data()})) as Student[]).sort(arabicSort)),()=>setMsg("تعذر قراءة الطلاب"));const b=onSnapshot(collection(db,classesPath),s=>setClassesData(s.docs.map(x=>({id:x.id,...x.data()})) as SavedClass[]),()=>setMsg("تعذر قراءة الفصول"));return()=>{a();b()}},[ready,studentsPath,classesPath]);
 
  const classes=useMemo(()=>{const m=new Map<string,number>();classesData.forEach(x=>{const n=className(x.name);if(n)m.set(n,m.get(n)||0)});students.forEach(x=>{const n=className(x.class)||"غير محدد";m.set(n,(m.get(n)||0)+1)});return[...m].map(([name,count])=>({name,count})).sort((a,b)=>a.name.localeCompare(b.name,"ar",{sensitivity:"base",numeric:true}))},[students,classesData]);

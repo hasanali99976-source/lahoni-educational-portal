@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
-import { QRCodeSVG } from "qrcode.react";
+const QRCodeSVG = dynamic(() => import('qrcode.react').then(m => m.QRCodeSVG), { ssr: false });
 import { db } from "../../../lib/firebase";
 import { ACADEMIC_UNITS, FINAL_MAX, RESEARCH_MAX, UNIT_MAX } from "../../../lib/academic-config";
 import { getSubjectConfig, type SubjectKey } from "../../../lib/subject-config";
 import { tenantCollection } from "../../../lib/teacher-tenant";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "./portfolio.css";
 
 type TeacherSession={teacherId:string;teacherName:string;subjectKey:SubjectKey};
@@ -24,9 +26,10 @@ const n=(value:number)=>ar.format(Number.isFinite(value)?value:0);
 const issuedAt=new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-u-nu-arab",{day:"numeric",month:"long",year:"numeric"}).format(new Date());
 
 export default function PortfolioPage(){
- const[tenant,setTenant]=useState<TeacherSession|null>(null),[students,setStudents]=useState<Student[]>([]),[attendance,setAttendance]=useState<AttendanceDoc[]>([]),[form,setForm]=useState<PortfolioForm>(emptyForm),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error();const s=await r.json();setTenant({teacherId:String(s.teacherId),teacherName:String(s.teacherName),subjectKey:s.subjectKey})}).catch(()=>setMessage("تعذر قراءة جلسة المعلم"))},[]);
- useEffect(()=>{if(!tenant)return;const studentsPath=tenantCollection(tenant.teacherId,tenant.subjectKey,"students"),attendancePath=tenantCollection(tenant.teacherId,tenant.subjectKey,"attendance"),portfolioPath=tenantCollection(tenant.teacherId,tenant.subjectKey,"portfolio");const a=onSnapshot(collection(db,studentsPath),snap=>setStudents(snap.docs.map(d=>d.data() as Student)));const b=onSnapshot(collection(db,attendancePath),snap=>setAttendance(snap.docs.map(d=>d.data() as AttendanceDoc)));const c=onSnapshot(doc(db,portfolioPath,"profile"),snap=>{if(snap.exists()){const data=snap.data() as Partial<PortfolioForm>;setForm({...emptyForm,...data,evidence:Array.isArray(data.evidence)?data.evidence:[]})}});return()=>{a();b();c()}},[tenant]);
+  const session = useTeacherClient();
+  const tenant = session?.teacherId && session?.subjectKey ? { teacherId: session.teacherId, teacherName: session.teacherName||"", subjectKey: session.subjectKey as any } : null;
+  const [students,setStudents]=useState<Student[]>([]),[attendance,setAttendance]=useState<AttendanceDoc[]>([]),[form,setForm]=useState<PortfolioForm>(emptyForm),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
+  useEffect(()=>{ if(!tenant) return setMessage("تعذر قراءة جلسة المعلم"); const studentsPath=tenantCollection(tenant.teacherId,tenant.subjectKey,"students"),attendancePath=tenantCollection(tenant.teacherId,tenant.subjectKey,"attendance"),portfolioPath=tenantCollection(tenant.teacherId,tenant.subjectKey,"portfolio");const a=onSnapshot(collection(db,studentsPath),snap=>setStudents(snap.docs.map(d=>d.data() as Student)));const b=onSnapshot(collection(db,attendancePath),snap=>setAttendance(snap.docs.map(d=>d.data() as AttendanceDoc)));const c=onSnapshot(doc(db,portfolioPath,"profile"),snap=>{if(snap.exists()){const data=snap.data() as Partial<PortfolioForm>;setForm({...emptyForm,...data,evidence:Array.isArray(data.evidence)?data.evidence:[]})}});return()=>{a();b();c()} },[tenant]);
  const stats=useMemo(()=>{const classes=new Set(students.map(s=>(s.class||"").trim()).filter(Boolean));let totalGrades=0,recordedStudents=0,recordedUnits=0;const unitTotals=Object.fromEntries(ACADEMIC_UNITS.map(unit=>[unit.key,{sum:0,count:0}]));const classTotals:Record<string,{sum:number,count:number}>={};students.forEach(student=>{let studentTotal=0,hasAny=false;ACADEMIC_UNITS.forEach(unit=>{const u=student.units?.[unit.key];if(!u)return;const total=Math.min(UNIT_MAX,Number(u.total??Number(u.attendance||0)+Number(u.participation||0)+Number(u.homework||0)+Number(u.unitExam??u.exam1??u.exam2??0)));studentTotal+=total;if(u.updatedAt||u.total!==undefined){recordedUnits++;hasAny=true;unitTotals[unit.key].sum+=total;unitTotals[unit.key].count++}});studentTotal+=Math.min(RESEARCH_MAX,Number(student.researchScore??student.research??0));if(hasAny){const safe=Math.min(FINAL_MAX,studentTotal);recordedStudents++;totalGrades+=safe;const className=(student.class||"").trim();if(className){classTotals[className]??={sum:0,count:0};classTotals[className].sum+=safe;classTotals[className].count++}}});let present=0,all=0;attendance.forEach(day=>Object.values(day.records||{}).forEach(status=>{all++;if(status==="present")present++}));const achievement=students.length?Math.round(recordedUnits/(students.length*ACADEMIC_UNITS.length)*100):0;const bestUnit=ACADEMIC_UNITS.map(unit=>({label:unit.label,average:unitTotals[unit.key].count?unitTotals[unit.key].sum/unitTotals[unit.key].count:0})).sort((a,b)=>b.average-a.average)[0];const bestClass=Object.entries(classTotals).map(([name,value])=>({name,average:value.count?value.sum/value.count:0})).sort((a,b)=>b.average-a.average)[0];return{students:students.length,classes:classes.size,average:recordedStudents?Math.round(totalGrades/recordedStudents*10)/10:0,attendanceRate:all?Math.round(present/all*100):0,achievement,bestUnit,bestClass,recordedStudents}},[students,attendance]);
  const subject=tenant?getSubjectConfig(tenant.subjectKey):getSubjectConfig("history");
  const validEvidence=form.evidence.filter(item=>item.title.trim());

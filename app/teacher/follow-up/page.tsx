@@ -3,6 +3,7 @@ import { useEffect,useMemo,useState } from "react";
 import { collection,doc,onSnapshot,updateDoc,increment } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection,type SubjectKey } from "../../../lib/teacher-tenant";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "./follow-up.css";
 type UnitRecord={attendance?:number;participation?:number;homework?:number;unitExam?:number;total?:number};
 type Student={id:string;name?:string;class?:string;nationalId?:string;researchScore?:number;teacherNote?:string;units?:Record<string,UnitRecord>;parentCounselorNoticeCount?:number;parentCounselorLastNotice?:{title?:string;message?:string;createdAt?:string;percentage?:number}};
@@ -12,11 +13,16 @@ function studentTotal(s:Student){return unitKeys.reduce((sum,key)=>{const r=s.un
 function missingCount(s:Student){let c=0;unitKeys.forEach(k=>{const r=s.units?.[k]||{};if(r.attendance===undefined)c++;if(r.participation===undefined)c++;if(r.homework===undefined)c++;if(r.unitExam===undefined)c++});if(s.researchScore===undefined)c++;return c}
 function level(t:number){if(t>=90)return{label:"متقن بتميز",className:"excellent"};if(t>=80)return{label:"متقن",className:"mastered"};if(t>=60)return{label:"غير متقن",className:"warning"};return{label:"يحتاج تدخلاً",className:"danger"}}
 export default function FollowUpPage(){
- const[students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[threshold,setThreshold]=useState(80),[noteStudent,setNoteStudent]=useState<Student|null>(null),[note,setNote]=useState(""),[saved,setSaved]=useState(""),[reportOpen,setReportOpen]=useState(false),[notifyParents,setNotifyParents]=useState(false),[selectedStudentIds,setSelectedStudentIds]=useState<string[]>([]);
- const[teacherId,setTeacherId]=useState(""),[teacherName,setTeacherName]=useState(""),[subjectKey,setSubjectKey]=useState<SubjectKey>("history"),[subject,setSubject]=useState(""),[ready,setReady]=useState(false);
- const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"students"):"",[teacherId,subjectKey]);
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{const s=await r.json() as Session;if(!r.ok||!s.authenticated||!s.teacherId||!s.subjectKey)throw new Error();setTeacherId(s.teacherId);setTeacherName(s.teacherName||"");setSubjectKey(s.subjectKey);setSubject(s.subject||"");setReady(true)}).catch(()=>setSaved("انتهت الجلسة. سجّل الدخول من جديد."))},[]);
- useEffect(()=>{if(!ready||!studentsPath)return;return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setSaved("تعذر تحميل طلاب هذا الحساب"))},[ready,studentsPath]);
+  const session = useTeacherClient();
+  const teacherId = session?.teacherId || "";
+  const teacherName = session?.teacherName || "";
+  const subjectKey = session?.subjectKey || "history";
+  const subject = session?.subject || "";
+  const ready = !!session?.teacherId && !!session?.subjectKey;
+
+  const[students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[threshold,setThreshold]=useState(80),[noteStudent,setNoteStudent]=useState<Student|null>(null),[note,setNote]=useState(""),[saved,setSaved]=useState(""),[reportOpen,setReportOpen]=useState(false),[notifyParents,setNotifyParents]=useState(false),[selectedStudentIds,setSelectedStudentIds]=useState<string[]>([]);
+  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"students"):"",[teacherId,subjectKey]);
+  useEffect(()=>{ if(!ready){ setSaved("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setSaved("تعذر تحميل طلاب هذا الحساب")) },[ready,studentsPath]);
  const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
  const visible=useMemo(()=>students.filter(s=>!selectedClass||(s.class||"").trim()===selectedClass),[students,selectedClass]);
  const ranked=useMemo(()=>visible.map(s=>({...s,total:studentTotal(s),missing:missingCount(s)})).sort((a,b)=>b.total-a.total),[visible]);

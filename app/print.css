@@ -1,0 +1,66 @@
+/* Print improvements: A4, header on every page, page numbers, margins, avoid page breaks inside cards/tables */
+@page { size: A4; margin: 14mm; }
+@media print {
+  html, body { background: white !important; color: #152f3f; }
+  /* fixed header on every printed page */
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    direction: rtl;
+    color: #0d6474;
+    background: white;
+    border-bottom: 1px solid #e6eef0;
+    z-index: 9999;
+  }
+  /* footer with page numbers */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    display:flex;
+    align-items:center;
+    justify-content: center;
+    font-size: 12px;
+    color: #6b7f86;
+    background: white;
+    border-top: 1px solid #e6eef0;
+  }
+  .print-footer .page-number:after { content: " الصفحة " counter(page); }
+
+  /* make room for header/footer */
+  body, .portfolio-page, .teacher-app-shell, .teacher-main { margin-top: 46px; margin-bottom: 40px; }
+
+  /* prevent breaking inside major blocks */
+  .portal-card, .card, .portal-image-wrap, .portfolio-cover, .portfolio-stats article, .impact-grid article, .evidence-list article, table, .table-wrap, .portfolio-print-sections article, .portfolio-final-page {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* nicer margins for printed cards */
+  .card, .portal-card, .portfolio-cover, .portfolio-stats article { margin: 8px 0 !important; }
+
+  /* ensure tables don't break badly */
+  table { page-break-inside: avoid; break-inside: avoid-column; width: 100%; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+
+  /* show print-only sections and hide interactive parts */
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+
+  /* make QR and small UI elements printable size */
+  .portfolio-qr svg { width: 110px; height: 110px; }
+
+  /* ensure text sizes are readable */
+  body { font-size: 12.8pt; }
+}

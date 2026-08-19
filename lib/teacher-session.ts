@@ -3,7 +3,7 @@ import { createHash, timingSafeEqual } from "crypto";
 import { getSubjectConfig, type SubjectKey } from "./subject-config";
 
 export const TEACHER_COOKIE = "tahdheeb_teacher_session";
-export const TEACHER_SESSION_MAX_AGE = 60 * 3;
+export const TEACHER_SESSION_MAX_AGE = 60 * 60 * 24; // 1 day
 
 export type TeacherAccount = {
   username: string;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
+import { TeacherClientContext } from "../../lib/teacher-client";
 import "./teacher-shell.css";
 import "./teacher-themes-v2.css";
 import "./mobile-shell.css";
@@ -46,6 +47,7 @@ function TabIcon({ type }: { type: string }) {
 export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname=usePathname(),router=useRouter(),isLoginPage=pathname==="/teacher";
   const [ready,setReady]=useState(isLoginPage),[soundOn,setSoundOn]=useState(true);
+  const [teacherId,setTeacherId]=useState<string|undefined>(undefined);
   const [teacherName,setTeacherName]=useState("المعلم");
   const [subjectKey,setSubjectKey]=useState<SubjectKey>("history");
   const subjectConfig=getSubjectConfig(subjectKey);
@@ -60,7 +62,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   useEffect(()=>{
     if(isLoginPage){setReady(true);return}
     let active=true,busy=false;
-    const applySession=(session:TeacherSession)=>{setTeacherName(session.teacherName||"المعلم");setSubjectKey(session.subjectKey||"history")};
+    const applySession=(session:TeacherSession)=>{setTeacherId((session as any).teacherId);setTeacherName(session.teacherName||"المعلم");setSubjectKey(session.subjectKey||"history")};
     const check=async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store"});if(!response.ok)throw new Error();const session=await response.json() as TeacherSession;if(active){applySession(session);setReady(true)}};
     const reset=()=>{if(idleTimer.current)clearTimeout(idleTimer.current);idleTimer.current=setTimeout(()=>void logout(),IDLE_LIMIT)};
     const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async response=>{if(!response.ok)throw new Error();const session=await response.json() as TeacherSession;if(active)applySession(session);lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};
@@ -72,8 +74,38 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   },[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;
   if(!ready)return <main className="teacher-shell-loading"><span className="loading-orbit"/>جارٍ تجهيز بوابة المعلم...</main>;
-  return <div className={`teacher-app-shell ${subjectConfig.themeClass}`} dir="rtl" data-subject={subjectKey}>
-    <aside className="teacher-sidebar">
+  // provide client-side teacher session context so components can react to subject changes instantly
+  const providerValue = {
+    authenticated: true,
+    teacherId,
+    teacherName,
+    subjectKey,
+    subject: subjectConfig.label,
+    setSubject: async (subjectId: string) => {
+      try {
+        const r = await fetch('/api/teacher-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subjectId }), cache: 'no-store' });
+        if (!r.ok) throw new Error('subject select failed');
+        // update local state without reload
+        setSubjectKey(subjectId as SubjectKey);
+      } catch (err) {
+        console.error('setSubject error', err);
+      }
+    },
+    refresh: async () => {
+      try {
+        const r = await fetch('/api/teacher-session', { cache: 'no-store' });
+        if (!r.ok) return;
+        const s = await r.json();
+        setTeacherId(s.teacherId);
+        setTeacherName(s.teacherName||'المعلم');
+        setSubjectKey(s.subjectKey||'history');
+      } catch {}
+    }
+  };
+
+  return <TeacherClientContext.Provider value={providerValue}>
+    <div className={`teacher-app-shell ${subjectConfig.themeClass}`} dir="rtl" data-subject={subjectKey}>
+      <aside className="teacher-sidebar">
       <div className="teacher-shell-brand"><div className="teacher-shell-logo">{subjectConfig.shortMark}</div><div><strong>أستاذ لحوني</strong><small>بوابة {subjectConfig.label} التعليمية</small></div></div>
       <nav className="teacher-tabs" aria-label="أقسام بوابة المعلم">{tabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>playTone()}><span className="teacher-tab-icon"><TabIcon type={tab.key}/></span><span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
       <div className="teacher-header-actions"><button className={`sound-toggle ${soundOn?"on":"off"}`} onClick={toggleSound}>{soundOn?"🔊 تشغيل الصوت":"🔇 الصوت مكتوم"}</button><button className="teacher-logout" onClick={logout}>تسجيل خروج</button></div>
@@ -82,5 +114,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">لوحة المعلم — {subjectConfig.label}</span><h2>أهلًا أستاذ {teacherName}، كل أدواتك في مكان واحد</h2><p>رصد درجات {subjectConfig.label} والحضور والمتابعة والتقارير بتصميم واضح وسريع.</p><div className="teacher-welcome-points">{subjectConfig.welcomePoints.map(point=><span key={point}>{point}</span>)}</div></div><div className="welcome-illustration"><img src="/students-learning.svg" alt="تعليم تفاعلي"/></div></section>
       <div className="teacher-page-content">{children}</div>
     </main>
-  </div>
+      </div>
+    </TeacherClientContext.Provider>
 }
