@@ -9,6 +9,10 @@ const APP_SHELL = [
   "/icons/ostadh-lahooni-192.jpg",
 ];
 
+self.addEventListener("message", event => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).catch(() => undefined));
   self.skipWaiting();
