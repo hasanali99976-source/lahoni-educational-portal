@@ -1,0 +1,40 @@
+/* Final clear educational layout: solid sidebar and full grade register */
+@media (min-width:1051px){
+  .teacher-app-shell{grid-template-columns:300px minmax(0,1fr)!important;background:#f3f7f5!important}
+  .teacher-sidebar{height:auto!important;min-height:100vh!important;max-height:none!important;position:sticky!important;top:0!important;overflow:visible!important;background:#0b5b50!important;border:0!important;color:#fff!important;box-shadow:0 0 32px rgba(11,62,55,.18)!important}
+  .teacher-shell-brand{background:#0b5b50!important;border-bottom:1px solid rgba(255,255,255,.18)!important;padding:20px 16px!important}
+  .teacher-shell-brand strong{color:#fff!important}.teacher-shell-brand small{color:#d7eee8!important}
+  .teacher-nav-title{background:#0b5b50!important;color:#fff!important;border:0!important;padding:12px 16px 8px!important;text-align:right!important}
+  .teacher-nav-title:before,.teacher-nav-title:after{display:none!important}
+  .teacher-tabs{overflow:visible!important;flex:0 0 auto!important;background:#0b5b50!important;padding:4px 12px 14px!important;gap:5px!important}
+  .teacher-tabs a{min-height:54px!important;padding:7px 10px!important;background:transparent!important;color:#f4fffb!important;border:1px solid transparent!important;border-radius:12px!important;grid-template-columns:36px minmax(0,1fr) auto!important;overflow:hidden!important}
+  .teacher-tabs a:hover{background:rgba(255,255,255,.10)!important;border-color:rgba(255,255,255,.14)!important}
+  .teacher-tabs a.active{background:#168067!important;color:#fff!important;border-color:#3ca68c!important;box-shadow:none!important}
+  .teacher-tab-icon{width:34px!important;height:34px!important;background:rgba(255,255,255,.10)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .teacher-tabs a.active .teacher-tab-icon{background:#fff!important;color:#0b6a58!important}
+  .teacher-tab-copy{overflow:visible!important}.teacher-tab-copy b{font-size:14px!important;line-height:1.3!important;white-space:normal!important;overflow:visible!important;word-break:normal!important}.teacher-tab-copy small{font-size:10px!important;color:#cce5df!important;white-space:normal!important;overflow:visible!important;line-height:1.25!important}.teacher-tabs a.active .teacher-tab-copy small{color:#eafff8!important}
+  .teacher-header-actions{position:static!important;margin-top:auto!important;background:#084a42!important;border-top:1px solid rgba(255,255,255,.16)!important;box-shadow:none!important;padding:12px!important}.teacher-header-actions:before{color:#e4f5f0!important}.teacher-header-actions .sound-toggle{background:rgba(255,255,255,.12)!important;color:#fff!important;border-color:rgba(255,255,255,.2)!important}.teacher-header-actions .teacher-logout{background:#fff!important;color:#ad3e3e!important;border-color:#fff!important}
+}
+
+/* Grade page: centered heading and a fully visible register on desktop */
+.grades-page .gradebook-wrap{width:100%!important;max-width:none!important}
+.grades-page .gradebook-card{padding:18px!important;overflow:visible!important}
+.grades-page .gradebook-head{display:grid!important;grid-template-columns:1fr!important;align-items:center!important;justify-items:center!important;text-align:center!important;gap:14px!important}
+.grades-page .gradebook-head>div:first-child{width:100%!important;text-align:center!important}
+.grades-page .gradebook-head h1{font-size:30px!important;text-align:center!important;color:#164f45!important}
+.grades-page .gradebook-head p{text-align:center!important;font-size:13px!important;color:#667d78!important}
+.grades-page .gradebook-actions{justify-content:center!important;width:100%!important}
+.grades-page .gradebook-scroll{overflow:visible!important;max-height:none!important;border-radius:16px!important}
+.grades-page .gradebook-table{width:100%!important;min-width:0!important;table-layout:fixed!important;font-size:11.5px!important}
+.grades-page .gradebook-table th,.grades-page .gradebook-table td{padding:7px 5px!important;min-width:0!important}
+.grades-page .gradebook-table thead th{position:static!important;background:#0f6f5d!important;color:#fff!important;font-size:11px!important}
+.grades-page .sticky-number,.grades-page .sticky-name{position:static!important;right:auto!important;z-index:auto!important}
+.grades-page .sticky-number{width:4%!important;min-width:0!important}.grades-page .national-id-head,.grades-page .national-id-cell{width:11%!important;min-width:0!important}.grades-page .sticky-name{width:17%!important;min-width:0!important;text-align:right!important}.grades-page .gradebook-table thead .sticky-name{background:#0f6f5d!important}.grades-page .gradebook-table th:nth-child(n+4):nth-child(-n+7){width:10%!important}.grades-page .gradebook-table th:nth-child(8){width:8%!important}.grades-page .notes-head{width:15%!important}.grades-page .delete-head{width:5%!important}
+.grades-page .mobile-grade-control{gap:3px!important}.grades-page .grade-step{width:26px!important;height:30px!important;font-size:16px!important}.grades-page .grade-input{width:44px!important;height:32px!important;font-size:14px!important}.grades-page .exam-cell .grade-input{width:48px!important}.grades-page .notes-input{min-width:0!important;width:100%!important;height:32px!important}.grades-page .student-total{font-size:16px!important}.grades-page .row-delete-button{width:31px!important;height:31px!important}
+
+/* Student portal remains fully available and visually aligned */
+.student-login-page,.student-clean{display:block!important;visibility:visible!important}.student-clean{background:#f3f7f5!important}.student-clean-head{background:#0f6f5d!important}
+
+@media(max-width:1050px){
+  .teacher-tabs{overflow-x:auto!important;overflow-y:hidden!important}.grades-page .gradebook-scroll{overflow-x:auto!important}.grades-page .gradebook-table{min-width:1180px!important;table-layout:auto!important}.grades-page .gradebook-head{justify-items:stretch!important;text-align:right!important}.grades-page .gradebook-head>div:first-child,.grades-page .gradebook-head h1,.grades-page .gradebook-head p{text-align:right!important}
+}
