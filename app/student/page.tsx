@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
-import { collectionGroup, documentId, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import {
   ACADEMIC_UNITS,
@@ -46,6 +46,17 @@ type Match = {
   data: StudentRecord;
 };
 
+type Tenant = {
+  teacherId: string;
+  teacherName: string;
+  subjectKey: string;
+};
+
+const TENANTS: Tenant[] = [
+  { teacherId: "hasan-history", teacherName: "أ. حسن علي الطويل", subjectKey: "history" },
+  { teacherId: "abdullah-critical-thinking", teacherName: "أ. عبدالله الرويشد", subjectKey: "critical-thinking" },
+];
+
 const arabicNumber = new Intl.NumberFormat("ar-SA-u-nu-arab", {
   maximumFractionDigits: 1,
 });
@@ -64,6 +75,89 @@ function gradeLabel(score: number) {
   if (ratio >= 60) return "جيد";
   if (score > 0) return "يحتاج متابعة";
   return "لم يُرصد";
+}
+
+async function findStudentInTenant(tenant: Tenant, nationalId: string): Promise<Match[]> {
+  const studentCollectionPath = `teacherData/${tenant.teacherId}/subjects/${tenant.subjectKey}/students`;
+  const studentCollection = collection(db, studentCollectionPath);
+  const candidateIds = [`${tenant.subjectKey}__${nationalId}`, nationalId];
+  const found = new Map<string, Match>();
+
+  for (const candidateId of candidateIds) {
+    try {
+      const snapshot = await getDoc(doc(db, studentCollectionPath, candidateId));
+      if (snapshot.exists()) {
+        const data = snapshot.data() as StudentRecord;
+        found.set(snapshot.id, {
+          id: snapshot.id,
+          subjectKey: tenant.subjectKey,
+          subjectLabel: subjectNames[tenant.subjectKey] || tenant.subjectKey,
+          teacherName: data.teacherName || tenant.teacherName,
+          data,
+        });
+      }
+    } catch {
+      // نكمل بمحاولة البحث بالحقل لدعم السجلات القديمة.
+    }
+  }
+
+  try {
+    const snapshots = await getDocs(query(studentCollection, where("nationalId", "==", nationalId)));
+    snapshots.forEach((snapshot) => {
+      const data = snapshot.data() as StudentRecord;
+      found.set(snapshot.id, {
+        id: snapshot.id,
+        subjectKey: tenant.subjectKey,
+        subjectLabel: subjectNames[tenant.subjectKey] || tenant.subjectKey,
+        teacherName: data.teacherName || tenant.teacherName,
+        data,
+      });
+    });
+  } catch {
+    // بعض قواعد Firestore تسمح بقراءة المستند المباشر فقط؛ النتائج المباشرة تبقى صالحة.
+  }
+
+  return [...found.values()];
+}
+
+async function findLegacyStudent(nationalId: string): Promise<Match[]> {
+  const found = new Map<string, Match>();
+
+  try {
+    const directSnapshot = await getDoc(doc(db, "students", nationalId));
+    if (directSnapshot.exists()) {
+      const data = directSnapshot.data() as StudentRecord & { subjectKey?: string };
+      const subjectKey = data.subjectKey || "history";
+      found.set(directSnapshot.id, {
+        id: directSnapshot.id,
+        subjectKey,
+        subjectLabel: subjectNames[subjectKey] || subjectKey,
+        teacherName: data.teacherName || "المعلم",
+        data,
+      });
+    }
+  } catch {
+    // نكمل دون تعطيل تسجيل الدخول.
+  }
+
+  try {
+    const snapshots = await getDocs(query(collection(db, "students"), where("nationalId", "==", nationalId)));
+    snapshots.forEach((snapshot) => {
+      const data = snapshot.data() as StudentRecord & { subjectKey?: string };
+      const subjectKey = data.subjectKey || "history";
+      found.set(snapshot.id, {
+        id: snapshot.id,
+        subjectKey,
+        subjectLabel: subjectNames[subjectKey] || subjectKey,
+        teacherName: data.teacherName || "المعلم",
+        data,
+      });
+    });
+  } catch {
+    // السجل القديم اختياري.
+  }
+
+  return [...found.values()];
 }
 
 export default function StudentPage() {
@@ -95,36 +189,21 @@ export default function StudentPage() {
     try {
       setLoading(true);
 
-      // البحث برقم الهوية داخل بيانات الطالب أكثر موثوقية من البحث بمعرّف المستند.
-      let snaps = await getDocs(
-        query(collectionGroup(db, "students"), where("nationalId", "==", id)),
+      const tenantResults = await Promise.allSettled(
+        TENANTS.map((tenant) => findStudentInTenant(tenant, id)),
       );
 
-      // دعم السجلات القديمة التي كان رقم الهوية فيها هو معرّف المستند فقط.
-      if (snaps.empty) {
-        try {
-          snaps = await getDocs(
-            query(collectionGroup(db, "students"), where(documentId(), "==", id)),
-          );
-        } catch {
-          // نتجاهل فشل الاستعلام القديم ونظهر رسالة واضحة للمستخدم.
-        }
+      const discovered = tenantResults.flatMap((result) =>
+        result.status === "fulfilled" ? result.value : [],
+      );
+
+      if (!discovered.length) {
+        discovered.push(...(await findLegacyStudent(id)));
       }
 
-      const validMatches: Match[] = snaps.docs
-        .map((snap) => {
-          const data = snap.data() as StudentRecord;
-          const parts = snap.ref.path.split("/");
-          const subjectKey = parts[3] || "history";
-          return {
-            id: snap.id,
-            subjectKey,
-            subjectLabel: subjectNames[subjectKey] || subjectKey,
-            teacherName: data.teacherName || parts[1] || "المعلم",
-            data,
-          };
-        })
-        .filter((item) => String(item.data.accessCode || "").trim().toUpperCase() === code);
+      const validMatches = discovered.filter(
+        (item) => String(item.data.accessCode || "").trim().toUpperCase() === code,
+      );
 
       if (!validMatches.length) {
         setMessage("رقم الهوية أو كود الدخول غير صحيح، أو لم تُربط لك مادة بعد.");
@@ -138,7 +217,7 @@ export default function StudentPage() {
       }
     } catch (error) {
       console.error("Student login failed", error);
-      setMessage("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.");
+      setMessage("تعذر الوصول إلى بيانات الطالب الآن. حاول مرة أخرى بعد لحظات.");
     } finally {
       setLoading(false);
     }
