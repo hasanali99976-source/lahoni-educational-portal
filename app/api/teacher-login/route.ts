@@ -5,6 +5,8 @@ import {
   teacherSessionToken,
   TEACHER_SESSION_MAX_AGE,
 } from "../../../lib/teacher-session";
+import { ensureTeacherSubject } from "../../../lib/teacher-subjects";
+import { db } from "../../../lib/firebase";
 
 export async function POST(request: Request) {
   try {
@@ -20,20 +22,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // ensure teacher's subject entries exist (migration step)
+    try{
+          await ensureTeacherSubject(account.teacherId, account.subjectKey);
+    }catch(e){/* ignore migration errors */}
+
     const response = NextResponse.json({
-      ok: true,
-      teacherId: account.teacherId,
-      teacherName: account.username,
-      subjectKey: account.subjectKey,
-      subject: account.subject,
+          ok: true,
+          teacherId: account.teacherId,
+          teacherName: account.username,
+          subjectKey: account.subjectKey,
+          subject: account.subject,
     });
 
     response.cookies.set(TEACHER_COOKIE, teacherSessionToken(account), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
-      path: "/",
-      maxAge: TEACHER_SESSION_MAX_AGE,
+          path: "/",
+          maxAge: TEACHER_SESSION_MAX_AGE,
     });
 
     return response;

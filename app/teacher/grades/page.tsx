@@ -5,6 +5,7 @@ import Link from "next/link";
 import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import { ClientTenant, migrateLegacyHistoryStudents, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
 import { ACADEMIC_UNITS, FINAL_MAX, GRADE_DISTRIBUTION, RESEARCH_MAX, UNIT_MAX, calculatePercentage, calculateUnitTotal, clampGrade, subjectLabel, type GradeKey } from "../../../lib/academic-config";
 import "./register.css";
@@ -16,9 +17,10 @@ type Student = { id:string; name?:string; nationalId?:string; class?:string; res
 const emptyGrade: GradeRecord = { attendance:0, participation:0, homework:0, unitExam:0, notes:"" };
 
 export default function GradesPage(){
- const[tenant,setTenant]=useState<ClientTenant|null>(null),[students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedUnit,setSelectedUnit]=useState(ACADEMIC_UNITS[0].key),[grades,setGrades]=useState<Record<string,GradeRecord>>({}),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async r=>{if(!r.ok)throw 0;const s=await r.json();setTenant({teacherId:String(s.teacherId),teacherName:String(s.teacherName),subjectKey:s.subjectKey})}).catch(()=>setMessage("انتهت جلسة المعلم. سجّل الدخول من جديد."))},[]);
- useEffect(()=>{if(!tenant)return;let u=()=>{},cancelled=false;migrateLegacyHistoryStudents(db,tenant).catch(()=>{}).finally(()=>{if(cancelled)return;u=onSnapshot(collection(db,tenantStudentsPath(tenant)),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب مادة المعلم الحالي"))});return()=>{cancelled=true;u()}},[tenant]);
+  const session = useTeacherClient();
+  const tenant: ClientTenant | null = session?.teacherId && session?.subjectKey ? { teacherId: session.teacherId, teacherName: session.teacherName || "", subjectKey: session.subjectKey as any } : null;
+  const [students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedUnit,setSelectedUnit]=useState(ACADEMIC_UNITS[0].key),[grades,setGrades]=useState<Record<string,GradeRecord>>({}),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
+  useEffect(()=>{ if(!tenant){ setMessage("انتهت جلسة المعلم. سجّل الدخول من جديد."); return; } let u=()=>{},cancelled=false; migrateLegacyHistoryStudents(db,tenant).catch(()=>{}).finally(()=>{ if(cancelled) return; u=onSnapshot(collection(db,tenantStudentsPath(tenant)),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب مادة المعلم الحالي")) }); return ()=>{cancelled=true;u()} },[tenant]);
  const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
  const classStudents=useMemo(()=>students.filter(s=>(s.class||"").trim()===selectedClass),[students,selectedClass]);
  const unitInfo=ACADEMIC_UNITS.find(unit=>unit.key===selectedUnit)||ACADEMIC_UNITS[0];

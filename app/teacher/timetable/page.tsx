@@ -5,6 +5,7 @@ import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../../lib/subject-config";
 import { tenantCollection } from "../../../lib/teacher-tenant";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import "./timetable.css";
 
 type Session={authenticated?:boolean;teacherId?:string;teacherName?:string;subjectKey?:SubjectKey};
@@ -25,15 +26,16 @@ const ar=new Intl.NumberFormat("ar-SA-u-nu-arab");
 const keyFor=(day:string,period:number)=>`${day}-${period}`;
 
 export default function TimetablePage(){
- const[session,setSession]=useState<Session|null>(null),[classes,setClasses]=useState<string[]>([]),[schedule,setSchedule]=useState<Schedule>({});
- const[selected,setSelected]=useState<{day:string;period:number}|null>(null),[draft,setDraft]=useState<Lesson>(emptyLesson()),[message,setMessage]=useState(""),[saving,setSaving]=useState(false);
- const teacherId=session?.teacherId||"",subjectKey=session?.subjectKey||"history";
- const subject=getSubjectConfig(subjectKey);
- const classesPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"classes"):"",[teacherId,subjectKey]);
- const timetablePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"timetable"):"",[teacherId,subjectKey]);
+  const session = useTeacherClient();
+  const [classes,setClasses]=useState<string[]>([]),[schedule,setSchedule]=useState<Schedule>({});
+  const[selected,setSelected]=useState<{day:string;period:number}|null>(null),[draft,setDraft]=useState<Lesson>(emptyLesson()),[message,setMessage]=useState(""),[saving,setSaving]=useState(false);
+  const teacherId = session?.teacherId || "";
+  const subjectKey = session?.subjectKey || "history";
+  const subject = getSubjectConfig(subjectKey as any);
+  const classesPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"classes"):"",[teacherId,subjectKey]);
+  const timetablePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"timetable"):"",[teacherId,subjectKey]);
 
- useEffect(()=>{fetch("/api/teacher-session",{cache:"no-store"}).then(async response=>{const value=await response.json() as Session;if(!response.ok||!value.authenticated||!value.teacherId||!value.subjectKey)throw new Error();setSession(value)}).catch(()=>setMessage("انتهت الجلسة. سجّل الدخول من جديد."))},[]);
- useEffect(()=>{if(!classesPath||!timetablePath)return;const stopClasses=onSnapshot(collection(db,classesPath),snapshot=>{const names=snapshot.docs.map(item=>String((item.data() as SavedClass).name||"").trim()).filter(Boolean);setClasses([...new Set(names)].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true,sensitivity:"base"})))});const stopTable=onSnapshot(doc(db,timetablePath,"weekly"),snapshot=>{const data=snapshot.data() as {lessons?:Schedule}|undefined;setSchedule(data?.lessons||{})});return()=>{stopClasses();stopTable()}},[classesPath,timetablePath]);
+  useEffect(()=>{ if(!classesPath||!timetablePath) return; const stopClasses=onSnapshot(collection(db,classesPath),snapshot=>{const names=snapshot.docs.map(item=>String((item.data() as SavedClass).name||"").trim()).filter(Boolean);setClasses([...new Set(names)].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true,sensitivity:"base"})))});const stopTable=onSnapshot(doc(db,timetablePath,"weekly"),snapshot=>{const data=snapshot.data() as {lessons?:Schedule}|undefined;setSchedule(data?.lessons||{})});return()=>{stopClasses();stopTable()} },[classesPath,timetablePath]);
 
  const smart=useMemo(()=>{
   const dayLoads=days.map(day=>({day:day.label,key:day.key,count:periods.filter(period=>schedule[keyFor(day.key,period)]).length}));
