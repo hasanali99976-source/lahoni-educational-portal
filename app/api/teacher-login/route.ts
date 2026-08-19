@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   findTeacherAccount,
+  TEACHER_ACCOUNTS,
   TEACHER_COOKIE,
   teacherSessionTokenForId,
   TEACHER_SESSION_MAX_AGE,
@@ -13,6 +14,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const username = String(body?.username || "").trim();
     const password = String(body?.password || "");
+
+    // debug: log incoming username and known accounts
+    try { console.log('[teacher-login] attempt', { username, accounts: TEACHER_ACCOUNTS.map(a=>({ username: a.username, teacherId: a.teacherId })) }); } catch(e){}
+
     const account = findTeacherAccount(username, password);
 
     if (!account) {
