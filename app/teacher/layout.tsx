@@ -10,6 +10,7 @@ import "./teacher-themes-v2.css";
 import "./mobile-shell.css";
 import "./print-theme.css";
 import "./tab-fix.css";
+import "./teacher-modern.css";
 
 const tabs = [
   { href: "/teacher/subjects", key: "subjects", label: "اختيار المادة", note: "المادة والصف الدراسي" },
