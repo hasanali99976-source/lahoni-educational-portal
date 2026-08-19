@@ -30,7 +30,7 @@ export default function TeacherSubjectsPage() {
   const session = useTeacherClient();
   const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
   const [subjectId, setSubjectId] = useState("history");
-  const [subjectName, setSubjectName] = useState(getSubjectConfig("history").label);
+  const [subjectName, setSubjectName] = useState<string>(getSubjectConfig("history").label);
   const [grade, setGrade] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
