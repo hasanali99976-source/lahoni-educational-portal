@@ -11,6 +11,7 @@ import { TeacherClientContext } from "../../lib/teacher-client";
 import "./print-theme.css";
 import "./teacher-v3.css";
 import "./teacher-navigation-v4.css";
+import "./subject-themes-v5.css";
 
 const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء" },
