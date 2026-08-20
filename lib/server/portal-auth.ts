@@ -12,6 +12,7 @@ export type PortalSession = {
   userId: string;
   role: PortalRole;
   name: string;
+  authVersion: string;
   expiresAt: number;
 };
 
@@ -24,6 +25,7 @@ export type PortalUser = {
   passwordHash: string;
   active: boolean;
   subjectIds: string[];
+  assignments?: unknown;
   createdAt: string;
   updatedAt: string;
 };
@@ -59,7 +61,9 @@ export function readStudentAccessToken(value?: string): StudentAccess | null {
     if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
     const access = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as StudentAccess;
     return access.expiresAt > Date.now() && access.studentId && access.teacherId && access.subjectId ? access : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function readSessionToken(value?: string): PortalSession | null {
@@ -71,7 +75,7 @@ export function readSessionToken(value?: string): PortalSession | null {
     const received = Buffer.from(signature);
     if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
     const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as PortalSession;
-    if (!session.userId || !session.role || session.expiresAt <= Date.now()) return null;
+    if (!session.userId || !session.role || !session.authVersion || session.expiresAt <= Date.now()) return null;
     return session;
   } catch {
     return null;
@@ -86,7 +90,12 @@ export async function currentSession() {
 export async function requireSession(role?: PortalRole) {
   const session = await currentSession();
   if (!session || (role && session.role !== role)) return null;
-  return session;
+
+  const user = await findUserById(session.userId);
+  if (!user || !user.active || user.role !== session.role) return null;
+  if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
+
+  return { ...session, name: user.name };
 }
 
 export function normalizeUsername(value: string) {
