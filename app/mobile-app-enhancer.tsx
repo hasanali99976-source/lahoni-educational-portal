@@ -8,11 +8,13 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+const DISMISS_KEY = "lahooni-install-dismissed";
+
 export default function MobileAppEnhancer() {
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [online, setOnline] = useState(true);
   const [standalone, setStandalone] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
     const media = window.matchMedia("(display-mode: standalone)");
@@ -24,6 +26,7 @@ export default function MobileAppEnhancer() {
     };
     syncMode();
     syncOnline();
+    setDismissed(window.localStorage.getItem(DISMISS_KEY) === "1");
     media.addEventListener?.("change", syncMode);
     window.addEventListener("online", syncOnline);
     window.addEventListener("offline", syncOnline);
@@ -45,6 +48,11 @@ export default function MobileAppEnhancer() {
     setInstallPrompt(null);
   }
 
+  function dismissInstall() {
+    window.localStorage.setItem(DISMISS_KEY, "1");
+    setDismissed(true);
+  }
+
   return (
     <>
       {!online && <div className="mobile-network-status" role="status">أنت الآن دون اتصال — ستظهر الصفحات المحفوظة حتى يعود الإنترنت</div>}
@@ -53,7 +61,7 @@ export default function MobileAppEnhancer() {
           <div className="mobile-install-icon">ح</div>
           <div><strong>ثبّت بوابة أستاذ لحوني</strong><small>تفتح كتطبيق سريع من شاشة الجوال</small></div>
           <button onClick={install}>تثبيت</button>
-          <button className="mobile-install-close" onClick={() => setDismissed(true)} aria-label="إغلاق">×</button>
+          <button className="mobile-install-close" onClick={dismissInstall} aria-label="إغلاق">×</button>
         </div>
       )}
     </>
