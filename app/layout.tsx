@@ -7,6 +7,7 @@ import "./teacher/workspace-v10.css";
 import "./student/workspace-v10.css";
 import "./identity-aurora-v11.css";
 import "./legend-ai-v12.css";
+import "./teacher-table-tabs-fix-v13.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
