@@ -35,7 +35,7 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
   await adminDb().collection("portalV2Users").doc(id).delete();
   const assignments = await adminDb().collection("portalV2Assignments").where("teacherId", "==", id).get();
   const batch = adminDb().batch();
-  assignments.docs.forEach(item => batch.delete(item.ref));
+  assignments.docs.forEach(item => batch.delete(adminDb().collection("portalV2Assignments").doc(item.id)));
   await batch.commit();
   return NextResponse.json({ ok: true });
 }

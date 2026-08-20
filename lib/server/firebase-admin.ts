@@ -1,6 +1,6 @@
 import "server-only";
 
-import { addDoc, collection, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 
 class DocumentSnapshotCompat {
@@ -15,6 +15,7 @@ class DocumentReferenceCompat {
   async get() { return new DocumentSnapshotCompat(await getDoc(doc(db, this.path, this.id))); }
   async set(value: Record<string, unknown>, options?: { merge?: boolean }) { if (options) await setDoc(doc(db, this.path, this.id), value, options); else await setDoc(doc(db, this.path, this.id), value); }
   async update(value: Record<string, unknown>) { await updateDoc(doc(db, this.path, this.id), value); }
+  async delete() { await deleteDoc(doc(db, this.path, this.id)); }
 }
 
 class CollectionReferenceCompat {
@@ -35,7 +36,8 @@ class CollectionReferenceCompat {
 
 class BatchCompat {
   private batch = writeBatch(db);
-  set(reference: DocumentReferenceCompat, value: Record<string, unknown>) { this.batch.set(doc(db, reference.path, reference.id), value); return this; }
+  set(reference: DocumentReferenceCompat, value: Record<string, unknown>, options?: { merge?: boolean }) { if (options) this.batch.set(doc(db, reference.path, reference.id), value, options); else this.batch.set(doc(db, reference.path, reference.id), value); return this; }
+  delete(reference: DocumentReferenceCompat) { this.batch.delete(doc(db, reference.path, reference.id)); return this; }
   async commit() { await this.batch.commit(); }
 }
 
