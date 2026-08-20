@@ -26,7 +26,7 @@ const tabs = [
 
 const IDLE_LIMIT = 3 * 60 * 1000;
 type TeacherSubject = { subjectId: string; subjectName: string };
-type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; subjects?: TeacherSubject[] };
+type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; subject?: string; subjects?: TeacherSubject[] };
 
 function TabIcon({ type }: { type: string }) {
   const common = { width: 23, height: 23, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -49,6 +49,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const [teacherId, setTeacherId] = useState<string>();
   const [teacherName, setTeacherName] = useState("المعلم");
   const [subjectKey, setSubjectKey] = useState<SubjectKey>("history");
+  const [subjectName, setSubjectName] = useState("التاريخ");
   const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
   const [switchingSubject, setSwitchingSubject] = useState(false);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -70,6 +71,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       setTeacherId(session.teacherId);
       setTeacherName(session.teacherName || "المعلم");
       setSubjectKey(session.subjectKey || "history");
+      setSubjectName(session.subject || getSubjectConfig(session.subjectKey).label);
       setSubjects(Array.isArray(session.subjects) ? session.subjects : []);
     };
     const check = async () => {
@@ -100,6 +102,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       const response = await fetch("/api/teacher-session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subjectId }), cache: "no-store" });
       if (!response.ok) throw new Error();
       setSubjectKey(subjectId as SubjectKey);
+      setSubjectName(subjects.find(subject => subject.subjectId === subjectId)?.subjectName || getSubjectConfig(subjectId).label);
       setMenuOpen(false);
       router.push("/teacher/dashboard");
       router.refresh();
@@ -114,13 +117,13 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     teacherId,
     teacherName,
     subjectKey,
-    subject: subjectConfig.label,
+    subject: subjectName,
     setSubject: changeSubject,
     refresh: async () => {
       const response = await fetch("/api/teacher-session", { cache: "no-store" });
       if (!response.ok) return;
       const session = await response.json();
-      setTeacherId(session.teacherId); setTeacherName(session.teacherName || "المعلم"); setSubjectKey(session.subjectKey || "history"); setSubjects(session.subjects || []);
+      setTeacherId(session.teacherId); setTeacherName(session.teacherName || "المعلم"); setSubjectKey(session.subjectKey || "history"); setSubjectName(session.subject || getSubjectConfig(session.subjectKey).label); setSubjects(session.subjects || []);
     },
   };
 
@@ -130,7 +133,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       {menuOpen ? <button className="teacher-menu-backdrop" type="button" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/> : null}
       <aside className="teacher-sidebar">
         <div className="teacher-shell-brand"><Image className="teacher-portal-logo" src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={52} height={52} priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>{teacherName}</small></div><button className="teacher-menu-close" type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق القائمة">×</button></div>
-        {subjects.length > 1 ? <section className="teacher-subject-switcher" aria-label="تغيير المادة"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><label><span>المادة الحالية</span><select value={subjectKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>)}</select></label></section> : <section className="teacher-single-subject"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><div><small>المادة الحالية</small><strong>{subjectConfig.label}</strong></div></section>}
+        {subjects.length > 1 ? <section className="teacher-subject-switcher" aria-label="تغيير المادة"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><label><span>المادة والصف والفصل الحالي</span><select value={subjectKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>)}</select></label></section> : <section className="teacher-single-subject"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><div><small>المادة والصف والفصل</small><strong>{subjectName}</strong></div></section>}
         <div className="teacher-nav-title">أقسام بوابة المعلم</div>
         <nav className="teacher-tabs" aria-label="أقسام بوابة المعلم">{tabs.map(tab => { const active = pathname.startsWith(tab.href); return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}><span className="teacher-tab-icon"><TabIcon type={tab.key}/></span><span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span>{tab.badge ? <em>{tab.badge}</em> : null}</Link>; })}</nav>
         <div className="teacher-header-actions"><Link href="/" className="teacher-home-link">الصفحة الرئيسية</Link><button className="teacher-logout" onClick={() => void logout()}>تسجيل الخروج</button></div>
