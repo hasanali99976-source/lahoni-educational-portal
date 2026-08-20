@@ -5,11 +5,11 @@ import { verifyPassword } from "../../../lib/server/password";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const username = String(body?.username || "").trim();
+    const username = String(body?.name || body?.username || "").trim();
     const password = String(body?.password || "");
     const user = await findUserByUsername(username);
     if (!user || user.role !== "teacher" || !user.active || !verifyPassword(password, user.passwordHash)) {
-      return NextResponse.json({ ok: false, message: "اسم المستخدم أو كلمة المرور غير صحيحة" }, { status: 401 });
+      return NextResponse.json({ ok: false, message: "اسم المعلم أو الرقم السري غير صحيح" }, { status: 401 });
     }
     const subjectId = user.subjectIds[0] || null;
     const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;

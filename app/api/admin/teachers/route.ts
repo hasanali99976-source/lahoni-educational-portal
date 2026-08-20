@@ -17,16 +17,16 @@ export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   try {
     const body = await request.json();
-    const username = String(body?.username || "").trim();
     const name = String(body?.name || "").trim();
+    const username = name;
     const password = String(body?.password || "");
     const subjectIds = Array.isArray(body?.subjectIds) ? [...new Set(body.subjectIds.map((value: unknown) => String(value).trim()).filter(Boolean))] : [];
-    if (username.length < 3 || name.length < 3 || password.length < 8 || !subjectIds.length) {
-      return NextResponse.json({ ok: false, message: "أكمل الاسم واسم المستخدم وكلمة مرور من ٨ خانات واختر مادة" }, { status: 400 });
+    if (name.length < 3 || password.length < 8 || !subjectIds.length) {
+      return NextResponse.json({ ok: false, message: "أكمل اسم المعلم والرقم السري من ٨ خانات واختر مادة" }, { status: 400 });
     }
     const normalizedUsername = normalizeUsername(username);
     const duplicate = await adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizedUsername).limit(1).get();
-    if (!duplicate.empty) return NextResponse.json({ ok: false, message: "اسم المستخدم مستخدم مسبقًا" }, { status: 409 });
+    if (!duplicate.empty) return NextResponse.json({ ok: false, message: "اسم المعلم موجود مسبقًا" }, { status: 409 });
     const now = new Date().toISOString();
     const reference = adminDb().collection("portalV2Users").doc();
     await reference.set({ username, normalizedUsername, name, role: "teacher", passwordHash: hashPassword(password), active: true, subjectIds, createdAt: now, updatedAt: now });

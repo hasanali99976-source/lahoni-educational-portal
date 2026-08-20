@@ -1,67 +1,25 @@
-"use client";
-
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import styles from "./home.module.css";
+import Link from "next/link";
 
-const subjects = [
-  ["🏛️", "التاريخ"], ["🌍", "الجغرافيا"], ["🧪", "العلوم"], ["📐", "الرياضيات"],
-  ["🧠", "التفكير الناقد"], ["💻", "التقنية"], ["✍️", "اللغات"], ["📖", "الدراسات الإسلامية"],
-  ["🎨", "التربية الفنية"], ["⚽", "التربية البدنية"],
+const portals = [
+  { href: "/admin", icon: "◈", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات", tone: "admin" },
+  { href: "/teacher", icon: "✦", title: "بوابة المعلم", text: "الطلاب والدرجات والمتابعة والملفات", tone: "teacher" },
+  { href: "/family", icon: "◎", title: "بوابة الطالب وولي الأمر", text: "النتائج والتقدم والمتابعة والتنبيهات", tone: "student" },
 ];
 
 export default function HomePage() {
-  const router = useRouter();
-  return (
-    <main className={styles.page} dir="rtl">
-      <header className={styles.header}>
-        <div className={styles.brand}>
-          <Image src="/icons/ostadh-lahooni-192.jpg" width={58} height={58} alt="شعار بوابة أستاذ لحوني التعليمية" priority />
-          <div><strong>بوابة أستاذ لحوني التعليمية</strong><small>منصة تعليمية واضحة وسهلة للجميع</small></div>
-        </div>
-        <div className={styles.headerActions}>
-          <button onClick={() => router.push("/admin")}>مدير البوابة</button>
-          <button onClick={() => router.push("/teacher")}>دخول المعلم</button>
-          <button onClick={() => router.push("/student")}>دخول الطالب</button>
-        </div>
-      </header>
-
-      <section className={styles.hero}>
-        <div className={styles.heroText}>
-          <span className={styles.badge}>تعليم • متابعة • ذكاء</span>
-          <h1>منصة تعليمية مرتبة، واضحة، وسهلة الاستخدام</h1>
-          <p>كل ما يحتاجه المعلم والطالب في مكان واحد: التحضير، الرصد، التقارير، متابعة الأداء، والمساعد الذكي.</p>
-          <div className={styles.heroButtons}>
-            <button onClick={() => router.push("/teacher")}>فتح بوابة المعلم</button>
-            <button onClick={() => router.push("/student")}>فتح بوابة الطالب / ولي الأمر</button>
-          </div>
-          <div className={styles.trustRow}><span>✓ خطوط واضحة</span><span>✓ أزرار كبيرة</span><span>✓ تعمل على الجوال</span></div>
-        </div>
-        <div className={styles.educationScene} aria-hidden="true">
-          <div className={styles.board}><b>أستاذ لحوني</b><span>منصة تعليمية ذكية</span></div>
-          <div className={styles.books}><i/><i/><i/></div>
-          <div className={styles.globe}>🌍</div>
-          <div className={styles.lamp}>💡</div>
-        </div>
-      </section>
-
-      <section className={styles.subjectSection}>
-        <div className={styles.sectionHeading}><span>بيئة تعليمية متنوعة</span><h2>جميع المواد بهوية واضحة</h2></div>
-        <div className={styles.subjectGrid}>
-          {subjects.map(([icon, name]) => <article key={name}><span>{icon}</span><b>{name}</b></article>)}
-        </div>
-      </section>
-
-      <section className={styles.portalGrid}>
-        <button className={styles.teacherCard} onClick={() => router.push("/teacher")}>
-          <span className={styles.cardIcon}>👨‍🏫</span><div><small>مساحة العمل</small><h2>بوابة المعلم</h2><p>التحضير والرصد والطلاب والتقارير والذكاء الاصطناعي.</p><b>دخول البوابة ←</b></div>
-        </button>
-        <button className={styles.studentCard} onClick={() => router.push("/student")}>
-          <span className={styles.cardIcon}>🎓</span><div><small>المتابعة التعليمية</small><h2>بوابة الطالب / ولي الأمر</h2><p>المواد والدرجات والحضور والتوصيات التعليمية.</p><b>دخول البوابة ←</b></div>
-        </button>
-      </section>
-
-      <footer className={styles.footer}>بوابة أستاذ لحوني التعليمية — تعليم واضح وتجربة سهلة</footer>
-    </main>
-  );
+  return <main className="v3-home" dir="rtl">
+    <nav className="v3-topbar">
+      <div className="v3-brand"><Image src="/icons/ostadh-lahooni-192.jpg" width={52} height={52} alt="شعار بوابة أستاذ لحوني التعليمية" priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><span>تعليم ذكي • متابعة أوضح</span></div></div>
+      <span className="v3-live"><i/> منصة تعليمية متكاملة</span>
+    </nav>
+    <section className="v3-hero">
+      <div className="v3-hero-copy"><span className="v3-kicker">بوابتك التعليمية الجديدة</span><h1>كل رحلة تعليمية<br/><em>تبدأ من هنا</em></h1><p>تجربة هادئة وواضحة تجمع الإدارة والمعلم والطالب وولي الأمر في نظام واحد ذكي وآمن.</p><div className="v3-values"><span>عزل كامل للمواد</span><span>بيانات آمنة</span><span>ذكاء تعليمي</span></div></div>
+      <div className="v3-visual" aria-hidden="true"><div className="v3-orbit orbit-one"/><div className="v3-orbit orbit-two"/><div className="v3-core"><b>AI</b><span>تعليم أذكى</span></div><i className="v3-dot d1"/><i className="v3-dot d2"/><i className="v3-dot d3"/></div>
+    </section>
+    <section className="v3-portals" aria-label="بوابات الدخول">
+      {portals.map(portal=><Link key={portal.href} href={portal.href} className={`v3-portal-card ${portal.tone}`}><span className="v3-portal-icon">{portal.icon}</span><div><small>دخول آمن</small><h2>{portal.title}</h2><p>{portal.text}</p></div><b className="v3-arrow">←</b></Link>)}
+    </section>
+    <footer className="v3-footer"><span>بوابة أستاذ لحوني التعليمية</span><span>واضحة • ناعمة • ذكية</span></footer>
+  </main>;
 }

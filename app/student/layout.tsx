@@ -1,6 +1,4 @@
-import "./student-note.css";
-import "./student-v2.css";
-import "./student-subject-themes.css";
+import "./student-v3.css";
 import StudentSecurity from "./student-security";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {

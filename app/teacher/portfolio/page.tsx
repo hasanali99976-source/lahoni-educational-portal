@@ -15,6 +15,8 @@ type Evidence = {
   date: string;
   url: string;
   description: string;
+  fileName: string;
+  fileData: string;
 };
 
 type PortfolioForm = {
@@ -62,6 +64,8 @@ function emptyEvidence(): Evidence {
     date: new Date().toISOString().slice(0, 10),
     url: "",
     description: "",
+    fileName: "",
+    fileData: "",
   };
 }
 
@@ -129,6 +133,18 @@ export default function PortfolioPage() {
       "evidence",
       form.evidence.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
     );
+  }
+
+  function uploadEvidence(id: string, file?: File) {
+    if (!file) return;
+    if (file.size > 60 * 1024) { setMessage("للحفظ المباشر، اضغط الملف ليكون أقل من ٦٠ كيلوبايت أو أضف رابطه."); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const value = String(reader.result || "");
+      update("evidence", form.evidence.map(item => item.id === id ? { ...item, fileName: file.name, fileData: value } : item));
+      setMessage(`تم إرفاق ${file.name}. احفظ الملف لتثبيت المرفق.`);
+    };
+    reader.readAsDataURL(file);
   }
 
   async function save() {
@@ -223,6 +239,7 @@ export default function PortfolioPage() {
                 <select value={item.category} onChange={(e) => updateEvidence(item.id, "category", e.target.value)}>{evidenceCategories.map((category) => <option key={category}>{category}</option>)}</select>
                 <input type="date" value={item.date} onChange={(e) => updateEvidence(item.id, "date", e.target.value)} />
                 <input className="evidence-url" dir="ltr" value={item.url} onChange={(e) => updateEvidence(item.id, "url", e.target.value)} placeholder="رابط الشاهد — اختياري" />
+                <label className="evidence-upload"><span>{item.fileName || "رفع ملف أو صورة"}</span><input hidden type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" onChange={(e) => uploadEvidence(item.id, e.target.files?.[0])} /></label>
                 <textarea value={item.description} onChange={(e) => updateEvidence(item.id, "description", e.target.value)} placeholder="وصف مختصر" />
               </div>
               <button className="remove-evidence" onClick={() => update("evidence", form.evidence.filter((evidence) => evidence.id !== item.id))}>حذف</button>
@@ -237,7 +254,7 @@ export default function PortfolioPage() {
         <article><h2>المبادرات والإنجازات</h2><p>{form.initiatives || "—"}</p></article>
         <article><h2>التأمل المهني</h2><p>{form.reflection || "—"}</p></article>
         <article><h2>خطة التطوير القادمة</h2><p>{form.developmentPlan || "—"}</p></article>
-        <article><h2>الشواهد</h2>{form.evidence.filter((item) => item.title.trim()).map((item) => <div className="print-evidence" key={item.id}><strong>{item.title}</strong><span>{item.category} — {item.date}</span><p>{item.description}</p><small>{item.url}</small></div>)}</article>
+        <article><h2>الشواهد</h2>{form.evidence.filter((item) => item.title.trim()).map((item) => <div className="print-evidence" key={item.id}><strong>{item.title}</strong><span>{item.category} — {item.date}</span><p>{item.description}</p><small>{item.fileName || item.url}</small></div>)}</article>
       </section>
 
       <section className="print-only portfolio-final-page">

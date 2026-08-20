@@ -1,66 +1,18 @@
 "use client";
-
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import "./admin.css";
-
-type Teacher = { id: string; username: string; name: string; active: boolean; subjectIds: string[] };
-const SUBJECTS = [
-  ["history", "التاريخ"], ["geography", "الجغرافيا"], ["critical-thinking", "التفكير الناقد"],
-  ["islamic-studies", "الدراسات الإسلامية"], ["quran", "القرآن الكريم والتفسير"], ["arabic", "اللغة العربية"],
-  ["english", "اللغة الإنجليزية"], ["mathematics", "الرياضيات"], ["science", "العلوم"],
-  ["digital-technology", "التقنية الرقمية"], ["art", "التربية الفنية"], ["physical-education", "التربية البدنية"],
-] as const;
-
-export default function AdminPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [name, setName] = useState("");
-  const [teacherUsername, setTeacherUsername] = useState("");
-  const [teacherPassword, setTeacherPassword] = useState("");
-  const [subjectIds, setSubjectIds] = useState<string[]>([]);
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    const response = await fetch("/api/admin/teachers", { cache: "no-store" });
-    if (response.status === 401) { setAuthenticated(false); return; }
-    const data = await response.json();
-    setTeachers(data.teachers || []); setAuthenticated(true);
-  }, []);
-  useEffect(() => { void load(); }, [load]);
-
-  async function login(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage("");
-    const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
-    const data = await response.json(); setBusy(false);
-    if (!response.ok || data.role !== "admin") return setMessage(data.message || "هذا الحساب لا يملك صلاحية الإدارة");
-    setPassword(""); await load();
-  }
-
-  async function createTeacher(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage("");
-    const response = await fetch("/api/admin/teachers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, username: teacherUsername, password: teacherPassword, subjectIds }) });
-    const data = await response.json(); setBusy(false);
-    if (!response.ok) return setMessage(data.message || "تعذر إنشاء الحساب");
-    setName(""); setTeacherUsername(""); setTeacherPassword(""); setSubjectIds([]); setMessage("تم إنشاء حساب المعلم وعزل مواده بنجاح."); await load();
-  }
-
-  async function toggle(teacher: Teacher) {
-    await fetch(`/api/admin/teachers/${teacher.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !teacher.active }) });
-    await load();
-  }
-
-  if (authenticated === null) return <main className="admin-loading">جارٍ تجهيز لوحة الإدارة…</main>;
-  if (!authenticated) return <main className="admin-login" dir="rtl"><section><Link href="/">العودة للرئيسية</Link><span>إدارة البوابة</span><h1>دخول مدير النظام</h1><p>من هنا تنشئ حسابات المعلمين وتحدد المواد والصلاحيات.</p><form onSubmit={login}><label>اسم المستخدم<input value={username} onChange={(event) => setUsername(event.target.value)} required /></label><label>كلمة المرور<input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required /></label><label className="show-password"><input type="checkbox" checked={showPassword} onChange={(event) => setShowPassword(event.target.checked)} /><span>إظهار كلمة المرور</span></label>{message && <p className="admin-message error">{message}</p>}<button disabled={busy}>{busy ? "جارٍ الدخول…" : "دخول لوحة الإدارة"}</button></form></section></main>;
-
-  return <main className="admin-page" dir="rtl">
-    <header><div><span>لوحة التحكم المركزية</span><h1>إدارة بوابة أستاذ لحوني</h1><p>الحسابات والمواد والعزل من مكان واحد.</p></div><Link href="/">عرض البوابة</Link></header>
-    <section className="admin-stats"><article><strong>{teachers.length}</strong><span>حساب معلم</span></article><article><strong>{teachers.filter((item) => item.active).length}</strong><span>حساب مفعل</span></article><article><strong>{new Set(teachers.flatMap((item) => item.subjectIds)).size}</strong><span>مادة مرتبطة</span></article></section>
-    <section className="admin-grid"><form className="admin-card" onSubmit={createTeacher}><span>حساب جديد</span><h2>إضافة معلم</h2><label>اسم المعلم<input value={name} onChange={(event) => setName(event.target.value)} placeholder="مثال: حسن علي الطويل" required /></label><label>اسم المستخدم<input dir="ltr" value={teacherUsername} onChange={(event) => setTeacherUsername(event.target.value)} placeholder="hasan.altawil" required /></label><label>كلمة المرور المؤقتة<input dir="ltr" type="password" value={teacherPassword} onChange={(event) => setTeacherPassword(event.target.value)} minLength={8} required /></label><fieldset><legend>المواد المسموحة</legend>{SUBJECTS.map(([id, label]) => <label className="subject-check" key={id}><input type="checkbox" checked={subjectIds.includes(id)} onChange={(event) => setSubjectIds((current) => event.target.checked ? [...current, id] : current.filter((value) => value !== id))} /><span>{label}</span></label>)}</fieldset>{message && <p className="admin-message">{message}</p>}<button disabled={busy}>{busy ? "جارٍ الإنشاء…" : "إنشاء الحساب"}</button></form>
-      <section className="admin-card teachers-card"><span>المعلمون</span><h2>الحسابات الحالية</h2>{!teachers.length && <p className="empty">لا توجد حسابات معلمين بعد.</p>}<div className="teacher-list">{teachers.map((teacher) => <article key={teacher.id}><div><strong>{teacher.name}</strong><small>@{teacher.username}</small><p>{teacher.subjectIds.map((id) => SUBJECTS.find(([key]) => key === id)?.[1] || id).join(" • ")}</p></div><button className={teacher.active ? "danger" : ""} onClick={() => toggle(teacher)}>{teacher.active ? "إيقاف" : "تفعيل"}</button></article>)}</div></section></section>
-  </main>;
+import { FormEvent,useCallback,useEffect,useState } from "react";
+type Teacher={id:string;name:string;active:boolean;subjectIds:string[]};
+const SUBJECTS=[["history","التاريخ"],["geography","الجغرافيا"],["critical-thinking","التفكير الناقد"],["islamic-studies","الدراسات الإسلامية"],["quran","القرآن الكريم والتفسير"],["arabic","اللغة العربية"],["english","اللغة الإنجليزية"],["mathematics","الرياضيات"],["science","العلوم"],["digital-technology","التقنية الرقمية"],["art","التربية الفنية"],["physical-education","التربية البدنية"]] as const;
+export default function AdminPage(){
+ const[teachers,setTeachers]=useState<Teacher[]>([]),[authenticated,setAuthenticated]=useState<boolean|null>(null),[username,setUsername]=useState(""),[password,setPassword]=useState(""),[showPassword,setShowPassword]=useState(false),[name,setName]=useState(""),[teacherPassword,setTeacherPassword]=useState(""),[subjectIds,setSubjectIds]=useState<string[]>([]),[editing,setEditing]=useState<Teacher|null>(null),[resetPassword,setResetPassword]=useState(""),[message,setMessage]=useState(""),[busy,setBusy]=useState(false);
+ const load=useCallback(async()=>{const r=await fetch("/api/admin/teachers",{cache:"no-store"});if(r.status===401){setAuthenticated(false);return}const d=await r.json();setTeachers(d.teachers||[]);setAuthenticated(true)},[]);useEffect(()=>{void load()},[load]);
+ async function login(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");const r=await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});const d=await r.json();setBusy(false);if(!r.ok||d.role!=="admin")return setMessage(d.message||"بيانات الدخول غير صحيحة");setPassword("");await load()}
+ async function createTeacher(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");const r=await fetch("/api/admin/teachers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,password:teacherPassword,subjectIds})});const d=await r.json();setBusy(false);if(!r.ok)return setMessage(d.message||"تعذر إضافة المعلم");setName("");setTeacherPassword("");setSubjectIds([]);setMessage("تمت إضافة المعلم وربط مواده بنجاح");await load()}
+ async function saveTeacher(){if(!editing)return;setBusy(true);const r=await fetch(`/api/admin/teachers/${editing.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:editing.name,subjectIds:editing.subjectIds,password:resetPassword||undefined})});const d=await r.json();setBusy(false);if(!r.ok)return setMessage(d.message||"تعذر حفظ التعديل");setEditing(null);setResetPassword("");setMessage("تم تحديث حساب المعلم");await load()}
+ async function toggle(t:Teacher){await fetch(`/api/admin/teachers/${t.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:!t.active})});await load()}
+ async function remove(t:Teacher){if(!confirm(`حذف حساب ${t.name}؟`))return;const r=await fetch(`/api/admin/teachers/${t.id}`,{method:"DELETE"});if(!r.ok)return setMessage("تعذر حذف الحساب");setMessage("تم حذف حساب المعلم");await load()}
+ const subjectLabel=(id:string)=>SUBJECTS.find(([key])=>key===id)?.[1]||id;
+ if(authenticated===null)return <main className="v3-loading">جارٍ تجهيز إدارة البوابة…</main>;
+ if(!authenticated)return <main className="v3-login v3-admin-login" dir="rtl"><section className="v3-login-card"><Link href="/" className="v3-back">← العودة إلى البوابة الرئيسية</Link><span className="v3-login-icon">◈</span><small>هوية الإدارة</small><h1>دخول إدارة البوابة</h1><p>أدخل اسم المدير والرقم السري للوصول إلى الحسابات والصلاحيات.</p><form onSubmit={login}><label>اسم المدير<input value={username} onChange={e=>setUsername(e.target.value)} autoComplete="username" required/></label><label>الرقم السري<div className="v3-password"><input type={showPassword?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" required/><button type="button" onClick={()=>setShowPassword(!showPassword)}>{showPassword?"إخفاء":"إظهار"}</button></div></label>{message&&<p className="v3-error">{message}</p>}<button className="v3-primary" disabled={busy}>{busy?"جارٍ التحقق…":"دخول الإدارة"}</button></form><div className="v3-recovery"><span>نسيت اسم الدخول أو الرقم السري؟</span><a href="mailto:Hasan2016@outlook.com?subject=استعادة حساب إدارة بوابة أستاذ لحوني">استرداد الحساب بالبريد</a><small>Hasan2016@outlook.com</small></div></section><aside><b>إدارة مركزية واضحة</b><h2>المعلمون والمواد<br/>في مكان واحد</h2><p>أنشئ حساب المعلم باسمه ورقمه السري، وحدد المواد المسموحة له فقط.</p></aside></main>;
+ return <main className="v3-admin" dir="rtl"><header><div><small>لوحة التحكم المركزية</small><h1>إدارة بوابة أستاذ لحوني</h1><p>إضافة المعلمين وتحديد المواد وإدارة الدخول.</p></div><Link href="/">العودة إلى البوابة الرئيسية</Link></header><section className="v3-stats"><article><strong>{teachers.length}</strong><span>معلم</span></article><article><strong>{teachers.filter(x=>x.active).length}</strong><span>حساب مفعل</span></article><article><strong>{new Set(teachers.flatMap(x=>x.subjectIds)).size}</strong><span>مادة مستخدمة</span></article></section><div className="v3-admin-grid"><form className="v3-panel v3-create-teacher" onSubmit={createTeacher}><small>حساب جديد</small><h2>إضافة معلم</h2><p>اسم المعلم نفسه هو اسم الدخول.</p><label>اسم المعلم<input value={name} onChange={e=>setName(e.target.value)} placeholder="مثال: حسن علي الطويل" required/></label><label>الرقم السري<input type="password" value={teacherPassword} onChange={e=>setTeacherPassword(e.target.value)} minLength={8} required/></label><fieldset><legend>اختيار المواد</legend><div className="v3-subject-checks">{SUBJECTS.map(([id,label])=><label key={id}><input type="checkbox" checked={subjectIds.includes(id)} onChange={e=>setSubjectIds(current=>e.target.checked?[...current,id]:current.filter(x=>x!==id))}/><span>{label}</span></label>)}</div></fieldset>{message&&<p className="v3-notice">{message}</p>}<button className="v3-primary" disabled={busy}>{busy?"جارٍ الإضافة…":"إضافة المعلم"}</button></form><section className="v3-panel v3-teachers"><small>الحسابات الحالية</small><h2>المعلمون</h2>{!teachers.length&&<p className="v3-empty">لم تتم إضافة معلمين بعد.</p>}<div className="v3-teacher-list">{teachers.map(t=><article key={t.id}><span className="v3-avatar">{t.name.trim().charAt(0)||"م"}</span><div><strong>{t.name}</strong><p>{t.subjectIds.map(subjectLabel).join(" • ")||"لا توجد مواد"}</p><small className={t.active?"active":"inactive"}>{t.active?"حساب مفعل":"حساب متوقف"}</small></div><div className="v3-row-actions"><button onClick={()=>{setEditing({...t});setResetPassword("")}}>تعديل</button><button onClick={()=>toggle(t)}>{t.active?"إيقاف":"تفعيل"}</button><button className="danger" onClick={()=>remove(t)}>حذف</button></div></article>)}</div></section></div>{editing&&<div className="v3-modal" role="dialog" aria-modal="true"><section><header><div><small>إدارة الحساب</small><h2>تعديل {editing.name}</h2></div><button onClick={()=>setEditing(null)}>×</button></header><label>اسم المعلم<input value={editing.name} onChange={e=>setEditing({...editing,name:e.target.value})}/></label><label>رقم سري جديد <small>اختياري</small><input type="password" minLength={8} value={resetPassword} onChange={e=>setResetPassword(e.target.value)}/></label><fieldset><legend>المواد</legend><div className="v3-subject-checks">{SUBJECTS.map(([id,label])=><label key={id}><input type="checkbox" checked={editing.subjectIds.includes(id)} onChange={e=>setEditing({...editing,subjectIds:e.target.checked?[...editing.subjectIds,id]:editing.subjectIds.filter(x=>x!==id)})}/><span>{label}</span></label>)}</div></fieldset><div className="v3-modal-actions"><button onClick={()=>setEditing(null)}>إلغاء</button><button className="v3-primary" onClick={saveTeacher} disabled={busy}>حفظ التعديلات</button></div></section></div>}</main>;
 }

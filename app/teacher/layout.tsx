@@ -8,24 +8,16 @@ import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
 import { TeacherClientContext } from "../../lib/teacher-client";
 import { signInWithCustomToken, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
-import "./teacher-shell.css";
-import "./teacher-themes-v2.css";
-import "./mobile-shell.css";
 import "./print-theme.css";
-import "./tab-fix.css";
-import "./teacher-modern.css";
-import "./portal-rebuild.css";
+import "./teacher-v3.css";
 
 const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء والتنبيهات" },
   { href: "/teacher/students", key: "students", label: "الطلاب", note: "السجلات وبيانات الدخول" },
   { href: "/teacher/attendance", key: "attendance", label: "الحضور", note: "التحضير والغياب" },
-  { href: "/teacher/timetable", key: "timetable", label: "الجدول", note: "الحصص الأسبوعية" },
   { href: "/teacher/grades", key: "grades", label: "الدرجات", note: "الرصد والاختبارات" },
   { href: "/teacher/diagnostics", key: "diagnostics", label: "التشخيص", note: "اختبارات وخطط علاجية" },
-  { href: "/teacher/research", key: "research", label: "التكليفات", note: "البحث والمهام" },
   { href: "/teacher/follow-up", key: "follow", label: "المتابعة", note: "الإتقان والتحسين" },
-  { href: "/teacher/reports", key: "reports", label: "التقارير", note: "التحليل والطباعة" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الإنجاز المهني" },
   { href: "/teacher/ai", key: "ai", label: "الذكاء الاصطناعي", note: "التحليل والخطط العلاجية", badge: "ذكي" },
 ];
