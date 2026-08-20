@@ -1,0 +1,74 @@
+/* Central visual identity system for teacher and student portals. */
+[data-subject]{
+  --subject-primary:#7a4b20;--subject-secondary:#d3a85b;--subject-soft:#fbf3e3;--subject-deep:#3d2918;
+  --subject-motif:"✦";--subject-glow:rgba(122,75,32,.22);
+  color-scheme:light;position:relative;isolation:isolate;
+}
+[data-subject]::before{
+  content:var(--subject-motif);position:fixed;inset-inline-end:4vw;inset-block-start:10vh;z-index:-1;
+  font-size:clamp(90px,17vw,230px);font-weight:900;line-height:1;color:var(--subject-primary);
+  opacity:.045;filter:blur(.2px);transform:rotate(-8deg);pointer-events:none;
+  animation:subject-float 8s ease-in-out infinite;
+}
+[data-subject] .student-clean-head,[data-subject] .teacher-topbar,[data-subject] .student-main-summary,[data-subject] .student-ai-hub>header{
+  background:linear-gradient(135deg,var(--subject-deep),var(--subject-primary))!important;color:#fff!important;
+  box-shadow:0 18px 45px var(--subject-glow)!important;border-color:transparent!important;
+}
+[data-subject] .student-portal-tabs button.active,[data-subject] .student-smart-action,[data-subject] .portal-submit,
+[data-subject] .btn.primary,[data-subject] .diagnostic-tests button,[data-subject] .submit-diagnostic{
+  background:linear-gradient(135deg,var(--subject-primary),var(--subject-secondary))!important;color:#fff!important;
+  box-shadow:0 10px 24px var(--subject-glow)!important;
+}
+[data-subject] .student-portal-tabs button,[data-subject] .student-mini-stats article,[data-subject] .student-home-grid article,
+[data-subject] .student-ai-grid article,[data-subject] .student-goal-card,[data-subject] .student-units-table,
+[data-subject] .card,[data-subject] .class-card{
+  border-color:color-mix(in srgb,var(--subject-primary) 20%,#dce6ed)!important;
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+[data-subject] .student-portal-tabs button:hover,[data-subject] .student-mini-stats article:hover,[data-subject] .student-home-grid article:hover,
+[data-subject] .student-ai-grid article:hover,[data-subject] .class-card:hover{
+  transform:translateY(-4px);box-shadow:0 16px 34px var(--subject-glow);border-color:var(--subject-secondary)!important;
+}
+[data-subject] .student-score-ring,[data-subject] .goal-ring,[data-subject] .subject-icon,[data-subject] .class-icon{
+  background-color:var(--subject-soft)!important;color:var(--subject-primary)!important;
+}
+[data-subject] a:focus-visible,[data-subject] button:focus-visible,[data-subject] input:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--subject-secondary) 75%,white);outline-offset:3px;
+}
+
+/* Humanities */
+[data-subject="history"]{--subject-primary:#8a5528;--subject-secondary:#d7ad63;--subject-soft:#fbf1df;--subject-deep:#3b2518;--subject-motif:"🏛";}
+[data-subject="geography"]{--subject-primary:#1e7381;--subject-secondary:#55b8a9;--subject-soft:#e7f7f3;--subject-deep:#123d4a;--subject-motif:"🌍";}
+[data-subject="social-studies"],[data-subject="social-sciences"],[data-subject="citizenship"]{--subject-primary:#6a4c93;--subject-secondary:#b08bd5;--subject-soft:#f2eafa;--subject-deep:#35234d;--subject-motif:"◉";}
+[data-subject="critical-thinking"]{--subject-primary:#5a3db8;--subject-secondary:#9a7cff;--subject-soft:#efebff;--subject-deep:#291c66;--subject-motif:"◇";}
+
+/* Languages */
+[data-subject="arabic"],[data-subject="linguistic-competencies"]{--subject-primary:#9a3f4f;--subject-secondary:#d98c6f;--subject-soft:#fff0ec;--subject-deep:#4d2330;--subject-motif:"ض";}
+[data-subject="english"]{--subject-primary:#245b9e;--subject-secondary:#65a7e8;--subject-soft:#eaf4ff;--subject-deep:#15385e;--subject-motif:"A";}
+
+/* Mathematics and finance */
+[data-subject="mathematics"],[data-subject="financial-literacy"]{--subject-primary:#2456a6;--subject-secondary:#43a3e6;--subject-soft:#e9f4ff;--subject-deep:#17345f;--subject-motif:"∑";}
+
+/* Sciences */
+[data-subject="science"]{--subject-primary:#247f65;--subject-secondary:#60c69d;--subject-soft:#e8f8f1;--subject-deep:#154536;--subject-motif:"✧";}
+[data-subject="physics"]{--subject-primary:#273b8e;--subject-secondary:#6679df;--subject-soft:#edf0ff;--subject-deep:#172252;--subject-motif:"⚛";}
+[data-subject="chemistry"]{--subject-primary:#7442a4;--subject-secondary:#bc7de2;--subject-soft:#f5ecfb;--subject-deep:#40245b;--subject-motif:"⚗";}
+[data-subject="biology"]{--subject-primary:#2f7e45;--subject-secondary:#79bf73;--subject-soft:#edf8ea;--subject-deep:#1b4a29;--subject-motif:"🧬";}
+[data-subject="earth-science"],[data-subject="environmental-science"]{--subject-primary:#55733b;--subject-secondary:#a0b96f;--subject-soft:#f1f6e8;--subject-deep:#304224;--subject-motif:"◒";}
+
+/* Computing */
+[data-subject="digital-technology"],[data-subject="computer-science"]{--subject-primary:#08728d;--subject-secondary:#20c4c9;--subject-soft:#e6f9fa;--subject-deep:#073d4c;--subject-motif:"</>";}
+
+/* Islamic studies */
+[data-subject="islamic-studies"],[data-subject="quran"],[data-subject="quran-tafsir"],[data-subject="tafsir"],
+[data-subject="hadith"],[data-subject="fiqh"],[data-subject="tawhid"]{--subject-primary:#147058;--subject-secondary:#c7a758;--subject-soft:#edf8f3;--subject-deep:#0c4033;--subject-motif:"۞";}
+
+/* Creative, health, and life */
+[data-subject="art"],[data-subject="arts"]{--subject-primary:#a23d76;--subject-secondary:#ed8b76;--subject-soft:#fff0f5;--subject-deep:#58233f;--subject-motif:"✎";}
+[data-subject="physical-education"],[data-subject="fitness-health"],[data-subject="health-education"]{--subject-primary:#d05b2d;--subject-secondary:#f2a33b;--subject-soft:#fff2e8;--subject-deep:#6a321d;--subject-motif:"⚡";}
+[data-subject="life-skills"],[data-subject="family-education"],[data-subject="career-guidance"]{--subject-primary:#2e7b7a;--subject-secondary:#df9c62;--subject-soft:#edf8f7;--subject-deep:#194b4b;--subject-motif:"✦";}
+[data-subject="business-administration"]{--subject-primary:#3b5877;--subject-secondary:#c69b4f;--subject-soft:#edf3f8;--subject-deep:#23394f;--subject-motif:"▥";}
+
+@keyframes subject-float{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(18px) rotate(-3deg)}}
+@media(max-width:760px){[data-subject]::before{font-size:110px;inset-inline-end:-12px;inset-block-start:80px}.student-portal-tabs button:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){[data-subject]::before{animation:none}[data-subject] *{scroll-behavior:auto!important;transition-duration:.01ms!important}}
