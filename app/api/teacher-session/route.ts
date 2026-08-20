@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { findUserById, requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
-import { adminAuth } from "../../../lib/server/firebase-admin";
 
 const SUBJECT_COOKIE = "lahooni_active_subject";
 
@@ -15,8 +14,7 @@ export async function GET() {
   const saved = store.get(SUBJECT_COOKIE)?.value || "";
   const current = user.subjectIds.includes(saved) ? saved : user.subjectIds[0] || null;
   const subjects = user.subjectIds.map((subjectId) => ({ subjectId, subjectName: getSubjectConfig(subjectId).label }));
-  const firebaseToken = await adminAuth().createCustomToken(user.id, { role: "teacher", subjectIds: user.subjectIds });
-  const response = NextResponse.json({ authenticated: true, teacherId: user.id, teacherName: user.name, subjectKey: current, subject: current ? getSubjectConfig(current).label : null, subjects, firebaseToken });
+  const response = NextResponse.json({ authenticated: true, teacherId: user.id, teacherName: user.name, subjectKey: current, subject: current ? getSubjectConfig(current).label : null, subjects });
   if (current) response.cookies.set(SUBJECT_COOKIE, current, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
   return response;
 }

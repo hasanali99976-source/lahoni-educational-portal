@@ -1,27 +1,48 @@
 import "server-only";
 
-import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import { getAuth } from "firebase-admin/auth";
+import { addDoc, collection, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
+import { db } from "../firebase";
 
-function adminApp() {
-  if (getApps().length) return getApps()[0]!;
+class DocumentSnapshotCompat {
+  constructor(private snapshot: Awaited<ReturnType<typeof getDoc>>) {}
+  get id() { return this.snapshot.id; }
+  get exists() { return this.snapshot.exists(); }
+  data(): any { return this.snapshot.data(); }
+}
 
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
+class DocumentReferenceCompat {
+  constructor(readonly path: string, readonly id: string) {}
+  async get() { return new DocumentSnapshotCompat(await getDoc(doc(db, this.path, this.id))); }
+  async set(value: Record<string, unknown>, options?: { merge?: boolean }) { if (options) await setDoc(doc(db, this.path, this.id), value, options); else await setDoc(doc(db, this.path, this.id), value); }
+  async update(value: Record<string, unknown>) { await updateDoc(doc(db, this.path, this.id), value); }
+}
 
-  if (projectId && clientEmail && privateKey) {
-    return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }), projectId });
+class CollectionReferenceCompat {
+  private filters: Array<[string, string, unknown]> = [];
+  private max?: number;
+  constructor(readonly path: string) {}
+  where(field: string, operator: string, value: unknown) { this.filters.push([field, operator, value]); return this; }
+  limit(value: number) { this.max = value; return this; }
+  doc(id = crypto.randomUUID()) { return new DocumentReferenceCompat(this.path, id); }
+  async add(value: Record<string, unknown>) { const reference = await addDoc(collection(db, this.path), value); return new DocumentReferenceCompat(this.path, reference.id); }
+  async get() {
+    const constraints = this.filters.map(([field, operator, value]) => where(field, operator as never, value));
+    if (this.max) constraints.push(limit(this.max) as never);
+    const snapshot = await getDocs(query(collection(db, this.path), ...constraints));
+    return { empty: snapshot.empty, docs: snapshot.docs.map((item) => new DocumentSnapshotCompat(item as never)) };
   }
-
-  return initializeApp({ credential: applicationDefault(), projectId });
 }
 
-export function adminDb() {
-  return getFirestore(adminApp());
+class BatchCompat {
+  private batch = writeBatch(db);
+  set(reference: DocumentReferenceCompat, value: Record<string, unknown>) { this.batch.set(doc(db, reference.path, reference.id), value); return this; }
+  async commit() { await this.batch.commit(); }
 }
 
-export function adminAuth() {
-  return getAuth(adminApp());
+class FirestoreCompat {
+  collection(path: string) { return new CollectionReferenceCompat(path); }
+  batch() { return new BatchCompat(); }
 }
+
+const firestore = new FirestoreCompat();
+export function adminDb() { return firestore; }

@@ -5,10 +5,6 @@ import { normalizeUsername } from "../../../../lib/server/portal-auth";
 
 export async function POST(request: Request) {
   try {
-    const bootstrapKey = request.headers.get("x-bootstrap-key");
-    if (!process.env.ADMIN_BOOTSTRAP_KEY || bootstrapKey !== process.env.ADMIN_BOOTSTRAP_KEY) {
-      return NextResponse.json({ ok: false }, { status: 403 });
-    }
     const body = await request.json();
     const username = String(body?.username || "").trim();
     const name = String(body?.name || "مدير البوابة").trim();

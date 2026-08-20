@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, findUserByUsername, PORTAL_SESSION_COOKIE, SESSION_MAX_AGE } from "../../../lib/server/portal-auth";
 import { verifyPassword } from "../../../lib/server/password";
-import { adminAuth } from "../../../lib/server/firebase-admin";
 
 export async function POST(request: Request) {
   try {
@@ -14,8 +13,7 @@ export async function POST(request: Request) {
     }
     const subjectId = user.subjectIds[0] || null;
     const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
-    const firebaseToken = await adminAuth().createCustomToken(user.id, { role: "teacher", subjectIds: user.subjectIds });
-    const response = NextResponse.json({ ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId, firebaseToken });
+    const response = NextResponse.json({ ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId });
     response.cookies.set(PORTAL_SESSION_COOKIE, createSessionToken({ userId: user.id, role: "teacher", name: user.name, expiresAt }), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE });
     if (subjectId) response.cookies.set("lahooni_active_subject", subjectId, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE });
     return response;
