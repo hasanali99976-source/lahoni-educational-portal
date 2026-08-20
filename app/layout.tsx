@@ -3,6 +3,8 @@ import "./print.css";
 import "./campus-v7.css";
 import "./portal-interiors-v8.css";
 import "./subject-motion-v9.css";
+import "./teacher/workspace-v10.css";
+import "./student/workspace-v10.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
