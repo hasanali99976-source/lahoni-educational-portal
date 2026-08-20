@@ -4,7 +4,7 @@ import Link from "next/link";
 const portals = [
   { href: "/admin", icon: "◈", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات", tone: "admin" },
   { href: "/teacher", icon: "✦", title: "بوابة المعلم", text: "الطلاب والدرجات والمتابعة والملفات", tone: "teacher" },
-  { href: "/family", icon: "◎", title: "بوابة الطالب وولي الأمر", text: "النتائج والتقدم والمتابعة والتنبيهات", tone: "student" },
+  { href: "/student", icon: "◎", title: "بوابة الطالب وولي الأمر", text: "دخول موحد بهوية الطالب وكوده لعرض النتائج والمتابعة", tone: "student" },
 ];
 
 export default function HomePage() {

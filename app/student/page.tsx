@@ -15,7 +15,7 @@ import "./student-diagnostics.css";
 import StudentDiagnostics from "./student-diagnostics";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
-type StudentRecord = { name?: string; class?: string; nationalId?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; absences?: number; late?: number; units?: Record<string, UnitRecord> };
+type StudentRecord = { name?: string; class?: string; nationalId?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; absences?: number; late?: number; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
 type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
 const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0);
 const encouragements = ["البداية ممكنة، ركّز على خطوة واحدة اليوم.","ابدأ بخطة قصيرة واطلب مساعدة معلمك.","كل مراجعة صغيرة ترفع مستواك.","رتّب وقتك وابدأ بالمهارة الأضعف.","أنت قادر على التحسن، استمر.","تقدمك بدأ يظهر، لا تتوقف.","راجع أخطاءك وحوّلها إلى نقاط قوة.","خطوة جميلة، واصل التدريب.","أداؤك يتحسن بثبات.","أنت قريب من المستوى الجيد.","عمل جيد، ركّز على التفاصيل.","ثباتك يصنع الفرق.","مستواك جيد وقابل للارتفاع سريعًا.","أحسنت، حافظ على انتظامك.","تقدم واضح، استمر على خطتك.","أداء قوي، بقيت لمسات بسيطة.","متميز، راجع بذكاء للمحافظة على مستواك.","قريب جدًا من القمة.","أداء رائع ومطمئن.","مبدع، واصل تميزك.","إنجاز استثنائي، أنت قدوة في الاجتهاد."];
@@ -63,14 +63,14 @@ export default function StudentPage() {
     <main className="portal-login student-login-page" dir="rtl">
       <section className="portal-login-shell student-login-shell">
         <div className="portal-login-visual student-login-visual">
-          <div><span className="eyebrow">بوابة الطالب الذكية</span><h1>رحلتك التعليمية تبدأ هنا</h1><p>درجاتك وتقدمك وخطتك التعليمية في مساحة خاصة وآمنة.</p></div>
-          <div className="student-login-benefits"><span>📚 اختيار المادة</span><span>📊 متابعة الدرجات</span><span>✨ توصيات ذكية</span></div>
+          <div><span className="eyebrow">بوابة الطالب وولي الأمر</span><h1>المتابعة التعليمية تبدأ هنا</h1><p>الدرجات والتقدم والغياب والتنبيهات في مساحة موحدة وآمنة.</p></div>
+          <div className="student-login-benefits"><span>📚 مواد الطالب</span><span>📊 الدرجات الفعلية</span><span>🔔 تنبيهات ولي الأمر</span></div>
         </div>
         <div className="portal-login-form student-login-form">
           <Link href="/" className="portal-back">← العودة للرئيسية</Link>
-          <div className="portal-brand"><div className="portal-brand-mark">ط</div><div><strong>أستاذ لحوني</strong><small>بوابة الطالب</small></div></div>
+          <div className="portal-brand"><div className="portal-brand-mark">ط</div><div><strong>أستاذ لحوني</strong><small>بوابة الطالب وولي الأمر</small></div></div>
           {matches.length === 0 ? <>
-            <h2>تسجيل الدخول</h2><p className="student-login-help">أدخل بيانات الطالب للوصول إلى مواده.</p>
+            <h2>تسجيل دخول موحد</h2><p className="student-login-help">يدخل الطالب أو ولي أمره برقم هوية الطالب وكوده.</p>
             <form onSubmit={submit}>
               <label className="portal-field">رقم الهوية</label><div className="portal-input"><span>🪪</span><input inputMode="numeric" value={nationalId} onChange={(e)=>setNationalId(e.target.value.replace(/\D/g, "").slice(0,10))} placeholder="أدخل ١٠ أرقام" required /></div>
               <label className="portal-field">كود الدخول</label><div className="portal-input"><span>🔐</span><input dir="ltr" value={accessCode} onChange={(e)=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,6))} placeholder={`TH ثم آخر ٤ أرقام — مثال ${STUDENT_CODE_EXAMPLE}`} required /></div>
@@ -93,6 +93,7 @@ export default function StudentPage() {
     <section className="student-mini-stats"><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>الغياب</span><strong>{ar(Number(selected.data.absences||0))}</strong></article><article><span>التأخر</span><strong>{ar(Number(selected.data.late||0))}</strong></article><article><span>المادة</span><strong>{selected.subjectLabel}</strong></article></section>
     <section className="student-units-table"><div className="student-section-title"><h2>تفاصيل الدرجات</h2><p>درجات المادة المختارة موزعة حسب الوحدات.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map((unit)=><tr key={unit.key}><td><b>{unit.label}</b></td><td>{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td>{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td>{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td>{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>
     {selected.data.teacherNote && <section className="student-notice"><b>ملاحظة المعلم</b><p>{selected.data.teacherNote}</p></section>}
+    {selected.data.parentCounselorLastNotice?.message && <section className="student-notice"><b>{selected.data.parentCounselorLastNotice.title || "تنبيه لولي الأمر"}</b><p>{selected.data.parentCounselorLastNotice.message}</p></section>}
     <StudentDiagnostics accessToken={selected.accessToken} />
   </main>;
 }

@@ -1,9 +1,5 @@
-"use client";
-import Link from "next/link";
-import { FormEvent,useState } from "react";
-type Match={id:string;subjectLabel:string;teacherName:string;icon:string;data:{name?:string;class?:string;absences?:number;late?:number;teacherNote?:string}};
-export default function ParentPage(){
- const[code,setCode]=useState(""),[message,setMessage]=useState(""),[loading,setLoading]=useState(false),[matches,setMatches]=useState<Match[]>([]);
- async function submit(e:FormEvent){e.preventDefault();setLoading(true);setMessage("");setMatches([]);try{const r=await fetch("/api/parent/lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({parentCode:code})});const d=await r.json();if(!r.ok)return setMessage(d.message||"تعذر تسجيل الدخول");setMatches(d.matches||[])}catch{setMessage("تعذر الوصول إلى البيانات الآن")}finally{setLoading(false)}}
- if(matches.length)return <main className="v3-parent-dashboard" dir="rtl"><header><div><small>بوابة ولي الأمر</small><h1>متابعة الأبناء</h1><p>الغياب والتنبيهات وملاحظات المعلمين في مكان واحد.</p></div><button onClick={()=>{setMatches([]);setCode("")}}>تسجيل خروج</button></header><section>{matches.map(match=><article key={`${match.id}-${match.subjectLabel}`}><span>{match.icon}</span><div><small>{match.data.class||"الفصل غير محدد"}</small><h2>{match.data.name||"الطالب"}</h2><p>{match.subjectLabel} • {match.teacherName}</p></div><dl><div><dt>الغياب</dt><dd>{match.data.absences||0}</dd></div><div><dt>التأخر</dt><dd>{match.data.late||0}</dd></div></dl>{match.data.teacherNote&&<aside><b>ملاحظة المعلم</b><p>{match.data.teacherNote}</p></aside>}</article>)}</section></main>;
- return <main className="v3-login v3-parent-login" dir="rtl"><section className="v3-login-card"><Link href="/family" className="v3-back">← العودة إلى بوابة الطالب وولي الأمر</Link><span className="v3-login-icon">⌂</span><small>هوية ولي الأمر</small><h1>دخول ولي الأمر</h1><p>أدخل كود ولي الأمر المرتبط بملف الطالب.</p><form onSubmit={submit}><label>كود ولي الأمر<input dir="ltr" value={code} onChange={e=>{setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,18));setMessage("")}} placeholder="PR••••••••" required/></label>{message&&<p className="v3-error">{message}</p>}<button className="v3-primary" disabled={loading}>{loading?"جارٍ التحقق…":"دخول بوابة ولي الأمر"}</button></form></section><aside><b>متابعة أقرب</b><h2>كن حاضرًا في<br/>رحلة ابنك</h2><p>الغياب والتنبيهات وملاحظات المعلم في بوابة واحدة.</p></aside></main>}
+import { redirect } from "next/navigation";
+
+export default function ParentPage() {
+  redirect("/student");
+}
