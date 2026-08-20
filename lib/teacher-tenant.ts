@@ -18,7 +18,7 @@ export function subjectLabel(subjectKey: SubjectKey) {
 }
 
 export function tenantRoot(teacherId: string, subjectKey: SubjectKey) {
-  return `teacherData/${teacherId}/subjects/${subjectKey}`;
+  return `portalV2Data/${teacherId}/subjects/${subjectKey}`;
 }
 
 export function tenantCollection(teacherId: string, subjectKey: SubjectKey, collectionName: string) {

@@ -5,29 +5,33 @@ import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
 import { TeacherClientContext } from "../../lib/teacher-client";
+import { signInWithCustomToken, signOut } from "firebase/auth";
+import { auth } from "../../lib/firebase";
 import "./teacher-shell.css";
 import "./teacher-themes-v2.css";
 import "./mobile-shell.css";
 import "./print-theme.css";
 import "./tab-fix.css";
 import "./teacher-modern.css";
+import "./portal-rebuild.css";
 
 const tabs = [
-  { href: "/teacher/subjects", key: "subjects", label: "اختيار المادة", note: "المادة والصف الدراسي" },
-  { href: "/teacher/dashboard", key: "dashboard", label: "ملخص الأداء", note: "المؤشرات والتنبيهات" },
-  { href: "/teacher/attendance", key: "attendance", label: "التحضير اليومي", note: "الحضور والغياب" },
-  { href: "/teacher/grades", key: "grades", label: "الرصد والاختبارات", note: "الدرجات والاختبارات" },
-  { href: "/teacher/research", key: "research", label: "البحث", note: "الرصد والتكليفات" },
-  { href: "/teacher/reports", key: "reports", label: "التقارير", note: "الملخص والطباعة" },
-  { href: "/teacher/follow-up", key: "follow", label: "المتابعة والإتقان", note: "التنبيهات والتحسين" },
-  { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الطلاب والبيانات" },
-  { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", note: "الحصص الأسبوعية" },
+  { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء والتنبيهات" },
+  { href: "/teacher/subjects", key: "subjects", label: "موادي", note: "اختيار مساحة المادة" },
+  { href: "/teacher/students", key: "students", label: "الطلاب", note: "السجلات وبيانات الدخول" },
+  { href: "/teacher/attendance", key: "attendance", label: "الحضور", note: "التحضير والغياب" },
+  { href: "/teacher/timetable", key: "timetable", label: "الجدول", note: "الحصص الأسبوعية" },
+  { href: "/teacher/grades", key: "grades", label: "الدرجات", note: "الرصد والاختبارات" },
+  { href: "/teacher/diagnostics", key: "diagnostics", label: "التشخيص", note: "اختبارات وخطط علاجية" },
+  { href: "/teacher/research", key: "research", label: "التكليفات", note: "البحث والمهام" },
+  { href: "/teacher/follow-up", key: "follow", label: "المتابعة", note: "الإتقان والتحسين" },
+  { href: "/teacher/reports", key: "reports", label: "التقارير", note: "التحليل والطباعة" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الإنجاز المهني" },
   { href: "/teacher/ai", key: "ai", label: "الذكاء الاصطناعي", note: "التحليل والخطط العلاجية", badge: "ذكي" },
 ];
 const IDLE_LIMIT = 3 * 60 * 1000;
 
-type TeacherSession = { authenticated?: boolean; teacherId?: string; teacherName?: string; subject?: string; subjectKey?: SubjectKey };
+type TeacherSession = { authenticated?: boolean; teacherId?: string; teacherName?: string; subject?: string; subjectKey?: SubjectKey; firebaseToken?: string };
 
 function TabIcon({ type }: { type: string }) {
   const c={width:25,height:25,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
@@ -36,6 +40,7 @@ function TabIcon({ type }: { type: string }) {
   if(type==="timetable")return <svg {...c}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>;
   if(type==="portfolio")return <svg {...c}><path d="M8 4h8l1 3h3v13H4V7h3z"/><path d="M9 11h6M9 15h6"/><path d="M10 4h4"/></svg>;
   if(type==="grades")return <svg {...c}><path d="M4 19.5h16"/><path d="M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
+  if(type==="diagnostics")return <svg {...c}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8M15.5 9.5 19 6"/></svg>;
   if(type==="research")return <svg {...c}><path d="M9 3h6M10 3v5.4l-4.4 7.4A3.4 3.4 0 0 0 8.5 21h7a3.4 3.4 0 0 0 2.9-5.2L14 8.4V3"/><path d="M7.5 15h9M10 12h4"/></svg>;
   if(type==="attendance")return <svg {...c}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
   if(type==="reports")return <svg {...c}><path d="M5 3.5h10l4 4V20.5H5zM15 3.5v4h4M8 12h8M8 16h6"/></svg>;
@@ -52,7 +57,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const idleTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastHeartbeat=useRef(0);
   function playTone(kind:"tab"|"off"="tab"){if(!soundOn&&kind!=="off")return;try{const A=window.AudioContext||(window as typeof window&{webkitAudioContext?:typeof AudioContext}).webkitAudioContext;if(!A)return;const ctx=new A(),g=ctx.createGain();g.connect(ctx.destination);g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.08,ctx.currentTime+.015);(kind==="off"?[440,330]:[659.25,783.99]).forEach((f,i)=>{const o=ctx.createOscillator();o.type="sine";o.frequency.value=f;o.connect(g);const s=ctx.currentTime+i*.07;o.start(s);o.stop(s+.12)});g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.34);setTimeout(()=>void ctx.close(),500)}catch{}}
   function toggleSound(){const next=!soundOn;setSoundOn(next);localStorage.setItem("lahooni-sound",next?"on":"off");if(!next)playTone("off")}
-  async function logout(){try{await fetch("/api/teacher-logout",{method:"POST",cache:"no-store"})}finally{router.replace("/teacher");router.refresh()}}
+  async function logout(){try{await Promise.all([fetch("/api/teacher-logout",{method:"POST",cache:"no-store"}),signOut(auth)])}finally{router.replace("/teacher");router.refresh()}}
   useEffect(()=>setSoundOn(localStorage.getItem("lahooni-sound")!=="off"),[]);
   useEffect(()=>{if(isLoginPage){setReady(true);return}let active=true,busy=false;const applySession=(session:TeacherSession)=>{setTeacherId(session.teacherId);setTeacherName(session.teacherName||"المعلم");setSubjectKey(session.subjectKey||"history")};const check=async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store"});if(!response.ok)throw new Error();const session=await response.json() as TeacherSession;if(active){applySession(session);setReady(true)}};const reset=()=>{if(idleTimer.current)clearTimeout(idleTimer.current);idleTimer.current=setTimeout(()=>void logout(),IDLE_LIMIT)};const activity=()=>{reset();const now=Date.now();if(now-lastHeartbeat.current<30000||busy)return;busy=true;fetch("/api/teacher-session",{cache:"no-store"}).then(async response=>{if(!response.ok)throw new Error();const session=await response.json() as TeacherSession;if(active)applySession(session);lastHeartbeat.current=Date.now()}).catch(()=>void logout()).finally(()=>busy=false)};check().catch(()=>active&&router.replace("/teacher"));reset();const events=["pointerdown","keydown","touchstart","scroll","mousemove"];events.forEach(eventName=>window.addEventListener(eventName,activity,{passive:true}));return()=>{active=false;if(idleTimer.current)clearTimeout(idleTimer.current);events.forEach(eventName=>window.removeEventListener(eventName,activity))}},[isLoginPage,pathname,router]);
   if(isLoginPage)return <>{children}</>;

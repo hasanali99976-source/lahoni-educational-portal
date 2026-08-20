@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isTeacher(teacherId) {
+      return request.auth != null
+        && request.auth.uid == teacherId
+        && request.auth.token.role == "teacher";
+    }
+
+    function isAssigned(subjectId) {
+      return subjectId in request.auth.token.subjectIds;
+    }
+
+    match /portalV2Data/{teacherId}/subjects/{subjectId}/{document=**} {
+      allow read, write: if isTeacher(teacherId) && isAssigned(subjectId);
+    }
+
+    match /portalV2Users/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /portalV2Assignments/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

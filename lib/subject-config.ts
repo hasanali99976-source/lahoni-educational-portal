@@ -39,6 +39,7 @@ export type SubjectConfigView = {
   themeClass: string;
   welcomePoints: readonly string[];
   printTitle: string;
+  icon?: string;
 };
 
 export function getSubjectConfig(subjectKey?: string): SubjectConfigView {

@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../lib/firebase";
 import {
   ACADEMIC_UNITS,
   FINAL_MAX,
@@ -15,34 +13,13 @@ import {
 } from "../../lib/academic-config";
 import "./portal-login.css";
 import "./student.css";
+import "./student-diagnostics.css";
+import StudentDiagnostics from "./student-diagnostics";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
 type StudentRecord = { name?: string; class?: string; nationalId?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord> };
-type Match = { id: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; data: StudentRecord };
-type Tenant = { teacherId: string; teacherName: string; subjectKey: string; subjectLabel: string; icon: string };
-
-const TENANTS: Tenant[] = [
-  { teacherId: "hasan-history", teacherName: "أ. حسن علي الطويل", subjectKey: "history", subjectLabel: "التاريخ", icon: "🏛️" },
-  { teacherId: "abdullah-critical-thinking", teacherName: "أ. عبد الله الرويشد", subjectKey: "critical-thinking", subjectLabel: "التفكير الناقد", icon: "🧠" },
-];
-
+type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
 const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0);
-
-async function findStudent(tenant: Tenant, nationalId: string): Promise<Match[]> {
-  const path = `teacherData/${tenant.teacherId}/subjects/${tenant.subjectKey}/students`;
-  const found = new Map<string, Match>();
-  for (const id of [`${tenant.subjectKey}__${nationalId}`, nationalId]) {
-    try {
-      const snap = await getDoc(doc(db, path, id));
-      if (snap.exists()) found.set(snap.id, { id: snap.id, subjectKey: tenant.subjectKey, subjectLabel: tenant.subjectLabel, teacherName: (snap.data() as StudentRecord).teacherName || tenant.teacherName, icon: tenant.icon, data: snap.data() as StudentRecord });
-    } catch {}
-  }
-  try {
-    const snaps = await getDocs(query(collection(db, path), where("nationalId", "==", nationalId)));
-    snaps.forEach((snap) => found.set(snap.id, { id: snap.id, subjectKey: tenant.subjectKey, subjectLabel: tenant.subjectLabel, teacherName: (snap.data() as StudentRecord).teacherName || tenant.teacherName, icon: tenant.icon, data: snap.data() as StudentRecord }));
-  } catch {}
-  return [...found.values()];
-}
 
 export default function StudentPage() {
   const [nationalId, setNationalId] = useState("");
@@ -61,10 +38,10 @@ export default function StudentPage() {
     if (code.length < 4) return setMessage("أدخل كود الدخول الصحيح.");
     setLoading(true);
     try {
-      const results = await Promise.allSettled(TENANTS.map((tenant) => findStudent(tenant, id)));
-      const valid = results.flatMap((result) => result.status === "fulfilled" ? result.value : []).filter((item) => String(item.data.accessCode || "").trim().toUpperCase() === code);
-      if (!valid.length) return setMessage("رقم الهوية أو كود الدخول غير صحيح، أو لم تُربط لك مادة بعد.");
-      setMatches(valid);
+      const response = await fetch("/api/student/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nationalId: id, accessCode: code }) });
+      const data = await response.json();
+      if (!response.ok) return setMessage(data.message || "رقم الهوية أو كود الدخول غير صحيح، أو لم تُربط لك مادة بعد.");
+      setMatches(Array.isArray(data.matches) ? data.matches : []);
     } catch {
       setMessage("تعذر الوصول إلى بيانات الطالب الآن. حاول مرة أخرى.");
     } finally { setLoading(false); }
@@ -115,5 +92,6 @@ export default function StudentPage() {
     <section className="student-mini-stats"><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>مجموع الوحدات</span><strong>{ar(unitsTotal)}</strong></article><article><span>البحث</span><strong>{ar(research)}/{ar(RESEARCH_MAX)}</strong></article><article><span>المادة</span><strong>{selected.subjectLabel}</strong></article></section>
     <section className="student-units-table"><div className="student-section-title"><h2>تفاصيل الدرجات</h2><p>درجات المادة المختارة موزعة حسب الوحدات.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map((unit)=><tr key={unit.key}><td><b>{unit.label}</b></td><td>{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td>{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td>{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td>{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>
     {selected.data.teacherNote && <section className="student-notice"><b>ملاحظة المعلم</b><p>{selected.data.teacherNote}</p></section>}
+    <StudentDiagnostics accessToken={selected.accessToken} />
   </main>;
 }

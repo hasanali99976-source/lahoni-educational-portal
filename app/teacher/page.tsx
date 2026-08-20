@@ -4,12 +4,12 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./portal-login.css";
+import { signInWithCustomToken } from "firebase/auth";
+import { auth } from "../../lib/firebase";
 
 type LastTeacher = { teacherName: string; subject: string };
 const LAST_TEACHER_KEY = "lahooni-last-teacher";
 type Subject = { subjectId: string; subjectName: string };
-
-const TEACHERS = ["حسن الطويل", "عبد الله الرويشد", "فضل نعمان", "أحمد الأحمد"] as const;
 
 export default function TeacherLoginPage() {
   const [username, setUsername] = useState("");
@@ -45,6 +45,7 @@ export default function TeacherLoginPage() {
         setError(data?.message || "اسم المعلم أو كلمة المرور غير صحيحة");
         return;
       }
+      if (data?.firebaseToken) await signInWithCustomToken(auth, data.firebaseToken);
       const teacherName = String(data?.teacherName || username).trim();
       const subject = String(data?.subject || "").trim();
       const saved = { teacherName, subject };
@@ -127,11 +128,11 @@ export default function TeacherLoginPage() {
         <div className="portal-login-visual"><div><span className="eyebrow">منصة تعليمية تفاعلية</span><h1>بوابة أستاذ لحوني التعليمية</h1><p>كل أدواتك التعليمية في مكان واحد، بتجربة ذكية وسلسة تساعدك على متابعة الطلاب وصناعة الأثر.</p></div><div className="portal-orbit" aria-hidden="true"><div className="ring"/><div className="ring two"/><div className="book">✦</div></div><div className="portal-feature-row"><span>📊 رصد ذكي</span><span>📚 متابعة تعليمية</span><span>🔔 تنبيهات فورية</span><span>🛡️ دخول آمن</span></div></div>
         <div className="portal-login-form"><Link href="/" className="portal-back">← العودة للبوابة الرئيسية</Link><div className="portal-brand"><div className="portal-brand-mark">ح</div><div><strong>أستاذ لحوني</strong><small>بوابة المعلم</small></div></div><span className="badge">دخول المعلم الآمن</span><h2>{welcomeName}</h2><p className="lead">{welcomeLead}</p>
           <form onSubmit={submit}>
-            <label className="portal-field">اسم المعلم</label>
-            <div className="portal-input"><span>👤</span><select value={username} onChange={e=>{setUsername(e.target.value);setError("")}} autoFocus required style={{width:"100%",border:0,outline:0,background:"transparent",font:"inherit",color:"#17384a"}}><option value="">اختر اسم المعلم</option>{TEACHERS.map((teacher)=><option key={teacher} value={teacher}>{teacher}</option>)}</select></div>
+            <label className="portal-field">اسم المستخدم</label>
+            <div className="portal-input"><span>👤</span><input dir="ltr" value={username} onChange={e=>{setUsername(e.target.value);setError("")}} autoFocus required autoComplete="username" placeholder="اسم المستخدم الذي أنشأه المدير" /></div>
             <label className="portal-field">كلمة المرور</label><div className="portal-input"><span>🔒</span><input type="password" value={password} onChange={e=>{setPassword(e.target.value);setError("")}} placeholder="أدخل كلمة المرور" autoComplete="current-password"/></div>{error&&<p className="portal-error">{error}</p>}<button className="portal-submit" type="submit" disabled={loading||!username||!password}>{loading?"جارٍ التحقق...":"دخول إلى بوابة المعلم  ←"}</button>
           </form>
-          <p className="portal-note">اختر اسمك فقط، ثم أدخل كلمة المرور.</p></div>
+          <p className="portal-note">يتم إنشاء الحساب وربط المواد من لوحة مدير البوابة.</p></div>
       </section>
     </main>
   );
