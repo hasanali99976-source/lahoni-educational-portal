@@ -20,7 +20,8 @@ export function assignmentFromId(id: string): TeacherAssignment {
   const grade = decodeURIComponent(encodedGrade);
   const section = decodeURIComponent(encodedSection);
   const subject = getSubjectConfig(subjectId).label;
-  const details = [grade, section && `فصل ${section}`].filter(Boolean).join(" — ");
+  const sectionLabel = section === "الكل" ? "جميع الفصول" : section ? `فصل ${section}` : "";
+  const details = [grade, sectionLabel].filter(Boolean).join(" — ");
   return { id, subjectId, grade, section, label: details ? `${subject} — ${details}` : subject };
 }
 
@@ -42,4 +43,3 @@ export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown
     ? fallbackSubjectIds.map(String).filter(Boolean).map(assignmentFromId)
     : [];
 }
-
