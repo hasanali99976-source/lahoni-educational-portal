@@ -17,9 +17,9 @@ const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء" },
   { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
   { href: "/teacher/attendance", key: "attendance", label: "الحضور والغياب", note: "التحضير اليومي" },
-  { href: "/teacher/grades", key: "grades", label: "درجات الطلاب", note: "الرصد والاختبارات" },
+  { href: "/teacher/grades", key: "grades", label: "رصد الدرجات", note: "مرتبط بالمعلم والمادة" },
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
-  { href: "/teacher/follow-up", key: "follow", label: "متابعة الطلاب", note: "الإتقان والتحسين" },
+  { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
 ];
