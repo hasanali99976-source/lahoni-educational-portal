@@ -1,0 +1,60 @@
+/* V9 — عوالم المواد المتحركة داخل بوابتي المعلم والطالب */
+:root{--motion-ease:cubic-bezier(.22,.8,.28,1)}
+.teacher-app-shell,.student-clean{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(180deg,#f6f9fc 0%,#eef3f8 100%)}
+.teacher-app-shell:before,.teacher-app-shell:after,.student-clean:before,.student-clean:after{content:"";position:fixed;pointer-events:none;z-index:-1;opacity:.34;filter:blur(1px);will-change:transform}
+.teacher-app-shell:before,.student-clean:before{width:34rem;height:34rem;border-radius:50%;top:8%;left:-10rem;background:radial-gradient(circle at 36% 36%,var(--subject-soft,#d9ebf7),transparent 68%);animation:subjectFloatA 13s var(--motion-ease) infinite alternate}
+.teacher-app-shell:after,.student-clean:after{width:29rem;height:29rem;border-radius:42%;right:-8rem;bottom:3%;background:radial-gradient(circle at 55% 45%,var(--subject-accent,#21749b),transparent 72%);opacity:.13;animation:subjectFloatB 16s var(--motion-ease) infinite alternate}
+
+.teacher-welcome-strip,.student-clean-head,.student-main-summary{position:relative;overflow:hidden;transform-style:preserve-3d;background:linear-gradient(135deg,#fff 0%,var(--subject-soft,#e8f3f8) 100%);border:1px solid color-mix(in srgb,var(--subject-accent,#176b87) 22%,#fff);box-shadow:0 20px 44px rgba(23,50,77,.12),inset 0 1px 0 rgba(255,255,255,.9)}
+.teacher-welcome-strip:before,.student-clean-head:before,.student-main-summary:before{content:var(--subject-scene,"📚");position:absolute;left:4%;top:50%;transform:translateY(-50%) rotate(-6deg);font-size:clamp(72px,10vw,150px);line-height:1;opacity:.16;filter:drop-shadow(0 20px 18px rgba(20,45,70,.18));animation:sceneFloat 5.5s var(--motion-ease) infinite alternate}
+.teacher-welcome-strip:after,.student-clean-head:after,.student-main-summary:after{content:"";position:absolute;inset:auto -8% -52% auto;width:330px;height:330px;border-radius:50%;background:conic-gradient(from 20deg,var(--subject-accent,#176b87),transparent 34%,var(--subject-warm,#f3b34c),transparent 72%);opacity:.11;animation:sceneSpin 18s linear infinite}
+
+.teacher-page-content>*,.student-mini-stats article,.student-units-table,.student-notice{transform-style:preserve-3d;transition:transform .35s var(--motion-ease),box-shadow .35s var(--motion-ease),border-color .35s var(--motion-ease)}
+.teacher-page-content>section:hover,.teacher-page-content>article:hover,.student-mini-stats article:hover,.student-units-table:hover,.student-notice:hover{transform:translateY(-5px) rotateX(1.2deg);box-shadow:0 18px 38px rgba(23,50,77,.14);border-color:color-mix(in srgb,var(--subject-accent,#176b87) 35%,#fff)}
+.teacher-tabs a,.student-head-actions button,.teacher-header-actions button{transition:transform .25s var(--motion-ease),box-shadow .25s var(--motion-ease),background .25s ease}
+.teacher-tabs a:hover,.student-head-actions button:hover,.teacher-header-actions button:hover{transform:translateY(-3px) scale(1.015)}
+.teacher-tabs a.active{box-shadow:0 12px 24px color-mix(in srgb,var(--subject-accent,#176b87) 22%,transparent),inset 0 -3px 0 var(--subject-accent,#176b87)}
+.teacher-tab-icon,.cardIcon,.subject-icon{filter:drop-shadow(0 8px 10px rgba(20,45,70,.18));animation:iconBob 4.4s var(--motion-ease) infinite alternate}
+
+/* التاريخ — خرائط وآثار */
+[data-subject="history"],.student-theme-history{--subject-accent:#9a641f;--subject-soft:#f5ead5;--subject-warm:#d49a3a;--subject-scene:"🏛️  🗺️"}
+[data-subject="history"] .teacher-welcome-strip,.student-theme-history .student-clean-head{background-image:linear-gradient(135deg,rgba(255,255,255,.94),rgba(244,227,194,.94)),repeating-linear-gradient(0deg,transparent 0 22px,rgba(135,88,29,.05) 23px)}
+/* الجغرافيا — كرة أرضية وتضاريس */
+[data-subject="geography"],.student-theme-geography{--subject-accent:#24724f;--subject-soft:#dff2e8;--subject-warm:#3ca5a0;--subject-scene:"🌍  🧭"}
+[data-subject="geography"] .teacher-welcome-strip:before,.student-theme-geography .student-clean-head:before{animation:globeDrift 8s linear infinite}
+/* العلوم — مختبر وجزيئات */
+[data-subject="science"],.student-theme-science{--subject-accent:#0f7f86;--subject-soft:#dff5f5;--subject-warm:#62c4d0;--subject-scene:"🧪  ⚛️"}
+[data-subject="science"] .teacher-welcome-strip:before,.student-theme-science .student-clean-head:before{animation:moleculePulse 3.8s ease-in-out infinite}
+/* الرياضيات — شبكة ومعادلات */
+[data-subject="math"],.student-theme-math{--subject-accent:#315fa8;--subject-soft:#e3ebfb;--subject-warm:#6e8fe0;--subject-scene:"📐  ∑"}
+[data-subject="math"] .teacher-main,.student-theme-math{background-image:linear-gradient(rgba(49,95,168,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(49,95,168,.04) 1px,transparent 1px);background-size:30px 30px}
+/* التفكير الناقد */
+[data-subject="critical-thinking"],[data-subject="thinking"],.student-theme-critical-thinking,.student-theme-thinking{--subject-accent:#6746a3;--subject-soft:#eee7fb;--subject-warm:#b37bd9;--subject-scene:"🧠  💡"}
+/* التقنية */
+[data-subject="tech"],[data-subject="technology"],.student-theme-tech,.student-theme-technology{--subject-accent:#176b87;--subject-soft:#def0f7;--subject-warm:#44a7c9;--subject-scene:"💻  ⚙️"}
+[data-subject="tech"] .teacher-welcome-strip:after,[data-subject="technology"] .teacher-welcome-strip:after{border-radius:22%;background:repeating-linear-gradient(90deg,var(--subject-accent) 0 2px,transparent 2px 18px);animation:circuitSlide 9s linear infinite}
+/* اللغات */
+[data-subject="languages"],[data-subject="arabic"],[data-subject="english"],.student-theme-languages,.student-theme-arabic,.student-theme-english{--subject-accent:#a44573;--subject-soft:#f8e5ee;--subject-warm:#d57da3;--subject-scene:"✍️  🔤"}
+/* الدراسات الإسلامية */
+[data-subject="islamic"],.student-theme-islamic{--subject-accent:#2d7550;--subject-soft:#e4f2e9;--subject-warm:#c8a94a;--subject-scene:"📖  ✦"}
+[data-subject="islamic"] .teacher-welcome-strip,.student-theme-islamic .student-clean-head{background-image:radial-gradient(circle at 20% 20%,rgba(200,169,74,.12) 0 2px,transparent 3px),linear-gradient(135deg,#fff,#e7f2ea);background-size:26px 26px,auto}
+/* الفنية */
+[data-subject="art"],.student-theme-art{--subject-accent:#9b4fa6;--subject-soft:#f4e4f5;--subject-warm:#ef865f;--subject-scene:"🎨  🖌️"}
+[data-subject="art"] .teacher-welcome-strip:after,.student-theme-art .student-clean-head:after{background:conic-gradient(#ef6f6c,#f2c14e,#58c3a2,#5b8def,#a56cc1,#ef6f6c);opacity:.18;animation:sceneSpin 11s linear infinite}
+/* البدنية — ملعب وحركة كرة */
+[data-subject="sport"],[data-subject="pe"],.student-theme-sport,.student-theme-pe{--subject-accent:#d66a1f;--subject-soft:#fff0df;--subject-warm:#3d9b63;--subject-scene:"⚽  🏃"}
+[data-subject="sport"] .teacher-main,[data-subject="pe"] .teacher-main,.student-theme-sport,.student-theme-pe{background-image:linear-gradient(90deg,transparent 49.5%,rgba(61,155,99,.09) 50%,transparent 50.5%),radial-gradient(circle at center,transparent 0 76px,rgba(61,155,99,.08) 77px 80px,transparent 81px)}
+[data-subject="sport"] .teacher-welcome-strip:before,[data-subject="pe"] .teacher-welcome-strip:before,.student-theme-sport .student-clean-head:before,.student-theme-pe .student-clean-head:before{animation:ballRun 5.8s var(--motion-ease) infinite alternate}
+
+@keyframes subjectFloatA{from{transform:translate3d(0,0,0) rotate(0)}to{transform:translate3d(6vw,5vh,0) rotate(9deg)}}
+@keyframes subjectFloatB{from{transform:translate3d(0,0,0) rotate(0)}to{transform:translate3d(-5vw,-4vh,0) rotate(-12deg)}}
+@keyframes sceneFloat{from{transform:translateY(-50%) rotate(-7deg) translateY(0)}to{transform:translateY(-50%) rotate(3deg) translateY(-12px)}}
+@keyframes sceneSpin{to{transform:rotate(360deg)}}
+@keyframes iconBob{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-4px) rotate(2deg)}}
+@keyframes globeDrift{from{transform:translateY(-50%) rotate(-12deg)}to{transform:translateY(-50%) rotate(348deg)}}
+@keyframes moleculePulse{0%,100%{transform:translateY(-50%) scale(.94);opacity:.13}50%{transform:translateY(-50%) scale(1.08);opacity:.22}}
+@keyframes circuitSlide{to{transform:translateX(-80px) rotate(7deg)}}
+@keyframes ballRun{from{transform:translateY(-50%) translateX(0) rotate(0)}to{transform:translateY(-50%) translateX(34px) rotate(24deg)}}
+
+@media(max-width:700px){.teacher-welcome-strip:before,.student-clean-head:before,.student-main-summary:before{font-size:72px;left:-8px;opacity:.1}.teacher-page-content>section:hover,.teacher-page-content>article:hover,.student-mini-stats article:hover{transform:none}.teacher-tabs a:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.teacher-app-shell:before,.teacher-app-shell:after,.student-clean:before,.student-clean:after,.teacher-welcome-strip:before,.teacher-welcome-strip:after,.student-clean-head:before,.student-clean-head:after,.student-main-summary:before,.student-main-summary:after,.teacher-tab-icon,.cardIcon,.subject-icon{animation:none!important}.teacher-page-content>*,.student-mini-stats article,.student-units-table,.student-notice{transition:none!important}}
