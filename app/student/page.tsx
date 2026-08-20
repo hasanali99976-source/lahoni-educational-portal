@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   ACADEMIC_UNITS,
   FINAL_MAX,
@@ -12,14 +12,25 @@ import {
   calculateUnitTotal,
 } from "../../lib/academic-config";
 import "./student-diagnostics.css";
+import "./student-portal-tabs.css";
 import StudentDiagnostics from "./student-diagnostics";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
 type StudentRecord = { name?: string; class?: string; nationalId?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; absences?: number; late?: number; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
 type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
+type StudentTab = "home" | "grades" | "ai" | "goal" | "tests" | "notifications";
+
 const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0);
 const encouragements = ["البداية ممكنة، ركّز على خطوة واحدة اليوم.","ابدأ بخطة قصيرة واطلب مساعدة معلمك.","كل مراجعة صغيرة ترفع مستواك.","رتّب وقتك وابدأ بالمهارة الأضعف.","أنت قادر على التحسن، استمر.","تقدمك بدأ يظهر، لا تتوقف.","راجع أخطاءك وحوّلها إلى نقاط قوة.","خطوة جميلة، واصل التدريب.","أداؤك يتحسن بثبات.","أنت قريب من المستوى الجيد.","عمل جيد، ركّز على التفاصيل.","ثباتك يصنع الفرق.","مستواك جيد وقابل للارتفاع سريعًا.","أحسنت، حافظ على انتظامك.","تقدم واضح، استمر على خطتك.","أداء قوي، بقيت لمسات بسيطة.","متميز، راجع بذكاء للمحافظة على مستواك.","قريب جدًا من القمة.","أداء رائع ومطمئن.","مبدع، واصل تميزك.","إنجاز استثنائي، أنت قدوة في الاجتهاد."];
 const STUDENT_CODE_EXAMPLE = "TH1234";
+const tabs: { key: StudentTab; icon: string; label: string; note: string }[] = [
+  { key: "home", icon: "⌂", label: "الرئيسية", note: "ملخص المستوى" },
+  { key: "grades", icon: "▥", label: "درجاتي", note: "تفاصيل الوحدات" },
+  { key: "ai", icon: "✦", label: "المساعد الذكي", note: "نصيحة وخطة" },
+  { key: "goal", icon: "◎", label: "هدفي", note: "خطتي للدرجة" },
+  { key: "tests", icon: "✓", label: "الاختبارات", note: "النتائج والعلاج" },
+  { key: "notifications", icon: "◌", label: "الإشعارات", note: "رسائل المعلم" },
+];
 
 export default function StudentPage() {
   const [nationalId, setNationalId] = useState("");
@@ -28,6 +39,8 @@ export default function StudentPage() {
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selected, setSelected] = useState<Match | null>(null);
+  const [activeTab, setActiveTab] = useState<StudentTab>("home");
+  const [goal, setGoal] = useState(90);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -82,6 +95,18 @@ export default function StudentPage() {
   const finalTotal = Math.min(FINAL_MAX, unitsTotal + research);
   const percentage = calculatePercentage(finalTotal, FINAL_MAX);
   const smartMessage = encouragements[Math.min(20, Math.max(0, Math.floor(percentage / 5)))]!;
+  const weakestUnit = [...units].sort((a, b) => a.total - b.total)[0];
+  const strongestUnit = [...units].sort((a, b) => b.total - a.total)[0];
+  const targetScore = Math.min(FINAL_MAX, Math.max(0, goal / 100 * FINAL_MAX));
+  const remainingForGoal = Math.max(0, targetScore - finalTotal);
+  const goalReached = percentage >= goal;
+  const classLabel = selected?.data.class?.trim() || "الفصل غير محدد";
+
+  const dailyPlan = percentage >= 90
+    ? ["راجع ملخص الدرس لمدة ١٥ دقيقة.", "حل سؤالين إثرائيين.", "اشرح فكرة واحدة لزميلك."]
+    : percentage >= 70
+      ? [`راجع ${weakestUnit?.label || "الوحدة الأضعف"} لمدة ٢٠ دقيقة.`, "حل ثلاثة أسئلة من أخطائك السابقة.", "سجّل نقطة واحدة تحتاج سؤال المعلم عنها."]
+      : [`ابدأ بأساسيات ${weakestUnit?.label || "الوحدة الأضعف"} لمدة ٢٠ دقيقة.`, "حل مثالًا مع الشرح خطوة بخطوة.", "اطلب تغذية راجعة من معلمك قبل الانتقال لمهارة جديدة."];
 
   if (!selected) return (
     <main className="portal-login student-login-page" dir="rtl">
@@ -103,7 +128,7 @@ export default function StudentPage() {
             </form>
           </> : <section className="student-subject-choices">
             <div className="student-choice-heading"><small>تم تسجيل الدخول بنجاح</small><h2>اختر المادة</h2><p>اختر المادة لعرض لوحة الأداء والدرجات.</p></div>
-            <div className="student-choice-grid">{matches.map((match)=><button data-subject={match.subjectKey} key={`${match.id}-${match.subjectKey}`} onClick={()=>setSelected(match)}><span className="subject-icon">{match.icon}</span><div><strong>{match.subjectLabel}</strong><small>{match.teacherName}</small></div><b>دخول ←</b></button>)}</div>
+            <div className="student-choice-grid">{matches.map((match)=><button data-subject={match.subjectKey} key={`${match.id}-${match.subjectKey}`} onClick={()=>{setSelected(match);setActiveTab("home")}}><span className="subject-icon">{match.icon}</span><div><strong>{match.subjectLabel}</strong><small>{match.teacherName}</small></div><b>دخول ←</b></button>)}</div>
             <button className="student-login-reset" onClick={()=>{setMatches([]);setNationalId("");setAccessCode("")}}>تسجيل دخول آخر</button>
           </section>}
         </div>
@@ -111,13 +136,30 @@ export default function StudentPage() {
     </main>
   );
 
-  return <main className={`student-clean student-theme-${selected.subjectKey}`} data-subject={selected.subjectKey} dir="rtl">
-    <header className="student-clean-head"><div><span>{selected.icon} {selected.subjectLabel}</span><h1>{selected.data.name || "الطالب"}</h1><p>{selected.data.class || "الفصل غير محدد"} • {selected.teacherName}</p></div><div className="student-head-actions"><button onClick={()=>window.print()}>طباعة / PDF</button><button className="ghost" onClick={()=>setSelected(null)}>المواد</button></div></header>
-    <section className="student-main-summary"><div className="student-score-ring" style={{"--score":percentage} as React.CSSProperties}><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div><div><small>✦ تحليل الذكاء الاصطناعي</small><h2>{percentage >= 90 ? "أداء متميز" : percentage >= 75 ? "تقدم جيد" : "تحتاج إلى خطة تحسين"}</h2><p>{smartMessage}</p></div></section>
-    <section className="student-mini-stats"><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>الغياب</span><strong>{ar(Number(selected.data.absences||0))}</strong></article><article><span>التأخر</span><strong>{ar(Number(selected.data.late||0))}</strong></article><article><span>المادة</span><strong>{selected.subjectLabel}</strong></article></section>
-    <section className="student-units-table"><div className="student-section-title"><h2>تفاصيل الدرجات</h2><p>درجات المادة المختارة موزعة حسب الوحدات.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map((unit)=><tr key={unit.key}><td data-label="الوحدة"><b>{unit.label}</b></td><td data-label="الحضور">{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td data-label="المشاركة">{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td data-label="الواجبات">{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td data-label="الاختبار">{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td data-label="المجموع"><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>
-    {selected.data.teacherNote && <section className="student-notice"><b>ملاحظة المعلم</b><p>{selected.data.teacherNote}</p></section>}
-    {selected.data.parentCounselorLastNotice?.message && <section className="student-notice"><b>{selected.data.parentCounselorLastNotice.title || "تنبيه لولي الأمر"}</b><p>{selected.data.parentCounselorLastNotice.message}</p></section>}
-    <StudentDiagnostics accessToken={selected.accessToken} />
+  return <main className={`student-clean student-theme-${selected.subjectKey} student-portal-v2`} data-subject={selected.subjectKey} dir="rtl">
+    <header className="student-clean-head student-identity-head">
+      <div><span>{selected.icon} {selected.subjectLabel}</span><h1>{selected.data.name || "الطالب"}</h1><p><b>{classLabel}</b> • {selected.teacherName}</p></div>
+      <div className="student-head-actions"><button onClick={()=>window.print()}>طباعة / PDF</button><button className="ghost" onClick={()=>setSelected(null)}>المواد</button></div>
+    </header>
+
+    <nav className="student-portal-tabs" aria-label="أقسام بوابة الطالب">
+      {tabs.map(tab => <button key={tab.key} className={activeTab === tab.key ? "active" : ""} onClick={()=>setActiveTab(tab.key)}><span>{tab.icon}</span><div><b>{tab.label}</b><small>{tab.note}</small></div></button>)}
+    </nav>
+
+    {activeTab === "home" && <div className="student-tab-panel">
+      <section className="student-main-summary"><div className="student-score-ring" style={{"--score":percentage} as CSSProperties}><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div><div><small>✦ تحليل الذكاء الاصطناعي</small><h2>{percentage >= 90 ? "أداء متميز" : percentage >= 75 ? "تقدم جيد" : "تحتاج إلى خطة تحسين"}</h2><p>{smartMessage}</p><button className="student-smart-action" onClick={()=>setActiveTab("ai")}>افتح خطتي الذكية ←</button></div></section>
+      <section className="student-mini-stats"><article><span>الفصل</span><strong>{classLabel}</strong></article><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>الغياب</span><strong>{ar(Number(selected.data.absences||0))}</strong></article><article><span>التأخر</span><strong>{ar(Number(selected.data.late||0))}</strong></article></section>
+      <section className="student-home-grid"><article><small>أقوى أداء</small><strong>{strongestUnit?.label || "لم تُرصد درجات"}</strong><span>{strongestUnit ? `${ar(strongestUnit.total)} من ${ar(UNIT_MAX)}` : "بانتظار الرصد"}</span></article><article><small>يحتاج تركيزًا</small><strong>{weakestUnit?.label || "لم تُرصد درجات"}</strong><span>{weakestUnit ? `${ar(weakestUnit.total)} من ${ar(UNIT_MAX)}` : "بانتظار الرصد"}</span></article><article><small>هدفك الحالي</small><strong>{ar(goal)}٪</strong><span>{goalReached ? "تم الوصول للهدف" : `متبقٍ ${ar(remainingForGoal)} درجة`}</span></article></section>
+    </div>}
+
+    {activeTab === "grades" && <section className="student-units-table student-tab-panel"><div className="student-section-title"><h2>درجاتي</h2><p>درجات {selected.subjectLabel} للطالب في {classLabel}.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map((unit)=><tr key={unit.key}><td data-label="الوحدة"><b>{unit.label}</b></td><td data-label="الحضور">{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td data-label="المشاركة">{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td data-label="الواجبات">{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td data-label="الاختبار">{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td data-label="المجموع"><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>}
+
+    {activeTab === "ai" && <section className="student-ai-hub student-tab-panel"><header><span>✦ AI</span><div><small>المساعد التعليمي الذكي</small><h2>خطة خاصة بـ {selected.data.name || "الطالب"}</h2><p>تعتمد على درجاتك الحالية في {selected.subjectLabel} والفصل {classLabel}.</p></div></header><div className="student-ai-grid"><article><small>تحليل المستوى</small><strong>{percentage >= 90 ? "متقدم" : percentage >= 75 ? "جيد" : percentage >= 50 ? "متوسط" : "يحتاج دعمًا"}</strong><p>{smartMessage}</p></article><article><small>الأولوية الآن</small><strong>{weakestUnit?.label || "ابدأ بالمراجعة"}</strong><p>ابدأ بالمهارة الأقل درجة، ثم اختبر نفسك بعد المراجعة مباشرة.</p></article><article><small>خطة اليوم</small><ol>{dailyPlan.map(item=><li key={item}>{item}</li>)}</ol></article><article><small>رسالة تحفيزية</small><strong>{percentage >= 80 ? "أنت قريب من التميز" : "كل خطوة تصنع فرقًا"}</strong><p>أنهِ مهمة واحدة اليوم وسجّل ما تعلمته قبل الانتقال للمهمة التالية.</p></article></div></section>}
+
+    {activeTab === "goal" && <section className="student-goal-panel student-tab-panel"><div className="student-section-title"><h2>هدفي الدراسي</h2><p>حدد الدرجة التي تريد الوصول إليها، وسيحسب النظام المطلوب.</p></div><div className="student-goal-card"><div className="goal-ring" style={{"--goal":Math.min(100, percentage / Math.max(goal, 1) * 100)} as CSSProperties}><strong>{ar(goal)}٪</strong><span>الهدف</span></div><div className="goal-controls"><label>الدرجة المستهدفة<input type="range" min="50" max="100" step="1" value={goal} onChange={e=>setGoal(Number(e.target.value))}/></label><div className="goal-numbers"><span>درجتك الحالية <b>{ar(percentage)}٪</b></span><span>الدرجة المطلوبة <b>{ar(targetScore)}</b></span><span>المتبقي <b>{ar(remainingForGoal)}</b></span></div><p className={goalReached ? "goal-success" : ""}>{goalReached ? "أحسنت، وصلت إلى هدفك الحالي. ارفع الهدف عندما تكون مستعدًا." : remainingForGoal <= 5 ? "أنت قريب جدًا. ركز على الاختبار والواجب القادم." : "وزّع المطلوب على الوحدات القادمة، وابدأ بالوحدة الأضعف."}</p></div></div></section>}
+
+    {activeTab === "tests" && <div className="student-tab-panel"><StudentDiagnostics accessToken={selected.accessToken} /></div>}
+
+    {activeTab === "notifications" && <section className="student-notifications student-tab-panel"><div className="student-section-title"><h2>الإشعارات</h2><p>رسائل المعلم والتنبيهات الخاصة بالطالب وولي الأمر.</p></div>{selected.data.teacherNote ? <article><span>من المعلم</span><h3>ملاحظة تعليمية</h3><p>{selected.data.teacherNote}</p></article> : <article className="empty"><span>من المعلم</span><h3>لا توجد ملاحظات جديدة</h3><p>ستظهر هنا الملاحظات التي يرسلها المعلم.</p></article>}{selected.data.parentCounselorLastNotice?.message ? <article><span>تنبيه لولي الأمر</span><h3>{selected.data.parentCounselorLastNotice.title || "متابعة الطالب"}</h3><p>{selected.data.parentCounselorLastNotice.message}</p></article> : <article className="empty"><span>ولي الأمر</span><h3>لا توجد تنبيهات جديدة</h3><p>ستظهر هنا رسائل المتابعة المهمة.</p></article>}</section>}
   </main>;
 }
