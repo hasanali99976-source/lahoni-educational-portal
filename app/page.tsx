@@ -20,6 +20,7 @@ export default function HomePage() {
           <div><strong>بوابة أستاذ لحوني التعليمية</strong><small>منصة تعليمية واضحة وسهلة للجميع</small></div>
         </div>
         <div className={styles.headerActions}>
+          <button onClick={() => router.push("/admin")}>مدير البوابة</button>
           <button onClick={() => router.push("/teacher")}>دخول المعلم</button>
           <button onClick={() => router.push("/student")}>دخول الطالب</button>
         </div>
