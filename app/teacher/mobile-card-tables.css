@@ -1,0 +1,13 @@
+@media(max-width:760px){
+  .gradebook-scroll,.follow-table-wrap,.report-table-wrap{overflow:visible!important;border:0!important;background:transparent!important}
+  .gradebook-table,.follow-table-wrap table{display:block!important;min-width:0!important;width:100%!important}
+  .gradebook-table thead,.follow-table-wrap thead{display:none!important}
+  .gradebook-table tbody,.follow-table-wrap tbody{display:grid!important;gap:11px!important}
+  .gradebook-table tbody tr,.follow-table-wrap tbody tr{display:grid!important;padding:13px!important;border:1px solid #d9e5ec!important;border-radius:15px!important;background:#fff!important;box-shadow:0 6px 16px #17384a0a}
+  .gradebook-table tbody td,.follow-table-wrap tbody td{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;position:static!important;min-width:0!important;width:100%!important;padding:8px 0!important;border:0!important;border-bottom:1px solid #edf2f5!important;white-space:normal!important;text-align:left!important;background:transparent!important;box-shadow:none!important}
+  .gradebook-table tbody td:before,.follow-table-wrap tbody td:before{color:#61798a;font-size:11px;font-weight:900;text-align:right}
+  .gradebook-table tbody td:nth-child(1):before{content:"م"}.gradebook-table tbody td:nth-child(2):before{content:"السجل المدني"}.gradebook-table tbody td:nth-child(3):before{content:"اسم الطالب"}.compact-five-table tbody td:nth-child(4):before{content:"الحضور"}.compact-five-table tbody td:nth-child(5):before{content:"المشاركة"}.compact-five-table tbody td:nth-child(6):before{content:"الواجبات"}.compact-five-table tbody td:nth-child(7):before{content:"الاختبار"}.compact-five-table tbody td:nth-child(8):before{content:"المجموع"}.compact-five-table tbody td:nth-child(9):before{content:"الملاحظات"}.compact-five-table tbody td:nth-child(10):before{content:"مسح"}
+  .research-table tbody td:nth-child(4):before{content:"درجة البحث"}
+  .follow-table-wrap tbody td:nth-child(1):before{content:"تحديد"}.follow-table-wrap tbody td:nth-child(2):before{content:"الطالب"}.follow-table-wrap tbody td:nth-child(3):before{content:"الفصل"}.follow-table-wrap tbody td:nth-child(4):before{content:"النتيجة"}.follow-table-wrap tbody td:nth-child(5):before{content:"المستوى"}.follow-table-wrap tbody td:nth-child(6):before{content:"الملاحظة"}
+  .gradebook-table .national-id-head,.gradebook-table .national-id-cell{display:flex!important}.mobile-grade-control{grid-template-columns:34px 52px 34px auto!important}.notes-input{width:min(190px,62vw)!important;min-width:0!important}.row-delete-button{width:auto!important;padding:7px 12px!important}.gradebook-table .empty-row{display:block!important;text-align:center!important}
+}

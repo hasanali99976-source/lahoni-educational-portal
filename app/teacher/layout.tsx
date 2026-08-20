@@ -12,11 +12,13 @@ import "./print-theme.css";
 import "./teacher-v3.css";
 import "./teacher-navigation-v4.css";
 import "./subject-themes-v5.css";
+import "./mobile-card-tables.css";
 
 const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء" },
   { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
   { href: "/teacher/attendance", key: "attendance", label: "الحضور والغياب", note: "التحضير اليومي" },
+  { href: "/teacher/timetable", key: "timetable", label: "جدولي الدراسي", note: "الأحد إلى الخميس" },
   { href: "/teacher/grades", key: "grades", label: "رصد الدرجات", note: "مرتبط بالمعلم والمادة" },
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
@@ -33,6 +35,7 @@ function TabIcon({ type }: { type: string }) {
   if (type === "dashboard") return <svg {...common}><path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/></svg>;
   if (type === "grades") return <svg {...common}><path d="M4 19.5h16M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
   if (type === "attendance") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
+  if (type === "timetable") return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 9.5h17M8 13h2M14 13h2M8 17h2M14 17h2"/></svg>;
   if (type === "diagnostics") return <svg {...common}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8"/></svg>;
   if (type === "portfolio") return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;
   if (type === "follow") return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;

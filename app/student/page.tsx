@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ACADEMIC_UNITS,
   FINAL_MAX,
@@ -28,6 +28,30 @@ export default function StudentPage() {
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selected, setSelected] = useState<Match | null>(null);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const id = (query.get("id") || "").replace(/\D/g, "").slice(0, 10);
+    const code = (query.get("code") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    if (id) setNationalId(id);
+    if (code) setAccessCode(code);
+    if (id || code) window.history.replaceState({}, "", "/student");
+  }, []);
+
+  useEffect(() => {
+    if (!selected?.accessToken) return;
+    let active = true;
+    const refresh = async () => {
+      try {
+        const response = await fetch("/api/student/profile", { headers: { Authorization: `Bearer ${selected.accessToken}` }, cache: "no-store" });
+        const payload = await response.json();
+        if (active && response.ok) setSelected(current => current ? { ...current, data: payload.data } : current);
+      } catch {}
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 20_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [selected?.accessToken]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -91,7 +115,7 @@ export default function StudentPage() {
     <header className="student-clean-head"><div><span>{selected.icon} {selected.subjectLabel}</span><h1>{selected.data.name || "الطالب"}</h1><p>{selected.data.class || "الفصل غير محدد"} • {selected.teacherName}</p></div><div className="student-head-actions"><button onClick={()=>window.print()}>طباعة / PDF</button><button className="ghost" onClick={()=>setSelected(null)}>المواد</button></div></header>
     <section className="student-main-summary"><div className="student-score-ring" style={{"--score":percentage} as React.CSSProperties}><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div><div><small>✦ تحليل الذكاء الاصطناعي</small><h2>{percentage >= 90 ? "أداء متميز" : percentage >= 75 ? "تقدم جيد" : "تحتاج إلى خطة تحسين"}</h2><p>{smartMessage}</p></div></section>
     <section className="student-mini-stats"><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>الغياب</span><strong>{ar(Number(selected.data.absences||0))}</strong></article><article><span>التأخر</span><strong>{ar(Number(selected.data.late||0))}</strong></article><article><span>المادة</span><strong>{selected.subjectLabel}</strong></article></section>
-    <section className="student-units-table"><div className="student-section-title"><h2>تفاصيل الدرجات</h2><p>درجات المادة المختارة موزعة حسب الوحدات.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map((unit)=><tr key={unit.key}><td><b>{unit.label}</b></td><td>{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td>{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td>{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td>{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>
+    <section className="student-units-table"><div className="student-section-title"><h2>تفاصيل الدرجات</h2><p>درجات المادة المختارة موزعة حسب الوحدات.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map((unit)=><tr key={unit.key}><td data-label="الوحدة"><b>{unit.label}</b></td><td data-label="الحضور">{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td data-label="المشاركة">{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td data-label="الواجبات">{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td data-label="الاختبار">{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td data-label="المجموع"><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>
     {selected.data.teacherNote && <section className="student-notice"><b>ملاحظة المعلم</b><p>{selected.data.teacherNote}</p></section>}
     {selected.data.parentCounselorLastNotice?.message && <section className="student-notice"><b>{selected.data.parentCounselorLastNotice.title || "تنبيه لولي الأمر"}</b><p>{selected.data.parentCounselorLastNotice.message}</p></section>}
     <StudentDiagnostics accessToken={selected.accessToken} />

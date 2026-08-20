@@ -1,94 +1,32 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
-import { ACADEMIC_UNITS, FINAL_MAX, RESEARCH_MAX, UNIT_MAX } from "../../../lib/academic-config";
-import { tenantStudentsPath, type ClientTenant } from "../../../lib/firestore-tenant-client";
+import { ACADEMIC_UNITS, RESEARCH_MAX, UNIT_MAX } from "../../../lib/academic-config";
+import { tenantCollection } from "../../../lib/teacher-tenant";
 import "./teacher-ai.css";
 
-type UnitRecord = { attendance?:number; participation?:number; homework?:number; unitExam?:number; exam1?:number; exam2?:number; total?:number };
-type Student = { id:string; name?:string; nationalId?:string; class?:string; research?:number; researchScore?:number; units?:Record<string,UnitRecord> };
-type Skill = { title:string; score:number; action:string };
+type UnitRecord = { attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number; total?: number };
+type Student = { id: string; name?: string; nationalId?: string; class?: string; research?: number; researchScore?: number; units?: Record<string, UnitRecord> };
+type Analyzed = Student & { percentage: number; weakest: string; action: string };
+function analyze(student: Student): Analyzed { let total = 0, recorded = 0; const components = { "الحضور والانضباط": 0, "المشاركة الصفية": 0, "الواجبات والتطبيق": 0, "فهم المفاهيم والاختبارات": 0 }; ACADEMIC_UNITS.forEach(unit => { const value = student.units?.[unit.key]; if (!value) return; recorded++; total += Math.min(UNIT_MAX, Number(value.total ?? (Number(value.attendance || 0) + Number(value.participation || 0) + Number(value.homework || 0) + Number(value.unitExam ?? value.exam1 ?? value.exam2 ?? 0)))); components["الحضور والانضباط"] += Number(value.attendance || 0); components["المشاركة الصفية"] += Number(value.participation || 0); components["الواجبات والتطبيق"] += Number(value.homework || 0); components["فهم المفاهيم والاختبارات"] += Number(value.unitExam ?? value.exam1 ?? value.exam2 ?? 0); }); total += Math.min(RESEARCH_MAX, Number(student.researchScore ?? student.research ?? 0)); const maximum = recorded * UNIT_MAX + RESEARCH_MAX; const percentage = maximum ? Math.round(total / maximum * 100) : 0; const weakest = Object.entries(components).sort((a, b) => a[1] - b[1])[0]?.[0] || "المهارات الأساسية"; const actions: Record<string, string> = { "الحضور والانضباط": "متابعة الحضور يوميًا وتعزيز الالتزام بمهمة قصيرة في بداية الحصة.", "المشاركة الصفية": "إشراك الطلاب في سؤال تمهيدي ونشاط ثنائي مع تغذية راجعة مباشرة.", "الواجبات والتطبيق": "تدريبات قصيرة متدرجة مع تصحيح فوري وإعادة المحاولة.", "فهم المفاهيم والاختبارات": "شرح مصغر للمفاهيم غير المتقنة ثم تقويم قصير متدرج." }; return { ...student, percentage, weakest, action: actions[weakest] || "تدريب موجه ثم تقويم بعدي." }; }
 
-function unitTotal(unit?:UnitRecord){
-  if(!unit) return 0;
-  return Number(unit.total ?? (Number(unit.attendance||0)+Number(unit.participation||0)+Number(unit.homework||0)+Number(unit.unitExam??unit.exam1??unit.exam2??0)));
-}
-function studentAnalysis(student:Student){
-  let unitsTotal=0, recorded=0;
-  const component={attendance:0,participation:0,homework:0,exam:0};
-  ACADEMIC_UNITS.forEach(unit=>{const value=student.units?.[unit.key];if(!value)return;recorded++;unitsTotal+=Math.min(UNIT_MAX,unitTotal(value));component.attendance+=Number(value.attendance||0);component.participation+=Number(value.participation||0);component.homework+=Number(value.homework||0);component.exam+=Number(value.unitExam??value.exam1??value.exam2??0)});
-  const research=Math.min(RESEARCH_MAX,Number(student.researchScore??student.research??0));
-  const maximum=recorded*UNIT_MAX+RESEARCH_MAX;
-  const total=unitsTotal+research;
-  const percentage=maximum?Math.round(total/maximum*100):0;
-  const divisor=Math.max(recorded,1);
-  const skills:Skill[]=[
-    {title:"الحضور والانضباط",score:Math.round(component.attendance/divisor),action:"متابعة الحضور يوميًا وتعزيز الالتزام بمهمة قصيرة في بداية الحصة."},
-    {title:"المشاركة الصفية",score:Math.round(component.participation/divisor),action:"إشراك الطالب في سؤال تمهيدي ونشاط ثنائي مع تغذية راجعة فورية."},
-    {title:"الواجبات والتطبيق",score:Math.round(component.homework/divisor),action:"تكليف الطالب بتدريبات متدرجة قصيرة مع تصحيح مباشر وإعادة المحاولة."},
-    {title:"الاختبارات وفهم المفاهيم",score:Math.round(component.exam/divisor),action:"شرح مصغر للمفاهيم الأقل إتقانًا ثم تقويم من ثلاثة أسئلة متدرجة."},
-  ].sort((a,b)=>a.score-b.score);
-  const level=percentage>=90?"متميز":percentage>=80?"جيد جدًا":percentage>=70?"جيد":percentage>=60?"مقبول":"يحتاج دعمًا";
-  return {total,maximum,percentage,level,recorded,research,skills};
-}
+export default function TeacherAiPage() {
+  const session = useTeacherClient(), teacherId = session.teacherId || "", teacherName = session.teacherName || "المعلم", subjectKey = session.subjectKey || "history", subject = session.subject || "المادة";
+  const [students, setStudents] = useState<Student[]>([]), [scope, setScope] = useState<"threshold" | "class" | "manual">("threshold"), [selectedClass, setSelectedClass] = useState(""), [threshold, setThreshold] = useState(60), [selectedIds, setSelectedIds] = useState<string[]>([]), [duration, setDuration] = useState("٤ أسابيع"), [message, setMessage] = useState("");
+  const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "students") : "", [teacherId, subjectKey]);
+  const plansPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "treatmentPlans") : "", [teacherId, subjectKey]);
+  useEffect(() => { if (!studentsPath) return; return onSnapshot(collection(db, studentsPath), snapshot => setStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as Student)).sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar")))); }, [studentsPath]);
+  const analyzed = useMemo(() => students.map(analyze), [students]);
+  const classes = useMemo(() => Array.from(new Set(students.map(student => student.class).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b, "ar")), [students]);
+  const candidates = useMemo(() => scope === "threshold" ? analyzed.filter(student => student.percentage < threshold) : scope === "class" ? analyzed.filter(student => !selectedClass || student.class === selectedClass) : analyzed.filter(student => selectedIds.includes(student.id)), [analyzed, scope, threshold, selectedClass, selectedIds]);
+  const average = candidates.length ? Math.round(candidates.reduce((sum, student) => sum + student.percentage, 0) / candidates.length) : 0;
+  const weakSkills = useMemo(() => Object.entries(candidates.reduce<Record<string, number>>((result, student) => ({ ...result, [student.weakest]: (result[student.weakest] || 0) + 1 }), {})).sort((a, b) => b[1] - a[1]), [candidates]);
+  async function savePlan() { if (!candidates.length) return setMessage("لا يوجد طلاب مطابقون للاختيار الحالي."); const id = crypto.randomUUID(); await setDoc(doc(db, plansPath, id), { title: `الخطة العلاجية لمادة ${subject}`, teacherName, subject, subjectKey, duration, threshold: scope === "threshold" ? threshold : null, scope, className: scope === "class" ? selectedClass : "", students: candidates.map(student => ({ id: student.id, name: student.name || "", className: student.class || "", percentage: student.percentage, weakest: student.weakest })), objectives: weakSkills.map(([skill]) => `رفع إتقان ${skill}`), createdAt: new Date().toISOString() }); setMessage("تم حفظ الخطة العلاجية في بوابة المعلم."); }
 
-export default function TeacherAiPage(){
-  const session=useTeacherClient();
-  const tenant:ClientTenant|null=session?.teacherId&&session?.subjectKey?{teacherId:session.teacherId,teacherName:session.teacherName||"",subjectKey:session.subjectKey as any}:null;
-  const [students,setStudents]=useState<Student[]>([]);
-  const [selectedId,setSelectedId]=useState("");
-  const [mode,setMode]=useState<"plan"|"analysis">("plan");
-  const subject=session?.subject||"المادة الحالية";
-
-  useEffect(()=>{
-    if(!tenant)return;
-    return onSnapshot(collection(db,tenantStudentsPath(tenant)),snap=>{
-      const list=snap.docs.map(doc=>({id:doc.id,...doc.data()} as Student)).sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
-      setStudents(list);setSelectedId(current=>current||list[0]?.id||"");
-    });
-  },[tenant?.teacherId,tenant?.subjectKey]);
-
-  const selected=students.find(student=>student.id===selectedId);
-  const result=selected?studentAnalysis(selected):null;
-  const classStats=useMemo(()=>{
-    const analyzed=students.map(studentAnalysis);if(!analyzed.length)return{average:0,highest:0,lowest:0,needsSupport:0};
-    const percentages=analyzed.map(item=>item.percentage);
-    return{average:Math.round(percentages.reduce((a,b)=>a+b,0)/percentages.length),highest:Math.max(...percentages),lowest:Math.min(...percentages),needsSupport:percentages.filter(value=>value<60).length};
-  },[students]);
-
-  function printReport(nextMode:"plan"|"analysis"){
-    setMode(nextMode);
-    document.body.dataset.aiPrint=nextMode;
-    window.setTimeout(()=>window.print(),80);
-  }
-
-  return <main className="teacher-ai-page" dir="rtl">
-    <section className="teacher-ai-hero no-print"><div><span>AI</span><h1>المساعد الذكي للمعلم</h1><p>مرتبط بدرجات طلاب مادة {subject} لإنشاء خطة علاجية وتحليل نتائج فعلي.</p></div><div className="teacher-ai-status"><i/><b>متصل ببيانات الدرجات</b><small>{students.length} طالبًا في المادة الحالية</small></div></section>
-
-    <section className="ai-control-card no-print">
-      <div><label>اختر الطالب</label><select value={selectedId} onChange={e=>setSelectedId(e.target.value)}><option value="">اختر طالبًا</option>{students.map(student=><option key={student.id} value={student.id}>{student.name||student.nationalId||"طالب"} — {student.class||"دون فصل"}</option>)}</select></div>
-      <button className={mode==="plan"?"active":""} onClick={()=>setMode("plan")}>الخطة العلاجية</button>
-      <button className={mode==="analysis"?"active":""} onClick={()=>setMode("analysis")}>تحليل النتائج</button>
-    </section>
-
-    {!selected&&<section className="ai-empty no-print"><strong>اختر طالبًا من القائمة</strong><p>سيقرأ المساعد درجات الطالب ويعرض التحليل والخطة العلاجية تلقائيًا.</p></section>}
-
-    {selected&&result&&<>
-      <section className="student-ai-summary no-print"><div><small>الطالب</small><strong>{selected.name||"—"}</strong><span>{selected.class||"لم يحدد الفصل"}</span></div><article><small>النتيجة</small><b>{result.total} / {result.maximum}</b></article><article><small>النسبة</small><b>{result.percentage}%</b></article><article><small>المستوى</small><b>{result.level}</b></article></section>
-
-      {mode==="plan"&&<section className="ai-report-card no-print"><header><div><span>الخطة العلاجية الذكية</span><h2>خطة مخصصة للطالب {selected.name}</h2><p>مبنية على أضعف محاور الأداء المسجلة في درجات الطالب.</p></div><button onClick={()=>printReport("plan")}>طباعة الخطة PDF</button></header><div className="remedial-grid">{result.skills.slice(0,4).map((skill,index)=><article key={skill.title}><em>{index+1}</em><div><h3>{skill.title}</h3><small>مؤشر الأداء المسجل: {skill.score}</small><p>{skill.action}</p></div></article>)}</div><div className="plan-cycle"><b>دورة التنفيذ المقترحة</b><span>الأسبوع الأول: تشخيص وشرح مصغر</span><span>الأسبوع الثاني: تدريب موجه</span><span>الأسبوع الثالث: تطبيق مستقل</span><span>الأسبوع الرابع: تقويم بعدي ومقارنة النتائج</span></div></section>}
-
-      {mode==="analysis"&&<section className="ai-report-card no-print"><header><div><span>تحليل النتائج الذكي</span><h2>تحليل أداء {selected.name}</h2><p>قراءة مباشرة للدرجات المسجلة مع توصيات قابلة للتنفيذ.</p></div><button onClick={()=>printReport("analysis")}>تقرير التحليل PDF</button></header><div className="analysis-stats"><article><small>متوسط الصف</small><b>{classStats.average}%</b></article><article><small>أعلى نتيجة</small><b>{classStats.highest}%</b></article><article><small>أقل نتيجة</small><b>{classStats.lowest}%</b></article><article><small>طلاب يحتاجون دعمًا</small><b>{classStats.needsSupport}</b></article></div><div className="analysis-list">{result.skills.map(skill=><div key={skill.title}><span><b>{skill.title}</b><small>{skill.action}</small></span><strong>{skill.score}</strong></div>)}</div><div className="ai-conclusion"><b>الخلاصة</b><p>مستوى الطالب الحالي «{result.level}» بنسبة {result.percentage}%. الأولوية هي البدء بمحور «{result.skills[0]?.title}»، ثم متابعة التحسن أسبوعيًا وإعادة القياس بعد أربعة أسابيع.</p></div></section>}
-    </>}
-
-    {selected&&result&&<section className="ai-print-report print-only">
-      <header><strong>بوابة أستاذ لحوني التعليمية</strong><span>{mode==="plan"?"الخطة العلاجية الذكية":"تقرير تحليل النتائج"}</span></header>
-      <div className="print-student"><h1>{selected.name||"الطالب"}</h1><p>المادة: {subject} | الفصل: {selected.class||"—"} | المعلم: {session?.teacherName||"—"}</p><p>النتيجة: {result.total} من {result.maximum} — النسبة: {result.percentage}% — المستوى: {result.level}</p></div>
-      {mode==="plan"?<div className="print-plan">{result.skills.map((skill,index)=><article key={skill.title}><h2>{index+1}. {skill.title}</h2><p><b>المؤشر:</b> {skill.score}</p><p>{skill.action}</p></article>)}<h2>الجدول الزمني</h2><p>أربعة أسابيع: تشخيص، تدريب موجه، تطبيق مستقل، ثم تقويم بعدي.</p></div>:<div className="print-analysis"><h2>ملخص التحليل</h2><p>متوسط الصف {classStats.average}%، أعلى نتيجة {classStats.highest}%، أقل نتيجة {classStats.lowest}%، وعدد الطلاب المحتاجين للدعم {classStats.needsSupport}.</p>{result.skills.map(skill=><article key={skill.title}><h3>{skill.title}: {skill.score}</h3><p>{skill.action}</p></article>)}<h2>التوصية النهائية</h2><p>تبدأ المعالجة بمحور {result.skills[0]?.title}، مع قياس أسبوعي وتوثيق التحسن وإعادة التقويم بعد أربعة أسابيع.</p></div>}
-      <footer><span>بوابة أستاذ لحوني التعليمية</span><span>تاريخ التقرير: {new Date().toLocaleDateString("ar-SA")}</span></footer>
-    </section>}
-  </main>;
+  return <main className="teacher-ai-page" dir="rtl"><section className="teacher-ai-hero no-print"><div><span>المساعد التعليمي الذكي</span><h1>إنشاء خطة علاجية من درجات الطلاب</h1><p>حدد الطلاب بالطريقة المناسبة، ثم راجع الخطة واحفظها أو اطبعها PDF.</p></div><div className="teacher-ai-status"><b>{subject}</b><small>المعلم: {teacherName}</small></div></section>
+    <section className="plan-builder no-print"><header><div><small>١</small><h2>حدد نطاق الخطة</h2></div></header><div className="scope-buttons"><button className={scope === "threshold" ? "active" : ""} onClick={() => setScope("threshold")}>حسب الدرجة</button><button className={scope === "class" ? "active" : ""} onClick={() => setScope("class")}>فصل كامل</button><button className={scope === "manual" ? "active" : ""} onClick={() => setScope("manual")}>طلاب محددون</button></div>{scope === "threshold" && <label className="threshold-field">اختر كل طالب درجته أقل من <span><input type="number" min="1" max="100" value={threshold} onChange={event => setThreshold(Number(event.target.value))} /><b>٪</b></span></label>}{scope === "class" && <label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>}{scope === "manual" && <div className="manual-students"><div><button onClick={() => setSelectedIds(analyzed.map(student => student.id))}>تحديد الكل</button><button onClick={() => setSelectedIds([])}>إلغاء التحديد</button></div>{analyzed.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name || "—"}</b><small>{student.class || "—"} • {student.percentage}%</small></span></label>)}</div>}<label>مدة الخطة<select value={duration} onChange={event => setDuration(event.target.value)}><option>أسبوعان</option><option>٣ أسابيع</option><option>٤ أسابيع</option><option>٦ أسابيع</option></select></label></section>
+    <section className="plan-selection no-print"><article><small>الطلاب المختارون</small><strong>{candidates.length}</strong></article><article><small>متوسطهم الحالي</small><strong>{average}%</strong></article><article><small>أكثر مهارة تحتاج دعمًا</small><strong>{weakSkills[0]?.[0] || "—"}</strong></article></section>
+    <section className="generated-plan"><header><div><span>الخطة العلاجية المقترحة</span><h2>خطة علاجية لمادة {subject}</h2><p>إعداد المعلم: {teacherName} • المدة: {duration}</p></div><div className="plan-actions no-print"><button onClick={savePlan}>حفظ الخطة</button><button onClick={() => window.print()}>طباعة / PDF</button></div></header><div className="plan-meta"><article><b>الفئة المستهدفة</b><p>{candidates.length} طالبًا {scope === "threshold" ? `درجاتهم أقل من ${threshold}%` : scope === "class" ? `من ${selectedClass || "جميع الفصول"}` : "تم تحديدهم يدويًا"}.</p></article><article><b>الهدف العام</b><p>رفع مستوى إتقان الطلاب في مادة {subject} وقياس التحسن بعد تنفيذ التدخلات.</p></article></div><div className="plan-steps"><h3>إجراءات التنفيذ</h3>{weakSkills.slice(0, 4).map(([skill, count], index) => <article key={skill}><em>{index + 1}</em><div><b>{skill}</b><small>{count} طالب يحتاجون دعمًا في هذا المحور</small><p>{candidates.find(student => student.weakest === skill)?.action}</p></div></article>)}{!weakSkills.length && <p>اختر طلابًا ليتم بناء الخطة من درجاتهم.</p>}</div><div className="plan-schedule"><h3>الجدول الزمني وقياس الأثر</h3><span><b>الأسبوع الأول</b> تشخيص المهارات وتحديد نقطة البداية.</span><span><b>منتصف الخطة</b> تدريب موجه ومتابعة قصيرة لكل مجموعة.</span><span><b>نهاية الخطة</b> تقويم بعدي ومقارنة النتيجة بالنسبة الحالية {average}%.</span></div><div className="plan-students"><h3>الطلاب المشمولون بالخطة</h3><div>{candidates.map(student => <span key={student.id}><b>{student.name || "—"}</b><small>{student.class || "—"} • {student.percentage}% • {student.weakest}</small></span>)}</div></div></section>{message && <p className="ai-message no-print" role="status">{message}</p>}</main>;
 }

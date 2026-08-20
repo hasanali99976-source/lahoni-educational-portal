@@ -123,6 +123,11 @@ export default function PortfolioPage() {
     const done = fields.filter((value) => value.trim()).length + (form.evidence.some((item) => item.title.trim()) ? 1 : 0);
     return Math.round((done / 9) * 100);
   }, [form]);
+  const achievementSummary = useMemo(() => {
+    const completed = form.evidence.filter((item) => item.title.trim());
+    const categories = completed.reduce<Record<string, number>>((result, item) => ({ ...result, [item.category]: (result[item.category] || 0) + 1 }), {});
+    return { total: completed.length, files: completed.filter((item) => item.fileData).length, links: completed.filter((item) => item.url.trim()).length, categories };
+  }, [form.evidence]);
 
   function update<K extends keyof PortfolioForm>(key: K, value: PortfolioForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -137,7 +142,7 @@ export default function PortfolioPage() {
 
   function uploadEvidence(id: string, file?: File) {
     if (!file) return;
-    if (file.size > 60 * 1024) { setMessage("للحفظ المباشر، اضغط الملف ليكون أقل من ٦٠ كيلوبايت أو أضف رابطه."); return; }
+    if (file.size > 700 * 1024) { setMessage("حجم الشاهد أكبر من ٧٠٠ كيلوبايت. اضغطه أو أضف رابطه حتى يبقى الملف سريعًا."); return; }
     const reader = new FileReader();
     reader.onload = () => {
       const value = String(reader.result || "");
@@ -198,6 +203,12 @@ export default function PortfolioPage() {
         </div>
       </section>
 
+      <section className="portfolio-summary">
+        <header><div><span>ملخص الإنجازات</span><h2>نظرة سريعة على ملفك</h2></div><strong>{achievementSummary.total} إنجاز</strong></header>
+        <div className="portfolio-summary-stats"><article><small>إجمالي الإنجازات</small><b>{achievementSummary.total}</b></article><article><small>شواهد مرفوعة</small><b>{achievementSummary.files}</b></article><article><small>روابط شواهد</small><b>{achievementSummary.links}</b></article><article><small>نسبة الاكتمال</small><b>{completion}٪</b></article></div>
+        <div className="category-summary">{Object.entries(achievementSummary.categories).map(([category, value]) => <span key={category}>{category}<b>{value}</b></span>)}{!achievementSummary.total && <p>ابدأ بإضافة أول إنجاز ليظهر الملخص هنا.</p>}</div>
+      </section>
+
       <section className="portfolio-cover">
         <div className="cover-mark">ل</div>
         <p>بوابة أستاذ لحوني التعليمية</p>
@@ -241,6 +252,7 @@ export default function PortfolioPage() {
                 <input className="evidence-url" dir="ltr" value={item.url} onChange={(e) => updateEvidence(item.id, "url", e.target.value)} placeholder="رابط الشاهد — اختياري" />
                 <label className="evidence-upload"><span>{item.fileName || "رفع ملف أو صورة"}</span><input hidden type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" onChange={(e) => uploadEvidence(item.id, e.target.files?.[0])} /></label>
                 <textarea value={item.description} onChange={(e) => updateEvidence(item.id, "description", e.target.value)} placeholder="وصف مختصر" />
+                {item.fileData.startsWith("data:image/") && <img className="evidence-preview" src={item.fileData} alt={`معاينة ${item.title || "الشاهد"}`} />}
               </div>
               <button className="remove-evidence" onClick={() => update("evidence", form.evidence.filter((evidence) => evidence.id !== item.id))}>حذف</button>
             </article>
@@ -254,7 +266,7 @@ export default function PortfolioPage() {
         <article><h2>المبادرات والإنجازات</h2><p>{form.initiatives || "—"}</p></article>
         <article><h2>التأمل المهني</h2><p>{form.reflection || "—"}</p></article>
         <article><h2>خطة التطوير القادمة</h2><p>{form.developmentPlan || "—"}</p></article>
-        <article><h2>الشواهد</h2>{form.evidence.filter((item) => item.title.trim()).map((item) => <div className="print-evidence" key={item.id}><strong>{item.title}</strong><span>{item.category} — {item.date}</span><p>{item.description}</p><small>{item.fileName || item.url}</small></div>)}</article>
+        <article><h2>الشواهد</h2>{form.evidence.filter((item) => item.title.trim()).map((item) => <div className="print-evidence" key={item.id}><strong>{item.title}</strong><span>{item.category} — {item.date}</span><p>{item.description}</p>{item.fileData.startsWith("data:image/") && <img src={item.fileData} alt={item.title} />}<small>{item.fileName || item.url}</small></div>)}</article>
       </section>
 
       <section className="print-only portfolio-final-page">
