@@ -19,7 +19,8 @@ export async function POST(request: Request) {
       if (students.empty) return null;
       const document = students.docs[0]!;
       const data = document.data();
-      if (String(data.accessCode || "").trim().toUpperCase() !== accessCode) return null;
+      const expectedCode = `TH${nationalId.slice(-4)}`;
+      if (expectedCode !== accessCode) return null;
       const subject = getSubjectConfig(subjectId);
       const accessToken = createStudentAccessToken({ studentId: document.id, teacherId, subjectId, expiresAt: Date.now() + 2 * 60 * 60 * 1000 });
       return { id: document.id, teacherId, subjectKey: subjectId, subjectLabel: subject.label, teacherName: teacher.data()?.name || "المعلم", icon: subject.icon || "📘", accessToken, data };
