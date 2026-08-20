@@ -9,7 +9,7 @@ type LastTeacher = { teacherName: string; subject: string };
 const LAST_TEACHER_KEY = "lahooni-last-teacher";
 type Subject = { subjectId: string; subjectName: string };
 
-const TEACHERS = ["حسن الطويل", "عبد الله الرويشد"] as const;
+const TEACHERS = ["حسن الطويل", "عبد الله الرويشد", "فضل نعمان", "أحمد الأحمد"] as const;
 
 export default function TeacherLoginPage() {
   const [username, setUsername] = useState("");
