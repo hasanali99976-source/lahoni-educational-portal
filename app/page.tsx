@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import StudentDirectQr from "./student-direct-qr";
+import "./student-direct-qr.css";
 
 const portals = [
   { href: "/admin", icon: "◈", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات", tone: "admin" },
