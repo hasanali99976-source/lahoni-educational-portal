@@ -1,0 +1,42 @@
+/* Teacher workspace stability fixes — tables, tabs and actions */
+.teacher-app-shell{grid-template-columns:260px minmax(0,1fr)!important;align-items:start}
+.teacher-sidebar{padding:16px!important;overflow:hidden!important}
+.teacher-tabs{display:flex!important;flex-direction:column!important;gap:6px!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:2px 2px 8px!important;scrollbar-width:thin}
+.teacher-tabs a{display:grid!important;grid-template-columns:34px minmax(0,1fr) auto!important;min-height:54px!important;padding:8px 10px!important;border-radius:14px!important;transform:none!important}
+.teacher-tabs a:hover{transform:translateX(-3px)!important;background:rgba(255,255,255,.16)!important}
+.teacher-tabs a.active{background:#fff!important;color:#123f6d!important;box-shadow:0 10px 24px rgba(0,0,0,.18)!important}
+.teacher-tabs a.active .teacher-tab-copy small{color:#53718e!important}
+.teacher-tab-icon{width:34px!important;height:34px!important;border-radius:10px!important;transition:.2s ease!important}
+.teacher-tabs a:hover .teacher-tab-icon,.teacher-tabs a.active .teacher-tab-icon{transform:scale(1.08) rotate(-3deg)!important;background:color-mix(in srgb,var(--subject,#1565d8) 14%,white)!important;color:var(--subject,#1565d8)!important}
+.teacher-tab-copy{min-width:0!important}.teacher-tab-copy b,.teacher-tab-copy small{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.teacher-tab-copy b{font-size:13px!important}.teacher-tab-copy small{font-size:10px!important}
+.teacher-page-content{min-width:0!important;overflow:visible!important}
+.teacher-page-content section,.teacher-page-content article,.teacher-page-content form{min-width:0!important}
+
+/* Every data table remains inside its page */
+.teacher-page-content [class*="table"],.teacher-page-content [class*="register"],.teacher-page-content [class*="grid"]{max-width:100%!important}
+.teacher-page-content table{width:100%!important;table-layout:fixed!important;border-collapse:separate!important;border-spacing:0!important;background:#fff!important;overflow:hidden!important}
+.teacher-page-content th,.teacher-page-content td{text-align:center!important;vertical-align:middle!important;padding:10px 8px!important;line-height:1.35!important;overflow-wrap:anywhere!important}
+.teacher-page-content th{font-size:12px!important;white-space:normal!important}
+.teacher-page-content td{font-size:13px!important}
+.teacher-page-content td input[type="number"],.teacher-page-content td input[inputmode="numeric"],.teacher-page-content td input[type="text"].score-input{width:72px!important;min-width:60px!important;margin:auto!important;text-align:center!important;font-variant-numeric:tabular-nums!important;padding:9px 6px!important}
+.teacher-page-content td strong,.teacher-page-content td b,.teacher-page-content [class*="score"],.teacher-page-content [class*="total"],.teacher-page-content [class*="grade"]{text-align:center!important;font-variant-numeric:tabular-nums!important}
+.teacher-page-content tbody tr{transition:background .18s ease,transform .18s ease!important}
+.teacher-page-content tbody tr:hover{background:color-mix(in srgb,var(--subject,#1565d8) 6%,white)!important}
+
+/* Put all row commands in one professional action strip */
+.teacher-page-content td:last-child{white-space:nowrap!important}
+.teacher-page-content td:last-child>div,.teacher-page-content td:last-child>[class*="action"],.teacher-page-content [class*="row-actions"],.teacher-page-content [class*="table-actions"],.teacher-page-content [class*="student-actions"],.teacher-page-content [class*="grade-actions"]{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:center!important;gap:6px!important;width:max-content!important;max-width:100%!important;margin-inline:auto!important}
+.teacher-page-content td:last-child button,.teacher-page-content [class*="row-actions"] button,.teacher-page-content [class*="table-actions"] button,.teacher-page-content [class*="student-actions"] button,.teacher-page-content [class*="grade-actions"] button{width:36px!important;height:36px!important;min-width:36px!important;padding:0!important;border-radius:11px!important;display:inline-grid!important;place-items:center!important;font-size:0!important;position:relative!important;background:#f1f6fb!important;color:#1c4f7d!important;border:1px solid #d8e5f0!important;box-shadow:0 5px 12px rgba(26,72,113,.08)!important;transition:.18s ease!important}
+.teacher-page-content td:last-child button:hover,.teacher-page-content [class*="actions"] button:hover{transform:translateY(-2px) scale(1.05)!important;background:var(--subject,#1565d8)!important;color:#fff!important;border-color:transparent!important}
+.teacher-page-content td:last-child button svg,.teacher-page-content [class*="actions"] button svg{width:18px!important;height:18px!important;font-size:18px!important}
+.teacher-page-content td:last-child button[title*="تعديل"]:before,.teacher-page-content button[aria-label*="تعديل"]:before{content:"✎";font-size:18px!important}
+.teacher-page-content td:last-child button[title*="حذف"]:before,.teacher-page-content button[aria-label*="حذف"]:before{content:"⌫";font-size:18px!important}
+.teacher-page-content td:last-child button[title*="حفظ"]:before,.teacher-page-content button[aria-label*="حفظ"]:before{content:"✓";font-size:18px!important}
+.teacher-page-content td:last-child button[title*="عرض"]:before,.teacher-page-content button[aria-label*="عرض"]:before{content:"◉";font-size:17px!important}
+.teacher-page-content td:last-child button[title*="طباعة"]:before,.teacher-page-content button[aria-label*="طباعة"]:before{content:"▣";font-size:17px!important}
+
+/* Avoid horizontal page overflow while allowing a controlled table viewport */
+.teacher-page-content .table-scroll,.teacher-page-content [class*="table-scroll"],.teacher-page-content [class*="table-wrap"],.teacher-page-content [class*="register-wrap"]{width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:visible!important;border-radius:18px!important}
+
+@media(max-width:1050px){.teacher-app-shell{grid-template-columns:230px minmax(0,1fr)!important}.teacher-welcome-strip{padding:20px!important}.teacher-page-content th,.teacher-page-content td{padding:8px 6px!important;font-size:12px!important}}
+@media(max-width:760px){.teacher-app-shell{display:block!important;padding:10px!important}.teacher-sidebar{position:relative!important;top:auto!important;height:auto!important;border-radius:22px!important;margin-bottom:12px!important}.teacher-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;max-height:none!important;overflow:visible!important}.teacher-tabs a{grid-template-columns:30px minmax(0,1fr)!important;min-height:48px!important}.teacher-tabs em{display:none!important}.teacher-tab-copy small{display:none!important}.teacher-welcome-strip{display:block!important}.teacher-ai-quick{margin-top:14px!important;min-width:0!important}.teacher-page-content table{min-width:720px!important}.teacher-page-content td:last-child{width:190px!important}}
