@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v6";
+const CACHE_NAME = "ostadh-lahooni-v7";
 const APP_SHELL = [
   "/",
   "/student",
@@ -30,27 +30,29 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request, { cache: "no-store" })
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
           return response;
         })
-        .catch(() => caches.match(request).then(hit => hit || caches.match("/")))
+        .catch(async () => (await caches.match(request)) || (await caches.match("/")))
     );
     return;
   }
 
   if (["style", "script", "font", "image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      fetch(request, { cache: "no-store" }).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        return response;
-      }).catch(() => caches.match(request))
+      caches.match(request).then(cached => {
+        const fresh = fetch(request).then(response => {
+          if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+          return response;
+        }).catch(() => cached);
+        return cached || fresh;
+      })
     );
   }
 });
