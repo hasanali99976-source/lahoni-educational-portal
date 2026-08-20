@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../lib/server/firebase-admin";
 import { hashPassword } from "../../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../../lib/server/portal-auth";
+import { normalizeAssignments } from "../../../../../lib/teacher-assignments";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
@@ -15,7 +16,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     update.username = body.name.trim();
     update.normalizedUsername = normalizeUsername(body.name);
   }
-  if (Array.isArray(body.subjectIds) && body.subjectIds.length) update.subjectIds = [...new Set(body.subjectIds.map(String))];
+  if (Array.isArray(body.assignments) && body.assignments.length) {
+    const assignments = normalizeAssignments(body.assignments);
+    update.assignments = assignments;
+    update.subjectIds = assignments.map(item => item.id);
+  }
   const userRef = adminDb().collection("portalV2Users").doc(id);
   const previous = await userRef.get();
   await userRef.update(update);
