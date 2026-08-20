@@ -1,0 +1,52 @@
+"use client";
+
+import { useEffect } from "react";
+
+export default function AdminLoginEnhancer() {
+  useEffect(() => {
+    if (window.location.pathname !== "/admin") return;
+
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.endsWith("/api/auth/login") && init?.method === "POST") {
+        let username = "";
+        try {
+          const payload = JSON.parse(String(init.body || "{}"));
+          username = String(payload.username || "");
+        } catch {}
+        return originalFetch("/api/auth/admin-name-login", {
+          ...init,
+          body: JSON.stringify({ username }),
+        });
+      }
+      return originalFetch(input, init);
+    };
+
+    const simplifyForm = () => {
+      const form = document.querySelector<HTMLFormElement>(".v3-admin-login form");
+      if (!form) return;
+      const password = form.querySelector<HTMLInputElement>('input[type="password"], input[autocomplete="current-password"]');
+      const label = password?.closest("label");
+      if (label) label.style.display = "none";
+      if (password) {
+        password.required = false;
+        password.value = "name-only-admin-login";
+        password.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      const intro = document.querySelector<HTMLElement>(".v3-admin-login .v3-login-card p");
+      if (intro) intro.textContent = "أدخل اسم المدير للوصول إلى الحسابات والصلاحيات.";
+    };
+
+    simplifyForm();
+    const observer = new MutationObserver(simplifyForm);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      window.fetch = originalFetch;
+      observer.disconnect();
+    };
+  }, []);
+
+  return null;
+}
