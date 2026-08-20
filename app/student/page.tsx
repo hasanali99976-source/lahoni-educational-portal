@@ -72,7 +72,7 @@ export default function StudentPage() {
             <h2>تسجيل الدخول</h2><p className="student-login-help">أدخل بيانات الطالب للوصول إلى مواده.</p>
             <form onSubmit={submit}>
               <label className="portal-field">رقم الهوية</label><div className="portal-input"><span>🪪</span><input inputMode="numeric" value={nationalId} onChange={(e)=>setNationalId(e.target.value.replace(/\D/g, "").slice(0,10))} placeholder="أدخل ١٠ أرقام" required /></div>
-              <label className="portal-field">كود الدخول</label><div className="portal-input"><span>🔐</span><input dir="ltr" value={accessCode} onChange={(e)=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,16))} placeholder="كود الطالب" required /></div>
+              <label className="portal-field">كود الدخول</label><div className="portal-input"><span>🔐</span><input dir="ltr" value={accessCode} onChange={(e)=>setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,6))} placeholder="TH ثم آخر ٤ أرقام من الهوية" required /></div>
               {message && <p className="portal-error">{message}</p>}
               <button className="portal-submit" disabled={loading}>{loading ? "جارٍ التحقق..." : "عرض المواد"}</button>
             </form>
