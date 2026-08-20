@@ -14,13 +14,11 @@ import "./subject-scenes.css";
 import "./subject-identity-v3.css";
 import "./subject-worlds-v4.css";
 import "./neon-ai-portal-v5.css";
+import "./platform-v6.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
 import MobileAppEnhancer from "./mobile-app-enhancer";
-import IntroSound from "./intro-sound";
-import SmartLaunch from "./smart-launch";
-import SmartTransition from "./smart-transition";
 import SmartEduAssistant from "./smart-edu-assistant";
 import PortalLabelSync from "./portal-label-sync";
 import TeacherSubjectSwitcher from "./teacher-subject-switcher";
@@ -32,17 +30,17 @@ export const metadata: Metadata = {
   description: "منصة تعليمية ذكية للمتابعة والتقارير المدرسية",
   applicationName: "أستاذ لحوني",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#0b1d48", colorScheme: "dark light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#176b87", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
     <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-    <SmartLaunch /><SmartTransition /><PwaRegister /><MobileAppEnhancer /><IntroSound /><PortalLabelSync /><TeacherSubjectSwitcher />
+    <PwaRegister /><MobileAppEnhancer /><PortalLabelSync /><TeacherSubjectSwitcher />
     <div className="portal-stage">{children}</div>
     <SmartEduAssistant />
     <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
