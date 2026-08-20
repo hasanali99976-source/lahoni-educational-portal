@@ -1,0 +1,98 @@
+/* Campus V7 — تصميم جديد بالكامل، واضح وتعليمي */
+:root{
+  --campus-bg:#f4f7fb;
+  --campus-surface:#ffffff;
+  --campus-surface-2:#edf3f8;
+  --campus-ink:#17324d;
+  --campus-muted:#64788b;
+  --campus-blue:#176b87;
+  --campus-blue-dark:#0f536b;
+  --campus-green:#2d7d67;
+  --campus-gold:#d79a32;
+  --campus-red:#c74f4f;
+  --campus-line:#d8e2ea;
+  --campus-shadow:0 14px 40px rgba(25,56,82,.10);
+  --campus-radius:22px;
+}
+html,body{background:var(--campus-bg)!important;color:var(--campus-ink)!important}
+body{margin:0;min-height:100%;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit}
+button{touch-action:manipulation}
+.portal-stage{min-height:100dvh;background:var(--campus-bg)!important}
+
+/* شاشات الدخول */
+.portal-login,.student-login-page.portal-login{min-height:100dvh!important;background:linear-gradient(180deg,#eef4f8,#f8fafc)!important;color:var(--campus-ink)!important;padding:28px!important;display:grid!important;place-items:center!important}
+.portal-login:before,.portal-login:after,.student-login-page.portal-login:before,.student-login-page.portal-login:after{display:none!important}
+.portal-login-shell,.student-login-shell{width:min(1080px,100%)!important;display:grid!important;grid-template-columns:1fr 1fr!important;border:1px solid var(--campus-line)!important;border-radius:28px!important;overflow:hidden!important;background:#fff!important;box-shadow:var(--campus-shadow)!important}
+.portal-login-visual,.student-login-visual{background:linear-gradient(145deg,#176b87,#2d7d67)!important;color:#fff!important;padding:48px!important;min-height:560px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important}
+.portal-login-visual:before,.portal-login-visual:after,.student-login-visual:before,.student-login-visual:after{display:none!important}
+.portal-login-form,.student-login-form{padding:42px!important;background:#fff!important;color:var(--campus-ink)!important}
+.portal-login-form h1,.portal-login-form h2,.student-login-form h1,.student-login-form h2{color:var(--campus-ink)!important}
+.portal-input{background:#fff!important;border:1px solid var(--campus-line)!important;border-radius:14px!important;box-shadow:none!important}
+.portal-input input{color:var(--campus-ink)!important;background:transparent!important;font-size:16px!important}
+.portal-submit{background:var(--campus-blue)!important;color:#fff!important;border:0!important;border-radius:14px!important;min-height:50px!important;font-weight:900!important;box-shadow:0 10px 24px rgba(23,107,135,.20)!important}
+
+/* بوابة المعلم — شريط علوي ومساحة عمل */
+.teacher-app-shell{min-height:100dvh!important;background:var(--campus-bg)!important;display:block!important;color:var(--campus-ink)!important}
+.teacher-sidebar{position:sticky!important;top:0!important;z-index:80!important;width:100%!important;height:auto!important;min-height:0!important;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;gap:18px!important;padding:12px 18px!important;background:#fff!important;border:0!important;border-bottom:1px solid var(--campus-line)!important;box-shadow:0 8px 26px rgba(25,56,82,.08)!important;color:var(--campus-ink)!important}
+.teacher-shell-brand{display:flex!important;align-items:center!important;gap:11px!important;min-width:230px!important}
+.teacher-portal-logo,.teacher-shell-logo{width:46px!important;height:46px!important;border-radius:14px!important;object-fit:cover!important}
+.teacher-shell-brand strong{color:var(--campus-ink)!important;font-size:14px!important}
+.teacher-shell-brand small{color:var(--campus-muted)!important;font-size:10px!important}
+.teacher-nav-title{display:none!important}
+.teacher-tabs{display:flex!important;gap:8px!important;overflow-x:auto!important;padding:2px!important;scrollbar-width:none!important}
+.teacher-tabs::-webkit-scrollbar{display:none!important}
+.teacher-tabs a{flex:0 0 auto!important;min-width:112px!important;min-height:54px!important;border-radius:14px!important;padding:8px 10px!important;background:#f7f9fb!important;color:var(--campus-ink)!important;border:1px solid #e2e9ef!important;box-shadow:none!important;display:flex!important;align-items:center!important;gap:8px!important;text-decoration:none!important}
+.teacher-tabs a:hover{background:#eef4f8!important;border-color:#cbdbe5!important;transform:none!important}
+.teacher-tabs a.active{background:var(--campus-blue)!important;color:#fff!important;border-color:var(--campus-blue)!important;box-shadow:0 8px 20px rgba(23,107,135,.20)!important}
+.teacher-tabs a.active:after{display:none!important}
+.teacher-tab-icon{width:32px!important;height:32px!important;border-radius:10px!important;display:grid!important;place-items:center!important;background:rgba(23,107,135,.10)!important;color:var(--campus-blue)!important}
+.teacher-tabs a.active .teacher-tab-icon{background:rgba(255,255,255,.16)!important;color:#fff!important}
+.teacher-tab-copy b{font-size:10px!important;color:inherit!important;white-space:nowrap!important}
+.teacher-tab-copy small{display:none!important}
+.teacher-header-actions{display:flex!important;gap:8px!important;align-items:center!important}
+.teacher-header-actions button{min-height:40px!important;border-radius:12px!important;border:1px solid var(--campus-line)!important;background:#fff!important;color:var(--campus-ink)!important;font-weight:800!important}
+.teacher-logout{color:var(--campus-red)!important}
+.teacher-main{width:100%!important;max-width:none!important;padding:24px!important;background:var(--campus-bg)!important}
+.teacher-welcome-strip{position:relative!important;min-height:190px!important;padding:32px!important;border-radius:26px!important;background:linear-gradient(120deg,var(--campus-blue),#2587a5 58%,var(--campus-green))!important;color:#fff!important;box-shadow:var(--campus-shadow)!important;overflow:hidden!important;margin-bottom:22px!important;display:block!important}
+.teacher-welcome-strip:before{content:""!important;display:block!important;position:absolute!important;left:40px!important;top:24px!important;width:150px!important;height:150px!important;border-radius:50%!important;background:rgba(255,255,255,.10)!important;box-shadow:0 0 0 24px rgba(255,255,255,.04)!important}
+.teacher-welcome-strip:after{display:none!important}
+.teacher-welcome-copy{position:relative!important;z-index:2!important;max-width:760px!important}
+.teacher-welcome-copy h2,.teacher-welcome-copy p,.teacher-welcome-badge{color:#fff!important}
+.teacher-welcome-badge{background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.22)!important}
+.teacher-welcome-points span{background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.18)!important;color:#fff!important}
+.teacher-ai-quick{display:none!important}
+.teacher-page-content{width:100%!important;max-width:1500px!important;margin:auto!important}
+.teacher-page-content section,.teacher-page-content article,.student-clean section,.student-clean article{background:#fff!important;border:1px solid var(--campus-line)!important;border-radius:20px!important;box-shadow:0 10px 28px rgba(25,56,82,.07)!important;color:var(--campus-ink)!important}
+.teacher-page-content h1,.teacher-page-content h2,.teacher-page-content h3,.student-clean h1,.student-clean h2,.student-clean h3{color:var(--campus-ink)!important}
+.teacher-page-content p,.teacher-page-content small,.student-clean p,.student-clean small{color:var(--campus-muted)!important}
+.teacher-page-content button:not(.danger),.student-clean button:not(.ghost){background:var(--campus-blue)!important;color:#fff!important;border:0!important;border-radius:12px!important}
+.teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea,.student-clean input,.student-clean select,.student-clean textarea{background:#fff!important;color:var(--campus-ink)!important;border:1px solid var(--campus-line)!important;border-radius:12px!important}
+.teacher-page-content table,.student-clean table{width:100%!important;border-collapse:separate!important;border-spacing:0!important;background:#fff!important;color:var(--campus-ink)!important}
+.teacher-page-content th,.student-clean th{background:#eaf2f7!important;color:#17324d!important;font-weight:900!important;border-bottom:1px solid #d6e2ea!important}
+.teacher-page-content td,.student-clean td{background:#fff!important;color:#263f55!important;border-bottom:1px solid #edf1f4!important}
+
+/* محول المادة داخل الرأس وليس صندوقًا منفصلًا */
+.teacher-subject-switcher{position:relative!important;right:auto!important;left:auto!important;bottom:auto!important;margin-top:20px!important;display:grid!important;grid-template-columns:auto minmax(0,1fr) minmax(180px,250px) auto!important;gap:12px!important;align-items:center!important;padding:12px!important;border-radius:16px!important;background:rgba(255,255,255,.95)!important;border:1px solid rgba(255,255,255,.8)!important;box-shadow:none!important;color:var(--campus-ink)!important}
+.subject-switcher-copy strong{color:var(--campus-ink)!important}.subject-switcher-copy small,.subject-switcher-copy span{color:var(--campus-muted)!important}.subject-switcher-control select{background:#fff!important;color:var(--campus-ink)!important;border:1px solid var(--campus-line)!important}.subject-switcher-manage{background:#eaf2f7!important;color:var(--campus-blue)!important}
+
+/* بوابة الطالب */
+.student-clean{min-height:100dvh!important;background:var(--campus-bg)!important;color:var(--campus-ink)!important;padding:24px!important}
+.student-clean-head{background:linear-gradient(120deg,var(--campus-blue),var(--campus-green))!important;color:#fff!important;border-radius:26px!important;padding:30px!important;box-shadow:var(--campus-shadow)!important;position:relative!important;overflow:hidden!important}
+.student-clean-head:after{display:none!important}.student-clean-head h1,.student-clean-head p,.student-clean-head span{color:#fff!important}
+.student-main-summary,.student-mini-stats,.student-units-table,.student-notice{margin-top:18px!important}
+
+/* المساعد الذكي أسفل الصفحة */
+.edu-ai-fab{position:fixed!important;left:50%!important;bottom:14px!important;transform:translateX(-50%)!important;z-index:100!important;border-radius:999px!important;background:var(--campus-blue)!important;color:#fff!important;box-shadow:0 12px 30px rgba(23,107,135,.26)!important;min-width:210px!important;justify-content:center!important}
+
+/* الجوال */
+@media(max-width:900px){
+  .portal-login-shell,.student-login-shell{grid-template-columns:1fr!important}.portal-login-visual,.student-login-visual{min-height:250px!important;padding:28px!important}.portal-login-form,.student-login-form{padding:26px!important}
+  .teacher-sidebar{grid-template-columns:1fr auto!important;padding:10px!important}.teacher-shell-brand{min-width:0!important}.teacher-tabs{grid-column:1/-1!important;order:3!important}.teacher-tabs a{min-width:96px!important}.teacher-main{padding:12px!important}.teacher-welcome-strip{padding:22px!important;min-height:160px!important}.teacher-subject-switcher{grid-template-columns:auto 1fr!important}.subject-switcher-control,.subject-switcher-manage{grid-column:1/-1!important;width:100%!important}.student-clean{padding:12px!important}
+}
+@media(max-width:560px){
+  .portal-login,.student-login-page.portal-login{padding:8px!important}.portal-login-shell,.student-login-shell{border-radius:18px!important}.portal-login-visual,.student-login-visual{display:none!important}.portal-login-form,.student-login-form{padding:20px!important}
+  .teacher-tabs a{min-width:88px!important}.teacher-tab-copy b{font-size:9px!important}.teacher-main{padding:8px!important}.teacher-welcome-strip{border-radius:18px!important}.teacher-welcome-copy h2{font-size:20px!important}.teacher-welcome-points{display:none!important}.teacher-page-content{padding-bottom:72px!important}
+  .student-clean{padding:8px 8px 78px!important}.student-clean-head{padding:22px!important;border-radius:18px!important}.edu-ai-fab{bottom:8px!important;min-width:190px!important}
+}
+@media print{.edu-ai-fab,.teacher-sidebar,.teacher-subject-switcher{display:none!important}.teacher-main,.student-clean{padding:0!important;background:#fff!important}}
