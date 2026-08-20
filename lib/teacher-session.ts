@@ -26,6 +26,18 @@ const ACCOUNT_DEFINITIONS: Array<Omit<TeacherAccount, "subject">> = [
     teacherId: "abdullah-critical-thinking",
     subjectKey: "critical-thinking",
   },
+  {
+    username: "فضل نعمان",
+    password: "1415",
+    teacherId: "fadl-naaman",
+    subjectKey: "history",
+  },
+  {
+    username: "أحمد الأحمد",
+    password: "1415",
+    teacherId: "ahmed-alahmad",
+    subjectKey: "history",
+  },
 ];
 
 export const TEACHER_ACCOUNTS: TeacherAccount[] = ACCOUNT_DEFINITIONS.map(account => ({
