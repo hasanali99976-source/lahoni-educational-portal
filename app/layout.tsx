@@ -2,6 +2,7 @@ import "./globals.css";
 import "./print.css";
 import "./campus-v7.css";
 import "./portal-interiors-v8.css";
+import "./subject-motion-v9.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
