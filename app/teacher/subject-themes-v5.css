@@ -1,5 +1,6 @@
 @import "./teacher-motion-polish.css";
 @import "./subject-interactions-v1.css";
+@import "./subject-identity-aliases-v1.css";
 .teacher-app-shell{--teacher-accent:#1677c8;--subject-deep:#123b63;--subject-soft:#eaf4fc;--subject-glow:#52b9e8;--subject-pattern:none}
 .teacher-app-shell[data-subject="history"]{--teacher-accent:#a66b2b;--subject-deep:#5f3b1e;--subject-soft:#f6ead9;--subject-glow:#d9a45f;--subject-pattern:linear-gradient(135deg,transparent 70%,rgba(166,107,43,.08))}
 .teacher-app-shell[data-subject="geography"]{--teacher-accent:#16845d;--subject-deep:#135b46;--subject-soft:#e4f5ed;--subject-glow:#54c492;--subject-pattern:radial-gradient(circle at 88% 20%,rgba(22,132,93,.12),transparent 28%)}
