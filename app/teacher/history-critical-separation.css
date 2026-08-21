@@ -1,0 +1,83 @@
+/* فصل هوية التاريخ عن التفكير الناقد بصريًا دون تغيير أي منطق أو بيانات */
+.teacher-app-shell[data-subject="history"]{
+  --teacher-accent:#a56a2b;
+  --subject-deep:#4f2f18;
+  --subject-soft:#f7ecd9;
+  --subject-glow:#e1b56f;
+  --subject-symbol:"🏛";
+  --subject-pattern:repeating-linear-gradient(135deg,rgba(122,78,35,.055) 0 1px,transparent 1px 18px),radial-gradient(circle at 88% 12%,rgba(221,177,102,.22),transparent 24%);
+  --subject-pattern-2:linear-gradient(rgba(126,82,38,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(126,82,38,.035) 1px,transparent 1px);
+}
+.teacher-app-shell[data-subject="history"]::before{background-size:38px 38px;opacity:.48}
+.teacher-app-shell[data-subject="history"] .teacher-welcome-strip{
+  background:linear-gradient(125deg,#3f2716 0%,#7e4f26 52%,#b8843d 100%);
+  border:1px solid rgba(224,185,113,.38);
+  box-shadow:0 18px 44px rgba(95,59,30,.24),inset 0 1px rgba(255,255,255,.12);
+}
+.teacher-app-shell[data-subject="history"] .teacher-welcome-strip::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;
+  background:repeating-linear-gradient(90deg,transparent 0 72px,rgba(255,232,183,.13) 73px 74px),linear-gradient(180deg,transparent 70%,rgba(24,12,5,.22));
+}
+.teacher-app-shell[data-subject="history"] .teacher-welcome-copy::after{
+  content:"خط زمني • أحداث • أسباب ونتائج";display:inline-flex;margin-top:12px;padding:6px 11px;border-radius:999px;
+  color:#fff3d2;background:rgba(35,18,7,.28);border:1px solid rgba(255,230,174,.28);font-size:12px;font-weight:800;
+}
+.teacher-app-shell[data-subject="history"] .teacher-sidebar{
+  background:linear-gradient(180deg,#fffdf8,#f4e6cf);border-top-color:#b88238;
+}
+.teacher-app-shell[data-subject="history"] .teacher-tabs a{
+  border-radius:12px;border-inline-start:3px solid transparent;
+}
+.teacher-app-shell[data-subject="history"] .teacher-tabs a:hover,.teacher-app-shell[data-subject="history"] .teacher-tabs a.active{
+  background:linear-gradient(110deg,#fffaf0,#ead3ac);border-inline-start-color:#a56a2b;box-shadow:0 9px 22px rgba(122,76,31,.13);
+}
+.teacher-app-shell[data-subject="history"] .teacher-page-content article,.teacher-app-shell[data-subject="history"] .teacher-page-content .card{
+  background:linear-gradient(145deg,#fffdfa,#f8eddc);border-color:rgba(165,106,43,.22);
+}
+.teacher-app-shell[data-subject="history"] .teacher-ai-quick b::after{content:" — المؤرخ الذكي";color:#ffe3a7}
+.teacher-app-shell[data-subject="history"] .teacher-ai-quick small::after{content:" • ربط الأحداث وتحليل الأسباب والنتائج"}
+
+.teacher-app-shell[data-subject="critical-thinking"]{
+  --teacher-accent:#7b4de2;
+  --subject-deep:#251745;
+  --subject-soft:#eee9ff;
+  --subject-glow:#59d2d0;
+  --subject-symbol:"◈";
+  --subject-pattern:radial-gradient(circle at 82% 14%,rgba(119,76,218,.20),transparent 25%),linear-gradient(145deg,rgba(83,205,203,.08),transparent 42%);
+  --subject-pattern-2:radial-gradient(circle at 20% 20%,rgba(123,77,226,.16) 0 3px,transparent 4px),linear-gradient(118deg,transparent 47%,rgba(83,205,203,.08) 48% 49%,transparent 50%);
+}
+.teacher-app-shell[data-subject="critical-thinking"]::before{background-size:52px 52px;opacity:.62}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-welcome-strip{
+  background:linear-gradient(125deg,#21133c 0%,#5d34b7 53%,#188d99 100%);
+  border:1px solid rgba(119,231,229,.24);
+  box-shadow:0 20px 46px rgba(65,37,122,.28),inset 0 1px rgba(255,255,255,.14);
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-welcome-strip::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.46;
+  background:radial-gradient(circle at 18% 30%,#8de0de 0 3px,transparent 4px),radial-gradient(circle at 38% 58%,#c4a9ff 0 4px,transparent 5px),radial-gradient(circle at 72% 24%,#8de0de 0 3px,transparent 4px),linear-gradient(28deg,transparent 48%,rgba(182,251,249,.18) 49% 50%,transparent 51%);
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-welcome-copy::after{
+  content:"تحليل • استدلال • كشف المغالطات";display:inline-flex;margin-top:12px;padding:6px 11px;border-radius:999px;
+  color:#dcffff;background:rgba(17,9,35,.30);border:1px solid rgba(133,234,232,.30);font-size:12px;font-weight:800;
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-sidebar{
+  background:linear-gradient(180deg,rgba(255,255,255,.96),#ece7ff);border-top-color:#7b4de2;
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-tabs a{
+  border-radius:16px;backdrop-filter:blur(8px);
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-tabs a:hover,.teacher-app-shell[data-subject="critical-thinking"] .teacher-tabs a.active{
+  background:linear-gradient(110deg,rgba(255,255,255,.9),rgba(225,217,255,.92));border-color:rgba(83,205,203,.38);box-shadow:0 12px 28px rgba(91,55,177,.16);
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-page-content article,.teacher-app-shell[data-subject="critical-thinking"] .teacher-page-content .card{
+  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(237,232,255,.86));border-color:rgba(123,77,226,.22);backdrop-filter:blur(10px);
+}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-ai-quick b::after{content:" — محلل التفكير";color:#aef4f2}
+.teacher-app-shell[data-subject="critical-thinking"] .teacher-ai-quick small::after{content:" • تحليل الحجج وكشف المغالطات"}
+
+@media(max-width:760px){
+  .teacher-app-shell[data-subject="history"] .teacher-welcome-copy::after,.teacher-app-shell[data-subject="critical-thinking"] .teacher-welcome-copy::after{font-size:11px;margin-top:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .teacher-app-shell[data-subject="history"] *,.teacher-app-shell[data-subject="critical-thinking"] *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
