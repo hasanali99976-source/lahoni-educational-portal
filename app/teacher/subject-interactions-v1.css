@@ -1,0 +1,68 @@
+.teacher-app-shell{position:relative;isolation:isolate;--subject-symbol:"✦";--subject-pattern-2:radial-gradient(circle at 20% 20%,color-mix(in srgb,var(--teacher-accent) 13%,transparent) 0 2px,transparent 3px);--subject-motion:subjectAmbientFloat;--subject-speed:9s}
+.teacher-app-shell .teacher-main{position:relative;z-index:1}
+.teacher-subject-ambient{position:fixed;left:clamp(18px,3vw,52px);bottom:clamp(20px,4vw,58px);width:112px;height:112px;border-radius:34px;pointer-events:none;z-index:0;opacity:.18;border:1px solid color-mix(in srgb,var(--teacher-accent) 30%,transparent);background:linear-gradient(145deg,color-mix(in srgb,var(--teacher-accent) 16%,#fff),transparent 70%);box-shadow:0 18px 50px color-mix(in srgb,var(--teacher-accent) 18%,transparent);animation:var(--subject-motion) var(--subject-speed) ease-in-out infinite}
+.teacher-subject-ambient::before{content:var(--subject-symbol);position:absolute;inset:0;display:grid;place-items:center;font-size:42px;font-weight:900;color:var(--teacher-accent);filter:drop-shadow(0 8px 18px color-mix(in srgb,var(--teacher-accent) 30%,transparent))}
+.teacher-subject-ambient::after{content:"";position:absolute;inset:12px;border-radius:27px;border:1px dashed color-mix(in srgb,var(--teacher-accent) 45%,transparent);animation:subjectSpin 14s linear infinite}
+.teacher-app-shell::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:var(--subject-pattern-2);background-size:44px 44px;opacity:.52;mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),transparent 78%)}
+.teacher-app-shell .teacher-tabs a,.teacher-app-shell .teacher-ai-quick,.teacher-app-shell .teacher-page-content article,.teacher-app-shell .teacher-page-content section,.teacher-app-shell .teacher-page-content .card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,background .22s ease}
+.teacher-app-shell .teacher-tabs a:hover{transform:translateX(-6px) scale(1.015);box-shadow:0 10px 28px color-mix(in srgb,var(--teacher-accent) 14%,transparent)}
+.teacher-app-shell .teacher-ai-quick:hover{transform:translateY(-4px) scale(1.015);box-shadow:0 15px 36px color-mix(in srgb,var(--teacher-accent) 24%,transparent)}
+.teacher-app-shell .teacher-page-content article:hover,.teacher-app-shell .teacher-page-content .card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--teacher-accent) 42%,#dce6ef);box-shadow:0 14px 34px color-mix(in srgb,var(--teacher-accent) 11%,transparent)}
+.teacher-app-shell .teacher-welcome-strip{overflow:hidden}
+.teacher-app-shell .teacher-welcome-strip::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;left:-80px;top:-120px;background:radial-gradient(circle,color-mix(in srgb,var(--subject-glow) 28%,transparent),transparent 68%);animation:subjectGlow 6s ease-in-out infinite;pointer-events:none}
+
+/* التاريخ: طابع أثري ونقوش هادئة */
+.teacher-app-shell[data-subject="history"]{--subject-symbol:"⌛";--subject-pattern-2:repeating-linear-gradient(135deg,rgba(166,107,43,.055) 0 1px,transparent 1px 18px),radial-gradient(circle at 86% 14%,rgba(217,164,95,.16),transparent 24%);--subject-motion:subjectHistory;--subject-speed:10s}
+/* الجغرافيا والاجتماعيات: خرائط ومسارات */
+.teacher-app-shell[data-subject="geography"]{--subject-symbol:"⌖";--subject-pattern-2:radial-gradient(circle at 20% 30%,rgba(22,132,93,.13) 0 2px,transparent 3px),linear-gradient(118deg,transparent 45%,rgba(22,132,93,.07) 46% 48%,transparent 49%);--subject-motion:subjectMap}
+.teacher-app-shell[data-subject="social-studies"],.teacher-app-shell[data-subject="social-sciences"],.teacher-app-shell[data-subject="citizenship"],.teacher-app-shell[data-subject="business-administration"]{--subject-symbol:"◎";--subject-pattern-2:radial-gradient(circle at 25% 25%,rgba(178,91,52,.1) 0 5px,transparent 6px),radial-gradient(circle at 75% 65%,rgba(178,91,52,.07) 0 4px,transparent 5px);--subject-motion:subjectNetwork}
+/* التفكير الناقد: نبض وتحليل */
+.teacher-app-shell[data-subject="critical-thinking"]{--subject-symbol:"◇";--subject-pattern-2:conic-gradient(from 45deg at 82% 18%,transparent 0 25%,rgba(115,83,199,.09) 0 50%,transparent 0 75%,rgba(115,83,199,.06) 0);--subject-motion:subjectThink;--subject-speed:7s}
+/* اللغة العربية والكفايات: موجات خطية */
+.teacher-app-shell[data-subject="arabic"],.teacher-app-shell[data-subject="linguistic-competencies"]{--subject-symbol:"ع";--subject-pattern-2:repeating-radial-gradient(ellipse at 100% 0,rgba(180,70,112,.075) 0 1px,transparent 2px 18px);--subject-motion:subjectWave;--subject-speed:8s}
+/* الإنجليزية: خطوط قراءة */
+.teacher-app-shell[data-subject="english"]{--subject-symbol:"A";--subject-pattern-2:repeating-linear-gradient(0deg,transparent 0 23px,rgba(40,95,189,.06) 24px 25px);--subject-motion:subjectSlide}
+/* الرياضيات والمالية: شبكة هندسية */
+.teacher-app-shell[data-subject="mathematics"],.teacher-app-shell[data-subject="financial-literacy"]{--subject-symbol:"∑";--subject-pattern-2:linear-gradient(rgba(49,95,200,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(49,95,200,.07) 1px,transparent 1px);--subject-motion:subjectMath;--subject-speed:11s}
+.teacher-app-shell[data-subject="mathematics"]::before,.teacher-app-shell[data-subject="financial-literacy"]::before{background-size:32px 32px}
+/* العلوم والبيئة والأرض: حلقات استكشاف */
+.teacher-app-shell[data-subject="science"],.teacher-app-shell[data-subject="earth-science"],.teacher-app-shell[data-subject="environmental-science"]{--subject-symbol:"◉";--subject-pattern-2:radial-gradient(circle at 85% 20%,transparent 0 28px,rgba(7,140,145,.09) 29px 31px,transparent 32px 55px,rgba(7,140,145,.055) 56px 58px,transparent 59px);--subject-motion:subjectOrbit}
+/* الفيزياء: مدارات */
+.teacher-app-shell[data-subject="physics"]{--subject-symbol:"⚛";--subject-pattern-2:radial-gradient(ellipse at 82% 18%,transparent 0 34px,rgba(57,85,166,.11) 35px 37px,transparent 38px),radial-gradient(ellipse at 82% 18%,rgba(57,85,166,.12) 0 4px,transparent 5px);--subject-motion:subjectPhysics;--subject-speed:6s}
+/* الكيمياء: فقاعات مختبر */
+.teacher-app-shell[data-subject="chemistry"]{--subject-symbol:"⚗";--subject-pattern-2:radial-gradient(circle at 20% 20%,rgba(8,126,158,.1) 0 5px,transparent 6px),radial-gradient(circle at 60% 35%,rgba(8,126,158,.07) 0 9px,transparent 10px),radial-gradient(circle at 85% 70%,rgba(8,126,158,.08) 0 4px,transparent 5px);--subject-motion:subjectBubble;--subject-speed:7s}
+/* الأحياء: خلايا عضوية */
+.teacher-app-shell[data-subject="biology"]{--subject-symbol:"❧";--subject-pattern-2:radial-gradient(ellipse at 20% 20%,rgba(61,141,67,.1) 0 8px,transparent 9px),radial-gradient(ellipse at 65% 55%,rgba(61,141,67,.07) 0 12px,transparent 13px);--subject-motion:subjectBiology;--subject-speed:9s}
+/* التقنية والحاسب: مسح رقمي */
+.teacher-app-shell[data-subject="digital-technology"],.teacher-app-shell[data-subject="computer-science"]{--subject-symbol:"⌘";--subject-pattern-2:repeating-linear-gradient(90deg,rgba(8,117,165,.065) 0 1px,transparent 1px 24px),repeating-linear-gradient(0deg,rgba(8,117,165,.04) 0 1px,transparent 1px 24px);--subject-motion:subjectDigital;--subject-speed:5.5s}
+/* المواد الإسلامية والقرآن: هالة هندسية هادئة */
+.teacher-app-shell[data-subject="islamic-studies"],.teacher-app-shell[data-subject="quran"],.teacher-app-shell[data-subject="quran-tafsir"],.teacher-app-shell[data-subject="tafsir"],.teacher-app-shell[data-subject="hadith"],.teacher-app-shell[data-subject="fiqh"],.teacher-app-shell[data-subject="tawhid"]{--subject-symbol:"✧";--subject-pattern-2:conic-gradient(from 22.5deg at 86% 16%,rgba(22,128,95,.075) 0 12.5%,transparent 0 25%,rgba(22,128,95,.05) 0 37.5%,transparent 0 50%,rgba(22,128,95,.075) 0 62.5%,transparent 0 75%,rgba(22,128,95,.05) 0 87.5%,transparent 0);--subject-motion:subjectCalm;--subject-speed:12s}
+/* الفنون: بقع وأشكال متحركة */
+.teacher-app-shell[data-subject="art"],.teacher-app-shell[data-subject="arts"]{--subject-symbol:"✎";--subject-pattern-2:radial-gradient(circle at 18% 18%,rgba(211,91,67,.12) 0 9px,transparent 10px),radial-gradient(circle at 72% 32%,rgba(238,152,126,.13) 0 14px,transparent 15px),radial-gradient(circle at 90% 78%,rgba(211,91,67,.07) 0 18px,transparent 19px);--subject-motion:subjectArt;--subject-speed:6.8s}
+/* اللياقة والصحة: حركة أسرع */
+.teacher-app-shell[data-subject="physical-education"],.teacher-app-shell[data-subject="fitness-health"],.teacher-app-shell[data-subject="health-education"]{--subject-symbol:"➜";--subject-pattern-2:repeating-linear-gradient(120deg,transparent 0 26px,rgba(223,122,33,.065) 27px 29px);--subject-motion:subjectSport;--subject-speed:4.8s}
+/* المهارات والحياة والمسار: خطوات متدرجة */
+.teacher-app-shell[data-subject="life-skills"],.teacher-app-shell[data-subject="family-education"],.teacher-app-shell[data-subject="career-guidance"]{--subject-symbol:"✓";--subject-pattern-2:linear-gradient(135deg,rgba(176,106,50,.06) 25%,transparent 25%) 0 0/36px 36px;--subject-motion:subjectSteps;--subject-speed:8s}
+
+@keyframes subjectAmbientFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+@keyframes subjectHistory{0%,100%{transform:translateY(0) rotate(-3deg);filter:saturate(.95)}50%{transform:translateY(-8px) rotate(2deg);filter:saturate(1.15)}}
+@keyframes subjectMap{0%,100%{transform:translate(0,0)}50%{transform:translate(8px,-8px)}}
+@keyframes subjectNetwork{0%,100%{transform:scale(.97)}50%{transform:scale(1.05)}}
+@keyframes subjectThink{0%,100%{transform:rotate(-4deg) scale(.96)}50%{transform:rotate(4deg) scale(1.06)}}
+@keyframes subjectWave{0%,100%{transform:translateY(0) skewX(0)}50%{transform:translateY(-8px) skewX(-3deg)}}
+@keyframes subjectSlide{0%,100%{transform:translateX(0)}50%{transform:translateX(10px)}}
+@keyframes subjectMath{0%,100%{transform:rotate(0) scale(.97)}50%{transform:rotate(8deg) scale(1.04)}}
+@keyframes subjectOrbit{0%,100%{transform:rotate(0) translateY(0)}50%{transform:rotate(8deg) translateY(-6px)}}
+@keyframes subjectPhysics{0%,100%{transform:rotate(0) scale(.95)}50%{transform:rotate(14deg) scale(1.08)}}
+@keyframes subjectBubble{0%,100%{transform:translateY(5px) scale(.96)}50%{transform:translateY(-12px) scale(1.06)}}
+@keyframes subjectBiology{0%,100%{transform:scale(.96) rotate(-2deg);border-radius:36px}50%{transform:scale(1.05) rotate(2deg);border-radius:50% 38% 48% 40%}}
+@keyframes subjectDigital{0%,100%{transform:translateY(0);filter:brightness(.95)}50%{transform:translateY(-6px);filter:brightness(1.18)}}
+@keyframes subjectCalm{0%,100%{transform:rotate(0) scale(.98)}50%{transform:rotate(4deg) scale(1.03)}}
+@keyframes subjectArt{0%,100%{transform:translate(0,0) rotate(-5deg)}50%{transform:translate(9px,-9px) rotate(6deg)}}
+@keyframes subjectSport{0%,100%{transform:translateX(0) rotate(-4deg)}25%{transform:translateX(8px) rotate(2deg)}50%{transform:translateY(-8px) rotate(5deg)}75%{transform:translateX(-5px) rotate(0)}}
+@keyframes subjectSteps{0%,100%{transform:translate(0,0)}50%{transform:translate(-8px,-8px)}}
+@keyframes subjectSpin{to{transform:rotate(360deg)}}
+@keyframes subjectGlow{0%,100%{transform:scale(.88);opacity:.55}50%{transform:scale(1.12);opacity:1}}
+
+@media(max-width:760px){.teacher-subject-ambient{width:74px;height:74px;border-radius:24px;left:12px;bottom:14px;opacity:.12}.teacher-subject-ambient::before{font-size:28px}.teacher-subject-ambient::after{inset:8px;border-radius:18px}.teacher-app-shell .teacher-tabs a:hover,.teacher-app-shell .teacher-page-content article:hover,.teacher-app-shell .teacher-page-content .card:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.teacher-subject-ambient,.teacher-subject-ambient::after,.teacher-app-shell .teacher-welcome-strip::after{animation:none!important}.teacher-app-shell .teacher-tabs a,.teacher-app-shell .teacher-ai-quick,.teacher-app-shell .teacher-page-content article,.teacher-app-shell .teacher-page-content section,.teacher-app-shell .teacher-page-content .card{transition:none!important}}
