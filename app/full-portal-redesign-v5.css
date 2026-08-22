@@ -1,0 +1,28 @@
+/* Full visual rebuild for all portal surfaces without touching data or routes. */
+:root{--school-ink:#102b45;--school-paper:#f4f7fb;--school-line:#d9e4ef;--school-gold:#d7aa58;--school-radius:28px}
+html,body{max-width:100%;overflow-x:hidden;background:radial-gradient(circle at 15% 10%,rgba(45,126,168,.10),transparent 28%),linear-gradient(180deg,#eef4f9 0%,#f8fbfd 44%,#eef3f8 100%)}
+.portal-stage{min-height:100dvh;position:relative}
+.portal-stage:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background-image:linear-gradient(rgba(24,72,105,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(24,72,105,.035) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,black,transparent 78%)}
+.portal-stage main:not(.v3-home){width:min(1480px,calc(100% - 32px));margin:18px auto 42px;border:1px solid rgba(103,137,161,.18);border-radius:36px;background:rgba(255,255,255,.76);box-shadow:0 30px 80px rgba(22,54,78,.13);backdrop-filter:blur(18px);overflow:hidden;animation:portal-enter .55s cubic-bezier(.2,.8,.2,1) both}
+.portal-stage header,.teacher-topbar,.student-clean-head,.admin-header{position:relative;overflow:hidden}
+.portal-stage header:after,.teacher-topbar:after,.student-clean-head:after,.admin-header:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;inset-inline-end:-90px;inset-block-start:-130px;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 66%);pointer-events:none}
+.card,.class-card,.student-home-grid article,.student-mini-stats article,.student-ai-grid article,.student-goal-card,.student-units-table,.admin-card,.teacher-panel{border-radius:var(--school-radius)!important;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(244,248,252,.92))!important;border:1px solid var(--school-line)!important;box-shadow:0 16px 40px rgba(27,63,88,.08)!important;transition:transform .26s ease,box-shadow .26s ease,border-color .26s ease!important;transform-style:preserve-3d}
+.card:hover,.class-card:hover,.student-home-grid article:hover,.student-mini-stats article:hover,.student-ai-grid article:hover,.admin-card:hover,.teacher-panel:hover{transform:translateY(-7px) rotateX(1deg)!important;box-shadow:0 24px 56px rgba(27,63,88,.15)!important;border-color:color-mix(in srgb,var(--subject-primary,#245b7a) 34%,var(--school-line))!important}
+button,a,.btn{touch-action:manipulation}
+button:not(:disabled),.btn,a[class]{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+button:not(:disabled):active,.btn:active,a[class]:active{transform:scale(.975)}
+.student-portal-tabs,.teacher-tabs,.admin-tabs{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px!important;padding:14px!important;background:rgba(239,245,250,.9)!important;border:1px solid var(--school-line)!important;border-radius:24px!important;box-shadow:inset 0 1px 0 #fff}
+.student-portal-tabs button,.teacher-tabs button,.admin-tabs button{min-height:74px;border-radius:18px!important;border:1px solid transparent!important;background:#fff!important;box-shadow:0 8px 20px rgba(22,54,78,.07)!important}
+.student-portal-tabs button.active,.teacher-tabs button.active,.admin-tabs button.active{transform:translateY(-3px);box-shadow:0 15px 30px var(--subject-glow,rgba(22,74,108,.18))!important}
+[data-subject]{background:linear-gradient(180deg,color-mix(in srgb,var(--subject-soft) 68%,white),white 36%)!important}
+[data-subject] .student-clean-head,[data-subject] .teacher-topbar{border-radius:0 0 34px 34px!important;min-height:180px;padding:32px!important}
+[data-subject] .subject-icon,[data-subject] .class-icon{box-shadow:inset 0 0 0 1px rgba(255,255,255,.75),0 12px 28px var(--subject-glow)!important;animation:icon-breathe 3.6s ease-in-out infinite}
+.portal-login-shell{border-radius:36px!important;overflow:hidden;box-shadow:0 32px 90px rgba(16,43,69,.2)!important;border:1px solid rgba(255,255,255,.75)!important}
+.portal-login-visual{background:linear-gradient(145deg,#173e62,#1e7090 62%,#d2a958)!important;position:relative}
+.portal-login-form{background:rgba(255,255,255,.96)!important}
+input,select,textarea{border-radius:16px!important;border:1px solid #cbd9e5!important;background:#fbfdff!important;min-height:48px}
+input:focus,select:focus,textarea:focus{border-color:var(--subject-primary,#24708f)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--subject-primary,#24708f) 15%,transparent)!important;outline:0}
+@keyframes portal-enter{from{opacity:0;transform:translateY(18px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes icon-breathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(2deg)}}
+@media(max-width:760px){.portal-stage main:not(.v3-home){width:100%;margin:0;border-radius:0;border-inline:0}.student-portal-tabs,.teacher-tabs,.admin-tabs{grid-template-columns:repeat(2,minmax(0,1fr));position:sticky;bottom:8px;z-index:20}.card:hover,.class-card:hover,.student-home-grid article:hover,.student-mini-stats article:hover,.student-ai-grid article:hover,.admin-card:hover,.teacher-panel:hover{transform:none!important}[data-subject] .student-clean-head,[data-subject] .teacher-topbar{min-height:auto;padding:22px 16px!important}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
