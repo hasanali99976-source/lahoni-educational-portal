@@ -1,0 +1,62 @@
+/* طبقة تصميم بصرية آمنة: لا تغيّر البيانات أو مسارات الدخول. */
+:root{--school-ink:#10253f;--school-paper:#f6f9fc;--school-line:#d9e4ee;--school-gold:#e7b84c;--school-blue:#2367a8}
+.portal-stage{min-height:100dvh;background:
+radial-gradient(circle at 12% 8%,rgba(35,103,168,.09),transparent 28%),
+radial-gradient(circle at 88% 18%,rgba(231,184,76,.11),transparent 25%),
+linear-gradient(180deg,#f9fbfd,#edf3f8);overflow-x:hidden}
+.portal-stage :where(button,a,input,select,textarea){transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease}
+.portal-stage :where(button,a):active{transform:scale(.98)}
+
+/* لمسة مدرسية على البوابات الثلاث */
+.teacher-app-shell,.student-portal,.admin-page,.admin-shell,.student-shell{position:relative;isolation:isolate}
+.teacher-app-shell::marker,.student-portal::marker{display:none}
+.teacher-app-shell .teacher-sidebar,.student-portal .student-portal-tabs,.admin-page nav,.admin-shell nav{
+backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);box-shadow:0 22px 55px rgba(16,37,63,.13)}
+.teacher-page-content,.student-portal-content,.admin-content{animation:school-page-in .48s cubic-bezier(.2,.75,.25,1) both}
+
+/* بطاقات أكثر حيوية */
+.portal-stage :where(.card,.class-card,.student-mini-stats article,.student-home-grid article,.student-ai-grid article,.admin-card,.teacher-page-content>section){
+position:relative;overflow:hidden;transform-style:preserve-3d}
+.portal-stage :where(.card,.class-card,.student-mini-stats article,.student-home-grid article,.student-ai-grid article,.admin-card)::after{
+content:"";position:absolute;inset:-45% auto auto -25%;width:42%;height:190%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.52),transparent);transform:rotate(18deg) translateX(-180%);transition:transform .65s ease;pointer-events:none}
+.portal-stage :where(.card,.class-card,.student-mini-stats article,.student-home-grid article,.student-ai-grid article,.admin-card):hover::after{transform:rotate(18deg) translateX(420%)}
+.portal-stage :where(.card,.class-card,.student-mini-stats article,.student-home-grid article,.student-ai-grid article,.admin-card):hover{transform:translateY(-5px) rotateX(1deg);box-shadow:0 20px 45px rgba(16,37,63,.14)}
+
+/* هوية المادة تظل فعّالة حتى عندما يحتوي المعرّف على الصف أو الفصل */
+[data-subject^="history"]{--subject-primary:#8a5528;--subject-secondary:#d8ad61;--subject-soft:#fbf1df;--subject-deep:#3b2518;--subject-motif:"🏛"}
+[data-subject^="geography"]{--subject-primary:#1f7584;--subject-secondary:#55b9aa;--subject-soft:#e7f7f3;--subject-deep:#123d4a;--subject-motif:"🌍"}
+[data-subject^="mathematics"],[data-subject^="financial-literacy"]{--subject-primary:#2456a6;--subject-secondary:#43a3e6;--subject-soft:#e9f4ff;--subject-deep:#17345f;--subject-motif:"∑"}
+[data-subject^="physics"]{--subject-primary:#273b8e;--subject-secondary:#6679df;--subject-soft:#edf0ff;--subject-deep:#172252;--subject-motif:"⚛"}
+[data-subject^="chemistry"]{--subject-primary:#7442a4;--subject-secondary:#bc7de2;--subject-soft:#f5ecfb;--subject-deep:#40245b;--subject-motif:"⚗"}
+[data-subject^="biology"]{--subject-primary:#2f7e45;--subject-secondary:#79bf73;--subject-soft:#edf8ea;--subject-deep:#1b4a29;--subject-motif:"🧬"}
+[data-subject^="digital-technology"],[data-subject^="computer-science"]{--subject-primary:#08728d;--subject-secondary:#20c4c9;--subject-soft:#e6f9fa;--subject-deep:#073d4c;--subject-motif:"</>"}
+[data-subject^="arabic"],[data-subject^="linguistic-competencies"]{--subject-primary:#9a3f4f;--subject-secondary:#d98c6f;--subject-soft:#fff0ec;--subject-deep:#4d2330;--subject-motif:"ض"}
+[data-subject^="english"]{--subject-primary:#245b9e;--subject-secondary:#65a7e8;--subject-soft:#eaf4ff;--subject-deep:#15385e;--subject-motif:"A"}
+[data-subject^="critical-thinking"]{--subject-primary:#5a3db8;--subject-secondary:#9a7cff;--subject-soft:#efebff;--subject-deep:#291c66;--subject-motif:"◇"}
+[data-subject^="islamic-studies"],[data-subject^="quran"],[data-subject^="tafsir"],[data-subject^="hadith"],[data-subject^="fiqh"],[data-subject^="tawhid"]{--subject-primary:#147058;--subject-secondary:#c7a758;--subject-soft:#edf8f3;--subject-deep:#0c4033;--subject-motif:"۞"}
+[data-subject^="art"],[data-subject^="arts"]{--subject-primary:#a23d76;--subject-secondary:#ed8b76;--subject-soft:#fff0f5;--subject-deep:#58233f;--subject-motif:"✎"}
+[data-subject^="physical-education"],[data-subject^="fitness-health"]{--subject-primary:#d05b2d;--subject-secondary:#f2a33b;--subject-soft:#fff2e8;--subject-deep:#6a321d;--subject-motif:"⚡"}
+
+[data-subject]{background:
+radial-gradient(circle at 86% 10%,color-mix(in srgb,var(--subject-primary) 9%,transparent),transparent 28%),
+linear-gradient(180deg,color-mix(in srgb,var(--subject-soft) 70%,#fff),#f5f8fb)!important}
+[data-subject]::after{content:var(--subject-motif,"✦");position:fixed;inset-inline-start:clamp(12px,3vw,44px);bottom:clamp(14px,3vw,40px);z-index:0;width:88px;height:88px;display:grid;place-items:center;border-radius:28px;background:linear-gradient(145deg,color-mix(in srgb,var(--subject-primary) 15%,white),rgba(255,255,255,.35));border:1px solid color-mix(in srgb,var(--subject-primary) 28%,transparent);color:var(--subject-primary);font-size:36px;font-weight:900;opacity:.18;box-shadow:0 18px 42px var(--subject-glow);pointer-events:none;animation:subject-orbit 8s ease-in-out infinite}
+[data-subject] :where(.teacher-welcome-strip,.teacher-mobile-header,.student-clean-head,.student-main-summary){background:linear-gradient(125deg,var(--subject-deep),var(--subject-primary) 68%,var(--subject-secondary))!important}
+[data-subject] :where(.teacher-tabs a.active,.student-portal-tabs button.active,.btn.primary,.portal-submit){box-shadow:0 11px 28px color-mix(in srgb,var(--subject-primary) 28%,transparent)!important}
+[data-subject] :where(.teacher-tab-icon,.subject-switcher-icon,.student-score-ring,.subject-icon){animation:icon-breathe 3.4s ease-in-out infinite}
+
+/* الإدارة: هوية مدرسية قوية لكن هادئة */
+.admin-page,.admin-shell{--admin-accent:#1f628f;background:linear-gradient(160deg,#eef5fa,#fdfbf5)!important}
+.admin-page :where(h1,h2,h3),.admin-shell :where(h1,h2,h3){color:#173b59}
+.admin-page :where(button.primary,.btn.primary),.admin-shell :where(button.primary,.btn.primary){background:linear-gradient(135deg,#173f65,#2878aa)!important;box-shadow:0 12px 28px rgba(31,98,143,.25)!important}
+
+@keyframes school-page-in{from{opacity:0;transform:translateY(14px) scale(.992)}to{opacity:1;transform:none}}
+@keyframes subject-orbit{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-12px) rotate(5deg)}}
+@keyframes icon-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+@media(max-width:760px){
+.portal-stage :where(.card,.class-card,.student-mini-stats article,.student-home-grid article,.student-ai-grid article,.admin-card):hover{transform:none}
+[data-subject]::after{width:58px;height:58px;border-radius:19px;font-size:24px;opacity:.1;inset-inline-start:8px;bottom:10px}
+.teacher-page-content,.student-portal-content,.admin-content{padding-inline:max(12px,env(safe-area-inset-left))!important}
+}
+@media(prefers-reduced-motion:reduce){.portal-stage *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
