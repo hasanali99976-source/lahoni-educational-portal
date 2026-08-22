@@ -5,6 +5,7 @@ import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import type { SubjectKey } from "../../../lib/subject-config";
+import "./diagnostic-results.css";
 
 type Diagnostic = { id: string; title: string };
 type Student = { id: string; name?: string; class?: string; nationalId?: string };
