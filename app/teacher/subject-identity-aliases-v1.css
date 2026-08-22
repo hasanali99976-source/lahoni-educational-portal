@@ -1,3 +1,4 @@
+.teacher-app-shell[data-subject^="history--"]{--teacher-accent:#a66b2b;--subject-deep:#5f3b1e;--subject-soft:#f6ead9;--subject-glow:#d9a45f;--subject-pattern:linear-gradient(135deg,transparent 70%,rgba(166,107,43,.08));--subject-symbol:"🏛"}
 .teacher-app-shell[data-subject="social-sciences"]{--teacher-accent:#b25b34;--subject-deep:#71391f;--subject-soft:#faece4;--subject-glow:#e69a73;--subject-pattern:radial-gradient(circle at 80% 18%,rgba(178,91,52,.12),transparent 27%)}
 .teacher-app-shell[data-subject="environmental-science"]{--teacher-accent:#078c91;--subject-deep:#07595d;--subject-soft:#e2f5f5;--subject-glow:#54c5c3;--subject-pattern:radial-gradient(circle at 82% 20%,rgba(7,140,145,.13),transparent 28%)}
 .teacher-app-shell[data-subject="quran-tafsir"]{--teacher-accent:#16805f;--subject-deep:#105a43;--subject-soft:#e5f4ed;--subject-glow:#56bb92;--subject-pattern:radial-gradient(circle at 82% 18%,rgba(22,128,95,.12),transparent 28%)}
