@@ -3,6 +3,7 @@ import "./print.css";
 import "./portal-v3.css";
 import "./login-v4.css";
 import "./subject-identities.css";
+import "./portal-experience-v4.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
