@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import StudentDirectQr from "./student-direct-qr";
 import "./student-direct-qr.css";
 
@@ -9,7 +10,9 @@ const portals = [
   { href: "/student", icon: "◎", title: "بوابة الطالب وولي الأمر", text: "دخول موحد بهوية الطالب وكوده لعرض النتائج والمتابعة", tone: "student" },
 ];
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = searchParams ? await searchParams : {};
+  if (params.appVersion) redirect("/mobile");
   return <main className="v3-home" dir="rtl">
     <nav className="v3-topbar">
       <div className="v3-brand"><Image src="/icons/ostadh-lahooni-192.jpg" width={52} height={52} alt="شعار بوابة أستاذ لحوني التعليمية" priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><span>تعليم ذكي • متابعة أوضح</span></div></div>
