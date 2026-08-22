@@ -2,27 +2,55 @@ import Image from "next/image";
 import Link from "next/link";
 import StudentDirectQr from "./student-direct-qr";
 import "./student-direct-qr.css";
+import "./crazy-school-home.css";
 
 const portals = [
-  { href: "/admin", icon: "◈", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات", tone: "admin" },
-  { href: "/teacher", icon: "✦", title: "بوابة المعلم", text: "الطلاب والدرجات والمتابعة والملفات", tone: "teacher" },
-  { href: "/student", icon: "◎", title: "بوابة الطالب وولي الأمر", text: "دخول موحد بهوية الطالب وكوده لعرض النتائج والمتابعة", tone: "student" },
+  { href: "/admin", icon: "◈", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات من لوحة واضحة ومترابطة.", tone: "admin" },
+  { href: "/teacher", icon: "✦", title: "بوابة المعلم", text: "الطلاب والدرجات والحضور والاختبارات والخطط العلاجية في مساحة واحدة.", tone: "teacher" },
+  { href: "/student", icon: "◎", title: "الطالب وولي الأمر", text: "متابعة الدرجات والحضور والانضباط والاختبارات والخطة العلاجية بسهولة.", tone: "student" },
 ];
 
 export default function HomePage() {
-  return <main className="v3-home" dir="rtl">
-    <nav className="v3-topbar">
-      <div className="v3-brand"><Image src="/icons/ostadh-lahooni-192.jpg" width={52} height={52} alt="شعار بوابة أستاذ لحوني التعليمية" priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><span>تعليم ذكي • متابعة أوضح</span></div></div>
-      <span className="v3-live"><i/> منصة تعليمية متكاملة</span>
+  return <main className="crazy-school-home" dir="rtl">
+    <nav className="school-topbar">
+      <div className="school-brand">
+        <Image src="/icons/ostadh-lahooni-192.jpg" width={54} height={54} alt="شعار بوابة أستاذ لحوني التعليمية" priority />
+        <div><strong>بوابة أستاذ لحوني التعليمية</strong><span>مدرسة رقمية ذكية ومترابطة</span></div>
+      </div>
+      <div className="school-status"><i /> النظام يعمل الآن</div>
     </nav>
-    <section className="v3-hero">
-      <div className="v3-hero-copy"><span className="v3-kicker">بوابتك التعليمية الجديدة</span><h1>كل رحلة تعليمية<br/><em>تبدأ من هنا</em></h1><p>تجربة هادئة وواضحة تجمع الإدارة والمعلم والطالب وولي الأمر في نظام واحد ذكي وآمن.</p><div className="v3-values"><span>عزل كامل للمواد</span><span>بيانات آمنة</span><span>ذكاء تعليمي</span></div></div>
-      <div className="v3-visual" aria-hidden="true"><div className="v3-orbit orbit-one"/><div className="v3-orbit orbit-two"/><div className="v3-core"><b>AI</b><span>تعليم أذكى</span></div><i className="v3-dot d1"/><i className="v3-dot d2"/><i className="v3-dot d3"/></div>
+
+    <section className="school-hero">
+      <div className="school-copy">
+        <span className="school-kicker">جيل جديد من التعليم المدرسي</span>
+        <h1>مدرستك كلها<br/><em>في بوابة واحدة</em></h1>
+        <p>تجربة تعليمية حية تجمع الإدارة والمعلم والطالب وولي الأمر، مع هوية خاصة لكل مادة وحركات تفاعلية تجعل الاستخدام أوضح وأمتع.</p>
+        <div className="school-chips"><span>هوية لكل مادة</span><span>ذكاء تعليمي</span><span>ربط مباشر</span><span>متوافق مع الجوال</span></div>
+      </div>
+      <div className="school-scene" aria-hidden="true">
+        <div className="school-board" />
+        <span className="school-float one">📚 مواد بهوية خاصة</span>
+        <span className="school-float two">📊 متابعة لحظية</span>
+        <span className="school-float three">✨ تفاعل ذكي</span>
+      </div>
     </section>
+
     <StudentDirectQr />
-    <section className="v3-portals" aria-label="بوابات الدخول">
-      {portals.map(portal=><Link key={portal.href} href={portal.href} className={`v3-portal-card ${portal.tone}`}><span className="v3-portal-icon">{portal.icon}</span><div><small>دخول آمن</small><h2>{portal.title}</h2><p>{portal.text}</p></div><b className="v3-arrow">←</b></Link>)}
+
+    <section className="school-portals" aria-label="بوابات الدخول">
+      <div className="school-section-head"><small>اختر بوابتك</small><h2>كل دور له تجربته الخاصة</h2><p>نفس النظام، لكن بواجهة مصممة لكل مستخدم.</p></div>
+      <div className="school-grid">
+        {portals.map(portal => <Link key={portal.href} href={portal.href} className={`school-card ${portal.tone}`}>
+          <span className="school-card-icon">{portal.icon}</span>
+          <small>دخول آمن وسريع</small>
+          <h3>{portal.title}</h3>
+          <p>{portal.text}</p>
+          <b>ابدأ الآن ←</b>
+        </Link>)}
+      </div>
     </section>
-    <footer className="v3-footer"><span>بوابة أستاذ لحوني التعليمية</span><span>واضحة • ناعمة • ذكية</span></footer>
+
+    <section className="school-ribbon"><span>حسابات آمنة</span><span>بيانات مترابطة</span><span>واجهات تعليمية</span><span>حركات خفيفة</span></section>
+    <footer className="school-signature">بوابة أستاذ لحوني التعليمية • تعليم أوضح، متابعة أذكى</footer>
   </main>;
 }
