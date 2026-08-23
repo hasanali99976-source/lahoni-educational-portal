@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { hashPassword } from "../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../lib/server/portal-auth";
+import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
 export async function GET() {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
@@ -15,7 +16,9 @@ export async function GET() {
   }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
   const teachers = teachersSnapshot.docs.map(document => {
     const data = document.data();
-    return { id: document.id, name: data.name, active: data.active === true, subjectIds: data.subjectIds || [] };
+    const assignments = normalizeAssignments(data.assignments, data.subjectIds);
+    const subjectIds = [...new Set(assignments.map(item => item.subjectId).filter(Boolean))];
+    return { id: document.id, name: data.name, active: data.active === true, subjectIds, assignments };
   }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
   return NextResponse.json({ ok: true, supervisors, teachers });
 }
