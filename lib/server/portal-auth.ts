@@ -8,7 +8,7 @@ export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
 export const ADMIN_SESSION_MAX_AGE = 60 * 30;
 
-export type PortalRole = "admin" | "teacher" | "supervisor";
+export type PortalRole = "admin" | "teacher";
 export type PortalSession = {
   userId: string;
   role: PortalRole;
@@ -27,8 +27,6 @@ export type PortalUser = {
   active: boolean;
   subjectIds: string[];
   assignments?: unknown;
-  teacherIds?: string[];
-  permissionLevel?: "view" | "comment" | "manage";
   createdAt: string;
   updatedAt: string;
 };
@@ -79,6 +77,7 @@ export function readSessionToken(value?: string): PortalSession | null {
     if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
     const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as PortalSession;
     if (!session.userId || !session.role || !session.authVersion || session.expiresAt <= Date.now()) return null;
+    if (session.role !== "admin" && session.role !== "teacher") return null;
     return session;
   } catch {
     return null;
@@ -107,10 +106,15 @@ export async function findUserByUsername(username: string): Promise<PortalUser |
   const snapshot = await adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizeUsername(username)).limit(1).get();
   if (snapshot.empty) return null;
   const document = snapshot.docs[0]!;
-  return { id: document.id, ...(document.data() as Omit<PortalUser, "id">) };
+  const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
+  if (data.role !== "admin" && data.role !== "teacher") return null;
+  return { id: document.id, ...data, role: data.role };
 }
 
 export async function findUserById(id: string): Promise<PortalUser | null> {
   const document = await adminDb().collection("portalV2Users").doc(id).get();
-  return document.exists ? { id: document.id, ...(document.data() as Omit<PortalUser, "id">) } : null;
+  if (!document.exists) return null;
+  const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
+  if (data.role !== "admin" && data.role !== "teacher") return null;
+  return { id: document.id, ...data, role: data.role };
 }
