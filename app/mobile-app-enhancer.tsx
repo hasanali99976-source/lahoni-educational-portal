@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import "./mobile-app-enhancer.css";
 
 type InstallPromptEvent = Event & {
@@ -8,9 +10,12 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+type MobileLink = { href: string; label: string; icon: string };
+
 const DISMISS_KEY = "lahooni-install-dismissed";
 
 export default function MobileAppEnhancer() {
+  const pathname = usePathname();
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [online, setOnline] = useState(true);
   const [standalone, setStandalone] = useState(false);
@@ -40,6 +45,27 @@ export default function MobileAppEnhancer() {
     };
   }, []);
 
+  const links = useMemo<MobileLink[]>(() => {
+    if (pathname.startsWith("/teacher")) return [
+      { href: "/teacher/dashboard", label: "الرئيسية", icon: "⌂" },
+      { href: "/teacher/students", label: "الطلاب", icon: "◉" },
+      { href: "/teacher/grades", label: "الدرجات", icon: "▥" },
+      { href: "/teacher/diagnostics", label: "التشخيصي", icon: "✓" },
+      { href: "/teacher/ai", label: "الذكي", icon: "✦" },
+    ];
+    if (pathname.startsWith("/student")) return [
+      { href: "/student", label: "الرئيسية", icon: "⌂" },
+      { href: "/student#grades", label: "الدرجات", icon: "▥" },
+      { href: "/student#attendance", label: "الحضور", icon: "◷" },
+      { href: "/student#diagnostics", label: "الاختبارات", icon: "✓" },
+    ];
+    if (pathname.startsWith("/admin")) return [
+      { href: "/admin", label: "الإدارة", icon: "⌂" },
+      { href: "/", label: "الرئيسية", icon: "↩" },
+    ];
+    return [];
+  }, [pathname]);
+
   async function install() {
     if (!installPrompt) return;
     await installPrompt.prompt();
@@ -53,6 +79,8 @@ export default function MobileAppEnhancer() {
     setDismissed(true);
   }
 
+  const showNavigation = links.length > 0 && !pathname.match(/^\/(teacher|student|admin)$/);
+
   return (
     <>
       {!online && <div className="mobile-network-status" role="status">أنت الآن دون اتصال — ستظهر الصفحات المحفوظة حتى يعود الإنترنت</div>}
@@ -63,6 +91,14 @@ export default function MobileAppEnhancer() {
           <button onClick={install}>تثبيت</button>
           <button className="mobile-install-close" onClick={dismissInstall} aria-label="إغلاق">×</button>
         </div>
+      )}
+      {showNavigation && (
+        <nav className="mobile-app-nav" aria-label="التنقل السريع في التطبيق" dir="rtl">
+          {links.map(link => {
+            const active = link.href.includes("#") ? false : pathname === link.href || (link.href !== "/student" && pathname.startsWith(link.href));
+            return <Link key={link.href} href={link.href} className={active ? "active" : ""}><span>{link.icon}</span><b>{link.label}</b></Link>;
+          })}
+        </nav>
       )}
     </>
   );
