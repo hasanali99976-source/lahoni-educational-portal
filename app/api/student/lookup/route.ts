@@ -4,6 +4,8 @@ import { getSubjectConfig } from "../../../../lib/subject-config";
 import { createStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
+type SubjectAssignment = { id: string; label?: string };
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -15,13 +17,13 @@ export async function POST(request: Request) {
     const searches = teachers.docs.flatMap(teacher => {
       const teacherData = teacher.data();
       if (teacherData.active !== true) return [];
-      const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds);
-      const normalized = assignments.length
+      const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds) as SubjectAssignment[];
+      const normalized: SubjectAssignment[] = assignments.length
         ? assignments
         : (Array.isArray(teacherData.subjectIds) ? teacherData.subjectIds : []).map((id: string) => ({ id, label: getSubjectConfig(id).label }));
-      const unique = new Map<string, { id: string; label?: string }>();
-      normalized.forEach(item => { if (item?.id) unique.set(item.id, item); });
-      return [...unique.values()].map(item => ({
+      const unique = new Map<string, SubjectAssignment>();
+      normalized.forEach((item: SubjectAssignment) => { if (item.id) unique.set(item.id, item); });
+      return [...unique.values()].map((item: SubjectAssignment) => ({
         teacherId: teacher.id,
         teacherName: teacherData.name || "المعلم",
         subjectId: item.id,
