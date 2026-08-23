@@ -2,10 +2,10 @@ import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import {
+  ADMIN_SESSION_MAX_AGE,
   createSessionToken,
   normalizeUsername,
   PORTAL_SESSION_COOKIE,
-  SESSION_MAX_AGE,
 } from "../../../../lib/server/portal-auth";
 import { hashPassword } from "../../../../lib/server/password";
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       updatedAt: existing?.updatedAt || now,
     }, { merge: true });
 
-    const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
+    const expiresAt = Date.now() + ADMIN_SESSION_MAX_AGE * 1000;
     const response = NextResponse.json(
       { ok: true, role: "admin", name: ADMIN_NAME },
       { headers: { "Cache-Control": "no-store" } },
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: SESSION_MAX_AGE,
+        maxAge: ADMIN_SESSION_MAX_AGE,
       },
     );
 
