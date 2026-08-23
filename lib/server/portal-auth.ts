@@ -7,7 +7,7 @@ import { adminDb } from "./firebase-admin";
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
 
-export type PortalRole = "admin" | "teacher";
+export type PortalRole = "admin" | "teacher" | "supervisor";
 export type PortalSession = {
   userId: string;
   role: PortalRole;
@@ -26,6 +26,8 @@ export type PortalUser = {
   active: boolean;
   subjectIds: string[];
   assignments?: unknown;
+  teacherIds?: string[];
+  permissionLevel?: "view" | "comment" | "manage";
   createdAt: string;
   updatedAt: string;
 };
@@ -90,11 +92,9 @@ export async function currentSession() {
 export async function requireSession(role?: PortalRole) {
   const session = await currentSession();
   if (!session || (role && session.role !== role)) return null;
-
   const user = await findUserById(session.userId);
   if (!user || !user.active || user.role !== session.role) return null;
   if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
-
   return { ...session, name: user.name };
 }
 
@@ -103,8 +103,7 @@ export function normalizeUsername(value: string) {
 }
 
 export async function findUserByUsername(username: string): Promise<PortalUser | null> {
-  const snapshot = await adminDb().collection("portalV2Users")
-    .where("normalizedUsername", "==", normalizeUsername(username)).limit(1).get();
+  const snapshot = await adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizeUsername(username)).limit(1).get();
   if (snapshot.empty) return null;
   const document = snapshot.docs[0]!;
   return { id: document.id, ...(document.data() as Omit<PortalUser, "id">) };
