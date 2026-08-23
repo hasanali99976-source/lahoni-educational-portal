@@ -14,7 +14,7 @@ export async function GET() {
   const teachers = snapshot.docs.flatMap(document => {
     if (allowedTeacherIds.size && !allowedTeacherIds.has(document.id)) return [];
     const data = document.data();
-    const assignments = normalizeAssignments(data.assignments, data.subjectIds).filter(item => allowedSubjectIds.has(item.id));
+    const assignments = normalizeAssignments(data.assignments, data.subjectIds).filter(item => allowedSubjectIds.has(item.subjectId));
     if (!assignments.length) return [];
     return [{ id: document.id, name: data.name, active: data.active === true, assignments }];
   }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
