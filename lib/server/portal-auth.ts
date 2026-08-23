@@ -6,6 +6,7 @@ import { adminDb } from "./firebase-admin";
 
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
+export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 export type PortalRole = "admin" | "teacher" | "supervisor";
 export type PortalSession = {
@@ -94,7 +95,7 @@ export async function requireSession(role?: PortalRole) {
   if (!session || (role && session.role !== role)) return null;
   const user = await findUserById(session.userId);
   if (!user || !user.active || user.role !== session.role) return null;
-  if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
+  if (session.role !== "admin" && (!user.updatedAt || user.updatedAt !== session.authVersion)) return null;
   return { ...session, name: user.name };
 }
 
