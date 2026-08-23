@@ -14,6 +14,7 @@ type Question = { id: string; text: string; options: string[]; correctIndex: num
 type Diagnostic = { id: string; title: string; instructions: string; published: boolean; questions: Question[]; plans: { low: string; medium: string; high: string } };
 const newQuestion = (): Question => ({ id: crypto.randomUUID(), text: "", options: ["", "", "", ""], correctIndex: 0, skill: "" });
 const emptyPlans = { low: "راجع المهارات الأساسية مع المعلم، ثم نفّذ أوراق العمل العلاجية وأعد التقييم.", medium: "راجع المهارات التي أخطأت فيها، ونفّذ تدريبًا قصيرًا قبل التقييم التالي.", high: "أداؤك متقن. انتقل إلى الأنشطة الإثرائية وحافظ على المراجعة المنتظمة." };
+const optionCounts = [2, 3, 4, 5, 6, 7, 8];
 
 export default function DiagnosticsPage() {
   const session = useTeacherClient();
@@ -33,9 +34,20 @@ export default function DiagnosticsPage() {
     });
   }, [path]);
   function updateQuestion(id: string, patch: Partial<Question>) { setQuestions(current => current.map(question => question.id === id ? { ...question, ...patch } : question)); }
-  function useGenerated(generated: Array<Omit<Question, "id">>) { setQuestions(generated.map(question => ({ ...question, id: crypto.randomUUID() }))); if (!title.trim()) setTitle(`اختبار تشخيصي — ${session.subject || "المادة"}`); }
+  function setOptionCount(question: Question, count: number) {
+    const nextOptions = Array.from({ length: count }, (_, index) => question.options[index] || "");
+    updateQuestion(question.id, { options: nextOptions, correctIndex: Math.min(question.correctIndex, count - 1) });
+  }
+  function useGenerated(generated: Array<Omit<Question, "id">>) {
+    setQuestions(generated.map(question => {
+      const options = Array.isArray(question.options) ? question.options.slice(0, 8) : [];
+      while (options.length < 2) options.push("");
+      return { ...question, options, correctIndex: Math.min(Math.max(question.correctIndex || 0, 0), options.length - 1), id: crypto.randomUUID() };
+    }));
+    if (!title.trim()) setTitle(`اختبار تشخيصي — ${session.subject || "المادة"}`);
+  }
   async function save(published: boolean) {
-    if (!path || !title.trim() || questions.some(question => !question.text.trim() || question.options.some(option => !option.trim()))) return setMessage("أكمل عنوان الاختبار وجميع الأسئلة والخيارات.");
+    if (!path || !title.trim() || questions.some(question => !question.text.trim() || question.options.length < 2 || question.options.some(option => !option.trim()) || question.correctIndex < 0 || question.correctIndex >= question.options.length)) return setMessage("أكمل عنوان الاختبار وجميع الأسئلة والخيارات وحدد الإجابة الصحيحة.");
     const id = crypto.randomUUID(); await setDoc(doc(db, path, id), { title: title.trim(), instructions: instructions.trim(), published, questions, plans, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
     setTitle(""); setInstructions(""); setQuestions([newQuestion()]); setPlans(emptyPlans); setMessage(published ? "تم نشر الاختبار في بوابة الطالب." : "تم حفظ الاختبار كمسودة.");
   }
@@ -65,7 +77,7 @@ export default function DiagnosticsPage() {
     {session?.teacherId && session.subjectKey ? <DiagnosticResults teacherId={session.teacherId} subjectKey={session.subjectKey as SubjectKey} subjectName={session.subject || "المادة"} diagnostics={items.map(item => ({ id: item.id, title: item.title }))} diagnosticsLoaded={diagnosticsLoaded} /> : null}
     <AiDiagnosticBuilder subjectId={session.subjectKey || ""} subjectName={session.subject || "المادة"} onGenerated={useGenerated} onMessage={setMessage} />
     <section id="manual-diagnostic-editor" className="diagnostic-builder"><header><div><h2>اختبار جديد</h2><p>الطالب يرى الاختبارات المنشورة فقط.</p></div></header><label>عنوان الاختبار<input value={title} onChange={event => setTitle(event.target.value)} placeholder="الاختبار التشخيصي الأول" /></label><label>تعليمات الطالب<textarea value={instructions} onChange={event => setInstructions(event.target.value)} placeholder="اختر الإجابة الصحيحة لكل سؤال" /></label>
-      <div className="questions-editor">{questions.map((question, index) => <article key={question.id}><header><strong>السؤال {index + 1}</strong>{questions.length > 1 && <button onClick={() => setQuestions(current => current.filter(item => item.id !== question.id))}>حذف</button>}</header><input value={question.text} onChange={event => updateQuestion(question.id, { text: event.target.value })} placeholder="نص السؤال" /><input value={question.skill} onChange={event => updateQuestion(question.id, { skill: event.target.value })} placeholder="المهارة التي يقيسها السؤال" />{question.options.map((option, optionIndex) => <label className="answer-option" key={optionIndex}><input type="radio" name={`correct-${question.id}`} checked={question.correctIndex === optionIndex} onChange={() => updateQuestion(question.id, { correctIndex: optionIndex })} /><input value={option} onChange={event => { const options = [...question.options]; options[optionIndex] = event.target.value; updateQuestion(question.id, { options }); }} placeholder={`الخيار ${optionIndex + 1}`} /></label>)}</article>)}</div><button className="add-question" onClick={() => setQuestions(current => [...current, newQuestion()])}>+ إضافة سؤال</button>
+      <div className="questions-editor">{questions.map((question, index) => <article key={question.id}><header><strong>السؤال {index + 1}</strong>{questions.length > 1 && <button onClick={() => setQuestions(current => current.filter(item => item.id !== question.id))}>حذف</button>}</header><input value={question.text} onChange={event => updateQuestion(question.id, { text: event.target.value })} placeholder="نص السؤال" /><input value={question.skill} onChange={event => updateQuestion(question.id, { skill: event.target.value })} placeholder="المهارة التي يقيسها السؤال" /><label className="option-count">عدد خيارات الإجابة<select value={question.options.length} onChange={event => setOptionCount(question, Number(event.target.value))}>{optionCounts.map(count => <option key={count} value={count}>{count} خيارات</option>)}</select></label>{question.options.map((option, optionIndex) => <label className="answer-option" key={optionIndex}><input type="radio" name={`correct-${question.id}`} checked={question.correctIndex === optionIndex} onChange={() => updateQuestion(question.id, { correctIndex: optionIndex })} /><input value={option} onChange={event => { const options = [...question.options]; options[optionIndex] = event.target.value; updateQuestion(question.id, { options }); }} placeholder={`الخيار ${optionIndex + 1}`} /></label>)}</article>)}</div><button className="add-question" onClick={() => setQuestions(current => [...current, newQuestion()])}>+ إضافة سؤال</button>
       <section className="plan-editor"><h3>الخطة العلاجية حسب النتيجة</h3><label>أقل من ٥٠٪<textarea value={plans.low} onChange={event => setPlans({ ...plans, low: event.target.value })} /></label><label>من ٥٠٪ إلى ٧٩٪<textarea value={plans.medium} onChange={event => setPlans({ ...plans, medium: event.target.value })} /></label><label>٨٠٪ فأعلى<textarea value={plans.high} onChange={event => setPlans({ ...plans, high: event.target.value })} /></label></section>{message && <p className="diagnostic-message">{message}</p>}<div className="builder-actions"><button onClick={() => save(false)}>حفظ مسودة</button><button className="primary" onClick={() => save(true)}>نشر للطلاب</button></div></section>
     <section className="diagnostic-list"><h2>اختبارات المادة</h2>{!items.length && <p>لا توجد اختبارات حتى الآن.</p>}{items.map(item => <article key={item.id}><div><strong>{item.title}</strong><small>{item.questions.length} أسئلة • {item.published ? "منشور" : "مسودة"}</small></div><button disabled={deletingId === item.id} onClick={() => void deleteDiagnostic(item)}>{deletingId === item.id ? "جارٍ الحذف…" : "حذف بالكامل"}</button></article>)}</section></main>;
 }
