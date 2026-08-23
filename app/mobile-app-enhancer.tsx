@@ -5,16 +5,32 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import "./mobile-app-enhancer.css";
 import "./mobile-app-nav-fix.css";
+import "./mobile-orientation-v16.css";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-type MobileLink = { href: string; label: string; icon: string };
-type StudentAction = { tab: "home" | "grades" | "tests" | "plan" | "ai"; label: string; icon: string };
+type IconName = "home" | "students" | "grades" | "tests" | "plan" | "ai" | "admin" | "back";
+type MobileLink = { href: string; label: string; icon: IconName };
+type StudentAction = { tab: "home" | "grades" | "tests" | "plan" | "ai"; label: string; icon: IconName };
 
 const DISMISS_KEY = "lahooni-install-dismissed";
+
+function AppIcon({ name }: { name: IconName }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    home: <><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9 21v-7h6v7"/></>,
+    students: <><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.4-4 2.3-6 5.5-6s5.1 2 5.5 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15 14.5c3.4-.4 5.3 1.4 5.5 4.5"/></>,
+    grades: <><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h5M8 16h3"/><path d="m15 16 1.5 1.5L20 14"/></>,
+    tests: <><path d="M7 3h10v4H7z"/><path d="M5 5v16h14V5"/><path d="m8 12 2 2 4-4M8 18h8"/></>,
+    plan: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/><path d="M7 4.8 5.5 3.3M17 4.8l1.5-1.5"/></>,
+    ai: <><path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"/><path d="m18.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/><path d="m5 14 .7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2Z"/></>,
+    admin: <><path d="M4 21V8l8-5 8 5v13"/><path d="M8 21v-7h8v7M8 10h.01M12 10h.01M16 10h.01"/></>,
+    back: <><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></>,
+  };
+  return <svg className="mobile-nav-svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+}
 
 export default function MobileAppEnhancer() {
   const pathname = usePathname();
@@ -51,25 +67,25 @@ export default function MobileAppEnhancer() {
 
   const links = useMemo<MobileLink[]>(() => {
     if (pathname.startsWith("/teacher")) return [
-      { href: "/teacher/dashboard", label: "الرئيسية", icon: "⌂" },
-      { href: "/teacher/students", label: "الطلاب", icon: "◉" },
-      { href: "/teacher/grades", label: "الدرجات", icon: "▥" },
-      { href: "/teacher/diagnostics", label: "التشخيصي", icon: "✓" },
-      { href: "/teacher/ai", label: "الذكي", icon: "✦" },
+      { href: "/teacher/dashboard", label: "الرئيسية", icon: "home" },
+      { href: "/teacher/students", label: "الطلاب", icon: "students" },
+      { href: "/teacher/grades", label: "الدرجات", icon: "grades" },
+      { href: "/teacher/diagnostics", label: "التشخيصي", icon: "tests" },
+      { href: "/teacher/ai", label: "الذكي", icon: "ai" },
     ];
     if (pathname.startsWith("/admin")) return [
-      { href: "/admin", label: "الإدارة", icon: "⌂" },
-      { href: "/", label: "الرئيسية", icon: "↩" },
+      { href: "/admin", label: "الإدارة", icon: "admin" },
+      { href: "/", label: "الرئيسية", icon: "back" },
     ];
     return [];
   }, [pathname]);
 
   const studentActions: StudentAction[] = [
-    { tab: "home", label: "الرئيسية", icon: "⌂" },
-    { tab: "grades", label: "الدرجات", icon: "▥" },
-    { tab: "tests", label: "الاختبارات", icon: "✓" },
-    { tab: "plan", label: "الخطة", icon: "◎" },
-    { tab: "ai", label: "الذكي", icon: "✦" },
+    { tab: "home", label: "الرئيسية", icon: "home" },
+    { tab: "grades", label: "الدرجات", icon: "grades" },
+    { tab: "tests", label: "الاختبارات", icon: "tests" },
+    { tab: "plan", label: "الخطة", icon: "plan" },
+    { tab: "ai", label: "الذكي", icon: "ai" },
   ];
 
   function activateStudentTab(action: StudentAction) {
@@ -78,7 +94,8 @@ export default function MobileAppEnhancer() {
     if (!button) return;
     button.click();
     setActiveStudentTab(action.tab);
-    window.scrollTo({ top: document.querySelector(".student-portal-tabs")?.getBoundingClientRect().top || 0, behavior: "smooth" });
+    const tabs = document.querySelector(".student-portal-tabs");
+    if (tabs) window.scrollTo({ top: Math.max(0, window.scrollY + tabs.getBoundingClientRect().top - 12), behavior: "smooth" });
   }
 
   async function install() {
@@ -112,13 +129,13 @@ export default function MobileAppEnhancer() {
         <nav className="mobile-app-nav" aria-label="التنقل السريع في التطبيق" dir="rtl">
           {links.map(link => {
             const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
-            return <Link key={link.href} href={link.href} className={active ? "active" : ""}><span>{link.icon}</span><b>{link.label}</b></Link>;
+            return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}><span className="mobile-nav-icon"><AppIcon name={link.icon} /></span><b>{link.label}</b></Link>;
           })}
         </nav>
       )}
       {showStudentNavigation && (
         <nav className="mobile-app-nav student-mobile-actions" aria-label="أقسام بوابة الطالب" dir="rtl">
-          {studentActions.map(action => <button type="button" key={action.tab} className={activeStudentTab === action.tab ? "active" : ""} onClick={() => activateStudentTab(action)}><span>{action.icon}</span><b>{action.label}</b></button>)}
+          {studentActions.map(action => <button type="button" key={action.tab} className={activeStudentTab === action.tab ? "active" : ""} onClick={() => activateStudentTab(action)} aria-pressed={activeStudentTab === action.tab}><span className="mobile-nav-icon"><AppIcon name={action.icon} /></span><b>{action.label}</b></button>)}
         </nav>
       )}
     </>
