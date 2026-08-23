@@ -4,6 +4,8 @@ import { getSubjectConfig } from "../../../../lib/subject-config";
 import { createStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
+type SubjectAssignment = { id: string; label?: string };
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -15,14 +17,20 @@ export async function POST(request: Request) {
     const searches = teachers.docs.flatMap(teacher => {
       const teacherData = teacher.data();
       if (teacherData.active !== true) return [];
-      const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds);
-      return (Array.isArray(teacherData.subjectIds) ? teacherData.subjectIds : []).map((subjectId: string) => ({
+      const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds) as SubjectAssignment[];
+      const normalized: SubjectAssignment[] = assignments.length
+        ? assignments
+        : (Array.isArray(teacherData.subjectIds) ? teacherData.subjectIds : []).map((id: string) => ({ id, label: getSubjectConfig(id).label }));
+      const unique = new Map<string, SubjectAssignment>();
+      normalized.forEach((item: SubjectAssignment) => { if (item.id) unique.set(item.id, item); });
+      return [...unique.values()].map((item: SubjectAssignment) => ({
         teacherId: teacher.id,
         teacherName: teacherData.name || "المعلم",
-        subjectId,
-        subjectLabel: assignments.find(item => item.id === subjectId)?.label || getSubjectConfig(subjectId).label,
+        subjectId: item.id,
+        subjectLabel: item.label || getSubjectConfig(item.id).label,
       }));
     });
+
     const matches = await Promise.all(searches.map(async ({ teacherId, teacherName, subjectId, subjectLabel }) => {
       const students = await adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`).where("nationalId", "==", nationalId).limit(1).get();
       if (students.empty) return null;
@@ -34,6 +42,7 @@ export async function POST(request: Request) {
       const accessToken = createStudentAccessToken({ studentId: document.id, teacherId, subjectId, expiresAt: Date.now() + 2 * 60 * 60 * 1000 });
       return { id: document.id, teacherId, subjectKey: subjectId, subjectLabel, teacherName, icon: subject.icon || "📘", accessToken, data };
     }));
+
     const valid = matches.filter(Boolean);
     if (!valid.length) return NextResponse.json({ ok: false, message: "رقم الهوية أو كود الدخول غير صحيح، أو لم تُربط لك مادة بعد." }, { status: 401 });
     return NextResponse.json({ ok: true, matches: valid });
