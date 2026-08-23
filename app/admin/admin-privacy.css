@@ -1,1 +1,6 @@
 .admin2-login input::placeholder{color:transparent!important;opacity:0!important}
+.admin-quick-nav{position:sticky;top:0;z-index:2600;display:flex;justify-content:center;gap:8px;padding:10px 14px;background:#ffffffee;backdrop-filter:blur(14px);border-bottom:1px solid #dce7ef;box-shadow:0 8px 24px #173d5912}
+.admin-quick-nav a{min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:12px;background:#edf5fb;color:#173d59;text-decoration:none;font-weight:800;font-size:13px}
+.admin-quick-nav a:hover{background:#dfeefa}
+@media(max-width:720px){.admin-quick-nav{justify-content:flex-start;overflow-x:auto}.admin-quick-nav a{white-space:nowrap;font-size:12px;padding:7px 11px}}
+@media print{.admin-quick-nav{display:none!important}}
