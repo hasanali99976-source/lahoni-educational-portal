@@ -35,9 +35,7 @@ export default function SupervisorsAdminPage() {
       setSubjectIds(subjectIds.filter(id => id !== subjectId));
       const validTeacherIds = teachers.filter(teacher => teacher.subjectIds.some(id => id !== subjectId && subjectIds.includes(id))).map(teacher => teacher.id);
       setTeacherIds(teacherIds.filter(id => validTeacherIds.includes(id)));
-    } else {
-      setSubjectIds([...subjectIds, subjectId]);
-    }
+    } else setSubjectIds([...subjectIds, subjectId]);
   }
 
   function toggleTeacher(teacherId: string) {
@@ -54,6 +52,14 @@ export default function SupervisorsAdminPage() {
   }
 
   async function toggle(supervisor: Supervisor) { await fetch(`/api/admin/supervisors/${supervisor.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !supervisor.active }) }); await load(); }
+  async function resetPassword(supervisor: Supervisor) {
+    const nextPassword = window.prompt(`اكتب الرقم السري الجديد للمنسق ${supervisor.name} (٨ خانات فأكثر)`);
+    if (nextPassword === null) return;
+    if (nextPassword.length < 8) { setMessage("الرقم السري يجب أن يكون ٨ خانات فأكثر."); return; }
+    const response = await fetch(`/api/admin/supervisors/${supervisor.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: nextPassword }) });
+    const data = await response.json();
+    setMessage(response.ok ? `تم تغيير الرقم السري للمنسق ${supervisor.name}.` : (data.message || "تعذر تغيير الرقم السري"));
+  }
   async function remove(supervisor: Supervisor) { if (!confirm(`حذف حساب المنسق ${supervisor.name}؟`)) return; await fetch(`/api/admin/supervisors/${supervisor.id}`, { method: "DELETE" }); await load(); }
   const subjectLabel = (id: string) => SUBJECTS.find(item => item[0] === id)?.[1] || id;
 
@@ -76,7 +82,7 @@ export default function SupervisorsAdminPage() {
         })}</div></div>
         <button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الحفظ…" : "إضافة المنسق"}</button>
       </form></section>
-      <section className="admin2-panel"><h2>المنسقون الحاليون</h2><div className="admin2-list">{supervisors.length === 0 ? <div className="admin2-empty">لا توجد حسابات منسقين.</div> : supervisors.map(supervisor => <article className="admin2-teacher" key={supervisor.id}><span className="admin2-avatar">{supervisor.name.charAt(0)}</span><div><strong>{supervisor.name}</strong><p>{supervisor.subjectIds.map(subjectLabel).join(" • ")}</p><p>{supervisor.teacherIds.length} معلم مرتبط</p><span className={`admin2-state ${supervisor.active ? "on" : "off"}`}>{supervisor.active ? "مفعل" : "متوقف"}</span></div><div className="admin2-actions"><button className="admin2-btn soft" onClick={() => void toggle(supervisor)}>{supervisor.active ? "إيقاف" : "تفعيل"}</button><button className="admin2-btn danger" onClick={() => void remove(supervisor)}>حذف</button></div></article>)}</div></section>
+      <section className="admin2-panel"><h2>المنسقون الحاليون</h2><div className="admin2-list">{supervisors.length === 0 ? <div className="admin2-empty">لا توجد حسابات منسقين.</div> : supervisors.map(supervisor => <article className="admin2-teacher" key={supervisor.id}><span className="admin2-avatar">{supervisor.name.charAt(0)}</span><div><strong>{supervisor.name}</strong><p>{supervisor.subjectIds.map(subjectLabel).join(" • ")}</p><p>{supervisor.teacherIds.length} معلم مرتبط</p><span className={`admin2-state ${supervisor.active ? "on" : "off"}`}>{supervisor.active ? "مفعل" : "متوقف"}</span></div><div className="admin2-actions"><button className="admin2-btn soft" onClick={() => void resetPassword(supervisor)}>تغيير الرقم السري</button><button className="admin2-btn soft" onClick={() => void toggle(supervisor)}>{supervisor.active ? "إيقاف" : "تفعيل"}</button><button className="admin2-btn danger" onClick={() => void remove(supervisor)}>حذف</button></div></article>)}</div></section>
     </div>
   </div></main>;
 }
