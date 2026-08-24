@@ -7,6 +7,7 @@ import "./portal-experience-v4.css";
 import "./full-portal-redesign-v5.css";
 import "./portal-rebuild-v6.css";
 import "./education-intelligence-v17.css";
+import "./full-portal-overhaul-v18.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
