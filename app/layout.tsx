@@ -13,6 +13,7 @@ import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
 import MobileAppEnhancer from "./mobile-app-enhancer";
 import AdminLoginEnhancer from "./admin-login-enhancer";
+import PortalIntelligence from "./portal-intelligence";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -31,7 +32,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
     <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-    <PwaRegister /><MobileAppEnhancer /><AdminLoginEnhancer />
+    <PwaRegister /><MobileAppEnhancer /><AdminLoginEnhancer /><PortalIntelligence />
     <div className="portal-stage">{children}</div>
     <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
   </body></html>;
