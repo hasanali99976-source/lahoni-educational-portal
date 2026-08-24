@@ -1,0 +1,98 @@
+/* V18 — إعادة تصميم مرئية حقيقية لجميع البوابات دون تغيير الوظائف */
+:root{
+  --v18-ink:#102a36;--v18-muted:#667d88;--v18-bg:#eef6f4;--v18-card:#ffffffd9;
+  --v18-line:#d5e4e1;--v18-green:#147b68;--v18-blue:#245fa6;--v18-gold:#c79a43;
+  --v18-shadow:0 24px 70px rgba(18,55,65,.14);--v18-radius:26px;
+}
+html{background:linear-gradient(180deg,#edf8f5 0%,#f7faf9 45%,#eef4f8 100%)}
+body{color:var(--v18-ink);background:
+radial-gradient(circle at 90% 3%,rgba(20,123,104,.12),transparent 28%),
+radial-gradient(circle at 7% 32%,rgba(36,95,166,.09),transparent 24%),
+linear-gradient(180deg,#eff8f6,#f8fbfa 42%,#eef4f8)}
+.portal-stage{min-height:100vh;position:relative}
+.portal-stage:before{content:"🎓  ✦  📚  ✨";position:fixed;inset:4vh 4vw auto auto;z-index:-1;font-size:clamp(24px,4vw,58px);letter-spacing:18px;opacity:.08;filter:grayscale(.2);animation:v18-drift 10s ease-in-out infinite}
+
+/* هياكل البوابات */
+.v3-admin,.teacher-portal,.teacher-app-shell,.student-clean,.admin2,.diagnostics-page{
+  width:min(1480px,calc(100% - 34px));margin:0 auto;padding:26px 0 110px!important;
+}
+.v3-admin>header,.teacher-head,.teacher-topbar,.student-clean-head,.diagnostics-hero{
+  position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.62)!important;border-radius:34px!important;
+  padding:28px!important;background:
+  linear-gradient(135deg,rgba(10,47,58,.97),rgba(20,123,104,.93) 55%,rgba(39,104,161,.91))!important;
+  color:white!important;box-shadow:0 26px 80px rgba(12,48,58,.28)!important;
+}
+.v3-admin>header:after,.teacher-head:after,.teacher-topbar:after,.student-clean-head:after,.diagnostics-hero:after{
+  content:"🤖  📘  📊";position:absolute;left:24px;top:18px;font-size:42px;opacity:.18;transform:rotate(-8deg)
+}
+.v3-admin h1,.teacher-head h1,.teacher-topbar h1,.student-clean-head h1,.diagnostics-hero h1{font-size:clamp(28px,4vw,50px)!important;letter-spacing:-.7px;margin:0 0 8px!important}
+
+/* البطاقات */
+.v3-panel,.card,.class-card,.student-main-summary,.student-goal-card,.student-home-grid article,.student-ai-grid article,
+.student-mini-stats article,.diagnostic-builder,.diagnostic-list,.diagnostic-results,.teacher-grid>*,.v3-admin-grid>*{
+  background:var(--v18-card)!important;backdrop-filter:blur(18px);border:1px solid rgba(206,224,221,.92)!important;
+  border-radius:var(--v18-radius)!important;box-shadow:var(--v18-shadow)!important;
+}
+.v3-panel,.card,.class-card,.student-home-grid article,.student-ai-grid article,.student-mini-stats article,
+.diagnostic-list article,.v3-teacher-list article{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease}
+.v3-panel:hover,.card:hover,.class-card:hover,.student-home-grid article:hover,.student-ai-grid article:hover,.student-mini-stats article:hover{
+  transform:translateY(-6px);box-shadow:0 30px 75px rgba(15,65,75,.18)!important;border-color:color-mix(in srgb,var(--subject-primary,var(--v18-green)) 38%,white)!important
+}
+
+/* أزرار وهوية موحدة */
+button,.btn,.portal-submit,.student-smart-action,.diagnostic-tests button,.submit-diagnostic{
+  border-radius:15px!important;font-weight:800!important;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease
+}
+button:hover,.btn:hover,.portal-submit:hover,.student-smart-action:hover{transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 10px 28px rgba(23,87,99,.18)}
+input,select,textarea{border-radius:15px!important;border:1px solid #cedfdd!important;background:#fff!important;box-shadow:inset 0 1px 0 #fff}
+input:focus,select:focus,textarea:focus{outline:3px solid color-mix(in srgb,var(--subject-primary,var(--v18-green)) 22%,transparent)!important;border-color:var(--subject-primary,var(--v18-green))!important}
+
+/* بوابة المعلم */
+.teacher-grid,.v3-admin-grid{gap:18px!important}
+.teacher-grid:before{content:"مركز العمل الذكي للمعلم ✨";grid-column:1/-1;padding:18px 22px;border-radius:22px;background:linear-gradient(90deg,#eaf7f3,#edf4fb);color:#163c49;font-weight:900;font-size:19px;border:1px solid #d6e9e4}
+.class-card{position:relative;overflow:hidden}
+.class-card:after{content:var(--subject-motif,"📘");position:absolute;left:15px;bottom:4px;font-size:58px;opacity:.08;transform:rotate(-12deg)}
+
+/* بوابة الطالب */
+.student-clean{position:relative}
+.student-clean:before{content:"رحلتك التعليمية اليوم 🚀";display:block;margin:0 0 14px;padding:12px 18px;border-radius:18px;background:linear-gradient(90deg,#fff8e8,#eef8f6);border:1px solid #e6dfc9;font-weight:900;color:#38515a}
+.student-portal-tabs{padding:8px!important;border-radius:22px!important;background:#ffffffd9!important;border:1px solid #d8e6e4!important;box-shadow:0 16px 42px rgba(20,62,72,.11)!important}
+.student-portal-tabs button{border-radius:16px!important}
+.student-portal-tabs button.active{transform:translateY(-2px);box-shadow:0 12px 28px var(--subject-glow,rgba(20,123,104,.2))!important}
+.student-mini-stats article:nth-child(1):before{content:"📈"}.student-mini-stats article:nth-child(2):before{content:"🕒"}.student-mini-stats article:nth-child(3):before{content:"🏅"}
+.student-mini-stats article:before{display:block;font-size:25px;margin-bottom:6px}
+
+/* الإدارة */
+.v3-admin-grid:before{content:"لوحة القيادة المدرسية الذكية 🤖";grid-column:1/-1;padding:18px 22px;border-radius:22px;background:linear-gradient(90deg,#eaf7f3,#edf4fb);color:#163c49;font-weight:900;font-size:19px;border:1px solid #d6e9e4}
+.v3-stats article{border-radius:22px!important;background:linear-gradient(145deg,#fff,#edf8f5)!important;border:1px solid #d9e8e4!important;box-shadow:0 14px 36px rgba(20,61,72,.1)!important}
+.v3-stats article:nth-child(1):before{content:"👨‍🏫"}.v3-stats article:nth-child(2):before{content:"📚"}.v3-stats article:nth-child(3):before{content:"🧠"}
+.v3-stats article:before{display:block;font-size:25px;margin-bottom:5px}
+
+/* الاختبارات التشخيصية */
+.questions-editor article{border:1px solid #d9e7e4!important;border-radius:22px!important;background:linear-gradient(180deg,#fff,#f7fbfa)!important;padding:18px!important;box-shadow:0 14px 34px rgba(16,59,70,.08)}
+.questions-editor article header strong:before{content:"🧩 ";}
+.plan-editor{background:linear-gradient(135deg,#edf8f5,#f8f3e8)!important;border-radius:24px!important;padding:20px!important;border:1px solid #d8e7df}
+
+/* هوية المواد المتحركة */
+[data-subject]{--v18-emoji:var(--subject-motif,"📘")}
+[data-subject]:after{content:var(--v18-emoji);position:fixed;inset:auto auto 8vh 3vw;z-index:-1;font-size:clamp(58px,10vw,150px);opacity:.07;animation:v18-orbit 9s ease-in-out infinite;filter:drop-shadow(0 20px 30px var(--subject-glow,transparent))}
+[data-subject="history"]{--v18-emoji:"🏛️"}[data-subject="geography"]{--v18-emoji:"🌍"}[data-subject="mathematics"]{--v18-emoji:"➗"}
+[data-subject="physics"]{--v18-emoji:"⚛️"}[data-subject="chemistry"]{--v18-emoji:"🧪"}[data-subject="biology"]{--v18-emoji:"🧬"}
+[data-subject="arabic"]{--v18-emoji:"✒️"}[data-subject="english"]{--v18-emoji:"🔤"}[data-subject="computer-science"],[data-subject="digital-technology"]{--v18-emoji:"💻"}
+[data-subject="quran"],[data-subject="quran-tafsir"],[data-subject="islamic-studies"]{--v18-emoji:"📖"}[data-subject="art"]{--v18-emoji:"🎨"}[data-subject="physical-education"]{--v18-emoji:"⚽"}
+
+/* الجوال */
+@media(max-width:760px){
+  .v3-admin,.teacher-portal,.teacher-app-shell,.student-clean,.admin2,.diagnostics-page{width:calc(100% - 20px);padding-top:10px!important}
+  .v3-admin>header,.teacher-head,.teacher-topbar,.student-clean-head,.diagnostics-hero{border-radius:24px!important;padding:21px!important}
+  .v3-admin>header:after,.teacher-head:after,.teacher-topbar:after,.student-clean-head:after,.diagnostics-hero:after{font-size:28px;left:12px;top:12px}
+  .v3-panel,.card,.class-card,.student-main-summary,.student-goal-card,.diagnostic-builder,.diagnostic-list{border-radius:20px!important}
+  .teacher-grid:before,.v3-admin-grid:before{font-size:15px;padding:14px 16px}
+}
+@media(orientation:landscape) and (max-height:560px){
+  .v3-admin,.teacher-portal,.teacher-app-shell,.student-clean,.diagnostics-page{width:calc(100% - 90px);margin-right:78px}
+  .v3-admin>header,.teacher-head,.teacher-topbar,.student-clean-head,.diagnostics-hero{padding:18px 22px!important}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@keyframes v18-drift{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(16px) rotate(3deg)}}
+@keyframes v18-orbit{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-20px) rotate(8deg)}}
