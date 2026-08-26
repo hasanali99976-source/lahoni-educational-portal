@@ -1,8 +1,8 @@
 import "./student-v3.css";
 import StudentSecurity from "./student-security";
 import StudentClassGuard from "./student-class-guard";
-import StudentCodeOnly from "./student-code-only";
+import StudentCodeOnlyUI from "./student-code-only-ui";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <StudentSecurity><StudentClassGuard /><StudentCodeOnly />{children}</StudentSecurity>;
+  return <StudentSecurity><StudentClassGuard /><StudentCodeOnlyUI />{children}</StudentSecurity>;
 }
