@@ -9,14 +9,36 @@ import { useTeacherClient } from "../../../lib/teacher-client";
 import "./attendance.css";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
-type Student = { id: string; name?: string; nationalId?: string; class?: string };
+type Student = { id: string; name?: string; class?: string };
 
-function toDateInput(date: Date) { const offset=date.getTimezoneOffset(); return new Date(date.getTime()-offset*60000).toISOString().slice(0,10); }
-function formatHijri(value:string){return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date(`${value}T12:00:00`));}
-function safeId(value:string){return encodeURIComponent(value).replace(/%/g,"_");}
-function safeFile(value:string){return value.replace(/[\\/:*?"<>|]/g,"-").replace(/\s+/g,"-");}
+const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
+const STATUS_LABELS: Record<AttendanceStatus, string> = {
+  present: "حاضر",
+  absent: "غائب",
+  late: "متأخر",
+  excused: "مستأذن",
+  escaped: "هروب",
+};
 
-export default function AttendancePage(){
+function toDateInput(date: Date) {
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+function formatHijri(value: string) {
+  return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${value}T12:00:00`));
+}
+function safeId(value: string) { return encodeURIComponent(value).replace(/%/g, "_"); }
+function safeFile(value: string) { return value.replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, "-"); }
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c] || c));
+}
+
+export default function AttendancePage() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
   const subjectKey = session?.subjectKey || "history";
@@ -24,29 +46,171 @@ export default function AttendancePage(){
   const subject = session?.subject || "";
   const ready = !!session?.teacherId && !!session?.subjectKey;
 
-  const [students,setStudents]=useState<Student[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedDate,setSelectedDate]=useState(toDateInput(new Date())),[records,setRecords]=useState<Record<string,AttendanceStatus>>({}),[message,setMessage]=useState(""),[saving,setSaving]=useState(false);
-  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"students"):"",[teacherId,subjectKey]);
-  const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"attendance"):"",[teacherId,subjectKey]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
+  const [records, setRecords] = useState<Record<string, AttendanceStatus>>({});
+  const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  useEffect(()=>{ if(!ready){ setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب")) },[ready,studentsPath]);
-  const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
-  const classStudents=useMemo(()=>students.filter(s=>(s.class||"").trim()===selectedClass),[students,selectedClass]);
-  useEffect(()=>{async function load(){if(!selectedClass||!attendancePath){setRecords({});return}const snap=await getDoc(doc(db,attendancePath,`${safeId(selectedClass)}_${selectedDate}`));const saved=(snap.data()?.records||{}) as Record<string,AttendanceStatus>;setRecords(Object.fromEntries(classStudents.map(s=>[s.id,saved[s.id]||"present"])))}load().catch(()=>setMessage("تعذر تحميل التحضير لهذا اليوم"))},[selectedClass,selectedDate,classStudents,attendancePath]);
-  const counts=useMemo(()=>{const v=classStudents.map(s=>records[s.id]||"present");return{present:v.filter(x=>x==="present").length,absent:v.filter(x=>x==="absent").length,late:v.filter(x=>x==="late").length,excused:v.filter(x=>x==="excused").length,escaped:v.filter(x=>x==="escaped").length}},[classStudents,records]);
-  function moveDay(amount:number){const d=new Date(`${selectedDate}T12:00:00`);d.setDate(d.getDate()+amount);setSelectedDate(toDateInput(d));}
-  async function saveAttendance(){if(!selectedClass||!attendancePath)return setMessage("اختر الفصل أولًا");try{setSaving(true);await setDoc(doc(db,attendancePath,`${safeId(selectedClass)}_${selectedDate}`),{class:selectedClass,date:selectedDate,hijriDate:formatHijri(selectedDate),records,teacherId,teacherName,subjectKey,subject,updatedAt:new Date().toISOString()},{merge:true});setMessage("تم حفظ التحضير لهذا الحساب فقط")}catch{setMessage("تعذر حفظ التحضير")}finally{setSaving(false)}}
-  function exportExcel(){
-    if(!selectedClass||!classStudents.length){setMessage("اختر فصلًا يحتوي على طلاب أولًا");return;}
-    const labels:Record<AttendanceStatus,string>={present:"حاضر",absent:"غائب",late:"متأخر",excused:"مستأذن",escaped:"هروب"};
-    const rows=classStudents.map((student,index)=>({"م":index+1,"اسم الطالب":student.name||"","رقم الهوية":student.nationalId||"","الفصل":selectedClass,"الحالة":labels[records[student.id]||"present"]}));
-    const summary=[{"المعلم":teacherName,"المادة":subject,"الفصل":selectedClass,"التاريخ الميلادي":selectedDate,"التاريخ الهجري":formatHijri(selectedDate),"حاضر":counts.present,"غائب":counts.absent,"متأخر":counts.late,"مستأذن":counts.excused,"هروب":counts.escaped}];
-    const workbook=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook,XLSX.utils.json_to_sheet(summary),"ملخص التحضير");
-    XLSX.utils.book_append_sheet(workbook,XLSX.utils.json_to_sheet(rows),"كشف الطلاب");
-    XLSX.writeFile(workbook,`تحضير-${safeFile(subject)}-${safeFile(selectedClass)}-${selectedDate}.xlsx`);
-    setMessage("تم تجهيز ملف Excel للتحضير");
+  const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as any, "students") : "", [teacherId, subjectKey]);
+  const attendancePath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as any, "attendance") : "", [teacherId, subjectKey]);
+
+  useEffect(() => {
+    if (!ready) { setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; }
+    return onSnapshot(collection(db, studentsPath), snap => {
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Student[];
+      list.sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"));
+      setStudents(list);
+    }, () => setMessage("تعذر تحميل طلاب هذا الحساب"));
+  }, [ready, studentsPath]);
+
+  const classes = useMemo(() => Array.from(new Set(students.map(s => (s.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
+  const classStudents = useMemo(() => students.filter(s => (s.class || "").trim() === selectedClass), [students, selectedClass]);
+
+  useEffect(() => {
+    async function load() {
+      if (!selectedClass || !attendancePath) { setRecords({}); return; }
+      const snap = await getDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`));
+      const saved = (snap.data()?.records || {}) as Record<string, AttendanceStatus>;
+      setRecords(Object.fromEntries(classStudents.map(s => [s.id, saved[s.id] || "present"])));
+    }
+    load().catch(() => setMessage("تعذر تحميل التحضير لهذا اليوم"));
+  }, [selectedClass, selectedDate, classStudents, attendancePath]);
+
+  const counts = useMemo(() => {
+    const values = classStudents.map(s => records[s.id] || "present");
+    return {
+      present: values.filter(x => x === "present").length,
+      absent: values.filter(x => x === "absent").length,
+      late: values.filter(x => x === "late").length,
+      excused: values.filter(x => x === "excused").length,
+      escaped: values.filter(x => x === "escaped").length,
+    };
+  }, [classStudents, records]);
+
+  function moveDay(amount: number) {
+    const d = new Date(`${selectedDate}T12:00:00`);
+    d.setDate(d.getDate() + amount);
+    setSelectedDate(toDateInput(d));
   }
-  if(!ready)return <main className="attendance-page" dir="rtl"><section className="attendance-card"><p>{message||"جارٍ تجهيز بيانات الحساب..."}</p></section></main>;
-  const statuses:[AttendanceStatus,string][]=[["present","حاضر"],["absent","غائب"],["late","متأخر"],["excused","مستأذن"],["escaped","هروب"]];
-  return <main className="attendance-page" dir="rtl"><section className="attendance-card"><header className="attendance-head"><div><h1>التحضير اليومي — {subject}</h1><p>المعلم: {teacherName}. تظهر هنا فصول وطلاب هذا الحساب فقط.</p></div><div className="hijri-card"><small>التاريخ الهجري</small><strong>{formatHijri(selectedDate)}</strong><div><button onClick={()=>moveDay(-1)}>اليوم السابق</button><button onClick={()=>setSelectedDate(toDateInput(new Date()))}>اليوم</button><button onClick={()=>moveDay(1)}>اليوم التالي</button></div></div></header><div className="attendance-controls"><label>الفصل<select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(n=><option key={n}>{n}</option>)}</select></label><label>التاريخ<input type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)}/></label><button onClick={saveAttendance} disabled={!selectedClass||saving}>{saving?"جارٍ الحفظ...":"حفظ التحضير"}</button><button type="button" onClick={()=>window.print()} disabled={!selectedClass}>طباعة الكشف</button><button type="button" onClick={exportExcel} disabled={!selectedClass||!classStudents.length}>تحميل Excel</button></div><div className="attendance-stats"><span className="present">حاضر: {counts.present}</span><span className="absent">غائب: {counts.absent}</span><span>متأخر: {counts.late}</span><span>مستأذن: {counts.excused}</span><span className="escaped">هروب: {counts.escaped}</span></div><div className="attendance-list">{classStudents.map((student,index)=><article key={student.id}><div className="student-info"><b>{index+1}</b><div><strong>{student.name}</strong><small>{student.nationalId}</small></div></div><div className="status-buttons">{statuses.map(([status,label])=><button key={status} className={records[student.id]===status?`active ${status}`:""} onClick={()=>setRecords(c=>({...c,[student.id]:status}))}>{label}</button>)}</div></article>)}{!selectedClass&&<p className="attendance-empty">اختر الفصل لعرض طلاب {subject} فقط.</p>}</div>{message&&<p className="attendance-message">{message}</p>}</section></main>;
+
+  async function saveAttendance() {
+    if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");
+    try {
+      setSaving(true);
+      await setDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`), {
+        class: selectedClass,
+        date: selectedDate,
+        hijriDate: formatHijri(selectedDate),
+        records,
+        teacherId,
+        teacherName,
+        subjectKey,
+        subject,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+      setMessage("تم حفظ التحضير بنجاح");
+    } catch {
+      setMessage("تعذر حفظ التحضير");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function reportRows() {
+    return classStudents.map((student, index) => ({
+      number: index + 1,
+      name: student.name || "طالب بدون اسم",
+      className: selectedClass,
+      status: STATUS_LABELS[records[student.id] || "present"],
+      notes: "",
+    }));
+  }
+
+  function exportExcel() {
+    const rows = reportRows();
+    if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
+
+    const details = rows.map(row => ({
+      "م": row.number,
+      "اسم الطالب": row.name,
+      "الفصل": row.className,
+      "حالة الطالب": row.status,
+      "ملاحظات": row.notes,
+    }));
+    const summary = [
+      { "البيان": "اسم البوابة", "القيمة": PORTAL_NAME },
+      { "البيان": "المعلم", "القيمة": teacherName },
+      { "البيان": "المادة", "القيمة": subject },
+      { "البيان": "الفصل", "القيمة": selectedClass },
+      { "البيان": "التاريخ الميلادي", "القيمة": selectedDate },
+      { "البيان": "التاريخ الهجري", "القيمة": formatHijri(selectedDate) },
+      { "البيان": "إجمالي الطلاب", "القيمة": rows.length },
+      { "البيان": "حاضر", "القيمة": counts.present },
+      { "البيان": "غائب", "القيمة": counts.absent },
+      { "البيان": "متأخر", "القيمة": counts.late },
+      { "البيان": "مستأذن", "القيمة": counts.excused },
+      { "البيان": "هروب", "القيمة": counts.escaped },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    const summarySheet = XLSX.utils.json_to_sheet(summary);
+    const detailsSheet = XLSX.utils.json_to_sheet(details);
+    summarySheet["!cols"] = [{ wch: 22 }, { wch: 38 }];
+    detailsSheet["!cols"] = [{ wch: 6 }, { wch: 34 }, { wch: 22 }, { wch: 18 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(workbook, summarySheet, "ملخص التقرير");
+    XLSX.utils.book_append_sheet(workbook, detailsSheet, "أسماء الطلاب وحالاتهم");
+    XLSX.writeFile(workbook, `تقرير-حضور-${safeFile(selectedClass)}-${selectedDate}.xlsx`);
+    setMessage(`تم تحميل تقرير ${selectedClass} ويحتوي على ${rows.length} طالبًا`);
+  }
+
+  function printAdminReport() {
+    const rows = reportRows();
+    if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
+    const perPage = 22;
+    const pages = Array.from({ length: Math.ceil(rows.length / perPage) }, (_, index) => rows.slice(index * perPage, (index + 1) * perPage));
+    const popup = window.open("", "_blank", "width=900,height=1100");
+    if (!popup) return setMessage("اسمح بالنوافذ المنبثقة لفتح التقرير");
+
+    const pagesHtml = pages.map((pageRows, pageIndex) => `
+      <section class="page">
+        <header class="report-header">
+          <div class="portal">${PORTAL_NAME}</div>
+          <h1>تقرير الحضور اليومي للإدارة</h1>
+          <div class="meta">
+            <span><b>المعلم:</b> ${escapeHtml(teacherName)}</span>
+            <span><b>المادة:</b> ${escapeHtml(subject)}</span>
+            <span><b>الفصل:</b> ${escapeHtml(selectedClass)}</span>
+            <span><b>التاريخ:</b> ${escapeHtml(selectedDate)}</span>
+            <span class="wide"><b>التاريخ الهجري:</b> ${escapeHtml(formatHijri(selectedDate))}</span>
+          </div>
+          <div class="summary">
+            <span>الإجمالي: ${rows.length}</span><span>حاضر: ${counts.present}</span><span>غائب: ${counts.absent}</span><span>متأخر: ${counts.late}</span><span>مستأذن: ${counts.excused}</span><span>هروب: ${counts.escaped}</span>
+          </div>
+        </header>
+        <table>
+          <thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الحالة</th><th>ملاحظات</th></tr></thead>
+          <tbody>${pageRows.map(row => `<tr><td>${row.number}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.className)}</td><td class="status">${escapeHtml(row.status)}</td><td></td></tr>`).join("")}</tbody>
+        </table>
+        ${pageIndex === pages.length - 1 ? `<div class="signatures"><span>توقيع المعلم: __________________</span><span>اعتماد الإدارة: __________________</span></div>` : ""}
+        <footer><strong>${PORTAL_NAME}</strong><span>صفحة ${pageIndex + 1} من ${pages.length}</span></footer>
+      </section>`).join("");
+
+    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير حضور ${escapeHtml(selectedClass)}</title><style>
+      @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#eef2f5;font-family:Arial,Tahoma,sans-serif;color:#111}.toolbar{position:sticky;top:0;z-index:2;display:flex;justify-content:center;gap:10px;padding:10px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer}.page{position:relative;width:210mm;min-height:297mm;margin:10mm auto;background:#fff;padding:12mm 12mm 18mm;page-break-after:always;overflow:hidden}.page:last-child{page-break-after:auto}.portal{text-align:center;font-weight:900;color:#173f61;border-bottom:2px solid #173f61;padding-bottom:7px}.report-header h1{text-align:center;margin:8px 0 10px;font-size:20px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px 16px;border:1px solid #222;padding:9px;font-size:12px}.meta .wide{grid-column:1/-1}.summary{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #222;border-top:0}.summary span{text-align:center;padding:7px 2px;font-size:10px;font-weight:700;border-left:1px solid #222}.summary span:last-child{border-left:0}table{width:100%;border-collapse:collapse;margin-top:10px;table-layout:fixed}th,td{border:1px solid #222;padding:6px;font-size:11px}th{background:#edf3f7;text-align:center}th:nth-child(1),td:nth-child(1){width:7%;text-align:center}th:nth-child(2),td:nth-child(2){width:35%}th:nth-child(3),td:nth-child(3){width:19%;text-align:center}th:nth-child(4),td:nth-child(4){width:15%;text-align:center}th:nth-child(5),td:nth-child(5){width:24%}.status{font-weight:800}.signatures{display:flex;justify-content:space-between;margin-top:18px;font-size:12px;font-weight:700}footer{position:absolute;right:12mm;left:12mm;bottom:7mm;display:flex;justify-content:space-between;border-top:1px solid #666;padding-top:5px;font-size:10px;color:#333}@media print{body{background:#fff}.toolbar{display:none}.page{margin:0;width:210mm;height:297mm;min-height:297mm}}
+    </style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>${pagesHtml}</body></html>`);
+    popup.document.close();
+  }
+
+  if (!ready) return <main className="attendance-page" dir="rtl"><section className="attendance-card"><p>{message || "جارٍ تجهيز بيانات الحساب..."}</p></section></main>;
+  const statuses: [AttendanceStatus, string][] = Object.entries(STATUS_LABELS) as [AttendanceStatus, string][];
+
+  return <main className="attendance-page" dir="rtl"><section className="attendance-card">
+    <header className="attendance-head"><div><h1>التحضير اليومي — {subject}</h1><p>المعلم: {teacherName}. اختر الفصل ثم احفظ أو اسحب تقريرًا رسميًا للإدارة.</p></div><div className="hijri-card"><small>التاريخ الهجري</small><strong>{formatHijri(selectedDate)}</strong><div><button onClick={() => moveDay(-1)}>اليوم السابق</button><button onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button><button onClick={() => moveDay(1)}>اليوم التالي</button></div></div></header>
+    <div className="attendance-controls"><label>الفصل<select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}><option value="">اختر الفصل</option>{classes.map(n => <option key={n}>{n}</option>)}</select></label><label>التاريخ<input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></label><button onClick={saveAttendance} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button><button type="button" onClick={printAdminReport} disabled={!selectedClass || !classStudents.length}>تقرير PDF للإدارة</button><button type="button" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تقرير Excel للإدارة</button></div>
+    <div className="attendance-stats"><span className="present">حاضر: {counts.present}</span><span className="absent">غائب: {counts.absent}</span><span>متأخر: {counts.late}</span><span>مستأذن: {counts.excused}</span><span className="escaped">هروب: {counts.escaped}</span></div>
+    <div className="attendance-list">{classStudents.map((student, index) => <article key={student.id}><div className="student-info"><b>{index + 1}</b><div><strong>{student.name || "طالب بدون اسم"}</strong><small>{selectedClass}</small></div></div><div className="status-buttons">{statuses.map(([status, label]) => <button key={status} className={records[student.id] === status ? `active ${status}` : ""} onClick={() => setRecords(c => ({ ...c, [student.id]: status }))}>{label}</button>)}</div></article>)}{!selectedClass && <p className="attendance-empty">اختر الفصل لعرض الطلاب.</p>}</div>
+    {message && <p className="attendance-message">{message}</p>}
+  </section></main>;
 }
