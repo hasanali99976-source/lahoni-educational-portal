@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
-import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
+import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import "./attendance.css";
 
@@ -131,7 +131,6 @@ export default function AttendancePage() {
   function exportExcel() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
-
     const details = rows.map(row => ({
       "م": row.number,
       "اسم الطالب": row.name,
@@ -153,7 +152,6 @@ export default function AttendancePage() {
       { "البيان": "مستأذن", "القيمة": counts.excused },
       { "البيان": "هروب", "القيمة": counts.escaped },
     ];
-
     const workbook = XLSX.utils.book_new();
     const summarySheet = XLSX.utils.json_to_sheet(summary);
     const detailsSheet = XLSX.utils.json_to_sheet(details);
@@ -168,38 +166,14 @@ export default function AttendancePage() {
   function printAdminReport() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
-    const perPage = 22;
-    const pages = Array.from({ length: Math.ceil(rows.length / perPage) }, (_, index) => rows.slice(index * perPage, (index + 1) * perPage));
-    const popup = window.open("", "_blank", "width=900,height=1100");
+    const popup = window.open("", "_blank", "width=1200,height=900");
     if (!popup) return setMessage("اسمح بالنوافذ المنبثقة لفتح التقرير");
 
-    const pagesHtml = pages.map((pageRows, pageIndex) => `
-      <section class="page">
-        <header class="report-header">
-          <div class="portal">${PORTAL_NAME}</div>
-          <h1>تقرير الحضور اليومي للإدارة</h1>
-          <div class="meta">
-            <span><b>المعلم:</b> ${escapeHtml(teacherName)}</span>
-            <span><b>المادة:</b> ${escapeHtml(subject)}</span>
-            <span><b>الفصل:</b> ${escapeHtml(selectedClass)}</span>
-            <span><b>التاريخ:</b> ${escapeHtml(selectedDate)}</span>
-            <span class="wide"><b>التاريخ الهجري:</b> ${escapeHtml(formatHijri(selectedDate))}</span>
-          </div>
-          <div class="summary">
-            <span>الإجمالي: ${rows.length}</span><span>حاضر: ${counts.present}</span><span>غائب: ${counts.absent}</span><span>متأخر: ${counts.late}</span><span>مستأذن: ${counts.excused}</span><span>هروب: ${counts.escaped}</span>
-          </div>
-        </header>
-        <table>
-          <thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الحالة</th><th>ملاحظات</th></tr></thead>
-          <tbody>${pageRows.map(row => `<tr><td>${row.number}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.className)}</td><td class="status">${escapeHtml(row.status)}</td><td></td></tr>`).join("")}</tbody>
-        </table>
-        ${pageIndex === pages.length - 1 ? `<div class="signatures"><span>توقيع المعلم: __________________</span><span>اعتماد الإدارة: __________________</span></div>` : ""}
-        <footer><strong>${PORTAL_NAME}</strong><span>صفحة ${pageIndex + 1} من ${pages.length}</span></footer>
-      </section>`).join("");
+    const bodyRows = rows.map(row => `<tr><td>${row.number}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.className)}</td><td class="status">${escapeHtml(row.status)}</td><td></td></tr>`).join("");
 
     popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير حضور ${escapeHtml(selectedClass)}</title><style>
-      @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#eef2f5;font-family:Arial,Tahoma,sans-serif;color:#111}.toolbar{position:sticky;top:0;z-index:2;display:flex;justify-content:center;gap:10px;padding:10px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer}.page{position:relative;width:210mm;min-height:297mm;margin:10mm auto;background:#fff;padding:12mm 12mm 18mm;page-break-after:always;overflow:hidden}.page:last-child{page-break-after:auto}.portal{text-align:center;font-weight:900;color:#173f61;border-bottom:2px solid #173f61;padding-bottom:7px}.report-header h1{text-align:center;margin:8px 0 10px;font-size:20px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px 16px;border:1px solid #222;padding:9px;font-size:12px}.meta .wide{grid-column:1/-1}.summary{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #222;border-top:0}.summary span{text-align:center;padding:7px 2px;font-size:10px;font-weight:700;border-left:1px solid #222}.summary span:last-child{border-left:0}table{width:100%;border-collapse:collapse;margin-top:10px;table-layout:fixed}th,td{border:1px solid #222;padding:6px;font-size:11px}th{background:#edf3f7;text-align:center}th:nth-child(1),td:nth-child(1){width:7%;text-align:center}th:nth-child(2),td:nth-child(2){width:35%}th:nth-child(3),td:nth-child(3){width:19%;text-align:center}th:nth-child(4),td:nth-child(4){width:15%;text-align:center}th:nth-child(5),td:nth-child(5){width:24%}.status{font-weight:800}.signatures{display:flex;justify-content:space-between;margin-top:18px;font-size:12px;font-weight:700}footer{position:absolute;right:12mm;left:12mm;bottom:7mm;display:flex;justify-content:space-between;border-top:1px solid #666;padding-top:5px;font-size:10px;color:#333}@media print{body{background:#fff}.toolbar{display:none}.page{margin:0;width:210mm;height:297mm;min-height:297mm}}
-    </style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>${pagesHtml}</body></html>`);
+      @page{size:A4 landscape;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,Tahoma,sans-serif;color:#111;background:#eef2f5}.toolbar{position:sticky;top:0;z-index:2;display:flex;justify-content:center;gap:10px;padding:10px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer}.page{position:relative;width:297mm;height:210mm;margin:8mm auto;background:#fff;padding:7mm 9mm 12mm;overflow:hidden}.portal{text-align:center;font-weight:900;color:#173f61;border-bottom:2px solid #173f61;padding-bottom:4px;font-size:13px}.report-header h1{text-align:center;margin:4px 0 6px;font-size:16px}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 10px;border:1px solid #222;padding:5px 7px;font-size:9px}.meta .wide{grid-column:1/-1}.summary{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #222;border-top:0}.summary span{text-align:center;padding:4px 2px;font-size:8px;font-weight:700;border-left:1px solid #222}.summary span:last-child{border-left:0}table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed}th,td{border:1px solid #222;padding:2.6px 4px;font-size:8.2px;line-height:1.15}th{background:#edf3f7;text-align:center;font-size:8.5px}th:nth-child(1),td:nth-child(1){width:5%;text-align:center}th:nth-child(2),td:nth-child(2){width:39%}th:nth-child(3),td:nth-child(3){width:16%;text-align:center}th:nth-child(4),td:nth-child(4){width:14%;text-align:center}th:nth-child(5),td:nth-child(5){width:26%}.status{font-weight:800}.signatures{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;font-weight:700}footer{position:absolute;right:9mm;left:9mm;bottom:4mm;display:flex;justify-content:space-between;border-top:1px solid #666;padding-top:3px;font-size:8px;color:#333}@media print{html,body{background:#fff}.toolbar{display:none}.page{margin:0;width:297mm;height:210mm;page-break-after:avoid;break-after:avoid}}
+    </style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><section class="page"><header class="report-header"><div class="portal">${PORTAL_NAME}</div><h1>تقرير الحضور اليومي للإدارة</h1><div class="meta"><span><b>المعلم:</b> ${escapeHtml(teacherName)}</span><span><b>المادة:</b> ${escapeHtml(subject)}</span><span><b>الفصل:</b> ${escapeHtml(selectedClass)}</span><span><b>التاريخ:</b> ${escapeHtml(selectedDate)}</span><span class="wide"><b>التاريخ الهجري:</b> ${escapeHtml(formatHijri(selectedDate))}</span></div><div class="summary"><span>الإجمالي: ${rows.length}</span><span>حاضر: ${counts.present}</span><span>غائب: ${counts.absent}</span><span>متأخر: ${counts.late}</span><span>مستأذن: ${counts.excused}</span><span>هروب: ${counts.escaped}</span></div></header><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody>${bodyRows}</tbody></table><div class="signatures"><span>توقيع المعلم: __________________</span><span>اعتماد الإدارة: __________________</span></div><footer><strong>${PORTAL_NAME}</strong><span>صفحة واحدة</span></footer></section></body></html>`);
     popup.document.close();
   }
 
