@@ -2,8 +2,8 @@
 .grades-page .gradebook-table{min-width:0!important;width:100%!important;table-layout:fixed}
 .grades-page .gradebook-table th,.grades-page .gradebook-table td{padding:7px 4px!important;white-space:normal!important}
 .grades-page .gradebook-table .sticky-number{width:38px!important}
-.grades-page .gradebook-table .national-id-head,.grades-page .gradebook-table .national-id-cell{width:105px;min-width:0!important;font-size:11px}
-.grades-page .gradebook-table .sticky-name{width:140px;min-width:0!important}
+.grades-page .gradebook-table .national-id-head,.grades-page .gradebook-table .national-id-cell{display:none!important}
+.grades-page .gradebook-table .sticky-name{width:160px;min-width:0!important}
 .grades-page .gradebook-table .notes-head{width:105px}.grades-page .gradebook-table .delete-head{width:54px}
 .grades-page .mobile-grade-control{grid-template-columns:24px 38px 24px;gap:2px}
 .grades-page .mobile-grade-control .grade-input{width:38px!important;min-height:34px!important;padding:2px!important}
@@ -13,4 +13,4 @@
 .grades-page .row-delete-button{width:42px!important;padding:3px!important;font-size:10px}
 .grades-page .header-score-control button{width:auto!important;padding:2px 5px!important;font-size:9px}
 .research-page .research-table{min-width:0!important}.research-page .mobile-grade-control{grid-template-columns:30px 54px 30px;min-width:150px}
-@media(max-width:900px){.grades-page .gradebook-scroll{overflow-x:auto!important}.grades-page .gradebook-table{min-width:820px!important}.grades-page .gradebook-table .national-id-head,.grades-page .gradebook-table .national-id-cell{display:none}.research-page .mobile-grade-control{min-width:0}}
+@media(max-width:900px){.grades-page .gradebook-scroll{overflow-x:auto!important}.grades-page .gradebook-table{min-width:700px!important}.research-page .mobile-grade-control{min-width:0}}
