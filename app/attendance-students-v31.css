@@ -1,0 +1,44 @@
+/* Attendance print + flexible student management */
+.attendance-print-button{min-height:46px;padding:0 18px;border:0;border-radius:14px;background:#163f61;color:#fff;font:inherit;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(22,63,97,.18)}
+.students-management,.students-management *{box-sizing:border-box}
+.students-management .container{width:min(1480px,calc(100% - 28px));margin-inline:auto}
+.students-management .card,.students-management .class-card{min-width:0;overflow:hidden}
+.students-management h1,.students-management h2,.students-management h3,.students-management p,.students-management small,.students-management strong,.students-management button,.students-management label{overflow-wrap:anywhere;word-break:normal;white-space:normal}
+.students-management .form-grid,.students-management .import-box,.students-management .class-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.students-management .form-grid .field,.students-management .form-grid input,.students-management .class-toolbar input{flex:1 1 240px;min-width:0}
+.students-management .btn{min-height:44px;max-width:100%}
+.students-management .classes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.students-management .class-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch}
+.students-management .class-open{min-width:0;text-align:right;padding:18px}
+.students-management .class-delete{align-self:stretch}
+.students-management table{width:100%;table-layout:auto}
+.students-management th,.students-management td{max-width:320px;overflow-wrap:anywhere}
+.students-management .student-card,.students-management .student-row{min-width:0}
+@media(max-width:760px){
+  .students-management .container{width:100%;padding-inline:10px}
+  .students-management .card{padding:14px!important;border-radius:18px!important}
+  .students-management .form-grid,.students-management .import-box,.students-management .class-toolbar{align-items:stretch}
+  .students-management .form-grid>* ,.students-management .import-box>* ,.students-management .class-toolbar>*{width:100%;flex-basis:100%}
+  .students-management .classes-grid{grid-template-columns:1fr}
+  .students-management .class-card{grid-template-columns:1fr}
+  .students-management .class-delete{min-height:42px}
+}
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body{background:#fff!important}
+  body *{visibility:hidden!important}
+  .attendance-page,.attendance-page *{visibility:visible!important}
+  .attendance-page{position:absolute!important;inset:0!important;width:100%!important;background:#fff!important;color:#000!important}
+  .attendance-card{box-shadow:none!important;border:0!important;padding:0!important;background:#fff!important}
+  .attendance-head{border:2px solid #111!important;border-radius:0!important;padding:12px!important;margin-bottom:10px!important}
+  .attendance-controls,.status-buttons,.attendance-message,.teacher-sidebar,.teacher-mobile-header,.teacher-menu-button,.teacher-menu-backdrop,.teacher-welcome-strip,.print-header,.print-footer{display:none!important}
+  .attendance-stats{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:0!important;border:1px solid #111!important;margin:10px 0!important}
+  .attendance-stats span{border-inline-start:1px solid #111!important;padding:8px!important;text-align:center!important;background:#fff!important;color:#000!important}
+  .attendance-list{display:block!important}
+  .attendance-list article{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;border:1px solid #111!important;border-bottom:0!important;border-radius:0!important;padding:7px 10px!important;break-inside:avoid!important;background:#fff!important}
+  .attendance-list article:last-child{border-bottom:1px solid #111!important}
+  .student-info{display:flex!important;align-items:center!important;gap:10px!important}
+  .student-info b{width:28px!important;height:28px!important;display:grid!important;place-items:center!important;border:1px solid #111!important;border-radius:50%!important}
+  .student-info small{color:#000!important}
+  .attendance-list article::after{content:"الحالة: " attr(data-status);font-weight:700}
+}
