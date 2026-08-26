@@ -1,1 +1,17 @@
-/* أزيلت جميع التصاميم مؤقتًا. */
+/* ألوان حالات التحضير */
+.status-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.status-buttons button{min-width:86px;min-height:40px;padding:8px 12px;border:1px solid #d7dee5;border-radius:12px;background:#f8fafc;color:#334155;font:inherit;font-weight:800;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease,border-color .16s ease}
+.status-buttons button:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(15,23,42,.08)}
+.status-buttons button.active{color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(15,23,42,.16)}
+.status-buttons button.active.present{background:#198754}
+.status-buttons button.active.absent{background:#dc3545}
+.status-buttons button.active.late{background:#f59e0b;color:#1f2937}
+.status-buttons button.active.excused{background:#2563eb}
+.status-buttons button.active.escaped{background:#7c3aed}
+.attendance-stats span{font-weight:900;border-radius:999px;padding:8px 12px}
+.attendance-stats .present{background:#dcfce7;color:#166534}
+.attendance-stats .absent{background:#fee2e2;color:#991b1b}
+.attendance-stats .late{background:#fef3c7;color:#92400e}
+.attendance-stats .excused{background:#dbeafe;color:#1e40af}
+.attendance-stats .escaped{background:#ede9fe;color:#5b21b6}
+@media(max-width:760px){.status-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.status-buttons button{min-width:0;width:100%}}
