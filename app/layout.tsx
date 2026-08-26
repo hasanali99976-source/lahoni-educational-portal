@@ -16,6 +16,7 @@ import PwaRegister from "./pwa-register";
 import MobileAppEnhancer from "./mobile-app-enhancer";
 import AdminLoginEnhancer from "./admin-login-enhancer";
 import PortalIntelligence from "./portal-intelligence";
+import AttendancePeriodReport from "./attendance-period-report";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
     <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
     <PwaRegister /><MobileAppEnhancer /><AdminLoginEnhancer /><PortalIntelligence />
-    <div className="portal-stage">{children}</div>
+    <div className="portal-stage">{children}<AttendancePeriodReport /></div>
     <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
   </body></html>;
 }
