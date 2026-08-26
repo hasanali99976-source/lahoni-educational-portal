@@ -7,53 +7,206 @@ import { QRCodeSVG } from "qrcode.react";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import { getSubjectConfig } from "../../../lib/subject-config";
 import "./students.css";
 
-type Student={id:string;name?:string;nationalId?:string;class?:string;accessCode?:string;parentCode?:string;teacherId?:string;subjectKey?:string;[key:string]:unknown};
-type SavedClass={id:string;name?:string;teacherId?:string;subjectKey?:string;[key:string]:unknown};
-type Session={authenticated?:boolean;teacherId?:string;teacherName?:string;subjectKey?:SubjectKey};
-type BackupFile={version:number;createdAt:string;teacherId:string;teacherName:string;subjectKey:SubjectKey;subject:string;classes:SavedClass[];students:Student[]};
-const clean=(v:unknown)=>String(v??"").replace(/\s+/g," ").trim();
-const id10=(v:unknown)=>{const d=String(v??"").replace(/\D/g,"");return d.length===10?d:""};
-const className=(v:unknown)=>{const n=clean(v);return n?n.replace(/^أول\s*/,"ثاني ").replace(/^الصف الأول\s*/,"الصف الثاني ").trim():""};
-const classId=(n:string)=>encodeURIComponent(n.replace(/\//g,"-")).slice(0,120);
-const accessCode=(id:string)=>{const d=id.replace(/\D/g,"");return d.length===10?`TH${d.slice(-4)}`:""};
-const parentCode=(id:string)=>{const d=id.replace(/\D/g,"");const cipher="4826071593";return d.length===10?`PR${[...d].reverse().map(n=>cipher[Number(n)]).join("")}`:""};
-const safeFile=(v:string)=>v.replace(/[\\/:*?"<>|]/g,"-").replace(/\s+/g,"-");
-const arabicSort=(a:Student,b:Student)=>clean(a.name).localeCompare(clean(b.name),"ar",{sensitivity:"base",numeric:true});
-function downloadBlob(name:string,data:Blob){const url=URL.createObjectURL(data),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+type Student = { id:string; name?:string; class?:string; accessCode?:string; studentCode?:string; teacherId?:string; subjectKey?:string; [key:string]:unknown };
+type SavedClass = { id:string; name?:string; teacherId?:string; subjectKey?:string; [key:string]:unknown };
 
-export default function StudentsPage(){
+const clean = (value:unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
+const normalizeClass = (value:unknown) => clean(value);
+const classId = (name:string) => encodeURIComponent(name.replace(/\//g, "-")).slice(0, 120);
+const safeFile = (value:string) => value.replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, "-");
+const arabicSort = (a:Student,b:Student) => clean(a.name).localeCompare(clean(b.name), "ar", { sensitivity:"base", numeric:true });
+const codePattern = /^TH[123]\d{3}$/;
+
+function gradeNumber(className:string): 1|2|3|null {
+  const value = className.replace(/[أإآ]/g, "ا").toLowerCase();
+  if (/(^|\s)(1|١|اول|الأول|الاول|first)(\s|$)/.test(value)) return 1;
+  if (/(^|\s)(2|٢|ثاني|الثاني|second)(\s|$)/.test(value)) return 2;
+  if (/(^|\s)(3|٣|ثالث|الثالث|third)(\s|$)/.test(value)) return 3;
+  return null;
+}
+
+function studentCode(student:Student) {
+  return clean(student.accessCode || student.studentCode || student.id).toUpperCase();
+}
+
+function nextCode(students:Student[], className:string) {
+  const grade = gradeNumber(className);
+  if (!grade) return "";
+  const prefix = `TH${grade}`;
+  const used = students.map(studentCode).filter(code => code.startsWith(prefix) && codePattern.test(code)).map(code => Number(code.slice(3))).filter(Number.isFinite);
+  const next = Math.max(0, ...used) + 1;
+  if (next > 999) return "";
+  return `${prefix}${String(next).padStart(3, "0")}`;
+}
+
+function downloadBlob(name:string, data:Blob) {
+  const url = URL.createObjectURL(data);
+  const anchor = document.createElement("a");
+  anchor.href = url; anchor.download = name; document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+export default function StudentsPage() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
   const teacherName = session?.teacherName || "المعلم";
   const subjectKey = (session?.subjectKey as SubjectKey) || "history";
-  const ready = !!session?.teacherId && !!session?.subjectKey;
- const[students,setStudents]=useState<Student[]>([]);const[classesData,setClassesData]=useState<SavedClass[]>([]);const[selectedClass,setSelectedClass]=useState<string|null>(null);
- const[name,setName]=useState("");const[nationalId,setNationalId]=useState("");const[studentClass,setStudentClass]=useState("");const[newClass,setNewClass]=useState("");const[search,setSearch]=useState("");const[editingId,setEditingId]=useState<string|null>(null);const[msg,setMsg]=useState("");const[busy,setBusy]=useState(false);
- const[qrStudent,setQrStudent]=useState<Student|null>(null);
- const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"students"):"",[teacherId,subjectKey]);
- const classesPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey,"classes"):"",[teacherId,subjectKey]);
+  const subject = session?.subject || getSubjectConfig(subjectKey).label;
+  const ready = !!teacherId && !!session?.subjectKey;
 
- useEffect(()=>{if(!ready||!studentsPath||!classesPath)return;const a=onSnapshot(collection(db,studentsPath),s=>setStudents((s.docs.map(x=>{const row={id:x.id,...x.data()} as Student;return{...row,accessCode:accessCode(row.nationalId||row.id)}})).sort(arabicSort)),()=>setMsg("تعذر قراءة الطلاب"));const b=onSnapshot(collection(db,classesPath),s=>setClassesData(s.docs.map(x=>({id:x.id,...x.data()})) as SavedClass[]),()=>setMsg("تعذر قراءة الفصول"));return()=>{a();b()}},[ready,studentsPath,classesPath]);
+  const [students,setStudents] = useState<Student[]>([]);
+  const [classesData,setClassesData] = useState<SavedClass[]>([]);
+  const [selectedClass,setSelectedClass] = useState<string|null>(null);
+  const [name,setName] = useState("");
+  const [studentClass,setStudentClass] = useState("");
+  const [newClass,setNewClass] = useState("");
+  const [editingId,setEditingId] = useState<string|null>(null);
+  const [search,setSearch] = useState("");
+  const [message,setMessage] = useState("");
+  const [busy,setBusy] = useState(false);
+  const [qrStudent,setQrStudent] = useState<Student|null>(null);
 
- const classes=useMemo(()=>{const m=new Map<string,number>();classesData.forEach(x=>{const n=className(x.name);if(n)m.set(n,m.get(n)||0)});students.forEach(x=>{const n=className(x.class)||"غير محدد";m.set(n,(m.get(n)||0)+1)});return[...m].map(([name,count])=>({name,count})).sort((a,b)=>a.name.localeCompare(b.name,"ar",{sensitivity:"base",numeric:true}))},[students,classesData]);
- const visible=useMemo(()=>students.filter(x=>(!selectedClass||className(x.class)===selectedClass)&&(!search.trim()||(x.name||"").includes(search.trim())||(x.nationalId||"").includes(search.trim())||accessCode(x.nationalId||x.id).includes(search.trim().toUpperCase()))).sort(arabicSort),[students,selectedClass,search]);
- const subject=subjectKey==="critical-thinking"?"التفكير الناقد":"التاريخ";
+  const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, "students") : "", [teacherId, subjectKey]);
+  const classesPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, "classes") : "", [teacherId, subjectKey]);
 
- function backupFor(classNames:string[]):BackupFile{const wanted=new Set(classNames);return{version:1,createdAt:new Date().toISOString(),teacherId,teacherName,subjectKey,subject,classes:classesData.filter(c=>wanted.has(className(c.name))),students:students.filter(s=>wanted.has(className(s.class))).sort(arabicSort)}}
- function exportJson(classNames:string[]){const b=backupFor(classNames),label=classNames.length===1?classNames[0]:`جميع-الفصول-${subject}`;downloadBlob(`نسخة-${safeFile(label)}-${new Date().toISOString().slice(0,10)}.json`,new Blob([JSON.stringify(b,null,2)],{type:"application/json;charset=utf-8"}))}
- function exportExcel(classNames:string[]){const b=backupFor(classNames),book=XLSX.utils.book_new();for(const n of classNames){const rows=b.students.filter(s=>className(s.class)===n).sort(arabicSort).map((s,i)=>({م:i+1,"اسم الطالب":s.name||"","السجل المدني":s.nationalId||"","الفصل":n,"كود الدخول":accessCode(s.nationalId||s.id),"درجة البحث":s.researchScore??s.research??"","بيانات الدرجات":JSON.stringify(s.units||{})}));XLSX.utils.book_append_sheet(book,XLSX.utils.json_to_sheet(rows),n.slice(0,31)||"الفصل")}XLSX.writeFile(book,`نسخة-${safeFile(classNames.length===1?classNames[0]:`جميع-الفصول-${subject}`)}-${new Date().toISOString().slice(0,10)}.xlsx`)}
- async function importBackup(e:ChangeEvent<HTMLInputElement>){const f=e.target.files?.[0];e.target.value="";if(!f)return;try{setBusy(true);const b=JSON.parse(await f.text()) as BackupFile;if(!Array.isArray(b.students)||!Array.isArray(b.classes)||!b.subjectKey)throw new Error("invalid");if(b.subjectKey!==subjectKey&&!window.confirm(`هذه النسخة تخص مادة ${b.subject||b.subjectKey}. هل تريد استعادتها داخل مادة ${subject} الحالية؟`))return;for(const c of b.classes){const n=className(c.name);if(n)await setDoc(doc(db,classesPath,classId(n)),{...c,id:undefined,name:n,teacherId,teacherName,subjectKey,restoredAt:serverTimestamp()},{merge:true})}for(const s of b.students){const nid=id10(s.nationalId||s.id)||String(s.id);const c=className(s.class);if(!nid||!c)continue;await setDoc(doc(db,studentsPath,nid),{...s,id:undefined,nationalId:s.nationalId||nid,class:c,teacherId,teacherName,subjectKey,restoredAt:serverTimestamp()},{merge:true})}setMsg(`تمت استعادة ${b.classes.length} فصل و${b.students.length} طالبًا`)}catch(error){console.error(error);setMsg("ملف النسخة غير صالح أو تعذرت الاستعادة")}finally{setBusy(false)}}
- async function ensureClass(n:string){const c=className(n);if(c)await setDoc(doc(db,classesPath,classId(c)),{name:c,teacherId,teacherName,subjectKey},{merge:true})}
- async function addClass(){const n=className(newClass);if(!n)return setMsg("اكتب اسم الفصل");try{await ensureClass(n);setNewClass("");setMsg("تمت إضافة الفصل")}catch{setMsg("تعذر إضافة الفصل")}}
- async function save(){const c=className(studentClass||selectedClass);if(!name.trim()||!/^\d{10}$/.test(nationalId)||!c)return setMsg("أدخل الاسم والهوية والفصل");try{setBusy(true);await ensureClass(c);const payload={name:name.trim(),nationalId,class:c,accessCode:accessCode(nationalId),parentCode:parentCode(nationalId),teacherId,teacherName,subjectKey};if(editingId)await updateDoc(doc(db,studentsPath,editingId),payload);else await setDoc(doc(db,studentsPath,nationalId),{...payload,attendance:0,homework:0,participation:0,research:0,tests:[0,0,0,0,0],createdAt:serverTimestamp()},{merge:true});setName("");setNationalId("");setEditingId(null);setMsg("تم الحفظ")}catch{setMsg("تعذر الحفظ")}finally{setBusy(false)}}
- async function importExcel(e:ChangeEvent<HTMLInputElement>){const f=e.target.files?.[0];e.target.value="";if(!f)return;try{setBusy(true);const w=XLSX.read(await f.arrayBuffer(),{type:"array"});let total=0;for(const sheet of w.SheetNames){const rows=XLSX.utils.sheet_to_json<unknown[]>(w.Sheets[sheet],{header:1,defval:""});const h=rows.findIndex(r=>r.map(clean).includes("السجل المدني")&&r.map(clean).includes("اسم الطالب"));if(h<0)continue;const headers=rows[h].map(clean),i=headers.indexOf("السجل المدني"),n=headers.indexOf("اسم الطالب"),c=className(sheet);await ensureClass(c);for(const row of rows.slice(h+1)){const nid=id10(row[i]),nm=clean(row[n]);if(!nid||!nm)continue;await setDoc(doc(db,studentsPath,nid),{name:nm,nationalId:nid,class:c,accessCode:accessCode(nid),teacherId,teacherName,subjectKey,importedAt:serverTimestamp()},{merge:true});total++}}setMsg(`تم استيراد ${total} طالبًا`)}catch{setMsg("تعذر الاستيراد")}finally{setBusy(false)}}
- async function removeStudent(s:Student){if(window.confirm(`حذف ${s.name||"الطالب"}؟`))await deleteDoc(doc(db,studentsPath,s.id))}
- function chooseBackup(names:string[]){const choice=window.prompt("اختر قبل الحذف:\n1 = تنزيل نسخة JSON قابلة للاستعادة ثم الحذف\n2 = تنزيل ملف Excel ثم الحذف\n3 = حذف نهائي بدون نسخة\nاترك الخانة فارغة للإلغاء", "1");if(choice==="1")exportJson(names);else if(choice==="2")exportExcel(names);else if(choice!=="3")return false;return true}
- async function removeClass(n:string){const classStudents=students.filter(s=>className(s.class)===n);if(!chooseBackup([n]))return;const warning=classStudents.length?`تنبيه: سيتم حذف الفصل ${n} وجميع طلابه وعددهم ${classStudents.length} مع درجاتهم وبياناتهم داخل مادة ${subject}. لا يمكن التراجع. هل تريد المتابعة؟`:`هل تريد حذف الفصل ${n}؟`;if(!window.confirm(warning))return;try{setBusy(true);setMsg("");const savedClasses=classesData.filter(x=>className(x.name)===n);await Promise.all([...classStudents.map(s=>deleteDoc(doc(db,studentsPath,s.id))),...savedClasses.map(c=>deleteDoc(doc(db,classesPath,c.id)))]);if(selectedClass===n)setSelectedClass(null);setMsg(classStudents.length?`تم حذف الفصل و${classStudents.length} طالبًا نهائيًا من مساحة ${subject}`:"تم حذف الفصل نهائيًا")}catch(error){console.error(error);setMsg("تعذر حذف الفصل أو بعض طلابه")}finally{setBusy(false)}}
- async function removeAllClasses(){if(!classes.length)return setMsg("لا توجد فصول للحذف");const names=classes.map(c=>c.name);if(!chooseBackup(names))return;const warning=`تنبيه شديد: سيتم حذف جميع الفصول وعددها ${classes.length} وجميع الطلاب وعددهم ${students.length} مع درجاتهم وحضورهم وتنبيهاتهم داخل مادة ${subject}. لا يمكن التراجع عن هذا الإجراء. هل تريد حذف الجميع؟`;if(!window.confirm(warning))return;if(!window.confirm("تأكيد أخير: هل أنت متأكد من حذف جميع الفصول والطلاب نهائيًا؟"))return;try{setBusy(true);setMsg("");await Promise.all([...students.map(s=>deleteDoc(doc(db,studentsPath,s.id))),...classesData.map(c=>deleteDoc(doc(db,classesPath,c.id)))]);setSelectedClass(null);setStudentClass("");setMsg(`تم حذف جميع الفصول والطلاب من مساحة ${subject}`)}catch(error){console.error(error);setMsg("تعذر حذف جميع الفصول أو بعض بياناتها")}finally{setBusy(false)}}
+  useEffect(() => {
+    setSelectedClass(null); setStudentClass(""); setEditingId(null); setName(""); setMessage("");
+  }, [subjectKey]);
 
- if(!ready)return <main className="shell dashboard students-management"><div className="container"><section className="card"><h1>إدارة الطلاب</h1><p>{msg||"جارٍ التحقق من الجلسة..."}</p></section></div></main>;
- return <main className="shell dashboard students-management"><div className="container"><section className="card" style={{marginBottom:18}}><h1>إدارة طلاب {subject}</h1><p>المعلم: <strong>{teacherName}</strong> — هذه مساحة مستقلة لهذا الحساب.</p></section>{!selectedClass?<><section className="card"><div className="form-grid"><input className="field" value={newClass} onChange={e=>setNewClass(e.target.value)} placeholder="اسم فصل جديد"/><button className="btn primary" disabled={busy} onClick={addClass}>إضافة فصل</button><button className="btn secondary" disabled={busy||!classes.length} onClick={removeAllClasses} style={{background:"#b42318",color:"white",borderColor:"#b42318"}}>🗑 حذف جميع الفصول</button></div><div className="import-box"><strong>الاستيراد والنسخ الاحتياطية</strong><label className="btn secondary import-label">استيراد Excel<input hidden type="file" accept=".xlsx,.xls" onChange={importExcel}/></label><label className="btn secondary import-label">استعادة نسخة JSON<input hidden type="file" accept=".json,application/json" onChange={importBackup}/></label>{classes.length>0&&<><button className="btn secondary" type="button" onClick={()=>exportJson(classes.map(c=>c.name))}>💾 نسخة JSON للجميع</button><button className="btn secondary" type="button" onClick={()=>exportExcel(classes.map(c=>c.name))}>📊 Excel للجميع</button></>}</div>{msg&&<p className="notice">{msg}</p>}</section><section className="class-grid" style={{marginTop:18}}>{classes.map(c=><div className="class-card" key={c.name}><button className="class-open" onClick={()=>{setSelectedClass(c.name);setStudentClass(c.name)}}><span className="class-icon">📘</span><strong>{c.name}</strong><span>{c.count} طالبًا</span></button><div className="class-actions"><button className="small-btn edit" type="button" onClick={()=>exportJson([c.name])}>نسخة</button><button className="small-btn delete" disabled={busy} onClick={()=>removeClass(c.name)}>حذف الفصل</button></div></div>)}</section></>:<><section className="card"><button className="small-btn edit" onClick={()=>setSelectedClass(null)}>الرجوع للفصول</button><h1>{selectedClass} — {subject}</h1><input className="field search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="بحث بالاسم أو الهوية أو الكود"/></section><section className="card" style={{marginTop:18}}><h2>{editingId?"تعديل الطالب":"إضافة طالب"}</h2><div className="form-grid"><input className="field" value={name} onChange={e=>setName(e.target.value)} placeholder="اسم الطالب"/><input className="field" inputMode="numeric" value={nationalId} onChange={e=>setNationalId(e.target.value.replace(/\D/g,"").slice(0,10))} placeholder="رقم الهوية"/><input className="field" value={studentClass} onChange={e=>setStudentClass(e.target.value)} placeholder="الفصل"/></div><button className="btn primary" disabled={busy} onClick={save}>{busy?"جارٍ الحفظ...":"حفظ الطالب"}</button>{msg&&<p className="notice">{msg}</p>}</section><section className="card" style={{marginTop:18}}><div className="table-wrap"><table><thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>كود الدخول</th><th>الإجراءات</th></tr></thead><tbody>{visible.map((s,i)=><tr key={s.id}><td data-label="#">{i+1}</td><td data-label="الطالب">{s.name}</td><td data-label="الهوية">{s.nationalId}</td><td data-label="الكود"><b>{s.accessCode||accessCode(s.nationalId||s.id)}</b></td><td data-label="الإجراءات"><button className="small-btn qr" onClick={()=>setQrStudent(s)}>رمز الدخول</button><button className="small-btn edit" onClick={()=>{setEditingId(s.id);setName(s.name||"");setNationalId(s.nationalId||"");setStudentClass(className(s.class))}}>تعديل</button><button className="small-btn delete" onClick={()=>removeStudent(s)}>حذف</button></td></tr>)}</tbody></table></div></section></>}</div>{qrStudent&&<div className="student-qr-modal" onClick={()=>setQrStudent(null)}><section onClick={e=>e.stopPropagation()}><button className="qr-close" onClick={()=>setQrStudent(null)}>×</button><small>بوابة الطالب وولي الأمر</small><h2>{qrStudent.name}</h2><p>امسح الرمز لفتح صفحة الدخول وتعبئة الهوية والكود تلقائيًا.</p><div className="qr-code"><QRCodeSVG value={`${window.location.origin}/student?id=${qrStudent.nationalId}&code=${qrStudent.accessCode||accessCode(qrStudent.nationalId||qrStudent.id)}`} size={220} level="M" /></div><b>{qrStudent.accessCode||accessCode(qrStudent.nationalId||qrStudent.id)}</b><button onClick={()=>window.print()}>طباعة رمز الدخول</button><em>هذا الرمز خاص بالطالب ولا يُشارك علنًا.</em></section></div>}</main>;
+  useEffect(() => {
+    if (!ready || !studentsPath || !classesPath) return;
+    const stopStudents = onSnapshot(collection(db, studentsPath), snapshot => {
+      setStudents(snapshot.docs.map(item => ({ id:item.id, ...item.data() } as Student)).sort(arabicSort));
+    }, () => setMessage("تعذر قراءة بيانات الطلاب"));
+    const stopClasses = onSnapshot(collection(db, classesPath), snapshot => {
+      setClassesData(snapshot.docs.map(item => ({ id:item.id, ...item.data() } as SavedClass)));
+    }, () => setMessage("تعذر قراءة الفصول"));
+    return () => { stopStudents(); stopClasses(); };
+  }, [ready, studentsPath, classesPath]);
+
+  const classes = useMemo(() => {
+    const map = new Map<string,number>();
+    classesData.forEach(item => { const value = normalizeClass(item.name); if (value) map.set(value, map.get(value) || 0); });
+    students.forEach(item => { const value = normalizeClass(item.class) || "غير محدد"; map.set(value, (map.get(value) || 0) + 1); });
+    return [...map].map(([name,count]) => ({ name,count })).sort((a,b) => a.name.localeCompare(b.name, "ar", { numeric:true }));
+  }, [classesData, students]);
+
+  const activeClass = normalizeClass(studentClass || selectedClass || "");
+  const suggestedCode = useMemo(() => nextCode(students, activeClass), [students, activeClass]);
+  const visible = useMemo(() => students.filter(student => {
+    const matchesClass = !selectedClass || normalizeClass(student.class) === selectedClass;
+    const query = search.trim().toUpperCase();
+    return matchesClass && (!query || clean(student.name).includes(search.trim()) || studentCode(student).includes(query) || clean(student.class).includes(search.trim()));
+  }).sort(arabicSort), [students, selectedClass, search]);
+
+  async function ensureClass(value:string) {
+    const normalized = normalizeClass(value);
+    if (!normalized) return;
+    await setDoc(doc(db, classesPath, classId(normalized)), { name:normalized, teacherId, teacherName, subjectKey, updatedAt:serverTimestamp() }, { merge:true });
+  }
+
+  async function addClass() {
+    const normalized = normalizeClass(newClass);
+    if (!normalized) return setMessage("اكتب اسم الفصل، مثل: الأول الثانوي 1");
+    if (!gradeNumber(normalized)) return setMessage("يجب أن يتضمن اسم الفصل الصف: الأول أو الثاني أو الثالث الثانوي");
+    try { setBusy(true); await ensureClass(normalized); setNewClass(""); setMessage(`تمت إضافة فصل ${normalized} لمادة ${subject}`); }
+    catch { setMessage("تعذر إضافة الفصل"); }
+    finally { setBusy(false); }
+  }
+
+  async function saveStudent() {
+    const normalizedClass = normalizeClass(studentClass || selectedClass || "");
+    if (!name.trim() || !normalizedClass) return setMessage("أدخل اسم الطالب واختر الفصل");
+    const grade = gradeNumber(normalizedClass);
+    if (!grade) return setMessage("اسم الفصل لا يوضح الصف. استخدم الأول أو الثاني أو الثالث الثانوي");
+    const code = editingId ? studentCode(students.find(item => item.id === editingId) || { id:editingId }) : nextCode(students, normalizedClass);
+    if (!code || !codePattern.test(code)) return setMessage("تعذر إنشاء كود جديد؛ راجع اسم الصف أو عدد الطلاب");
+    try {
+      setBusy(true); await ensureClass(normalizedClass);
+      const payload = { name:name.trim(), class:normalizedClass, accessCode:code, studentCode:code, grade, teacherId, teacherName, subjectKey, subject, updatedAt:serverTimestamp() };
+      if (editingId) await updateDoc(doc(db, studentsPath, editingId), payload);
+      else await setDoc(doc(db, studentsPath, code), { ...payload, attendance:0, homework:0, participation:0, research:0, tests:[0,0,0,0,0], createdAt:serverTimestamp() }, { merge:true });
+      setName(""); setStudentClass(selectedClass || ""); setEditingId(null); setMessage(`تم الحفظ — كود الطالب: ${code}`);
+    } catch { setMessage("تعذر حفظ الطالب"); }
+    finally { setBusy(false); }
+  }
+
+  function editStudent(student:Student) {
+    setEditingId(student.id); setName(student.name || ""); setStudentClass(student.class || ""); window.scrollTo({ top:0, behavior:"smooth" });
+  }
+
+  async function removeStudent(student:Student) {
+    if (!window.confirm(`حذف ${student.name || "الطالب"} نهائيًا؟`)) return;
+    try { await deleteDoc(doc(db, studentsPath, student.id)); setMessage("تم حذف الطالب"); }
+    catch { setMessage("تعذر حذف الطالب"); }
+  }
+
+  async function removeClass(className:string) {
+    const classStudents = students.filter(student => normalizeClass(student.class) === className);
+    if (!window.confirm(`سيتم حذف فصل ${className} وعدد ${classStudents.length} من الطلاب داخل مادة ${subject}. هل تريد المتابعة؟`)) return;
+    try {
+      setBusy(true);
+      const saved = classesData.filter(item => normalizeClass(item.name) === className);
+      await Promise.all([...classStudents.map(student => deleteDoc(doc(db, studentsPath, student.id))), ...saved.map(item => deleteDoc(doc(db, classesPath, item.id)))]);
+      if (selectedClass === className) setSelectedClass(null);
+      setMessage("تم حذف الفصل وطلابه");
+    } catch { setMessage("تعذر حذف الفصل"); }
+    finally { setBusy(false); }
+  }
+
+  function exportExcel() {
+    const rows = visible.map((student,index) => ({ م:index+1, "اسم الطالب":student.name || "", "الفصل":student.class || "", "كود الطالب":studentCode(student) }));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), "الطلاب");
+    XLSX.writeFile(workbook, `طلاب-${safeFile(subject)}-${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  async function importExcel(event:ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]; event.target.value = ""; if (!file) return;
+    try {
+      setBusy(true);
+      const workbook = XLSX.read(await file.arrayBuffer(), { type:"array" });
+      let total = 0;
+      for (const sheetName of workbook.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json<Record<string,unknown>>(workbook.Sheets[sheetName], { defval:"" });
+        for (const row of rows) {
+          const studentName = clean(row["اسم الطالب"] || row["الاسم"] || row["Name"]);
+          const classValue = normalizeClass(row["الفصل"] || row["الصف والفصل"] || sheetName);
+          if (!studentName || !gradeNumber(classValue)) continue;
+          await ensureClass(classValue);
+          const requested = clean(row["كود الطالب"] || row["الكود"]).toUpperCase();
+          const code = codePattern.test(requested) && !students.some(student => studentCode(student) === requested) ? requested : nextCode([...students, ...Array.from({length:total},(_,i)=>({id:`TMP${i}`,accessCode:""}))], classValue);
+          if (!code) continue;
+          await setDoc(doc(db, studentsPath, code), { name:studentName, class:classValue, accessCode:code, studentCode:code, grade:gradeNumber(classValue), teacherId, teacherName, subjectKey, subject, importedAt:serverTimestamp() }, { merge:true });
+          total++;
+        }
+      }
+      setMessage(`تم استيراد ${total} طالبًا وإنشاء الأكواد تلقائيًا`);
+    } catch { setMessage("تعذر استيراد الملف"); }
+    finally { setBusy(false); }
+  }
+
+  if (!ready) return <main className="shell dashboard students-management"><div className="container"><section className="card"><h1>إدارة الطلاب</h1><p>جارٍ تجهيز جلسة المعلم…</p></section></div></main>;
+
+  return <main className="shell dashboard students-management" data-subject={subjectKey} dir="rtl"><div className="container">
+    <section className="card" style={{marginBottom:18}}><h1>إدارة طلاب {subject}</h1><p>المعلم: <strong>{teacherName}</strong> — يمكن إضافة أي صف وفصل لهذه المادة، ويُنشأ كود الطالب من رقم الصف تلقائيًا.</p></section>
+
+    {!selectedClass ? <>
+      <section className="card"><div className="form-grid"><input className="field" value={newClass} onChange={event=>setNewClass(event.target.value)} placeholder="مثال: الأول الثانوي 1 أو الثالث الثانوي 2"/><button className="btn primary" disabled={busy} onClick={()=>void addClass()}>إضافة فصل</button></div>
+        <div className="import-box"><label className="btn secondary">استيراد Excel<input hidden type="file" accept=".xlsx,.xls" onChange={event=>void importExcel(event)}/></label><button className="btn secondary" onClick={exportExcel} disabled={!students.length}>تصدير الأكواد</button><small>يكفي أن يحتوي الملف على اسم الطالب والفصل. لا يلزم رقم الهوية.</small></div>
+      </section>
+      <section className="classes-grid">{classes.map(item=><article className="class-card" key={item.name}><button className="class-open" onClick={()=>{setSelectedClass(item.name);setStudentClass(item.name)}}><span>🏫</span><strong>{item.name}</strong><small>{item.count} طالب</small></button><button className="class-delete" disabled={busy} onClick={()=>void removeClass(item.name)}>حذف</button></article>)}{!classes.length?<section className="card"><p>لا توجد فصول بعد. أضف أي فصل يناسب مادة {subject}.</p></section>:null}</section>
+    </> : <>
+      <section className="card"><div className="class-toolbar"><button className="btn secondary" onClick={()=>{setSelectedClass(null);setEditingId(null);setName("")}}>← جميع الفصول</button><h2>{selectedClass}</h2><span>{visible.length} طالب</span></div></section>
+    </>}
+
+    <section className="card student-editor"><h2>{editingId ? "تعديل الطالب" : "إضافة طالب"}</h2><div className="form-grid"><input className="field" value={name} onChange={event=>setName(event.target.value)} placeholder="اسم الطالب"/><input className="field" list="class-options" value={studentClass} onChange={event=>setStudentClass(event.target.value)} placeholder="الصف والفصل"/><datalist id="class-options">{classes.map(item=><option key={item.name} value={item.name}/>)}</datalist><div className="student-code-preview"><small>الكود التلقائي</small><strong>{editingId ? studentCode(students.find(item=>item.id===editingId)||{id:editingId}) : suggestedCode || "اختر صفًا صحيحًا"}</strong></div><button className="btn primary" disabled={busy} onClick={()=>void saveStudent()}>{editingId ? "حفظ التعديل" : "إضافة الطالب"}</button>{editingId?<button className="btn secondary" onClick={()=>{setEditingId(null);setName("");setStudentClass(selectedClass||"")}}>إلغاء</button>:null}</div><p className="helper-text">الأول الثانوي يولّد TH1xxx، الثاني TH2xxx، والثالث TH3xxx.</p></section>
+
+    <section className="card"><div className="students-toolbar"><input className="field" value={search} onChange={event=>setSearch(event.target.value)} placeholder="بحث بالاسم أو الكود أو الفصل"/><strong>{selectedClass || "جميع الفصول"}</strong></div>{message?<p className="smart-message">{message}</p>:null}<div className="table-wrap"><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>كود الطالب</th><th>الإجراءات</th></tr></thead><tbody>{visible.map((student,index)=><tr key={student.id}><td>{index+1}</td><td><strong>{student.name || "طالب"}</strong></td><td>{student.class || "غير محدد"}</td><td><button className="code-button" onClick={()=>setQrStudent(student)}>{studentCode(student) || "—"}</button></td><td><div className="row-actions"><button onClick={()=>editStudent(student)}>تعديل</button><button onClick={()=>void removeStudent(student)}>حذف</button></div></td></tr>)}{!visible.length?<tr><td colSpan={5}>لا يوجد طلاب في العرض الحالي.</td></tr>:null}</tbody></table></div></section>
+
+    {qrStudent?<div className="qr-modal" role="dialog" aria-modal="true"><div className="qr-card"><button className="qr-close" onClick={()=>setQrStudent(null)}>×</button><h2>{qrStudent.name}</h2><QRCodeSVG value={studentCode(qrStudent)} size={210}/><strong>{studentCode(qrStudent)}</strong><p>{qrStudent.class} — {subject}</p><button className="btn primary" onClick={()=>window.print()}>طباعة</button></div></div>:null}
+  </div></main>;
 }
