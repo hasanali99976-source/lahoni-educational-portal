@@ -20,9 +20,9 @@ function escapeHtml(value: string) {
 
 function suggestedPlan(result: Result, studentName: string, subjectName: string) {
   const skills = result.weakSkills?.length ? result.weakSkills.join("، ") : "المهارات الأساسية";
-  if (result.percentage >= 80) return `خطة إثرائية للطالب ${studentName} في مادة ${subjectName}: المحافظة على الإتقان، تنفيذ نشاط إثرائي، وتطبيق المهارات في موقف جديد.`;
-  if (result.percentage >= 50) return `خطة تحسين للطالب ${studentName} في مادة ${subjectName}: مراجعة ${skills}، حل تدريبات متدرجة، ثم إعادة قياس قصيرة.`;
-  return `خطة علاجية للطالب ${studentName} في مادة ${subjectName}: شرح مبسط لمهارات ${skills}، تدريب موجه، واجب علاجي قصير، ثم إعادة الاختبار.`;
+  if (result.percentage >= 80) return `خطة إثرائية للطالب ${studentName}: المحافظة على الإتقان وتنفيذ نشاط إثرائي في ${subjectName}.`;
+  if (result.percentage >= 50) return `خطة تحسين للطالب ${studentName}: مراجعة ${skills}، تدريبات متدرجة، ثم إعادة قياس قصيرة.`;
+  return `خطة علاجية للطالب ${studentName}: شرح مبسط لمهارات ${skills}، تدريب موجه، واجب علاجي، ثم إعادة الاختبار.`;
 }
 
 export default function DiagnosticResults({ teacherId, subjectKey, subjectName, diagnostics, diagnosticsLoaded }: { teacherId: string; subjectKey: SubjectKey; subjectName: string; diagnostics: Diagnostic[]; diagnosticsLoaded: boolean }) {
@@ -85,9 +85,9 @@ export default function DiagnosticResults({ teacherId, subjectKey, subjectName, 
   }
 
   function openPlan(result: Result) {
-    const s = studentMap.get(result.studentId);
+    const student = studentMap.get(result.studentId);
     setEditing(result);
-    setPlanText(result.teacherPlan || result.plan || suggestedPlan(result, s?.name || "الطالب", subjectName));
+    setPlanText(result.teacherPlan || result.plan || suggestedPlan(result, student?.name || "الطالب", subjectName));
   }
 
   async function savePlan() {
@@ -103,42 +103,40 @@ export default function DiagnosticResults({ teacherId, subjectKey, subjectName, 
     })];
     const csv = "\uFEFF" + rows.map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a"); a.href = url; a.download = `نتائج-${className === "all" ? "جميع-الفصول" : className}-${subjectName}.csv`; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `نتائج-${className === "all" ? "جميع-الفصول" : className}-${subjectName}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function printClassPdf() {
-    if (className === "all") {
-      window.alert("اختر فصلًا محددًا أولًا حتى يتم إنشاء تقرير مستقل له.");
-      return;
-    }
-    if (!visible.length) {
-      window.alert("لا توجد نتائج مطابقة لهذا الفصل.");
-      return;
-    }
+    if (className === "all") return window.alert("اختر فصلًا محددًا أولًا.");
+    if (!visible.length) return window.alert("لا توجد نتائج مطابقة لهذا الفصل.");
 
     const classAverage = Math.round(visible.reduce((sum, result) => sum + result.percentage, 0) / visible.length);
     const remedialCount = visible.filter(result => result.percentage < 50).length;
     const improvementCount = visible.filter(result => result.percentage >= 50 && result.percentage < 80).length;
     const masteryCount = visible.filter(result => result.percentage >= 80).length;
     const testTitle = testId === "all" ? "جميع الاختبارات التشخيصية" : (testMap.get(testId) || "اختبار تشخيصي");
-    const popup = window.open("", "_blank", "width=1200,height=900");
+    const popup = window.open("", "_blank", "width=1400,height=900");
     if (!popup) return;
 
     const rowsHtml = visible.map((result, index) => {
       const student = studentMap.get(result.studentId);
       const plan = result.teacherPlan || result.plan || suggestedPlan(result, student?.name || "الطالب", subjectName);
-      const level = result.percentage >= 80 ? "متقن" : result.percentage >= 50 ? "يحتاج تحسين" : "يحتاج خطة علاجية";
-      return `<tr><td>${index + 1}</td><td>${escapeHtml(student?.name || result.studentId)}</td><td>${escapeHtml(testMap.get(result.diagnosticId) || "اختبار تشخيصي")}</td><td>${result.score} من ${result.total}</td><td>${result.percentage}%</td><td>${level}</td><td>${escapeHtml((result.weakSkills || []).join("، ") || "لا توجد")}</td><td>${escapeHtml(plan)}</td></tr>`;
+      const level = result.percentage >= 80 ? "متقن" : result.percentage >= 50 ? "تحسين" : "علاجي";
+      return `<tr><td>${index + 1}</td><td>${escapeHtml(student?.name || result.studentId)}</td><td>${escapeHtml(testMap.get(result.diagnosticId) || "اختبار تشخيصي")}</td><td>${result.score}/${result.total}</td><td>${result.percentage}%</td><td>${level}</td><td>${escapeHtml((result.weakSkills || []).join("، ") || "لا توجد")}</td><td>${escapeHtml(plan)}</td></tr>`;
     }).join("");
 
     popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الاختبارات التشخيصية - ${escapeHtml(className)}</title><style>
-      @page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;color:#111;background:#eef2f5}.toolbar{position:sticky;top:0;display:flex;justify-content:center;gap:10px;padding:10px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:10px 18px;font-weight:800;cursor:pointer}.page{width:281mm;min-height:194mm;margin:8mm auto;background:#fff;padding:7mm}.portal{text-align:center;font-size:14px;font-weight:900;color:#173f61;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:7px 0}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;border:1px solid #222;padding:7px;font-size:10px}.summary{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #222;border-top:0}.summary span{text-align:center;padding:6px 2px;font-size:9px;font-weight:800;border-left:1px solid #222}.summary span:last-child{border-left:0}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #222;padding:4px;font-size:8px;vertical-align:top;line-height:1.35}th{background:#edf3f7;text-align:center;font-size:8.5px}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:11%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:18%}th:nth-child(8){width:33%}.footer{display:flex;justify-content:space-between;margin-top:8px;border-top:1px solid #666;padding-top:5px;font-size:9px;font-weight:700}@media print{body{background:#fff}.toolbar{display:none}.page{margin:0;width:auto;min-height:auto;padding:0}}
-    </style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><section class="page"><div class="portal">${PORTAL_NAME}</div><h1>تقرير نتائج الاختبارات التشخيصية والخطة العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(className)}</span><span><b>الاختبار:</b> ${escapeHtml(testTitle)}</span><span><b>نطاق النسبة:</b> ${Math.min(minimum, maximum)}% إلى ${Math.max(minimum, maximum)}%</span></div><div class="summary"><span>عدد النتائج: ${visible.length}</span><span>متوسط الفصل: ${classAverage}%</span><span>خطة علاجية: ${remedialCount}</span><span>يحتاج تحسين: ${improvementCount}</span><span>متقنون: ${masteryCount}</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الاختبار</th><th>الدرجة</th><th>النسبة</th><th>التصنيف</th><th>المهارات الضعيفة</th><th>الخطة العلاجية المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________________</span></div></section></body></html>`);
+      @page{size:A4 landscape;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,Tahoma,sans-serif;color:#111;background:#eef2f5}.toolbar{position:sticky;top:0;z-index:2;display:flex;justify-content:center;gap:10px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:7px;padding:8px 16px;font-weight:800;cursor:pointer}.page{position:relative;width:297mm;height:210mm;margin:6mm auto;background:#fff;padding:5mm 6mm 10mm;overflow:hidden}.portal{text-align:center;font-size:11px;font-weight:900;color:#173f61;border-bottom:1.5px solid #173f61;padding-bottom:3px}h1{text-align:center;font-size:14px;margin:3px 0 4px}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:2px 6px;border:1px solid #222;padding:4px 5px;font-size:7.5px}.summary{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #222;border-top:0}.summary span{text-align:center;padding:3px 1px;font-size:7px;font-weight:800;border-left:1px solid #222}.summary span:last-child{border-left:0}table{width:100%;border-collapse:collapse;margin-top:4px;table-layout:fixed}th,td{border:1px solid #222;padding:1.5px 2px;font-size:6.2px;vertical-align:top;line-height:1.12;overflow-wrap:anywhere}th{background:#edf3f7;text-align:center;font-size:6.4px}th:nth-child(1){width:3%}th:nth-child(2){width:12%}th:nth-child(3){width:10%}th:nth-child(4){width:6%}th:nth-child(5){width:5%}th:nth-child(6){width:6%}th:nth-child(7){width:18%}th:nth-child(8){width:40%}.footer{position:absolute;right:6mm;left:6mm;bottom:3mm;display:flex;justify-content:space-between;border-top:1px solid #666;padding-top:2px;font-size:7px;font-weight:700}@media print{html,body{background:#fff}.toolbar{display:none}.page{margin:0;width:297mm;height:210mm;page-break-after:avoid;break-after:avoid}}
+    </style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><section class="page"><div class="portal">${PORTAL_NAME}</div><h1>تقرير نتائج الاختبارات التشخيصية والخطة العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(className)}</span><span><b>الاختبار:</b> ${escapeHtml(testTitle)}</span><span><b>النطاق:</b> ${Math.min(minimum, maximum)}%–${Math.max(minimum, maximum)}%</span></div><div class="summary"><span>النتائج: ${visible.length}</span><span>المتوسط: ${classAverage}%</span><span>علاجي: ${remedialCount}</span><span>تحسين: ${improvementCount}</span><span>متقنون: ${masteryCount}</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الاختبار</th><th>الدرجة</th><th>النسبة</th><th>التصنيف</th><th>المهارات الضعيفة</th><th>الخطة العلاجية المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></section></body></html>`);
     popup.document.close();
   }
 
   return <section className="diag-results" dir="rtl">
-    <header><div><small>التحليل والخطة العلاجية</small><h2>نتائج الطلاب حسب الفصل</h2><p>اختر فصلًا محددًا ثم حمّل تقرير PDF مستقلًا يشمل الدرجات والخطة العلاجية.</p></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button onClick={printClassPdf} disabled={className === "all" || !visible.length}>تقرير الفصل PDF</button><button onClick={downloadCsv} disabled={!visible.length}>تحميل النتائج والخطط</button></div></header>
+    <header><div><small>التحليل والخطة العلاجية</small><h2>نتائج الطلاب حسب الفصل</h2><p>اختر فصلًا محددًا ثم حمّل تقرير PDF مستقلًا في صفحة واحدة.</p></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button onClick={printClassPdf} disabled={className === "all" || !visible.length}>تقرير الفصل PDF</button><button onClick={downloadCsv} disabled={!visible.length}>تحميل النتائج والخطط</button></div></header>
     <div className="diag-filters">
       <label className="diag-search">بحث باسم الطالب<input value={searchName} onChange={e=>setSearchName(e.target.value)} placeholder="اكتب اسم الطالب" /></label>
       <label>الفصل<select value={className} onChange={e=>{setClassName(e.target.value);setStudentId("all")}}><option value="all">اختر فصلًا أو اعرض الجميع</option>{classes.map(c=><option key={c}>{c}</option>)}</select></label>
