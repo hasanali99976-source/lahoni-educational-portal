@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../../lib/server/portal-auth";
+import { normalizeAssignments } from "../../../../../lib/teacher-assignments";
 import {
   SCHOOL_CLASSES_COLLECTION,
   SCHOOL_STUDENTS_COLLECTION,
@@ -13,7 +14,10 @@ import {
 } from "../../../../../lib/school-roster";
 
 const LEGACY_SHARED = "school_shared_students";
-const WRITE_CHUNK_SIZE = 200;
+const WRITE_CHUNK_SIZE = 150;
+const SOURCE_CHUNK_SIZE = 3;
+
+type LegacySource = { teacherId: string; subjectId: string };
 
 function isQuotaError(error: unknown) {
   const source = error as { code?: unknown; message?: unknown };
@@ -29,54 +33,83 @@ function isTimeoutError(error: unknown) {
   return String((error as { message?: unknown })?.message || "").includes("migration_timeout");
 }
 
-function withTimeout<T>(promise: Promise<T>, milliseconds = 5000) {
+function withTimeout<T>(promise: Promise<T>, milliseconds = 7000) {
   return Promise.race<T>([
     promise,
     new Promise<T>((_, reject) => setTimeout(() => reject(new Error("migration_timeout")), milliseconds)),
   ]);
 }
 
+async function loadLegacySources() {
+  const teachersSnapshot = await withTimeout(adminDb().collection("portalV2Users").where("role", "==", "teacher").get());
+  const sources = new Map<string, LegacySource>();
+  teachersSnapshot.docs.forEach(teacher => {
+    const data = teacher.data() as Record<string, unknown>;
+    const assignments = normalizeAssignments(data.assignments, data.subjectIds);
+    assignments.forEach(assignment => {
+      const key = `${teacher.id}__${assignment.subjectId}`;
+      sources.set(key, { teacherId: teacher.id, subjectId: assignment.subjectId });
+    });
+  });
+  return [...sources.values()];
+}
+
 export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   try {
     const body = await request.json().catch(() => ({}));
+    const cursor = Math.max(0, Number(body?.cursor) || 0);
     const candidates: Array<Record<string, unknown> & { __id?: string }> = [];
 
-    const [centralSnapshot, sharedSnapshot] = await Promise.all([
+    const [centralSnapshot, legacySources] = await Promise.all([
       withTimeout(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get()),
-      withTimeout(adminDb().collection(LEGACY_SHARED).get()),
+      loadLegacySources(),
     ]);
 
     const centralStudents = centralSnapshot.docs
       .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
       .filter((item): item is SchoolStudent => !!item);
 
-    // The shared roster is the single legacy server source. Reading every teacher and
-    // every subject caused excessive Firestore reads and could exceed the free quota.
-    sharedSnapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
+    if (cursor === 0) {
+      const sharedSnapshot = await withTimeout(adminDb().collection(LEGACY_SHARED).get());
+      sharedSnapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
+      if (Array.isArray(body?.students)) {
+        body.students.forEach((item: unknown) => {
+          if (item && typeof item === "object") candidates.push(item as Record<string, unknown>);
+        });
+      }
+    }
 
-    if (Array.isArray(body?.students)) {
-      body.students.forEach((item: unknown) => {
-        if (item && typeof item === "object") candidates.push(item as Record<string, unknown>);
-      });
+    const selectedSources = legacySources.slice(cursor, cursor + SOURCE_CHUNK_SIZE);
+    for (const source of selectedSources) {
+      try {
+        const snapshot = await withTimeout(
+          adminDb().collection(`portalV2Data/${source.teacherId}/subjects/${source.subjectId}/students`).get(),
+        );
+        snapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
+      } catch (error) {
+        if (isQuotaError(error) || isTimeoutError(error)) throw error;
+      }
     }
 
     const byCode = new Map(centralStudents.map(student => [student.code, student]));
     const byIdentity = new Map(centralStudents.map(student => [studentIdentity(student), student]));
     const working = [...centralStudents];
-    const additions = new Map<string, SchoolStudent>();
+    const changes = new Map<string, SchoolStudent>();
     let skipped = 0;
     let added = 0;
     let updated = 0;
+    let collisionRecovered = 0;
 
     for (const candidate of candidates) {
       const normalized = normalizeStudentRecord(candidate, String(candidate.__id || ""));
       if (!normalized) { skipped += 1; continue; }
+
       const identity = studentIdentity(normalized);
-      const existing = byCode.get(normalized.code) || byIdentity.get(identity);
-      if (existing) {
+      const sameStudent = byIdentity.get(identity);
+      if (sameStudent) {
         const merged = {
-          ...existing,
+          ...sameStudent,
           name: normalized.name,
           grade: normalized.grade,
           section: normalized.section,
@@ -84,18 +117,22 @@ export async function POST(request: Request) {
           active: true,
           updatedAt: new Date().toISOString(),
         };
-        additions.set(existing.code, merged);
-        byCode.set(existing.code, merged);
+        changes.set(sameStudent.code, merged);
+        byCode.set(sameStudent.code, merged);
         byIdentity.set(identity, merged);
         updated += 1;
         continue;
       }
 
       let code = normalized.code;
-      if (!/^TH[123]\d{3}$/.test(code) || byCode.has(code) || additions.has(code)) {
-        code = nextStudentCode([...working, ...additions.values()], normalized.grade);
+      const codeOwner = byCode.get(code);
+      const hasCollision = !!codeOwner && studentIdentity(codeOwner) !== identity;
+      if (!/^TH[123]\d{3}$/.test(code) || hasCollision || changes.has(code)) {
+        code = nextStudentCode([...working, ...changes.values()], normalized.grade);
+        if (hasCollision) collisionRecovered += 1;
       }
       if (!code) { skipped += 1; continue; }
+
       const student = {
         ...normalized,
         id: code,
@@ -105,14 +142,14 @@ export async function POST(request: Request) {
         updatedAt: new Date().toISOString(),
         createdAt: normalized.createdAt || new Date().toISOString(),
       };
-      additions.set(code, student);
+      changes.set(code, student);
       working.push(student);
       byCode.set(code, student);
       byIdentity.set(identity, student);
       added += 1;
     }
 
-    const rows = [...additions.values()];
+    const rows = [...changes.values()];
     for (let index = 0; index < rows.length; index += WRITE_CHUNK_SIZE) {
       const chunk = rows.slice(index, index + WRITE_CHUNK_SIZE);
       const batch = adminDb().batch();
@@ -147,28 +184,36 @@ export async function POST(request: Request) {
       await withTimeout(batch.commit());
     }
 
+    const nextCursor = cursor + selectedSources.length;
+    const complete = nextCursor >= legacySources.length;
     return NextResponse.json({
       ok: true,
-      migrated: additions.size,
+      migrated: changes.size,
       added,
       updated,
       skipped,
+      collisionRecovered,
       total: byCode.size,
+      cursor,
+      nextCursor,
+      complete,
+      processedSources: selectedSources.length,
+      sourceCount: legacySources.length,
     });
   } catch (error) {
     console.error("migrate school roster failed", error);
     if (isQuotaError(error)) {
       return NextResponse.json({
         ok: false,
-        message: "وصلت قاعدة البيانات إلى حد الاستخدام المؤقت. القوائم محفوظة؛ أعد المحاولة لاحقًا دون تكرار الضغط.",
+        message: "وصلت قاعدة البيانات إلى حد الاستخدام المؤقت. لم تُحذف أي قائمة؛ أكمل الاسترجاع لاحقًا من الزر نفسه.",
       }, { status: 429 });
     }
     if (isTimeoutError(error)) {
       return NextResponse.json({
         ok: false,
-        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة؛ أعد المحاولة لاحقًا مرة واحدة.",
+        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة؛ أكمل الاسترجاع لاحقًا من الزر نفسه.",
       }, { status: 503 });
     }
-    return NextResponse.json({ ok: false, message: "تعذر نقل القوائم الحالية الآن" }, { status: 500 });
+    return NextResponse.json({ ok: false, message: "تعذر استرجاع القوائم الحالية الآن" }, { status: 500 });
   }
 }
