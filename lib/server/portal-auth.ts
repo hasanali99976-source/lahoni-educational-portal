@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { adminDb } from "./firebase-admin";
 
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
+export const ADMIN_SESSION_COOKIE = "lahooni_admin_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
 export const ADMIN_SESSION_MAX_AGE = 60 * 30;
 
@@ -84,13 +85,23 @@ export function readSessionToken(value?: string): PortalSession | null {
   }
 }
 
-export async function currentSession() {
+export async function currentSession(role?: PortalRole) {
   const store = await cookies();
-  return readSessionToken(store.get(PORTAL_SESSION_COOKIE)?.value);
+  const cookieNames = role === "admin"
+    ? [ADMIN_SESSION_COOKIE, PORTAL_SESSION_COOKIE]
+    : role === "teacher"
+      ? [PORTAL_SESSION_COOKIE]
+      : [ADMIN_SESSION_COOKIE, PORTAL_SESSION_COOKIE];
+
+  for (const cookieName of cookieNames) {
+    const session = readSessionToken(store.get(cookieName)?.value);
+    if (session && (!role || session.role === role)) return session;
+  }
+  return null;
 }
 
 export async function requireSession(role?: PortalRole) {
-  const session = await currentSession();
+  const session = await currentSession(role);
   if (!session || (role && session.role !== role)) return null;
   const user = await findUserById(session.userId);
   if (!user || !user.active || user.role !== session.role) return null;
