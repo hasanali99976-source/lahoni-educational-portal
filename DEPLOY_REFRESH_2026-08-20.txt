@@ -1,1 +1,2 @@
-Production refresh requested after subject identities, student portal, mobile, admin login, and diagnostic fallback updates.
+Production refresh requested after subject identities, student portal, mobile, admin login, diagnostic fallback, safe roster recovery, preserved student codes and attendance history, and teacher-assignment linking updates.
+Deployment refresh: 2026-08-27 18:14 Asia/Riyadh.
