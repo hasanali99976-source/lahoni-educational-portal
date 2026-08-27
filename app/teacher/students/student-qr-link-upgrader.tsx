@@ -50,14 +50,29 @@ export default function StudentQrLinkUpgrader() {
 
   return createPortal(
     <>
-      <QRCodeSVG
-        data-student-qr-link="true"
-        value={url}
-        size={232}
-        level="H"
-        includeMargin
-      />
-      <small style={{ display: "block", marginTop: 8 }}>يفتح بوابة الطالب مباشرة بالكود — رابط جديد للآيفون</small>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="فتح بوابة الطالب بالكود"
+        style={{ display: "inline-block", cursor: "pointer", lineHeight: 0 }}
+      >
+        <QRCodeSVG
+          data-student-qr-link="true"
+          value={url}
+          size={232}
+          level="H"
+          includeMargin
+        />
+      </a>
+      <small style={{ display: "block", marginTop: 8 }}>امسح الباركود بالآيفون أو اضغط عليه لفتح بوابة الطالب بالكود فقط</small>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn primary"
+        style={{ display: "inline-flex", marginTop: 10, textDecoration: "none" }}
+      >فتح بوابة الطالب</a>
     </>,
     target,
   );

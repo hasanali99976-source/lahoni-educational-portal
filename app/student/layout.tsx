@@ -1,4 +1,5 @@
 import "./student-v3.css";
+import "./student-code-only.css";
 import StudentSecurity from "./student-security";
 import StudentClassGuard from "./student-class-guard";
 import StudentCodeOnlyUI from "./student-code-only-ui";
