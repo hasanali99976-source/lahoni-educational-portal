@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { normalizeAssignments } from "../teacher-assignments";
 import { adminDb } from "./firebase-admin";
 
@@ -107,7 +108,7 @@ function sameStringList(left: string[], right: string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-async function normalizePortalUser(document: FirebaseFirestore.DocumentSnapshot): Promise<PortalUser | null> {
+async function normalizePortalUser(document: DocumentSnapshot): Promise<PortalUser | null> {
   if (!document.exists) return null;
   const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
   if (data.role !== "admin" && data.role !== "teacher") return null;
