@@ -1,24 +1,42 @@
 import { NextResponse } from "next/server";
 import { createTeacherFirebaseToken } from "../../../../lib/server/firebase-auth-admin";
+import { adminDb } from "../../../../lib/server/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  let tokenCreated = false;
+  let tokenError = "";
+  let serverFirestoreWrite = false;
+  let writeError = "";
+
   try {
     const token = await createTeacherFirebaseToken("firebase-auth-check", ["history"]);
-    return NextResponse.json({
-      ok: true,
-      tokenCreated: token.length > 100,
-      credentialsConfigured: Boolean(
-        process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-        || process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT
-        || process.env.FIREBASE_SERVICE_ACCOUNT
-        || (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY)
-        || process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      ),
-    }, { headers: { "Cache-Control": "no-store" } });
+    tokenCreated = token.length > 100;
   } catch (error) {
-    console.error("firebase auth check failed", error);
-    return NextResponse.json({ ok: false, message: error instanceof Error ? error.message : "unknown error" }, { status: 500 });
+    tokenError = error instanceof Error ? error.message : "unknown token error";
   }
+
+  const reference = adminDb()
+    .collection("portalV2Data/firebase-auth-check/subjects/history/diagnostics")
+    .doc("write-check");
+  try {
+    await reference.set({ ok: true, checkedAt: new Date().toISOString() });
+    const snapshot = await reference.get();
+    serverFirestoreWrite = snapshot.exists;
+    await reference.delete();
+  } catch (error) {
+    writeError = error instanceof Error ? error.message : "unknown write error";
+  }
+
+  return NextResponse.json({
+    ok: tokenCreated || serverFirestoreWrite,
+    tokenCreated,
+    tokenError,
+    serverFirestoreWrite,
+    writeError,
+  }, {
+    status: tokenCreated || serverFirestoreWrite ? 200 : 500,
+    headers: { "Cache-Control": "no-store" },
+  });
 }
