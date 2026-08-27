@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../../lib/server/portal-auth";
-import { normalizeAssignments } from "../../../../../lib/teacher-assignments";
 import {
   SCHOOL_CLASSES_COLLECTION,
   SCHOOL_STUDENTS_COLLECTION,
@@ -14,6 +13,17 @@ import {
 } from "../../../../../lib/school-roster";
 
 const LEGACY_SHARED = "school_shared_students";
+const WRITE_CHUNK_SIZE = 200;
+
+function isQuotaError(error: unknown) {
+  const source = error as { code?: unknown; message?: unknown };
+  const code = String(source?.code || "").toLowerCase();
+  const message = String(source?.message || "").toLowerCase();
+  return code.includes("resource-exhausted")
+    || message.includes("resource_exhausted")
+    || message.includes("quota exceeded")
+    || message.includes("maximum backoff delay");
+}
 
 export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
@@ -26,23 +36,10 @@ export async function POST(request: Request) {
       .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
       .filter((item): item is SchoolStudent => !!item);
 
+    // The shared roster is the single legacy server source. Reading every teacher and
+    // every subject caused excessive Firestore reads and could exceed the free quota.
     const sharedSnapshot = await adminDb().collection(LEGACY_SHARED).get();
     sharedSnapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
-
-    const teachersSnapshot = await adminDb().collection("portalV2Users").where("role", "==", "teacher").get();
-    for (const teacher of teachersSnapshot.docs) {
-      const data = teacher.data() as Record<string, unknown>;
-      const assignments = normalizeAssignments(data.assignments, data.subjectIds);
-      const subjectIds = [...new Set(assignments.map(item => item.subjectId).filter(Boolean))];
-      for (const subjectId of subjectIds) {
-        try {
-          const snapshot = await adminDb().collection(`portalV2Data/${teacher.id}/subjects/${subjectId}/students`).get();
-          snapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
-        } catch {
-          // Continue with the remaining legacy sources.
-        }
-      }
-    }
 
     if (Array.isArray(body?.students)) {
       body.students.forEach((item: unknown) => {
@@ -55,6 +52,8 @@ export async function POST(request: Request) {
     const working = [...centralStudents];
     const additions = new Map<string, SchoolStudent>();
     let skipped = 0;
+    let added = 0;
+    let updated = 0;
 
     for (const candidate of candidates) {
       const normalized = normalizeStudentRecord(candidate, String(candidate.__id || ""));
@@ -62,44 +61,94 @@ export async function POST(request: Request) {
       const identity = studentIdentity(normalized);
       const existing = byCode.get(normalized.code) || byIdentity.get(identity);
       if (existing) {
-        const merged = { ...existing, name: normalized.name, grade: normalized.grade, section: normalized.section, className: normalized.className, active: true, updatedAt: new Date().toISOString() };
+        const merged = {
+          ...existing,
+          name: normalized.name,
+          grade: normalized.grade,
+          section: normalized.section,
+          className: canonicalClassName(normalized.grade, normalized.section),
+          active: true,
+          updatedAt: new Date().toISOString(),
+        };
         additions.set(existing.code, merged);
         byCode.set(existing.code, merged);
         byIdentity.set(identity, merged);
+        updated += 1;
         continue;
       }
 
       let code = normalized.code;
-      if (!/^TH[123]\d{3}$/.test(code) || byCode.has(code) || additions.has(code)) code = nextStudentCode([...working, ...additions.values()], normalized.grade);
+      if (!/^TH[123]\d{3}$/.test(code) || byCode.has(code) || additions.has(code)) {
+        code = nextStudentCode([...working, ...additions.values()], normalized.grade);
+      }
       if (!code) { skipped += 1; continue; }
-      const student = { ...normalized, id: code, code, active: true, className: canonicalClassName(normalized.grade, normalized.section), updatedAt: new Date().toISOString(), createdAt: normalized.createdAt || new Date().toISOString() };
+      const student = {
+        ...normalized,
+        id: code,
+        code,
+        active: true,
+        className: canonicalClassName(normalized.grade, normalized.section),
+        updatedAt: new Date().toISOString(),
+        createdAt: normalized.createdAt || new Date().toISOString(),
+      };
       additions.set(code, student);
       working.push(student);
       byCode.set(code, student);
       byIdentity.set(identity, student);
+      added += 1;
     }
 
-    const batch = adminDb().batch();
-    const classes = new Map<string, { grade: number; section: string; name: string }>();
-    additions.forEach(student => {
-      batch.set(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).doc(student.code), {
-        code: student.code,
-        name: student.name,
-        grade: student.grade,
-        section: student.section,
-        className: student.className,
-        active: true,
-        createdAt: student.createdAt || new Date().toISOString(),
-        updatedAt: student.updatedAt || new Date().toISOString(),
-      }, { merge: true });
-      classes.set(classId(student.grade, student.section), { grade: student.grade, section: student.section, name: student.className });
-    });
-    classes.forEach((schoolClass, id) => batch.set(adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(id), { ...schoolClass, active: true, updatedAt: new Date().toISOString(), createdAt: new Date().toISOString() }, { merge: true }));
-    if (additions.size) await batch.commit();
+    const rows = [...additions.values()];
+    for (let index = 0; index < rows.length; index += WRITE_CHUNK_SIZE) {
+      const chunk = rows.slice(index, index + WRITE_CHUNK_SIZE);
+      const batch = adminDb().batch();
+      const classes = new Map<string, { grade: number; section: string; name: string }>();
 
-    return NextResponse.json({ ok: true, migrated: additions.size, skipped, total: centralStudents.length + additions.size });
+      chunk.forEach(student => {
+        batch.set(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).doc(student.code), {
+          code: student.code,
+          name: student.name,
+          grade: student.grade,
+          section: student.section,
+          className: student.className,
+          active: true,
+          createdAt: student.createdAt || new Date().toISOString(),
+          updatedAt: student.updatedAt || new Date().toISOString(),
+        }, { merge: true });
+        classes.set(classId(student.grade, student.section), {
+          grade: student.grade,
+          section: student.section,
+          name: student.className,
+        });
+      });
+
+      classes.forEach((schoolClass, id) => {
+        batch.set(adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(id), {
+          ...schoolClass,
+          active: true,
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        }, { merge: true });
+      });
+      await batch.commit();
+    }
+
+    return NextResponse.json({
+      ok: true,
+      migrated: additions.size,
+      added,
+      updated,
+      skipped,
+      total: byCode.size,
+    });
   } catch (error) {
     console.error("migrate school roster failed", error);
-    return NextResponse.json({ ok: false, message: "تعذر نقل القوائم الحالية" }, { status: 500 });
+    if (isQuotaError(error)) {
+      return NextResponse.json({
+        ok: false,
+        message: "وصلت قاعدة البيانات إلى حد الاستخدام المؤقت. القوائم محفوظة؛ أعد المحاولة لاحقًا دون تكرار الضغط.",
+      }, { status: 429 });
+    }
+    return NextResponse.json({ ok: false, message: "تعذر نقل القوائم الحالية الآن" }, { status: 500 });
   }
 }
