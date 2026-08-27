@@ -25,20 +25,34 @@ function isQuotaError(error: unknown) {
     || message.includes("maximum backoff delay");
 }
 
+function isTimeoutError(error: unknown) {
+  return String((error as { message?: unknown })?.message || "").includes("migration_timeout");
+}
+
+function withTimeout<T>(promise: Promise<T>, milliseconds = 5000) {
+  return Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("migration_timeout")), milliseconds)),
+  ]);
+}
+
 export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   try {
     const body = await request.json().catch(() => ({}));
     const candidates: Array<Record<string, unknown> & { __id?: string }> = [];
 
-    const centralSnapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get();
+    const [centralSnapshot, sharedSnapshot] = await Promise.all([
+      withTimeout(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get()),
+      withTimeout(adminDb().collection(LEGACY_SHARED).get()),
+    ]);
+
     const centralStudents = centralSnapshot.docs
       .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
       .filter((item): item is SchoolStudent => !!item);
 
     // The shared roster is the single legacy server source. Reading every teacher and
     // every subject caused excessive Firestore reads and could exceed the free quota.
-    const sharedSnapshot = await adminDb().collection(LEGACY_SHARED).get();
     sharedSnapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
 
     if (Array.isArray(body?.students)) {
@@ -130,7 +144,7 @@ export async function POST(request: Request) {
           createdAt: new Date().toISOString(),
         }, { merge: true });
       });
-      await batch.commit();
+      await withTimeout(batch.commit());
     }
 
     return NextResponse.json({
@@ -148,6 +162,12 @@ export async function POST(request: Request) {
         ok: false,
         message: "وصلت قاعدة البيانات إلى حد الاستخدام المؤقت. القوائم محفوظة؛ أعد المحاولة لاحقًا دون تكرار الضغط.",
       }, { status: 429 });
+    }
+    if (isTimeoutError(error)) {
+      return NextResponse.json({
+        ok: false,
+        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة؛ أعد المحاولة لاحقًا مرة واحدة.",
+      }, { status: 503 });
     }
     return NextResponse.json({ ok: false, message: "تعذر نقل القوائم الحالية الآن" }, { status: 500 });
   }
