@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { findUserById, requireSession } from "../../../../lib/server/portal-auth";
-import { normalizeAssignments } from "../../../../lib/teacher-assignments";
+import { normalizeAssignments, type TeacherAssignment } from "../../../../lib/teacher-assignments";
 import {
   SCHOOL_CLASSES_COLLECTION,
   SCHOOL_STUDENTS_COLLECTION,
@@ -9,8 +9,10 @@ import {
   classId,
   classMatchesAssignments,
   gradeNumber,
+  normalizeArabic,
   normalizeClassRecord,
   normalizeStudentRecord,
+  sectionNumber,
   studentIdentity,
   studentMatchesAssignments,
   type SchoolClass,
@@ -18,6 +20,8 @@ import {
 } from "../../../../lib/school-roster";
 
 type Repair = { path: string; data: Record<string, unknown> };
+type Grade = 1 | 2 | 3;
+type ScopeMap = Map<Grade, Set<string> | null>;
 
 function explicitlyArchived(value: Record<string, unknown>) {
   return value.deleted === true
@@ -47,6 +51,95 @@ async function applyRepairs(repairs: Repair[]) {
   }
 }
 
+function allSections(value: unknown) {
+  const normalized = normalizeArabic(value);
+  return !normalized
+    || normalized === "الكل"
+    || normalized === "كل"
+    || normalized === "جميع الفصول";
+}
+
+function addScope(scopes: ScopeMap, grade: Grade, section: string | null) {
+  const current = scopes.get(grade);
+  if (current === null) return;
+  if (section === null) {
+    scopes.set(grade, null);
+    return;
+  }
+  const sections = current || new Set<string>();
+  sections.add(section);
+  scopes.set(grade, sections);
+}
+
+function scopesFromAssignments(assignments: TeacherAssignment[]) {
+  const scopes: ScopeMap = new Map();
+  assignments.forEach(assignment => {
+    const grade = gradeNumber(assignment.grade);
+    if (!grade) return;
+    if (allSections(assignment.section)) {
+      addScope(scopes, grade, null);
+      return;
+    }
+    const section = sectionNumber(assignment.section);
+    if (section) addScope(scopes, grade, section);
+  });
+  return scopes;
+}
+
+function scopesFromStudents(students: SchoolStudent[]) {
+  const scopes: ScopeMap = new Map();
+  students.forEach(student => addScope(scopes, student.grade as Grade, student.section));
+  return scopes;
+}
+
+async function loadScopedStudentDocuments(scopes: ScopeMap) {
+  const collection = adminDb().collection(SCHOOL_STUDENTS_COLLECTION);
+  const queries: Promise<any>[] = [];
+
+  scopes.forEach((sections, grade) => {
+    if (sections === null) {
+      queries.push(collection.where("grade", "==", grade).get());
+      return;
+    }
+    sections.forEach(section => {
+      queries.push(collection.where("className", "==", canonicalClassName(grade, section)).get());
+    });
+  });
+
+  const snapshots = await Promise.all(queries);
+  const documents = new Map<string, any>();
+  snapshots.forEach(snapshot => snapshot.docs.forEach((item: any) => documents.set(item.id, item)));
+  return [...documents.values()];
+}
+
+async function loadScopedClassDocuments(scopes: ScopeMap) {
+  const collection = adminDb().collection(SCHOOL_CLASSES_COLLECTION);
+  const queryTasks: Promise<any>[] = [];
+  const documentTasks: Promise<any>[] = [];
+
+  scopes.forEach((sections, grade) => {
+    if (sections === null) {
+      queryTasks.push(collection.where("grade", "==", grade).get());
+      return;
+    }
+    sections.forEach(section => {
+      documentTasks.push(collection.doc(classId(grade, section)).get());
+    });
+  });
+
+  const [snapshots, exactDocuments] = await Promise.all([
+    Promise.all(queryTasks),
+    Promise.all(documentTasks),
+  ]);
+
+  const documents = new Map<string, any>();
+  snapshots.forEach(snapshot => snapshot.docs.forEach((item: any) => documents.set(item.id, item)));
+  exactDocuments.forEach(item => {
+    if (item.exists) documents.set(item.id, item);
+  });
+  return [...documents.values()];
+}
+
 export async function GET(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
@@ -66,20 +159,24 @@ export async function GET(request: Request) {
     const hasDetailedAssignments = detailedAssignments.length > 0;
     const subjectPath = `portalV2Data/${session.userId}/subjects/${subjectId}/students`;
 
-    const [centralSnapshot, legacySnapshot, classesSnapshot] = await Promise.all([
-      adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get(),
-      adminDb().collection(subjectPath).get(),
-      adminDb().collection(SCHOOL_CLASSES_COLLECTION).get(),
-    ]);
-
+    const legacySnapshot = await adminDb().collection(subjectPath).get();
     const legacyRows = legacySnapshot.docs
       .map(item => ({ id: item.id, raw: item.data() as Record<string, unknown> }))
       .map(item => ({ ...item, student: normalizeLegacy(item.raw, item.id) }))
       .filter((item): item is { id: string; raw: Record<string, unknown>; student: SchoolStudent } => !!item.student)
       .filter(item => !hasDetailedAssignments || studentMatchesAssignments(item.student, assignments, subjectId));
 
+    const scopes = hasDetailedAssignments
+      ? scopesFromAssignments(detailedAssignments)
+      : scopesFromStudents(legacyRows.map(item => item.student));
+
+    const [centralDocuments, classDocuments] = await Promise.all([
+      loadScopedStudentDocuments(scopes),
+      loadScopedClassDocuments(scopes),
+    ]);
+
     const legacyClassKeys = new Set(legacyRows.map(item => classId(item.student.grade, item.student.section)));
-    const centralRows = centralSnapshot.docs
+    const centralRows = centralDocuments
       .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
       .filter((item): item is SchoolStudent => !!item && item.active !== false)
       .filter(item => hasDetailedAssignments
@@ -163,8 +260,10 @@ export async function GET(request: Request) {
     }
 
     const classMap = new Map<string, SchoolClass>();
-    classesSnapshot.docs.forEach(item => {
-      const schoolClass = normalizeClassRecord({ id: item.id, ...(item.data() as Record<string, unknown>) } as Partial<SchoolClass>);
+    classDocuments.forEach(item => {
+      const data = item.data();
+      if (!data) return;
+      const schoolClass = normalizeClassRecord({ id: item.id, ...data } as Partial<SchoolClass>);
       if (!schoolClass || schoolClass.active === false) return;
       if (hasDetailedAssignments && !classMatchesAssignments(schoolClass, assignments, subjectId)) return;
       if (!hasDetailedAssignments && !legacyClassKeys.has(schoolClass.id)) return;
@@ -193,7 +292,9 @@ export async function GET(request: Request) {
       recoveredLegacy: legacyRows.length,
       centralAdded: Math.max(0, students.length - legacyRows.length),
       repairPending: repairs.length,
-    }, { headers: { "Cache-Control": "no-store" } });
+      centralReadCount: centralDocuments.length,
+      classReadCount: classDocuments.length,
+    }, { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=300" } });
   } catch (error) {
     console.error("teacher central roster failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل قائمة الطلاب" }, { status: 500 });
