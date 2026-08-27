@@ -2,7 +2,6 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { normalizeAssignments } from "../teacher-assignments";
 import { adminDb } from "./firebase-admin";
 
@@ -31,6 +30,12 @@ export type PortalUser = {
   assignments?: unknown;
   createdAt: string;
   updatedAt: string;
+};
+
+type CompatDocumentSnapshot = {
+  id: string;
+  exists: boolean;
+  data(): unknown;
 };
 
 function secret() {
@@ -104,11 +109,7 @@ export function normalizeUsername(value: string) {
   return value.trim().toLocaleLowerCase("ar").replace(/\s+/g, " ");
 }
 
-function sameStringList(left: string[], right: string[]) {
-  return left.length === right.length && left.every((value, index) => value === right[index]);
-}
-
-async function normalizePortalUser(document: DocumentSnapshot): Promise<PortalUser | null> {
+function normalizePortalUser(document: CompatDocumentSnapshot): PortalUser | null {
   if (!document.exists) return null;
   const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
   if (data.role !== "admin" && data.role !== "teacher") return null;
@@ -118,10 +119,6 @@ async function normalizePortalUser(document: DocumentSnapshot): Promise<PortalUs
   const subjectIds = data.role === "teacher" && assignments.length
     ? assignments.map(item => item.id)
     : storedSubjectIds;
-
-  if (data.role === "teacher" && !sameStringList(storedSubjectIds, subjectIds)) {
-    await document.ref.set({ subjectIds }, { merge: true });
-  }
 
   return {
     id: document.id,
