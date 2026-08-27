@@ -19,6 +19,12 @@ export type UnifiedStudent = {
   [key: string]: unknown;
 };
 
+export type AssignmentLike = {
+  subjectId?: string;
+  grade?: string;
+  section?: string;
+};
+
 export const SHARED_STUDENTS_COLLECTION = "school_shared_students";
 export const SHARED_CLASSES_COLLECTION = "school_shared_classes";
 
@@ -28,6 +34,8 @@ export function clean(value: unknown) {
 
 export function normalizeArabic(value: unknown) {
   return clean(value)
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .replace(/ـ/g, "")
     .replace(/[إأآ]/g, "ا")
     .replace(/ى/g, "ي")
     .replace(/ة/g, "ه")
@@ -38,15 +46,21 @@ export function normalizeClass(value: unknown) {
   return clean(value);
 }
 
+function westernDigits(value: unknown) {
+  return clean(value)
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+}
+
 export function studentCode(student: UnifiedStudent) {
   return clean(student.accessCode || student.studentCode || student.code || student.id).toUpperCase();
 }
 
 export function gradeNumber(className: string): 1 | 2 | 3 | null {
-  const value = normalizeArabic(className);
-  if (/(^|\s)(1|١|اول|الاول|first)(\s|$)/.test(value)) return 1;
-  if (/(^|\s)(2|٢|ثاني|الثاني|second)(\s|$)/.test(value)) return 2;
-  if (/(^|\s)(3|٣|ثالث|الثالث|third)(\s|$)/.test(value)) return 3;
+  const value = normalizeArabic(westernDigits(className));
+  if (/(^|\s)(1|اول|الاول)(\s|$)/.test(value)) return 1;
+  if (/(^|\s)(2|ثاني|الثاني)(\s|$)/.test(value)) return 2;
+  if (/(^|\s)(3|ثالث|الثالث)(\s|$)/.test(value)) return 3;
   return null;
 }
 
@@ -61,12 +75,65 @@ export function nextAvailableCode(used: Set<string>, className: string) {
   return "";
 }
 
-export function rosterStorageKey(teacherId: string) {
-  return `lahooni-unified-roster:${teacherId}`;
+export function subjectAssignments(assignments: AssignmentLike[] | undefined, subjectKey: string) {
+  return (Array.isArray(assignments) ? assignments : []).filter((assignment) => clean(assignment.subjectId) === clean(subjectKey));
 }
 
-export function rosterClassesStorageKey(teacherId: string) {
-  return `lahooni-unified-classes:${teacherId}`;
+export function hasDetailedAssignments(assignments: AssignmentLike[] | undefined, subjectKey: string) {
+  return subjectAssignments(assignments, subjectKey).some((assignment) => !!clean(assignment.grade));
+}
+
+export function classMatchesAssignments(className: string, assignments: AssignmentLike[] | undefined, subjectKey: string) {
+  const relevant = subjectAssignments(assignments, subjectKey).filter((assignment) => !!clean(assignment.grade));
+  if (!relevant.length) return false;
+  const normalizedClass = normalizeArabic(westernDigits(className));
+  const classGrade = gradeNumber(className);
+  const classNumbers = westernDigits(className).match(/\d+/g) || [];
+  const classSectionNumber = classNumbers.length ? classNumbers[classNumbers.length - 1] : "";
+
+  return relevant.some((assignment) => {
+    const assignmentGrade = clean(assignment.grade);
+    const assignmentGradeNumber = gradeNumber(assignmentGrade);
+    const normalizedGrade = normalizeArabic(westernDigits(assignmentGrade)).replace(/(^|\s)الصف(\s|$)/g, " ").trim();
+    const gradeMatches = assignmentGradeNumber && classGrade
+      ? assignmentGradeNumber === classGrade
+      : !!normalizedGrade && normalizedClass.includes(normalizedGrade);
+    if (!gradeMatches) return false;
+
+    const section = clean(assignment.section);
+    const normalizedSection = normalizeArabic(westernDigits(section)).replace(/(^|\s)الفصل(\s|$)/g, " ").trim();
+    if (!section || normalizedSection === "الكل" || normalizedSection === "كل" || normalizedSection === "جميع الفصول") return true;
+
+    const sectionNumber = westernDigits(section).match(/\d+/)?.[0] || "";
+    if (sectionNumber) return classSectionNumber === sectionNumber;
+
+    const classTokens = normalizedClass.split(/\s+/).filter(Boolean);
+    return normalizedClass.endsWith(normalizedSection) || classTokens.slice(-2).includes(normalizedSection);
+  });
+}
+
+export function assignmentClassNames(assignments: AssignmentLike[] | undefined, subjectKey: string) {
+  return subjectAssignments(assignments, subjectKey)
+    .filter((assignment) => !!clean(assignment.grade))
+    .flatMap((assignment) => {
+      const grade = clean(assignment.grade);
+      const section = clean(assignment.section);
+      const normalizedSection = normalizeArabic(section);
+      if (!section || normalizedSection === "الكل" || normalizedSection === "كل" || normalizedSection === "جميع الفصول") return [];
+      return [normalizeClass(`${grade} ${section}`)];
+    });
+}
+
+function scopePart(subjectKey?: string) {
+  return encodeURIComponent(clean(subjectKey) || "all");
+}
+
+export function rosterStorageKey(teacherId: string, subjectKey?: string) {
+  return `lahooni-unified-roster:${teacherId}:${scopePart(subjectKey)}`;
+}
+
+export function rosterClassesStorageKey(teacherId: string, subjectKey?: string) {
+  return `lahooni-unified-classes:${teacherId}:${scopePart(subjectKey)}`;
 }
 
 export function rosterDeletedStorageKey(teacherId: string) {
@@ -128,46 +195,43 @@ export function saveDeletedCodes(teacherId: string, codes: Set<string>) {
   localStorage.setItem(rosterDeletedStorageKey(teacherId), JSON.stringify([...codes]));
 }
 
-export function saveLocalRoster(teacherId: string, students: UnifiedStudent[]) {
+export function saveLocalRoster(teacherId: string, students: UnifiedStudent[], subjectKey?: string) {
   if (!browserReady() || !teacherId) return;
   const deleted = loadDeletedCodes(teacherId);
   const normalized = mergeStudents(students).filter((student) => !deleted.has(studentCode(student)));
-  localStorage.setItem(rosterStorageKey(teacherId), JSON.stringify(normalized));
-  window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId } }));
+  localStorage.setItem(rosterStorageKey(teacherId, subjectKey), JSON.stringify(normalized));
+  window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId, subjectKey: clean(subjectKey) } }));
 }
 
-export function loadLocalRoster(teacherId: string) {
+export function loadLocalRoster(teacherId: string, subjectKey?: string) {
   if (!browserReady() || !teacherId) return [] as UnifiedStudent[];
   const sources: UnifiedStudent[][] = [];
   try {
-    const parsed = JSON.parse(localStorage.getItem(rosterStorageKey(teacherId)) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(rosterStorageKey(teacherId, subjectKey)) || "[]");
     if (Array.isArray(parsed)) sources.push(parsed as UnifiedStudent[]);
   } catch {
-    // Rebuild from any older saved roster below.
+    // Rebuild from the older subject queue below.
   }
 
-  const legacyPrefix = `lahooni-pending-students:${teacherId}:`;
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index) || "";
-    if (!key.startsWith(legacyPrefix)) continue;
+  if (subjectKey) {
     try {
-      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+      const parsed = JSON.parse(localStorage.getItem(`lahooni-pending-students:${teacherId}:${subjectKey}`) || "[]");
       if (Array.isArray(parsed)) sources.push(parsed as UnifiedStudent[]);
     } catch {
-      // Ignore malformed legacy entries.
+      // Ignore malformed legacy data.
     }
   }
 
   const deleted = loadDeletedCodes(teacherId);
   const merged = mergeStudents(...sources).filter((student) => !deleted.has(studentCode(student)));
-  localStorage.setItem(rosterStorageKey(teacherId), JSON.stringify(merged));
+  localStorage.setItem(rosterStorageKey(teacherId, subjectKey), JSON.stringify(merged));
   return merged;
 }
 
-export function loadLocalClasses(teacherId: string) {
+export function loadLocalClasses(teacherId: string, subjectKey?: string) {
   if (!browserReady() || !teacherId) return [] as string[];
   try {
-    const parsed = JSON.parse(localStorage.getItem(rosterClassesStorageKey(teacherId)) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(rosterClassesStorageKey(teacherId, subjectKey)) || "[]");
     const values = Array.isArray(parsed) ? parsed.map((value: unknown) => normalizeClass(value)).filter(Boolean) : [];
     return [...new Set<string>(values)].sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
   } catch {
@@ -175,11 +239,11 @@ export function loadLocalClasses(teacherId: string) {
   }
 }
 
-export function saveLocalClasses(teacherId: string, classes: string[]) {
+export function saveLocalClasses(teacherId: string, classes: string[], subjectKey?: string) {
   if (!browserReady() || !teacherId) return;
   const normalized = [...new Set(classes.map(normalizeClass).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
-  localStorage.setItem(rosterClassesStorageKey(teacherId), JSON.stringify(normalized));
-  window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId } }));
+  localStorage.setItem(rosterClassesStorageKey(teacherId, subjectKey), JSON.stringify(normalized));
+  window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId, subjectKey: clean(subjectKey) } }));
 }
 
 export function belongsToTeacher(student: UnifiedStudent, teacherId: string) {
