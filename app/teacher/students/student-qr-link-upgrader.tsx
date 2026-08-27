@@ -46,19 +46,18 @@ export default function StudentQrLinkUpgrader() {
 
   if (!target || !code) return null;
 
-  // إضافة نسخة للرابط تمنع Safari في الآيفون من فتح الصفحة القديمة المخزنة.
-  const url = `${window.location.origin}/student?code=${encodeURIComponent(code)}&entry=qr&v=44`;
+  const url = `${window.location.origin}/student/qr/${encodeURIComponent(code)}`;
 
   return createPortal(
     <>
       <QRCodeSVG
         data-student-qr-link="true"
         value={url}
-        size={224}
+        size={232}
         level="H"
         includeMargin
       />
-      <small style={{ display: "block", marginTop: 8 }}>يفتح بوابة الطالب مباشرة بالكود — متوافق مع الآيفون</small>
+      <small style={{ display: "block", marginTop: 8 }}>يفتح بوابة الطالب مباشرة بالكود — رابط جديد للآيفون</small>
     </>,
     target,
   );
