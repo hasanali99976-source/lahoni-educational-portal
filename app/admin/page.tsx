@@ -58,9 +58,14 @@ export default function AdminPage() {
       const data = await response.json();
       setTeachers(Array.isArray(data.teachers) ? data.teachers : []);
       setAuthenticated(true);
+      if (data.databaseUnavailable) {
+        setMessage(data.message || "تم فتح لوحة الإدارة، لكن قاعدة البيانات غير متاحة مؤقتًا.");
+      } else {
+        setMessage(current => current.includes("قاعدة البيانات") || current.includes("ضغط") ? "" : current);
+      }
     } catch {
       setAuthenticated(false);
-      setMessage("تعذر تحميل جلسة الإدارة. سجّل الدخول بالاسم مرة أخرى.");
+      setMessage("تعذر التحقق من جلسة الإدارة الآن. حاول فتح الصفحة مرة أخرى.");
     }
   }, []);
 
@@ -72,6 +77,7 @@ export default function AdminPage() {
       const response = await fetchWithTimeout("/api/auth/admin-name-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username }) });
       const data = await response.json();
       if (!response.ok || data.role !== "admin") { setMessage(data.message || "اسم المدير غير صحيح"); return; }
+      setAuthenticated(true);
       await load();
     } catch { setMessage("تعذر تسجيل الدخول الآن. حاول مرة أخرى."); }
     finally { setBusy(false); }
@@ -124,7 +130,7 @@ export default function AdminPage() {
   if (!authenticated) return <main className="admin2 admin2-login" dir="rtl"><section className="admin2-login-card">
     <Link className="admin2-back" href="/">← العودة إلى البوابة الرئيسية</Link>
     <div className="admin2-brand"><span className="admin2-mark">إ</span><div><strong>بوابة أستاذ لحوني</strong><small>إدارة النظام</small></div></div>
-    <h1>دخول الإدارة</h1><p>اكتب اسم المدير فقط. لا توجد كلمة مرور لبوابة الإدارة.</p>
+    <h1>دخول الإدارة</h1><p>اكتب اسم المدير مرة واحدة، وستبقى الجلسة محفوظة على هذا الجهاز لمدة 30 يومًا.</p>
     <form onSubmit={login}><label>اسم المدير<input value={username} onChange={e => setUsername(e.target.value)} placeholder="حسن علي" autoComplete="username" required /></label>{message && <p className="admin2-message">{message}</p>}<button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الدخول…" : "دخول الإدارة"}</button></form>
   </section></main>;
 
@@ -134,7 +140,7 @@ export default function AdminPage() {
     {message && <p className="admin2-message">{message}</p>}
     <div className="admin2-grid">
       <section className="admin2-panel"><h2>إضافة معلم</h2><p>أنشئ حسابًا واحدًا للمعلم ثم أضف له أكثر من صف أو فصل عند الحاجة.</p><form className="admin2-form" onSubmit={createTeacher}><label>اسم المعلم<input value={name} onChange={e => setName(e.target.value)} placeholder="اسم المعلم" required /></label><label>الرقم السري للمعلم<input type="password" value={teacherPassword} onChange={e => setTeacherPassword(e.target.value)} minLength={8} placeholder="٨ خانات فأكثر" required /></label><AssignmentEditor rows={assignments} setRows={setAssignments} /><button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الحفظ…" : "إضافة المعلم"}</button></form></section>
-      <section className="admin2-panel"><h2>المعلمون الحاليون</h2><p>هذه البيانات تُقرأ من نفس قاعدة البيانات السابقة دون نقل أو حذف.</p><div className="admin2-list">{teachers.length === 0 ? <div className="admin2-empty">لا توجد حسابات معلمين.</div> : teachers.map(teacher => <article className="admin2-teacher" key={teacher.id}><span className="admin2-avatar">{teacher.name.trim().charAt(0) || "م"}</span><div><strong>{teacher.name}</strong><p>{teacher.assignments?.map(assignmentLabel).join(" • ") || "لا توجد تكليفات"}</p><span className={`admin2-state ${teacher.active ? "on" : "off"}`}>{teacher.active ? "مفعل" : "متوقف"}</span></div><div className="admin2-actions"><button className="admin2-btn soft" onClick={() => { setEditing({ ...teacher, assignments: teacher.assignments?.length ? teacher.assignments : [emptyAssignment()] }); setResetPassword(""); }}>تعديل</button><button className="admin2-btn soft" onClick={() => void toggle(teacher)}>{teacher.active ? "إيقاف" : "تفعيل"}</button><button className="admin2-btn danger" onClick={() => void remove(teacher)}>حذف</button></div></article>)}</div></section>
+      <section className="admin2-panel"><h2>المعلمون الحاليون</h2><p>هذه البيانات تُقرأ من نفس قاعدة البيانات السابقة دون نقل أو حذف.</p><div className="admin2-list">{teachers.length === 0 ? <div className="admin2-empty">{message.includes("قاعدة البيانات") || message.includes("ضغط") ? "بيانات المعلمين محفوظة، لكن عرضها متوقف مؤقتًا حتى تعود قاعدة البيانات." : "لا توجد حسابات معلمين."}</div> : teachers.map(teacher => <article className="admin2-teacher" key={teacher.id}><span className="admin2-avatar">{teacher.name.trim().charAt(0) || "م"}</span><div><strong>{teacher.name}</strong><p>{teacher.assignments?.map(assignmentLabel).join(" • ") || "لا توجد تكليفات"}</p><span className={`admin2-state ${teacher.active ? "on" : "off"}`}>{teacher.active ? "مفعل" : "متوقف"}</span></div><div className="admin2-actions"><button className="admin2-btn soft" onClick={() => { setEditing({ ...teacher, assignments: teacher.assignments?.length ? teacher.assignments : [emptyAssignment()] }); setResetPassword(""); }}>تعديل</button><button className="admin2-btn soft" onClick={() => void toggle(teacher)}>{teacher.active ? "إيقاف" : "تفعيل"}</button><button className="admin2-btn danger" onClick={() => void remove(teacher)}>حذف</button></div></article>)}</div></section>
     </div>
     {editing && <div className="admin2-modal"><section className="admin2-modal-card"><header className="admin2-modal-head"><h2>تعديل {editing.name}</h2><button className="admin2-btn soft" onClick={() => setEditing(null)}>إغلاق</button></header><div className="admin2-form"><label>اسم المعلم<input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} /></label><label>تغيير الرقم السري للمعلم <small>اتركه فارغًا إذا لم ترغب بتغييره</small><input type="password" minLength={8} value={resetPassword} onChange={e => setResetPassword(e.target.value)} /></label><AssignmentEditor rows={editing.assignments} setRows={rows => setEditing({ ...editing, assignments: rows })} /></div><div className="admin2-modal-actions"><button className="admin2-btn soft" onClick={() => setEditing(null)}>إلغاء</button><button className="admin2-btn primary" disabled={busy} onClick={() => void saveTeacher()}>حفظ التعديلات</button></div></section></div>}
   </div></main>;
