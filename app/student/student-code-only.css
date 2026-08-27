@@ -1,0 +1,10 @@
+.student-login-form form > .portal-field:first-of-type,
+.student-login-form form > .portal-input:first-of-type {
+  display: none !important;
+}
+
+.student-login-form form > .portal-input:first-of-type input {
+  visibility: hidden !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
