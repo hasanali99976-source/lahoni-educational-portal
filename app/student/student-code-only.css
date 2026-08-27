@@ -8,3 +8,34 @@
   position: absolute !important;
   pointer-events: none !important;
 }
+
+.student-login-page,
+.student-login-shell,
+.student-login-form,
+.student-login-form form,
+.student-login-form .portal-input,
+.student-login-form .portal-input input,
+.student-login-form .portal-submit {
+  pointer-events: auto !important;
+}
+
+.student-login-form,
+.student-login-form form,
+.student-login-form .portal-input,
+.student-login-form .portal-submit {
+  position: relative !important;
+  z-index: 30 !important;
+}
+
+.student-login-form .portal-input input,
+.student-login-form .portal-submit {
+  touch-action: manipulation !important;
+  -webkit-user-select: text;
+}
+
+.student-login-form::before,
+.student-login-form::after,
+.student-login-shell::before,
+.student-login-shell::after {
+  pointer-events: none !important;
+}
