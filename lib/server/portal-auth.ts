@@ -7,7 +7,7 @@ import { adminDb } from "./firebase-admin";
 
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
-export const ADMIN_SESSION_MAX_AGE = 60 * 30;
+export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 export type PortalRole = "admin" | "teacher";
 export type PortalSession = {
@@ -99,9 +99,18 @@ export async function currentSession() {
 export async function requireSession(role?: PortalRole) {
   const session = await currentSession();
   if (!session || (role && session.role !== role)) return null;
+
+  // The administrator session is signed by the portal and must not depend on
+  // a Firestore read. This keeps the admin panel reachable during quota or
+  // temporary database outages while teacher accounts stay database-backed.
+  if (session.role === "admin") {
+    if (session.userId !== "primary-admin") return null;
+    return { ...session, name: session.name || "حسن علي" };
+  }
+
   const user = await findUserById(session.userId);
   if (!user || !user.active || user.role !== session.role) return null;
-  if (session.role !== "admin" && (!user.updatedAt || user.updatedAt !== session.authVersion)) return null;
+  if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
   return { ...session, name: user.name };
 }
 
