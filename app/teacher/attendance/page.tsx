@@ -5,11 +5,13 @@ import { collection, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/f
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
-import { useTeacherClient } from "../../../lib/teacher-client";
+import { useTeacherClient, type TeacherClientAssignment } from "../../../lib/teacher-client";
 import {
   SHARED_STUDENTS_COLLECTION,
   belongsToTeacher,
+  classMatchesAssignments,
   clean,
+  hasDetailedAssignments,
   loadDeletedCodes,
   loadLocalRoster,
   mergeStudents,
@@ -129,6 +131,13 @@ function readAttendanceIndex(teacherId: string, subjectKey: string) {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, milliseconds: number) {
+  return Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => window.setTimeout(() => reject(new Error("timeout")), milliseconds)),
+  ]);
+}
+
 export default function AttendancePage() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
@@ -137,6 +146,7 @@ export default function AttendancePage() {
   const subject = session?.subject || "";
   const ready = !!teacherId && !!session?.subjectKey;
 
+  const [assignments, setAssignments] = useState<TeacherClientAssignment[]>([]);
   const [localStudents, setLocalStudents] = useState<UnifiedStudent[]>([]);
   const [subjectStudents, setSubjectStudents] = useState<UnifiedStudent[]>([]);
   const [sharedStudents, setSharedStudents] = useState<UnifiedStudent[]>([]);
@@ -158,10 +168,25 @@ export default function AttendancePage() {
     () => (teacherId ? tenantCollection(teacherId, subjectKey, "attendance") : ""),
     [teacherId, subjectKey],
   );
+  const assignmentScoped = useMemo(
+    () => hasDetailedAssignments(assignments, subjectKey),
+    [assignments, subjectKey],
+  );
+  const classAllowed = (className: string) => !assignmentScoped || classMatchesAssignments(className, assignments, subjectKey);
 
   useEffect(() => {
     if (!teacherId) return;
-    const load = () => setLocalStudents(loadLocalRoster(teacherId));
+    let active = true;
+    fetch("/api/teacher-session", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((data) => active && setAssignments(Array.isArray(data.assignments) ? data.assignments : []))
+      .catch(() => active && setAssignments([]));
+    return () => { active = false; };
+  }, [teacherId, subjectKey]);
+
+  useEffect(() => {
+    if (!teacherId) return;
+    const load = () => setLocalStudents(loadLocalRoster(teacherId, subjectKey));
     load();
     window.addEventListener("storage", load);
     window.addEventListener("focus", load);
@@ -171,7 +196,7 @@ export default function AttendancePage() {
       window.removeEventListener("focus", load);
       window.removeEventListener("lahooni-roster-updated", load as EventListener);
     };
-  }, [teacherId]);
+  }, [teacherId, subjectKey]);
 
   useEffect(() => {
     if (!ready || !studentsPath) return;
@@ -185,39 +210,53 @@ export default function AttendancePage() {
       (snapshot) => setSharedStudents(snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as UnifiedStudent))),
       () => undefined,
     );
-    return () => {
-      stopSubject();
-      stopShared();
-    };
+    return () => { stopSubject(); stopShared(); };
   }, [ready, studentsPath]);
 
-  const ownedSharedStudents = useMemo(
-    () => sharedStudents.filter((student) => belongsToTeacher(student, teacherId)),
-    [sharedStudents, teacherId],
+  const scopedSubjectStudents = useMemo(
+    () => subjectStudents.filter((student) => classAllowed(normalizeClass(student.class))),
+    [subjectStudents, assignmentScoped, assignments, subjectKey],
+  );
+
+  const sharedForCurrentAssignments = useMemo(
+    () => assignmentScoped
+      ? sharedStudents.filter((student) => belongsToTeacher(student, teacherId)
+        && classMatchesAssignments(normalizeClass(student.class), assignments, subjectKey)
+        && student.active !== false
+        && student.rosterActive !== false)
+      : [],
+    [sharedStudents, teacherId, assignmentScoped, assignments, subjectKey],
+  );
+
+  const scopedLocalStudents = useMemo(
+    () => localStudents.filter((student) => classAllowed(normalizeClass(student.class))),
+    [localStudents, assignmentScoped, assignments, subjectKey],
   );
 
   const students = useMemo(() => {
     const deleted = loadDeletedCodes(teacherId);
-    return mergeStudents(subjectStudents, ownedSharedStudents, localStudents).filter((student) => {
+    return mergeStudents(scopedSubjectStudents, sharedForCurrentAssignments, scopedLocalStudents).filter((student) => {
       const code = studentCode(student);
       return !deleted.has(code) && student.active !== false && student.rosterActive !== false;
     });
-  }, [subjectStudents, ownedSharedStudents, localStudents, teacherId]);
+  }, [scopedSubjectStudents, sharedForCurrentAssignments, scopedLocalStudents, teacherId]);
 
   useEffect(() => {
-    if (!teacherId || (!subjectStudents.length && !ownedSharedStudents.length)) return;
+    if (!teacherId || (!scopedSubjectStudents.length && !sharedForCurrentAssignments.length)) return;
     const deleted = loadDeletedCodes(teacherId);
-    const merged = mergeStudents(localStudents, subjectStudents, ownedSharedStudents).filter((student) => !deleted.has(studentCode(student)));
-    if (JSON.stringify(mergeStudents(localStudents)) !== JSON.stringify(merged)) {
+    const merged = mergeStudents(scopedLocalStudents, scopedSubjectStudents, sharedForCurrentAssignments)
+      .filter((student) => !deleted.has(studentCode(student)) && classAllowed(normalizeClass(student.class)));
+    if (JSON.stringify(mergeStudents(scopedLocalStudents)) !== JSON.stringify(merged)) {
       setLocalStudents(merged);
-      saveLocalRoster(teacherId, merged);
+      saveLocalRoster(teacherId, merged, subjectKey);
     }
-  }, [teacherId, subjectStudents, ownedSharedStudents]);
+  }, [teacherId, scopedSubjectStudents, sharedForCurrentAssignments, assignmentScoped, assignments, subjectKey]);
 
   const classes = useMemo(
     () => [...new Set(students.map((student) => normalizeClass(student.class)).filter(Boolean))]
+      .filter(classAllowed)
       .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
-    [students],
+    [students, assignmentScoped, assignments, subjectKey],
   );
 
   const classStudents = useMemo(
@@ -226,38 +265,26 @@ export default function AttendancePage() {
   );
 
   useEffect(() => {
-    if (!classes.length) {
-      setSelectedClass("");
-      return;
-    }
+    if (!classes.length) { setSelectedClass(""); return; }
     if (!selectedClass || !classes.includes(selectedClass)) setSelectedClass(classes[0]);
   }, [classes, selectedClass]);
 
   useEffect(() => {
     const sequence = ++loadSequence.current;
     async function load() {
-      if (!selectedClass || !attendancePath) {
-        setRecords({});
-        return;
-      }
+      if (!selectedClass || !attendancePath) { setRecords({}); return; }
       const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
       const local = readRecords(key) || readRecords(legacyAttendanceKey(teacherId, subjectKey, selectedClass, selectedDate));
       if (local) {
-        if (sequence === loadSequence.current) {
-          setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), local[studentCode(student)] || "present"])));
-        }
+        if (sequence === loadSequence.current) setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), local[studentCode(student)] || "present"])));
         return;
       }
       try {
-        const snapshot = await getDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`));
+        const snapshot = await withTimeout(getDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`)), 3500);
         const saved = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;
-        if (sequence === loadSequence.current) {
-          setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));
-        }
+        if (sequence === loadSequence.current) setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));
       } catch {
-        if (sequence === loadSequence.current) {
-          setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), "present"])));
-        }
+        if (sequence === loadSequence.current) setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), "present"])));
       }
     }
     void load();
@@ -276,14 +303,7 @@ export default function AttendancePage() {
 
   function persistLocal(nextRecords: Record<string, AttendanceStatus>) {
     if (!selectedClass || !teacherId) return;
-    const payload: AttendanceDocument = {
-      class: selectedClass,
-      date: selectedDate,
-      records: nextRecords,
-      teacherId,
-      subjectKey,
-      updatedAt: new Date().toISOString(),
-    };
+    const payload: AttendanceDocument = { class: selectedClass, date: selectedDate, records: nextRecords, teacherId, subjectKey, updatedAt: new Date().toISOString() };
     const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
     localStorage.setItem(key, JSON.stringify(nextRecords));
     localStorage.setItem(`${key}:details`, JSON.stringify(payload));
@@ -297,7 +317,7 @@ export default function AttendancePage() {
     const next = { ...records, [code]: status };
     setRecords(next);
     persistLocal(next);
-    setMessage("تم الحفظ");
+    setMessage("تم الحفظ مباشرة");
   }
 
   function moveDay(amount: number) {
@@ -312,23 +332,14 @@ export default function AttendancePage() {
     setMessage("تم حفظ التحضير بنجاح");
     setSaving(true);
     try {
-      await setDoc(
+      await withTimeout(setDoc(
         doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`),
-        {
-          class: selectedClass,
-          date: selectedDate,
-          hijriDate: formatHijri(selectedDate),
-          records,
-          teacherId,
-          teacherName,
-          subjectKey,
-          subject,
-          updatedAt: new Date().toISOString(),
-        },
+        { class: selectedClass, date: selectedDate, hijriDate: formatHijri(selectedDate), records, teacherId, teacherName, subjectKey, subject, updatedAt: new Date().toISOString() },
         { merge: true },
-      );
+      ), 3500);
+      setMessage("تم حفظ التحضير ومزامنته بنجاح");
     } catch {
-      // The local save is already complete; server sync can occur on a later save.
+      setMessage("تم حفظ التحضير بنجاح على الجهاز، وستتم المزامنة عند توفر الاتصال");
     } finally {
       setSaving(false);
     }
@@ -347,13 +358,7 @@ export default function AttendancePage() {
   function exportExcel() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
-    const details = rows.map((row) => ({
-      "م": row.number,
-      "اسم الطالب": row.name,
-      "الفصل": row.className,
-      "حالة الطالب": row.status,
-      "ملاحظات": row.notes,
-    }));
+    const details = rows.map((row) => ({ "م": row.number, "اسم الطالب": row.name, "الفصل": row.className, "حالة الطالب": row.status, "ملاحظات": row.notes }));
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.json_to_sheet(details);
     sheet["!cols"] = [{ wch: 6 }, { wch: 34 }, { wch: 18 }, { wch: 18 }, { wch: 28 }];
@@ -377,7 +382,7 @@ export default function AttendancePage() {
     const localDocuments = Object.values(readAttendanceIndex(teacherId, subjectKey));
     let serverDocuments: AttendanceDocument[] = [];
     try {
-      const snapshot = await getDocs(collection(db, attendancePath));
+      const snapshot = await withTimeout(getDocs(collection(db, attendancePath)), 5000);
       serverDocuments = snapshot.docs.map((item) => item.data() as AttendanceDocument);
     } catch {
       serverDocuments = [];
@@ -443,7 +448,7 @@ export default function AttendancePage() {
   const statuses = Object.entries(STATUS_LABELS) as [AttendanceStatus, string][];
 
   return <main className="attendance-page" dir="rtl"><section className="attendance-card">
-    <header className="attendance-head"><div><h1>التحضير اليومي — {subject}</h1><p>اختر الفصل، وحدد حالة الطالب. كل تغيير يُحفظ مباشرة.</p></div><div className="hijri-card"><small>التاريخ الهجري</small><strong>{formatHijri(selectedDate)}</strong><div><button onClick={() => moveDay(-1)}>اليوم السابق</button><button onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button><button onClick={() => moveDay(1)}>اليوم التالي</button></div></div></header>
+    <header className="attendance-head"><div><h1>التحضير اليومي — {subject}</h1><p>تظهر فقط الفصول المخصصة للمادة الحالية، وكل تغيير يُحفظ مباشرة.</p></div><div className="hijri-card"><small>التاريخ الهجري</small><strong>{formatHijri(selectedDate)}</strong><div><button onClick={() => moveDay(-1)}>اليوم السابق</button><button onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button><button onClick={() => moveDay(1)}>اليوم التالي</button></div></div></header>
     <div className="attendance-controls"><label>الفصل<select value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map((className) => <option key={className}>{className}</option>)}</select></label><label>التاريخ<input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)}/></label><button onClick={() => void saveAttendance()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button><button type="button" onClick={printAdminReport} disabled={!selectedClass || !classStudents.length}>تقرير يومي PDF</button><button type="button" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تقرير يومي Excel</button></div>
     <section className="attendance-range-report"><h2>تقرير أسبوعي أو فترة محددة</h2><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب.</p><div className="attendance-controls"><label>من تاريخ<input type="date" value={reportFrom} onChange={(event) => setReportFrom(event.target.value)}/></label><label>إلى تاريخ<input type="date" value={reportTo} onChange={(event) => setReportTo(event.target.value)}/></label><button type="button" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تقرير الفترة Excel"}</button></div></section>
     <div className="attendance-stats"><span className="present">حاضر: {counts.present}</span><span className="absent">غائب: {counts.absent}</span><span>متأخر: {counts.late}</span><span>مستأذن: {counts.excused}</span><span className="escaped">هروب: {counts.escaped}</span></div>
