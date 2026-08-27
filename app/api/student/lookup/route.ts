@@ -4,7 +4,7 @@ import { getSubjectConfig } from "../../../../lib/subject-config";
 import { createStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
-type SubjectAssignment = { id: string; label?: string };
+type SubjectAssignment = { subjectId: string; label?: string };
 type LocatedStudent = {
   studentId: string;
   teacherId: string;
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       if (!teacherData || teacherData.active !== true || teacherData.role !== "teacher") return [];
 
       const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds) as SubjectAssignment[];
-      const assignment = assignments.find(entry => entry.id === item.subjectId);
+      const assignment = assignments.find(entry => entry.subjectId === item.subjectId);
       const subject = getSubjectConfig(item.subjectId);
       const accessToken = createStudentAccessToken({
         studentId: item.studentId,
