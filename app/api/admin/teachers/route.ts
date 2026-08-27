@@ -19,7 +19,7 @@ export async function GET() {
     const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
     const subjectIds = assignments.length ? assignments.map(assignment => assignment.id) : storedSubjectIds;
     if (!sameStringList(storedSubjectIds, subjectIds)) {
-      batch.set(item.ref, { subjectIds }, { merge: true });
+      batch.set(adminDb().collection("portalV2Users").doc(item.id), { subjectIds }, { merge: true });
       hasRepairs = true;
     }
     return { id: item.id, username: data.username, name: data.name, active: data.active, subjectIds, assignments, createdAt: data.createdAt };
