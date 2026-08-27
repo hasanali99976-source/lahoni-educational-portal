@@ -11,8 +11,20 @@ service cloud.firestore {
       return subjectId in request.auth.token.subjectIds;
     }
 
+    function isAuthenticatedTeacher() {
+      return request.auth != null && request.auth.token.role == "teacher";
+    }
+
     match /portalV2Data/{teacherId}/subjects/{subjectId}/{document=**} {
       allow read, write: if isTeacher(teacherId) && isAssigned(subjectId);
+    }
+
+    match /school_shared_students/{document=**} {
+      allow read, write: if isAuthenticatedTeacher();
+    }
+
+    match /school_shared_classes/{document=**} {
+      allow read, write: if isAuthenticatedTeacher();
     }
 
     match /portalV2Users/{document=**} {
