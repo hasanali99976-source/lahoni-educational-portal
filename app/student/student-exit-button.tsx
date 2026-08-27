@@ -1,19 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 export default function StudentExitButton() {
+  const [insidePortal, setInsidePortal] = useState(false);
+
+  useEffect(() => {
+    const detect = () => setInsidePortal(Boolean(document.querySelector(".student-clean")));
+    detect();
+    const observer = new MutationObserver(detect);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   const exitPortal = () => {
     try {
       sessionStorage.removeItem("lahooni-student-active");
       localStorage.removeItem("lahooni-student-last-path");
     } catch {}
-    window.location.assign("/");
+    window.location.assign("/student");
   };
+
+  if (!insidePortal) return null;
 
   return (
     <button
       type="button"
       onClick={exitPortal}
-      aria-label="الخروج من بوابة الطالب"
+      aria-label="تسجيل الخروج من بوابة الطالب"
       style={{
         position: "fixed",
         left: 16,
@@ -26,9 +40,10 @@ export default function StudentExitButton() {
         cursor: "pointer",
         boxShadow: "0 8px 24px rgba(0,0,0,.18)",
         touchAction: "manipulation",
+        WebkitTapHighlightColor: "transparent",
       }}
     >
-      خروج من بوابة الطالب
+      تسجيل الخروج
     </button>
   );
 }
