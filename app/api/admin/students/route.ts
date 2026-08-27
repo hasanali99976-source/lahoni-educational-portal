@@ -28,7 +28,7 @@ async function loadClasses(students: SchoolStudent[]) {
   const map = new Map<string, SchoolClass>();
   snapshot.docs.forEach(item => {
     const normalized = normalizeClassRecord({ id: item.id, ...(item.data() as Record<string, unknown>) } as Partial<SchoolClass>);
-    if (normalized?.active !== false) map.set(normalized.id, normalized);
+    if (normalized && normalized.active !== false) map.set(normalized.id, normalized);
   });
   students.forEach(student => {
     const id = classId(student.grade, student.section);
