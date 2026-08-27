@@ -8,3 +8,41 @@
   position: absolute !important;
   pointer-events: none !important;
 }
+
+/* ضمان قابلية التفاعل في Safari على الآيفون */
+.student-login-page,
+.student-login-shell,
+.student-login-form,
+.student-login-form form,
+.student-login-form .portal-input,
+.student-login-form input,
+.student-login-form button {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+.student-login-form {
+  position: relative !important;
+  z-index: 20 !important;
+  isolation: isolate;
+}
+
+.student-login-form form,
+.student-login-form .portal-input,
+.student-login-form input,
+.student-login-form .portal-submit {
+  position: relative;
+  z-index: 30 !important;
+}
+
+.student-login-form input {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.student-login-form .portal-submit {
+  min-height: 50px;
+  cursor: pointer;
+}
