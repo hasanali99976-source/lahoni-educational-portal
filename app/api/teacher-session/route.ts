@@ -7,6 +7,14 @@ import { normalizeAssignments } from "../../../lib/teacher-assignments";
 
 const SUBJECT_COOKIE = "lahooni_active_subject";
 
+function gradeMatchToken(value: string) {
+  const normalized = value.replace(/[إأآ]/g, "ا");
+  if (normalized.includes("اول")) return "اول";
+  if (normalized.includes("ثاني")) return "ثاني";
+  if (normalized.includes("ثالث")) return "ثالث";
+  return value;
+}
+
 export async function GET() {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ authenticated: false }, { status: 401 });
@@ -36,7 +44,7 @@ export async function GET() {
     subject: subjectName,
     assignmentLabel: assignmentDetails.join(" • "),
     subjects,
-    assignments,
+    assignments: assignments.map(item => ({ ...item, grade: gradeMatchToken(item.grade) })),
   });
   if (current) response.cookies.set(SUBJECT_COOKIE, current, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
   return response;
