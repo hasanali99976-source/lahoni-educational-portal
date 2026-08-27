@@ -16,19 +16,29 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     update.username = body.name.trim();
     update.normalizedUsername = normalizeUsername(body.name);
   }
+  let normalizedAssignments: ReturnType<typeof normalizeAssignments> | null = null;
   if (Array.isArray(body.assignments) && body.assignments.length) {
-    const assignments = normalizeAssignments(body.assignments);
-    update.assignments = assignments;
-    update.subjectIds = assignments.map(item => item.id);
+    normalizedAssignments = normalizeAssignments(body.assignments);
+    update.assignments = normalizedAssignments;
+    update.subjectIds = [...new Set(normalizedAssignments.map(item => item.subjectId))];
   }
   const userRef = adminDb().collection("portalV2Users").doc(id);
-  const previous = await userRef.get();
   await userRef.update(update);
-  if (Array.isArray(update.subjectIds)) {
-    const oldIds = Array.isArray(previous.data()?.subjectIds) ? previous.data()!.subjectIds : [];
+  if (normalizedAssignments) {
+    const previousAssignments = await adminDb().collection("portalV2Assignments").where("teacherId", "==", id).get();
     const batch = adminDb().batch();
-    for (const subjectId of oldIds) if (!(update.subjectIds as string[]).includes(subjectId)) batch.set(adminDb().collection("portalV2Assignments").doc(`${id}__${subjectId}`), { active: false, updatedAt: new Date().toISOString() }, { merge: true });
-    for (const subjectId of update.subjectIds as string[]) batch.set(adminDb().collection("portalV2Assignments").doc(`${id}__${subjectId}`), { teacherId: id, subjectId, active: true, updatedAt: new Date().toISOString() }, { merge: true });
+    previousAssignments.docs.forEach(item => batch.delete(adminDb().collection("portalV2Assignments").doc(item.id)));
+    const now = new Date().toISOString();
+    normalizedAssignments.forEach(assignment => batch.set(adminDb().collection("portalV2Assignments").doc(`${id}__${assignment.id}`), {
+      teacherId: id,
+      subjectId: assignment.subjectId,
+      assignmentId: assignment.id,
+      grade: assignment.grade,
+      section: assignment.section,
+      active: true,
+      updatedAt: now,
+      createdAt: now,
+    }, { merge: true }));
     await batch.commit();
   }
   return NextResponse.json({ ok: true });
