@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { saveLocalRoster, type UnifiedStudent } from "./unified-roster";
 
 export type TeacherClientAssignment = {
@@ -26,17 +27,23 @@ export type TeacherClientSession = {
 export const TeacherClientContext = createContext<TeacherClientSession>({});
 
 const recentBootstraps = new Map<string, number>();
+const DIRECT_ROSTER_PAGES = new Set(["/teacher/students", "/teacher/attendance"]);
 
 export function useTeacherClient() {
   const session = useContext(TeacherClientContext);
+  const pathname = usePathname();
   const teacherId = session.teacherId || "";
   const subjectKey = session.subjectKey || "";
 
   useEffect(() => {
+    // These pages already load their roster directly. Running the background
+    // bootstrap there caused the same endpoint to be requested twice.
+    if (DIRECT_ROSTER_PAGES.has(pathname)) return;
     if (!teacherId || !subjectKey) return;
+
     const key = `${teacherId}:${subjectKey}`;
     const lastRun = recentBootstraps.get(key) || 0;
-    if (Date.now() - lastRun < 30_000) return;
+    if (Date.now() - lastRun < 60_000) return;
     recentBootstraps.set(key, Date.now());
 
     let active = true;
@@ -66,7 +73,7 @@ export function useTeacherClient() {
       });
 
     return () => { active = false; };
-  }, [teacherId, subjectKey]);
+  }, [pathname, teacherId, subjectKey]);
 
   return session;
 }

@@ -1,12 +1,13 @@
 import "server-only";
 
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 
 class DocumentSnapshotCompat {
   constructor(private snapshot: Awaited<ReturnType<typeof getDoc>>) {}
   get id() { return this.snapshot.id; }
   get exists() { return this.snapshot.exists(); }
+  get ref() { return { path: this.snapshot.ref.path }; }
   data(): any { return this.snapshot.data(); }
 }
 
@@ -30,7 +31,21 @@ class CollectionReferenceCompat {
     const constraints = this.filters.map(([field, operator, value]) => where(field, operator as never, value));
     if (this.max) constraints.push(limit(this.max) as never);
     const snapshot = await getDocs(query(collection(db, this.path), ...constraints));
-    return { empty: snapshot.empty, docs: snapshot.docs.map((item) => new DocumentSnapshotCompat(item as never)) };
+    return { empty: snapshot.empty, docs: snapshot.docs.map(item => new DocumentSnapshotCompat(item as never)) };
+  }
+}
+
+class CollectionGroupReferenceCompat {
+  private filters: Array<[string, string, unknown]> = [];
+  private max?: number;
+  constructor(readonly id: string) {}
+  where(field: string, operator: string, value: unknown) { this.filters.push([field, operator, value]); return this; }
+  limit(value: number) { this.max = value; return this; }
+  async get() {
+    const constraints = this.filters.map(([field, operator, value]) => where(field, operator as never, value));
+    if (this.max) constraints.push(limit(this.max) as never);
+    const snapshot = await getDocs(query(collectionGroup(db, this.id), ...constraints));
+    return { empty: snapshot.empty, docs: snapshot.docs.map(item => new DocumentSnapshotCompat(item as never)) };
   }
 }
 
@@ -43,6 +58,7 @@ class BatchCompat {
 
 class FirestoreCompat {
   collection(path: string) { return new CollectionReferenceCompat(path); }
+  collectionGroup(id: string) { return new CollectionGroupReferenceCompat(id); }
   batch() { return new BatchCompat(); }
 }
 
