@@ -18,6 +18,12 @@ const WRITE_CHUNK_SIZE = 150;
 const SOURCE_CHUNK_SIZE = 3;
 
 type LegacySource = { teacherId: string; subjectId: string };
+type Candidate = Record<string, unknown> & {
+  __id?: string;
+  __teacherId?: string;
+  __subjectId?: string;
+};
+type SourceRepair = { path: string; data: Record<string, unknown> };
 
 function isQuotaError(error: unknown) {
   const source = error as { code?: unknown; message?: unknown };
@@ -40,6 +46,11 @@ function withTimeout<T>(promise: Promise<T>, milliseconds = 7000) {
   ]);
 }
 
+function documentReference(path: string) {
+  const separator = path.lastIndexOf("/");
+  return adminDb().collection(path.slice(0, separator)).doc(path.slice(separator + 1));
+}
+
 async function loadLegacySources() {
   const teachersSnapshot = await withTimeout(adminDb().collection("portalV2Users").where("role", "==", "teacher").get());
   const sources = new Map<string, LegacySource>();
@@ -54,12 +65,22 @@ async function loadLegacySources() {
   return [...sources.values()];
 }
 
+async function applySourceRepairs(repairs: SourceRepair[]) {
+  for (let index = 0; index < repairs.length; index += 300) {
+    const batch = adminDb().batch();
+    repairs.slice(index, index + 300).forEach(item => {
+      batch.set(documentReference(item.path), item.data, { merge: true });
+    });
+    await withTimeout(batch.commit());
+  }
+}
+
 export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   try {
     const body = await request.json().catch(() => ({}));
     const cursor = Math.max(0, Number(body?.cursor) || 0);
-    const candidates: Array<Record<string, unknown> & { __id?: string }> = [];
+    const candidates: Candidate[] = [];
 
     const [centralSnapshot, legacySources] = await Promise.all([
       withTimeout(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get()),
@@ -75,7 +96,7 @@ export async function POST(request: Request) {
       sharedSnapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
       if (Array.isArray(body?.students)) {
         body.students.forEach((item: unknown) => {
-          if (item && typeof item === "object") candidates.push(item as Record<string, unknown>);
+          if (item && typeof item === "object") candidates.push(item as Candidate);
         });
       }
     }
@@ -86,7 +107,12 @@ export async function POST(request: Request) {
         const snapshot = await withTimeout(
           adminDb().collection(`portalV2Data/${source.teacherId}/subjects/${source.subjectId}/students`).get(),
         );
-        snapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
+        snapshot.docs.forEach(item => candidates.push({
+          __id: item.id,
+          __teacherId: source.teacherId,
+          __subjectId: source.subjectId,
+          ...(item.data() as Record<string, unknown>),
+        }));
       } catch (error) {
         if (isQuotaError(error) || isTimeoutError(error)) throw error;
       }
@@ -96,14 +122,38 @@ export async function POST(request: Request) {
     const byIdentity = new Map(centralStudents.map(student => [studentIdentity(student), student]));
     const working = [...centralStudents];
     const changes = new Map<string, SchoolStudent>();
+    const sourceRepairs = new Map<string, SourceRepair>();
     let skipped = 0;
     let added = 0;
     let updated = 0;
     let collisionRecovered = 0;
 
     for (const candidate of candidates) {
-      const normalized = normalizeStudentRecord(candidate, String(candidate.__id || ""));
+      const normalized = normalizeStudentRecord({ ...candidate, active: true, rosterActive: true }, String(candidate.__id || ""));
       if (!normalized) { skipped += 1; continue; }
+
+      if (candidate.__teacherId && candidate.__subjectId && candidate.__id) {
+        const canonical = canonicalClassName(normalized.grade, normalized.section);
+        const path = `portalV2Data/${candidate.__teacherId}/subjects/${candidate.__subjectId}/students/${candidate.__id}`;
+        sourceRepairs.set(path, {
+          path,
+          data: {
+            name: normalized.name,
+            class: canonical,
+            className: canonical,
+            grade: normalized.grade,
+            section: normalized.section,
+            code: normalized.code,
+            accessCode: normalized.code,
+            studentCode: normalized.code,
+            teacherId: candidate.__teacherId,
+            subjectKey: candidate.__subjectId,
+            active: true,
+            rosterActive: true,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      }
 
       const identity = studentIdentity(normalized);
       const sameStudent = byIdentity.get(identity);
@@ -184,6 +234,8 @@ export async function POST(request: Request) {
       await withTimeout(batch.commit());
     }
 
+    if (sourceRepairs.size) await applySourceRepairs([...sourceRepairs.values()]);
+
     const nextCursor = cursor + selectedSources.length;
     const complete = nextCursor >= legacySources.length;
     return NextResponse.json({
@@ -193,6 +245,7 @@ export async function POST(request: Request) {
       updated,
       skipped,
       collisionRecovered,
+      linkedToSubjects: sourceRepairs.size,
       total: byCode.size,
       cursor,
       nextCursor,
