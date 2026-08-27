@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type PortalMode = "admin" | "teacher" | "student" | "general";
@@ -42,47 +42,56 @@ export default function PortalIntelligence() {
   const mode = useMemo(() => modeFromPath(pathname), [pathname]);
   const [subject, setSubject] = useState<{ name: string; emoji: string } | null>(null);
   const [open, setOpen] = useState(false);
+  const lastSubjectKey = useRef("");
 
   useEffect(() => {
+    setOpen(false);
+    if (mode === "general" || mode === "admin") {
+      lastSubjectKey.current = "";
+      setSubject(null);
+      return;
+    }
+
+    let frame = 0;
     const sync = () => {
+      frame = 0;
       const host = document.querySelector<HTMLElement>("[data-subject]");
       const key = host?.dataset.subject || "";
+      if (key === lastSubjectKey.current) return;
+      lastSubjectKey.current = key;
       setSubject(subjectLabels[key] || (key ? { name: "المادة الحالية", emoji: "📘" } : null));
     };
+    const scheduleSync = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(sync);
+    };
+
     sync();
-    const observer = new MutationObserver(sync);
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-subject"] });
-    return () => observer.disconnect();
-  }, [pathname]);
+    const root = document.querySelector(".portal-stage") || document.body;
+    const observer = new MutationObserver(scheduleSync);
+    observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-subject"] });
+    return () => {
+      observer.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [pathname, mode]);
 
   const content = modeContent[mode];
 
-  return (
-    <>
-      {mode !== "general" && (
-        <aside className={`portal-smart-strip portal-smart-strip-${mode}`} dir="rtl" aria-label="هوية البوابة الحالية">
-          <div className="portal-smart-strip-icon">{content.emoji}</div>
-          <div className="portal-smart-strip-copy">
-            <strong>{content.title}</strong>
-            <span>{subject ? `${subject.emoji} ${subject.name} • ${content.subtitle}` : content.subtitle}</span>
-          </div>
-          <div className="portal-smart-strip-live"><i /> متصل الآن</div>
-        </aside>
-      )}
+  return <>
+    {mode !== "general" && <aside className={`portal-smart-strip portal-smart-strip-${mode}`} dir="rtl" aria-label="هوية البوابة الحالية">
+      <div className="portal-smart-strip-icon">{content.emoji}</div>
+      <div className="portal-smart-strip-copy"><strong>{content.title}</strong><span>{subject ? `${subject.emoji} ${subject.name} • ${content.subtitle}` : content.subtitle}</span></div>
+      <div className="portal-smart-strip-live"><i /> متصل الآن</div>
+    </aside>}
 
-      <div className={`portal-ai-companion ${open ? "open" : ""}`} dir="rtl">
-        <button type="button" className="portal-ai-orb" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label="فتح المساعد التعليمي">
-          <span>{subject?.emoji || "🤖"}</span>
-          <b>AI</b>
-        </button>
-        {open && (
-          <section className="portal-ai-panel">
-            <header><span>🤖</span><div><strong>المساعد التعليمي</strong><small>{subject ? `متخصص في ${subject.name}` : "جاهز لمساندة تجربتك"}</small></div></header>
-            <p>{mode === "teacher" ? "راجع أداء طلابك، الاختبارات التشخيصية، والخطط العلاجية من لوحة واحدة." : mode === "admin" ? "تابع مؤشرات البوابة والمواد والمعلمين من خلال تجربة إدارية أوضح." : mode === "student" ? "تابع تقدمك ونتائجك وخطتك العلاجية بخطوات سهلة وواضحة." : "اختر بوابتك وابدأ تجربة تعليمية ذكية ومترابطة."}</p>
-            <div className="portal-ai-tags"><span>تحليل ذكي</span><span>متابعة فورية</span><span>هوية المادة</span></div>
-          </section>
-        )}
-      </div>
-    </>
-  );
+    <div className={`portal-ai-companion ${open ? "open" : ""}`} dir="rtl">
+      <button type="button" className="portal-ai-orb" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label="فتح المساعد التعليمي"><span>{subject?.emoji || "🤖"}</span><b>AI</b></button>
+      {open && <section className="portal-ai-panel">
+        <header><span>🤖</span><div><strong>المساعد التعليمي</strong><small>{subject ? `متخصص في ${subject.name}` : "جاهز لمساندة تجربتك"}</small></div></header>
+        <p>{mode === "teacher" ? "راجع أداء طلابك، الاختبارات التشخيصية، والخطط العلاجية من لوحة واحدة." : mode === "admin" ? "تابع مؤشرات البوابة والمواد والمعلمين من خلال تجربة إدارية أوضح." : mode === "student" ? "تابع تقدمك ونتائجك وخطتك العلاجية بخطوات سهلة وواضحة." : "اختر بوابتك وابدأ تجربة تعليمية ذكية ومترابطة."}</p>
+        <div className="portal-ai-tags"><span>تحليل ذكي</span><span>متابعة فورية</span><span>هوية المادة</span></div>
+      </section>}
+    </div>
+  </>;
 }
