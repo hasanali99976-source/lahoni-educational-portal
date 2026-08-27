@@ -34,6 +34,16 @@ export const GRADE_OPTIONS = [1, 2, 3] as const;
 export const SECTION_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+const ORDINALS: Record<string, string> = {
+  "1": "1", "اول": "1", "الاول": "1", "اولي": "1", "الاولى": "1",
+  "2": "2", "ثاني": "2", "الثاني": "2", "ثانيه": "2", "الثانيه": "2",
+  "3": "3", "ثالث": "3", "الثالث": "3", "ثالثه": "3", "الثالثه": "3",
+  "4": "4", "رابع": "4", "الرابع": "4", "رابعه": "4", "الرابعه": "4",
+  "5": "5", "خامس": "5", "الخامس": "5", "خامسه": "5", "الخامسه": "5",
+  "6": "6", "سادس": "6", "السادس": "6", "سادسه": "6", "السادسه": "6",
+  "7": "7", "سابع": "7", "السابع": "7", "سابعه": "7", "السابعه": "7",
+  "8": "8", "ثامن": "8", "الثامن": "8", "ثامنه": "8", "الثامنه": "8",
+};
 
 export function clean(value: unknown) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
@@ -55,13 +65,26 @@ export function normalizeArabic(value: unknown) {
     .toLowerCase();
 }
 
+function ordinalValues(value: unknown) {
+  const normalized = normalizeArabic(value).replace(/[\/_\-–—]+/g, " ");
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+  const values: string[] = [];
+  for (const token of tokens) {
+    const direct = ORDINALS[token];
+    if (direct) values.push(direct);
+    else {
+      const numeric = token.match(/^\d+$/)?.[0];
+      if (numeric) values.push(numeric);
+    }
+  }
+  return values;
+}
+
 export function gradeNumber(value: unknown): 1 | 2 | 3 | null {
-  const normalized = normalizeArabic(value);
-  if (/(^|\s)(1|اول|الاول)(\s|$)/.test(normalized)) return 1;
-  if (/(^|\s)(2|ثاني|الثاني)(\s|$)/.test(normalized)) return 2;
-  if (/(^|\s)(3|ثالث|الثالث)(\s|$)/.test(normalized)) return 3;
-  const numeric = Number(westernDigits(value));
-  return numeric === 1 || numeric === 2 || numeric === 3 ? numeric : null;
+  const exact = Number(westernDigits(value));
+  if (exact === 1 || exact === 2 || exact === 3) return exact;
+  const first = ordinalValues(value).find(item => item === "1" || item === "2" || item === "3");
+  return first ? Number(first) as 1 | 2 | 3 : null;
 }
 
 export function gradeLabel(grade: number) {
@@ -76,10 +99,21 @@ export function arabicNumber(value: string | number) {
 }
 
 export function sectionNumber(value: unknown, className?: unknown) {
-  const direct = westernDigits(value).match(/\d+/)?.[0] || "";
-  if (direct) return direct;
-  const numbers = westernDigits(className).match(/\d+/g) || [];
-  return numbers.length ? numbers[numbers.length - 1] : "";
+  const explicitNumbers = westernDigits(value).match(/\d+/g) || [];
+  if (explicitNumbers.length) return explicitNumbers[explicitNumbers.length - 1];
+
+  const explicitOrdinals = ordinalValues(value);
+  if (explicitOrdinals.length) return explicitOrdinals[explicitOrdinals.length - 1];
+
+  const classNumbers = westernDigits(className).match(/\d+/g) || [];
+  if (classNumbers.length >= 2) return classNumbers[classNumbers.length - 1];
+  if (classNumbers.length === 1) {
+    const classOrdinals = ordinalValues(className);
+    return classOrdinals.length >= 2 ? classOrdinals[classOrdinals.length - 1] : classNumbers[0];
+  }
+
+  const classOrdinals = ordinalValues(className);
+  return classOrdinals.length >= 2 ? classOrdinals[classOrdinals.length - 1] : "";
 }
 
 export function canonicalClassName(grade: number, section: string) {
@@ -91,8 +125,9 @@ export function classId(grade: number, section: string) {
 }
 
 export function normalizeClassRecord(value: Partial<SchoolClass> & { className?: string; name?: string }) {
-  const grade = gradeNumber(value.grade || value.className || value.name);
-  const section = sectionNumber(value.section, value.className || value.name);
+  const sourceName = value.className || value.name;
+  const grade = gradeNumber(value.grade || sourceName);
+  const section = sectionNumber(value.section, sourceName);
   if (!grade || !section) return null;
   return {
     id: classId(grade, section),
