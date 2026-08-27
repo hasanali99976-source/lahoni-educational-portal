@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { normalizeAssignments } from "../teacher-assignments";
 import { adminDb } from "./firebase-admin";
 
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
@@ -29,6 +30,12 @@ export type PortalUser = {
   assignments?: unknown;
   createdAt: string;
   updatedAt: string;
+};
+
+type CompatDocumentSnapshot = {
+  id: string;
+  exists: boolean;
+  data(): unknown;
 };
 
 function secret() {
@@ -102,19 +109,33 @@ export function normalizeUsername(value: string) {
   return value.trim().toLocaleLowerCase("ar").replace(/\s+/g, " ");
 }
 
+function normalizePortalUser(document: CompatDocumentSnapshot): PortalUser | null {
+  if (!document.exists) return null;
+  const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
+  if (data.role !== "admin" && data.role !== "teacher") return null;
+
+  const storedSubjectIds = Array.isArray(data.subjectIds) ? data.subjectIds.map(String) : [];
+  const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
+  const subjectIds = data.role === "teacher" && assignments.length
+    ? assignments.map(item => item.id)
+    : storedSubjectIds;
+
+  return {
+    id: document.id,
+    ...data,
+    role: data.role,
+    subjectIds,
+    assignments,
+  };
+}
+
 export async function findUserByUsername(username: string): Promise<PortalUser | null> {
   const snapshot = await adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizeUsername(username)).limit(1).get();
   if (snapshot.empty) return null;
-  const document = snapshot.docs[0]!;
-  const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
-  if (data.role !== "admin" && data.role !== "teacher") return null;
-  return { id: document.id, ...data, role: data.role };
+  return normalizePortalUser(snapshot.docs[0]!);
 }
 
 export async function findUserById(id: string): Promise<PortalUser | null> {
   const document = await adminDb().collection("portalV2Users").doc(id).get();
-  if (!document.exists) return null;
-  const data = document.data() as Omit<PortalUser, "id"> & { role?: string };
-  if (data.role !== "admin" && data.role !== "teacher") return null;
-  return { id: document.id, ...data, role: data.role };
+  return normalizePortalUser(document);
 }

@@ -9,18 +9,31 @@ export default function AdminLoginEnhancer() {
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      let response: Response;
+
       if (url.endsWith("/api/auth/login") && init?.method === "POST") {
         let username = "";
         try {
           const payload = JSON.parse(String(init.body || "{}"));
           username = String(payload.username || "");
         } catch {}
-        return originalFetch("/api/auth/admin-name-login", {
+        response = await originalFetch("/api/auth/admin-name-login", {
           ...init,
           body: JSON.stringify({ username }),
+          cache: "no-store",
         });
+      } else {
+        response = await originalFetch(input, init);
       }
-      return originalFetch(input, init);
+
+      const isAdminLogin = url.endsWith("/api/auth/admin-name-login") || url.endsWith("/api/auth/login");
+      if (isAdminLogin && init?.method === "POST" && response.ok) {
+        window.setTimeout(() => {
+          if (window.location.pathname === "/admin") window.location.replace("/admin");
+        }, 250);
+      }
+
+      return response;
     };
 
     const simplifyForm = () => {
