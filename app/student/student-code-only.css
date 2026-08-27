@@ -9,7 +9,6 @@
   pointer-events: none !important;
 }
 
-/* ضمان قابلية التفاعل في Safari على الآيفون */
 .student-login-page,
 .student-login-shell,
 .student-login-form,
@@ -18,7 +17,6 @@
 .student-login-form input,
 .student-login-form button {
   pointer-events: auto !important;
-  touch-action: manipulation !important;
 }
 
 .student-login-form {
@@ -40,9 +38,277 @@
   user-select: text !important;
   -webkit-appearance: none;
   appearance: none;
+  touch-action: auto !important;
 }
 
 .student-login-form .portal-submit {
   min-height: 50px;
   cursor: pointer;
+  touch-action: manipulation !important;
+}
+
+.student-mobile-login-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 14px calc(18px + env(safe-area-inset-bottom, 0px));
+  background:
+    radial-gradient(circle at 12% 10%, rgba(51, 181, 229, .22), transparent 36%),
+    radial-gradient(circle at 88% 88%, rgba(28, 176, 139, .18), transparent 38%),
+    linear-gradient(155deg, #071d2b 0%, #0c3447 54%, #0b4a4b 100%);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+}
+
+.student-mobile-login-card {
+  width: min(100%, 460px);
+  display: grid;
+  gap: 20px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .34);
+  color: #17364a;
+  isolation: isolate;
+}
+
+.student-mobile-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-mobile-login-brand > span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #1768c5, #0f9f8f);
+  color: #fff;
+  font-size: 25px;
+  font-weight: 900;
+  box-shadow: 0 10px 25px rgba(23, 104, 197, .26);
+}
+
+.student-mobile-login-brand div {
+  display: grid;
+  gap: 2px;
+}
+
+.student-mobile-login-brand strong {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.student-mobile-login-brand small {
+  color: #6b8190;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-mobile-login-copy {
+  display: grid;
+  gap: 7px;
+  text-align: center;
+}
+
+.student-mobile-login-copy small {
+  color: #0b8a7a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.student-mobile-login-copy h1 {
+  margin: 0;
+  color: #123b55;
+  font-size: clamp(28px, 8vw, 38px);
+  line-height: 1.15;
+}
+
+.student-mobile-login-copy p {
+  margin: 0;
+  color: #647b8d;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.student-mobile-login-card form {
+  display: grid;
+  gap: 11px;
+}
+
+.student-mobile-login-card label {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.student-mobile-code-field {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  min-height: 62px;
+  overflow: hidden;
+  border: 2px solid #d6e4ec;
+  border-radius: 18px;
+  background: #f7fbfd;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.student-mobile-code-field:focus-within {
+  border-color: #1768c5;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(23, 104, 197, .12);
+}
+
+.student-mobile-code-field > span {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  background: #e9f3fb;
+  color: #1768c5;
+  font-size: 15px;
+  font-weight: 900;
+  direction: ltr;
+}
+
+.student-mobile-code-field input {
+  width: 100%;
+  min-width: 0;
+  height: 60px;
+  padding: 0 15px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0d2f43;
+  font: 900 22px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: .13em;
+  text-align: center;
+  direction: ltr;
+  text-transform: uppercase;
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: auto;
+  caret-color: #1768c5;
+}
+
+.student-mobile-code-field input::placeholder {
+  color: #9db0bc;
+  letter-spacing: .08em;
+}
+
+.student-mobile-login-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 13px;
+  background: #fff1f2;
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.student-mobile-login-card form > button {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #1768c5, #0f9f8f);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 13px 28px rgba(23, 104, 197, .24);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.student-mobile-login-card form > button:disabled {
+  opacity: .68;
+  cursor: wait;
+}
+
+.student-mobile-login-notes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.student-mobile-login-notes span {
+  min-width: 0;
+  padding: 9px 8px;
+  border-radius: 12px;
+  background: #eff7f5;
+  color: #31645e;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.student-mobile-login-card > a {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border-radius: 14px;
+  color: #526d7d;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 430px) {
+  .student-mobile-login-layer {
+    align-items: start;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .student-mobile-login-card {
+    margin-top: 6px;
+    gap: 17px;
+    padding: 18px 16px;
+    border-radius: 24px;
+  }
+
+  .student-mobile-login-notes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 650px) and (orientation: landscape) {
+  .student-mobile-login-layer {
+    place-items: start center;
+  }
+
+  .student-mobile-login-card {
+    grid-template-columns: 1fr 1.25fr;
+    width: min(760px, 100%);
+    gap: 12px 20px;
+  }
+
+  .student-mobile-login-brand,
+  .student-mobile-login-copy,
+  .student-mobile-login-card > a {
+    grid-column: 1;
+  }
+
+  .student-mobile-login-card form,
+  .student-mobile-login-notes {
+    grid-column: 2;
+  }
+
+  .student-mobile-login-brand { grid-row: 1; }
+  .student-mobile-login-copy { grid-row: 2; text-align: right; }
+  .student-mobile-login-card form { grid-row: 1 / span 2; }
+  .student-mobile-login-notes { grid-row: 3; }
+  .student-mobile-login-card > a { grid-row: 3; }
 }
