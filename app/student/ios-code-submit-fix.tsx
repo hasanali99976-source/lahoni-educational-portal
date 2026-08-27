@@ -6,6 +6,7 @@ const CODE_PATTERN = /^TH[123]\d{3}$/;
 
 export default function IosCodeSubmitFix() {
   useEffect(() => {
+    let attempts = 0;
     const setNativeValue = (input: HTMLInputElement, value: string) => {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
       setter?.call(input, value);
@@ -15,56 +16,53 @@ export default function IosCodeSubmitFix() {
 
     const bind = () => {
       const form = document.querySelector<HTMLFormElement>(".student-login-form form");
-      if (!form || form.dataset.iosSubmitFixed === "true") return;
+      if (!form || form.dataset.iosSubmitFixed === "true") return false;
       const inputs = Array.from(form.querySelectorAll<HTMLInputElement>("input"));
       const identityInput = inputs.find(input => input.inputMode === "numeric" || input.placeholder.includes("١٠"));
       const codeInput = inputs.find(input => input !== identityInput);
       const submit = form.querySelector<HTMLButtonElement>("button[type='submit'], .portal-submit");
-      if (!codeInput || !submit) return;
+      if (!codeInput || !submit) return false;
 
       form.dataset.iosSubmitFixed = "true";
       if (identityInput) {
         identityInput.required = false;
         setNativeValue(identityInput, "0000000000");
       }
+
+      codeInput.style.pointerEvents = "auto";
+      codeInput.style.touchAction = "manipulation";
       submit.disabled = false;
+      submit.type = "submit";
       submit.style.pointerEvents = "auto";
       submit.style.touchAction = "manipulation";
-      submit.setAttribute("type", "button");
 
-      const activate = () => {
+      const prepare = () => {
         const code = codeInput.value.trim().toUpperCase();
-        if (!CODE_PATTERN.test(code)) {
-          const existing = form.querySelector<HTMLElement>(".portal-error");
-          if (existing) existing.textContent = "أدخل كودًا صحيحًا مثل TH1001 أو TH2001 أو TH3001.";
-          return;
-        }
         if (identityInput) setNativeValue(identityInput, "0000000000");
         setNativeValue(codeInput, code);
-        window.setTimeout(() => {
-          submit.setAttribute("type", "submit");
-          form.requestSubmit(submit);
-          submit.setAttribute("type", "button");
-        }, 30);
+        return CODE_PATTERN.test(code);
       };
 
-      submit.addEventListener("click", activate, true);
-      submit.addEventListener("touchend", event => {
+      form.addEventListener("submit", event => {
+        if (prepare()) return;
         event.preventDefault();
-        activate();
-      }, { passive: false, capture: true });
-      codeInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          activate();
-        }
+        const existing = form.querySelector<HTMLElement>(".portal-error");
+        if (existing) existing.textContent = "أدخل كودًا صحيحًا مثل TH1001 أو TH2001 أو TH3001.";
       });
+
+      codeInput.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !prepare()) event.preventDefault();
+      });
+
+      return true;
     };
 
-    bind();
-    const observer = new MutationObserver(bind);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    if (bind()) return;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      if (bind() || attempts >= 20) window.clearInterval(timer);
+    }, 100);
+    return () => window.clearInterval(timer);
   }, []);
 
   return null;
