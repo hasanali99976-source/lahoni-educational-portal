@@ -7,12 +7,27 @@ service cloud.firestore {
         && request.auth.token.role == "teacher";
     }
 
+    function isAnyTeacher() {
+      return request.auth != null
+        && request.auth.token.role == "teacher";
+    }
+
     function isAssigned(subjectId) {
       return subjectId in request.auth.token.subjectIds;
     }
 
     match /portalV2Data/{teacherId}/subjects/{subjectId}/{document=**} {
       allow read, write: if isTeacher(teacherId) && isAssigned(subjectId);
+    }
+
+    // سجل مشترك للفصول والطلاب بين جميع مواد المدرسة.
+    // يسمح للمعلمين المسجلين فقط بالقراءة والكتابة.
+    match /school_shared_students/{document=**} {
+      allow read, write: if isAnyTeacher();
+    }
+
+    match /school_shared_classes/{document=**} {
+      allow read, write: if isAnyTeacher();
     }
 
     match /portalV2Users/{document=**} {
