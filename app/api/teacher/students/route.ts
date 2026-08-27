@@ -25,13 +25,42 @@ export async function GET(request: Request) {
     if (!subjectId || !relevant.length) return NextResponse.json({ ok: true, students: [], classes: [], assignments: [] });
 
     const centralSnapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get();
+    const centralHasRecords = !centralSnapshot.empty;
     let students = centralSnapshot.docs
       .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
       .filter((item): item is SchoolStudent => !!item && item.active !== false && studentMatchesAssignments(item, assignments, subjectId));
 
-    if (!students.length) {
+    const subjectPath = `portalV2Data/${session.userId}/subjects/${subjectId}/students`;
+    if (centralHasRecords) {
       try {
-        const legacySnapshot = await adminDb().collection(`portalV2Data/${session.userId}/subjects/${subjectId}/students`).get();
+        const existingSnapshot = await adminDb().collection(subjectPath).get();
+        const allowedCodes = new Set(students.map(student => student.code));
+        const batch = adminDb().batch();
+        existingSnapshot.docs.forEach(item => {
+          if (!allowedCodes.has(item.id)) batch.set(adminDb().collection(subjectPath).doc(item.id), { rosterActive: false, active: false, updatedAt: new Date().toISOString() }, { merge: true });
+        });
+        students.forEach(student => batch.set(adminDb().collection(subjectPath).doc(student.code), {
+          name: student.name,
+          class: student.className,
+          className: student.className,
+          grade: student.grade,
+          section: student.section,
+          code: student.code,
+          accessCode: student.code,
+          studentCode: student.code,
+          teacherId: session.userId,
+          subjectKey: subjectId,
+          rosterActive: true,
+          active: true,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true }));
+        await batch.commit();
+      } catch (syncError) {
+        console.warn("central roster subject mirror skipped", syncError);
+      }
+    } else {
+      try {
+        const legacySnapshot = await adminDb().collection(subjectPath).get();
         students = legacySnapshot.docs
           .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
           .filter((item): item is SchoolStudent => !!item && item.active !== false && studentMatchesAssignments(item, assignments, subjectId));
