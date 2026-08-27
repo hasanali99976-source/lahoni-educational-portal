@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../../lib/server/portal-auth";
-import { normalizeAssignments } from "../../../../../lib/teacher-assignments";
+import { normalizeAssignments, type TeacherAssignment } from "../../../../../lib/teacher-assignments";
 import {
   SCHOOL_CLASSES_COLLECTION,
   SCHOOL_STUDENTS_COLLECTION,
@@ -10,6 +10,7 @@ import {
   nextStudentCode,
   normalizeStudentRecord,
   studentIdentity,
+  studentMatchesAssignments,
   type SchoolStudent,
 } from "../../../../../lib/school-roster";
 
@@ -17,9 +18,28 @@ const LEGACY_SHARED = "school_shared_students";
 const WRITE_CHUNK_SIZE = 100;
 const SOURCE_CHUNK_SIZE = 5;
 
-type LegacySource = { teacherId: string; subjectId: string };
+type LegacySource = {
+  teacherId: string;
+  subjectId: string;
+  assignments: TeacherAssignment[];
+};
+
+type LoadedSource = LegacySource & {
+  path: string;
+  existingIdentities: Set<string>;
+  existingDocumentIds: Set<string>;
+};
+
 type Candidate = Record<string, unknown> & {
   __id?: string;
+};
+
+type SubjectLink = {
+  path: string;
+  documentId: string;
+  student: SchoolStudent;
+  teacherId: string;
+  subjectId: string;
 };
 
 function isQuotaError(error: unknown) {
@@ -48,14 +68,27 @@ async function loadLegacySources() {
     adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
   );
   const sources = new Map<string, LegacySource>();
+
   teachersSnapshot.docs.forEach(teacher => {
     const data = teacher.data() as Record<string, unknown>;
     const assignments = normalizeAssignments(data.assignments, data.subjectIds);
     assignments.forEach(assignment => {
       const key = `${teacher.id}__${assignment.subjectId}`;
-      sources.set(key, { teacherId: teacher.id, subjectId: assignment.subjectId });
+      const current = sources.get(key);
+      if (current) {
+        if (!current.assignments.some(item => item.id === assignment.id)) {
+          current.assignments.push(assignment);
+        }
+      } else {
+        sources.set(key, {
+          teacherId: teacher.id,
+          subjectId: assignment.subjectId,
+          assignments: [assignment],
+        });
+      }
     });
   });
+
   return [...sources.values()];
 }
 
@@ -67,6 +100,32 @@ function sameStudentData(left: SchoolStudent, right: SchoolStudent) {
     && left.active !== false;
 }
 
+async function applySubjectLinks(links: SubjectLink[]) {
+  for (let index = 0; index < links.length; index += WRITE_CHUNK_SIZE) {
+    const batch = adminDb().batch();
+    links.slice(index, index + WRITE_CHUNK_SIZE).forEach(link => {
+      const student = link.student;
+      batch.set(adminDb().collection(link.path).doc(link.documentId), {
+        name: student.name,
+        class: student.className,
+        className: student.className,
+        grade: student.grade,
+        section: student.section,
+        code: student.code,
+        accessCode: student.code,
+        studentCode: student.code,
+        teacherId: link.teacherId,
+        subjectKey: link.subjectId,
+        active: true,
+        rosterActive: true,
+        createdAt: student.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    });
+    await withTimeout(batch.commit());
+  }
+}
+
 export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
 
@@ -75,8 +134,6 @@ export async function POST(request: Request) {
     const cursor = Math.max(0, Number(body?.cursor) || 0);
     const candidates: Candidate[] = [];
 
-    // The central roster is intentionally read once per recovery batch. With the
-    // school size this remains small, while preventing duplicate students/codes.
     const [centralSnapshot, legacySources] = await Promise.all([
       withTimeout(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get()),
       loadLegacySources(),
@@ -100,13 +157,28 @@ export async function POST(request: Request) {
     }
 
     const selectedSources = legacySources.slice(cursor, cursor + SOURCE_CHUNK_SIZE);
+    const loadedSources: LoadedSource[] = [];
+
     for (const source of selectedSources) {
       try {
-        const snapshot = await withTimeout(
-          adminDb().collection(`portalV2Data/${source.teacherId}/subjects/${source.subjectId}/students`).get(),
-        );
+        const path = `portalV2Data/${source.teacherId}/subjects/${source.subjectId}/students`;
+        const snapshot = await withTimeout(adminDb().collection(path).get());
+        const existingIdentities = new Set<string>();
+        const existingDocumentIds = new Set<string>();
+
         snapshot.docs.forEach(item => {
-          candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) });
+          const raw = item.data() as Record<string, unknown>;
+          candidates.push({ __id: item.id, ...raw });
+          existingDocumentIds.add(item.id);
+          const normalized = normalizeStudentRecord(raw, item.id);
+          if (normalized) existingIdentities.add(studentIdentity(normalized));
+        });
+
+        loadedSources.push({
+          ...source,
+          path,
+          existingIdentities,
+          existingDocumentIds,
         });
       } catch (error) {
         if (isQuotaError(error) || isTimeoutError(error)) throw error;
@@ -223,6 +295,33 @@ export async function POST(request: Request) {
       await withTimeout(batch.commit());
     }
 
+    const subjectLinks: SubjectLink[] = [];
+    const currentStudents = [...byCode.values()];
+
+    loadedSources.forEach(source => {
+      currentStudents.forEach(student => {
+        if (!studentMatchesAssignments(student, source.assignments, source.subjectId)) return;
+        const identity = studentIdentity(student);
+        if (source.existingIdentities.has(identity)) return;
+
+        let documentId = student.code;
+        if (source.existingDocumentIds.has(documentId)) {
+          documentId = `${student.code}__${student.grade}_${student.section}`;
+        }
+        source.existingIdentities.add(identity);
+        source.existingDocumentIds.add(documentId);
+        subjectLinks.push({
+          path: source.path,
+          documentId,
+          student,
+          teacherId: source.teacherId,
+          subjectId: source.subjectId,
+        });
+      });
+    });
+
+    if (subjectLinks.length) await applySubjectLinks(subjectLinks);
+
     const nextCursor = cursor + selectedSources.length;
     const complete = nextCursor >= legacySources.length;
     return NextResponse.json({
@@ -233,7 +332,7 @@ export async function POST(request: Request) {
       unchanged,
       skipped,
       collisionRecovered,
-      linkedToSubjects: 0,
+      linkedToSubjects: subjectLinks.length,
       total: byCode.size,
       cursor,
       nextCursor,
@@ -247,13 +346,13 @@ export async function POST(request: Request) {
     if (isQuotaError(error)) {
       return NextResponse.json({
         ok: false,
-        message: "انتهت الحصة المجانية لليوم. لم تُحذف أي قائمة، وسيكمل الاسترجاع من آخر نقطة بعد تجدد الحصة.",
+        message: "انتهت الحصة المجانية لليوم. لم تُحذف أي قائمة أو سجل تحضير، وسيكمل الاسترجاع من آخر نقطة بعد تجدد الحصة.",
       }, { status: 429 });
     }
     if (isTimeoutError(error)) {
       return NextResponse.json({
         ok: false,
-        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة، وسيكمل الاسترجاع من آخر نقطة.",
+        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة أو سجل تحضير، وسيكمل الاسترجاع من آخر نقطة.",
       }, { status: 503 });
     }
     return NextResponse.json({ ok: false, message: "تعذر استرجاع القوائم الحالية الآن" }, { status: 500 });
