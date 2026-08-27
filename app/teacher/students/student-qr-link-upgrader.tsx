@@ -11,6 +11,11 @@ export default function StudentQrLinkUpgrader() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    const replaceOldQr = (card: HTMLElement | null) => {
+      if (!card) return;
+      card.querySelectorAll<SVGElement>("svg:not([data-student-qr-link])").forEach(svg => svg.remove());
+    };
+
     const handleClick = (event: MouseEvent) => {
       const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>(".code-button");
       if (!button) return;
@@ -19,12 +24,14 @@ export default function StudentQrLinkUpgrader() {
       setCode(value);
       window.setTimeout(() => {
         const card = document.querySelector<HTMLElement>(".qr-card");
+        replaceOldQr(card);
         if (card) setTarget(card);
       }, 0);
     };
 
     const observer = new MutationObserver(() => {
       const card = document.querySelector<HTMLElement>(".qr-card");
+      replaceOldQr(card);
       setTarget(card);
       if (!card) setCode("");
     });
@@ -39,14 +46,19 @@ export default function StudentQrLinkUpgrader() {
 
   if (!target || !code) return null;
 
-  const url = `${window.location.origin}/student?code=${encodeURIComponent(code)}`;
-  const oldQr = target.querySelector<SVGElement>("svg:not([data-student-qr-link])");
-  if (oldQr) oldQr.style.display = "none";
+  // إضافة نسخة للرابط تمنع Safari في الآيفون من فتح الصفحة القديمة المخزنة.
+  const url = `${window.location.origin}/student?code=${encodeURIComponent(code)}&entry=qr&v=44`;
 
   return createPortal(
     <>
-      <QRCodeSVG data-student-qr-link="true" value={url} size={210} />
-      <small style={{ display: "block", marginTop: 8 }}>يفتح بوابة الطالب مباشرة بالكود</small>
+      <QRCodeSVG
+        data-student-qr-link="true"
+        value={url}
+        size={224}
+        level="H"
+        includeMargin
+      />
+      <small style={{ display: "block", marginTop: 8 }}>يفتح بوابة الطالب مباشرة بالكود — متوافق مع الآيفون</small>
     </>,
     target,
   );
