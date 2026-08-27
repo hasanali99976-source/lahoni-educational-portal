@@ -32,11 +32,16 @@ function normalizeLegacy(value: Record<string, unknown>, id: string) {
   return normalizeStudentRecord({ ...value, active: true, rosterActive: true }, id);
 }
 
+function documentReference(path: string) {
+  const separator = path.lastIndexOf("/");
+  return adminDb().collection(path.slice(0, separator)).doc(path.slice(separator + 1));
+}
+
 async function applyRepairs(repairs: Repair[]) {
   for (let index = 0; index < repairs.length; index += 350) {
     const batch = adminDb().batch();
     repairs.slice(index, index + 350).forEach(item => {
-      batch.set(adminDb().doc(item.path), item.data, { merge: true });
+      batch.set(documentReference(item.path), item.data, { merge: true });
     });
     await batch.commit();
   }
@@ -81,8 +86,6 @@ export async function GET(request: Request) {
         ? studentMatchesAssignments(item, assignments, subjectId)
         : legacyClassKeys.has(classId(item.grade, item.section)));
 
-    // Preserve each teacher's existing document/code first so grades, attendance and
-    // historical records stay attached to the same student. Central rows only fill gaps.
     const byIdentity = new Map<string, SchoolStudent>();
     legacyRows.forEach(item => byIdentity.set(studentIdentity(item.student), { ...item.student, active: true }));
     centralRows.forEach(item => {
@@ -153,7 +156,6 @@ export async function GET(request: Request) {
       });
     });
 
-    // A failed mirror must never hide the roster returned to the teacher.
     try {
       if (repairs.length) await applyRepairs(repairs);
     } catch (repairError) {
