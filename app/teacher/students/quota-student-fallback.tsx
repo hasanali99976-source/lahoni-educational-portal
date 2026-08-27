@@ -12,6 +12,7 @@ type PendingStudent = {
   id: string;
   name: string;
   className: string;
+  code: string;
   createdAt: string;
 };
 
@@ -64,7 +65,8 @@ export default function QuotaStudentFallback() {
   const [pending, setPending] = useState<PendingStudent[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [notice, setNotice] = useState("");
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [tableTarget, setTableTarget] = useState<HTMLTableSectionElement | null>(null);
+  const [messageTarget, setMessageTarget] = useState<HTMLElement | null>(null);
 
   const savePending = useCallback((items: PendingStudent[]) => {
     setPending(items);
@@ -82,23 +84,14 @@ export default function QuotaStudentFallback() {
   }, [storageKey, teacherId]);
 
   useEffect(() => {
-    let mount: HTMLDivElement | null = null;
     const attach = () => {
-      const editor = document.querySelector(".students-management .student-editor");
-      if (!editor || mount) return;
-      mount = document.createElement("div");
-      mount.dataset.pendingStudents = "true";
-      editor.insertAdjacentElement("afterend", mount);
-      setPortalTarget(mount);
+      setTableTarget(document.querySelector<HTMLTableSectionElement>(".students-management .table-wrap tbody"));
+      setMessageTarget(document.querySelector<HTMLElement>(".students-management .students-toolbar"));
     };
     attach();
     const observer = new MutationObserver(attach);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      observer.disconnect();
-      mount?.remove();
-      setPortalTarget(null);
-    };
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -122,14 +115,25 @@ export default function QuotaStudentFallback() {
         return;
       }
 
+      const previewCode = clean(editor?.querySelector(".student-code-preview strong")?.textContent).toUpperCase();
+      const used = new Set(pending.map(item => item.code).filter(code => codePattern.test(code)));
+      const code = codePattern.test(previewCode) && !used.has(previewCode)
+        ? previewCode
+        : nextCode(used, className);
+      if (!code) {
+        setNotice("تعذر إنشاء كود للطالب.");
+        return;
+      }
+
       const next = [...pending, {
         id: crypto.randomUUID(),
         name: studentName,
         className,
+        code,
         createdAt: new Date().toISOString(),
       }];
       savePending(next);
-      setNotice(`تمت إضافة ${studentName} إلى ${className} وحفظه في هذا الجهاز.`);
+      setNotice(`تمت إضافة ${studentName} إلى ${className} — الكود: ${code}`);
       if (inputs?.[0]) setInputValue(inputs[0], "");
     };
 
@@ -163,7 +167,9 @@ export default function QuotaStudentFallback() {
       for (const item of [...pending]) {
         const grade = gradeNumber(item.className);
         if (!grade) continue;
-        const code = nextCode(used, item.className);
+        const code = codePattern.test(item.code) && !used.has(item.code)
+          ? item.code
+          : nextCode(used, item.className);
         if (!code) continue;
         used.add(code);
 
@@ -212,45 +218,34 @@ export default function QuotaStudentFallback() {
         if (index >= 0) remaining.splice(index, 1);
         savePending([...remaining]);
       }
-      setNotice(remaining.length
-        ? "بقيت أسماء لم تُرفع بعد، لكنها محفوظة في هذا الجهاز."
-        : "تم رفع جميع الأسماء إلى الفصول في البوابة.");
+      setNotice(remaining.length ? "بقيت أسماء لم تُرفع بعد." : "تم رفع جميع الأسماء إلى البوابة.");
     } catch {
-      setNotice("قاعدة البيانات ما زالت متوقفة، لكن الأسماء محفوظة داخل فصولها في هذا الجهاز.");
+      setNotice("الأسماء موجودة الآن داخل القوائم بأكوادها، وتعذر فقط رفعها للخادم حاليًا.");
     } finally {
       setSyncing(false);
     }
   }, [pending, savePending, subject, subjectKey, syncing, teacherId, teacherName]);
 
-  const removePending = (id: string) => {
-    const next = pending.filter(item => item.id !== id);
-    savePending(next);
-    setNotice("تم حذف الاسم المحفوظ مؤقتًا فقط، ولم تتأثر بيانات التحضير أو الدرجات.");
-  };
+  const selectedClass = clean(document?.querySelector(".students-management .class-toolbar h2")?.textContent);
+  const visiblePending = pending.filter(item => !selectedClass || item.className === selectedClass);
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, PendingStudent[]>();
-    pending.forEach(item => map.set(item.className, [...(map.get(item.className) || []), item]));
-    return [...map.entries()];
-  }, [pending]);
+  const rows = tableTarget ? createPortal(<>
+    {visiblePending.map((student, index) => <tr key={`pending-${student.id}`}>
+      <td>{index + 1}</td>
+      <td><strong>{student.name}</strong></td>
+      <td>{student.className}</td>
+      <td><button className="code-button" type="button">{student.code}</button></td>
+      <td><div className="row-actions"><button type="button" onClick={() => savePending(pending.filter(item => item.id !== student.id))}>حذف</button></div></td>
+    </tr>)}
+  </>, tableTarget) : null;
 
-  const panel = pending.length ? <section className="card" style={{marginBottom:18}}>
-    <div className="class-toolbar" style={{marginBottom:12}}>
-      <div><h2 style={{margin:0}}>الأسماء المضافة إلى الفصول</h2><small>محفوظة الآن في هذا الجهاز، ولن يضيع التحضير أو الدرجات.</small></div>
-      <button className="btn primary" type="button" disabled={syncing} onClick={() => void syncPending()}>
-        {syncing ? "جارٍ الرفع…" : "رفع الأسماء إلى البوابة"}
-      </button>
-    </div>
-    {notice ? <p className="smart-message">{notice}</p> : null}
-    <div className="table-wrap"><table><thead><tr><th>الفصل</th><th>اسم الطالب</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>
-      {grouped.flatMap(([className, students]) => students.map((student, index) => <tr key={student.id}>
-        <td>{index === 0 ? <strong>{className}</strong> : ""}</td>
-        <td><strong>{student.name}</strong></td>
-        <td>محفوظ في الفصل — بانتظار الرفع</td>
-        <td><button type="button" onClick={() => removePending(student.id)}>حذف الاسم المؤقت</button></td>
-      </tr>))}
-    </tbody></table></div>
-  </section> : notice ? <div className="smart-message" style={{marginBottom:16}}>{notice}</div> : null;
+  const banner = messageTarget && (notice || pending.length) ? createPortal(
+    <div className="smart-message" style={{marginTop:10}}>
+      <strong>{notice || `تمت إضافة ${pending.length} طالبًا بأكوادهم داخل القوائم.`}</strong>
+      {pending.length ? <button className="btn secondary" type="button" disabled={syncing} onClick={() => void syncPending()} style={{marginInlineStart:10}}>{syncing ? "جارٍ الرفع…" : "رفع للخادم"}</button> : null}
+    </div>,
+    messageTarget
+  ) : null;
 
-  return portalTarget && panel ? createPortal(panel, portalTarget) : null;
+  return <>{rows}{banner}</>;
 }
