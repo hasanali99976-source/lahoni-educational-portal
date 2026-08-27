@@ -3,7 +3,9 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-const IDLE_LIMIT = 3 * 60 * 1000;
+const IDLE_LIMIT = 12 * 60 * 60 * 1000;
+const ACTIVE_KEY = "lahooni-student-active";
+const LAST_PATH_KEY = "lahooni-student-last-path";
 
 export default function StudentSecurity({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -12,22 +14,25 @@ export default function StudentSecurity({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    // الاحتفاظ بجلسة الطالب ومساره داخل البوابة عند التحديث أو فتح الرابط من الباركود.
+    sessionStorage.setItem(ACTIVE_KEY, "true");
+    if (pathname.startsWith("/student")) {
+      localStorage.setItem(LAST_PATH_KEY, pathname);
+    }
+
     const logout = () => {
       if (!active) return;
-      sessionStorage.removeItem("lahooni-student-active");
-      router.replace("/");
+      sessionStorage.removeItem(ACTIVE_KEY);
+      localStorage.removeItem(LAST_PATH_KEY);
+      // عند انتهاء الجلسة يعود الطالب إلى صفحة دخول الطالب، وليس الصفحة الرئيسية العامة.
+      router.replace("/student");
     };
+
     const reset = () => {
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(logout, IDLE_LIMIT);
     };
-
-    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-    if (navigation?.type === "reload") {
-      sessionStorage.removeItem("lahooni-student-active");
-      router.replace("/");
-      return () => { active = false; };
-    }
 
     reset();
     const events = ["pointerdown", "keydown", "touchstart", "scroll", "mousemove"];
