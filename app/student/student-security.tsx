@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-const IDLE_LIMIT = 12 * 60 * 60 * 1000;
+const IDLE_LIMIT = 10 * 60 * 1000;
 const ACTIVE_KEY = "lahooni-student-active";
 const LAST_PATH_KEY = "lahooni-student-last-path";
 
