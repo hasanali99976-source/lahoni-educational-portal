@@ -21,15 +21,18 @@ type Student = {
 };
 
 type SavedClass = { id: string; name?: string; [key: string]: unknown };
+type Assignment = { id: string; subjectId: string; grade: string; section: string; label: string };
 
 const SHARED_STUDENTS = "school_shared_students";
 const SHARED_CLASSES = "school_shared_classes";
+const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
 const normalizeArabic = (value: unknown) => clean(value)
   .replace(/[إأآ]/g, "ا")
   .replace(/ى/g, "ي")
   .replace(/ة/g, "ه")
+  .replace(/[٠-٩]/g, digit => String(ARABIC_DIGITS.indexOf(digit)))
   .toLowerCase();
 const normalizeClass = (value: unknown) => clean(value);
 const rosterId = (student: Student) => {
@@ -39,6 +42,16 @@ const rosterId = (student: Student) => {
 const classId = (name: string) => encodeURIComponent(normalizeArabic(name)).replace(/%/g, "_").slice(0, 140);
 const codeOf = (student: Student) => clean(student.accessCode || student.studentCode || student.id).toUpperCase();
 
+function assignmentMatchesClass(assignment: Assignment, className: string) {
+  const classKey = normalizeArabic(className);
+  const gradeKey = normalizeArabic(assignment.grade);
+  const sectionKey = normalizeArabic(assignment.section);
+  if (!classKey || !gradeKey || !classKey.includes(gradeKey)) return false;
+  if (!sectionKey || sectionKey === "الكل") return true;
+  const exactKey = normalizeArabic(`${assignment.grade} ${assignment.section}`);
+  return classKey === exactKey || classKey.endsWith(` ${sectionKey}`) || classKey.endsWith(` فصل ${sectionKey}`);
+}
+
 export default function SharedRosterSync() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
@@ -46,21 +59,28 @@ export default function SharedRosterSync() {
   const subjectKey = (session?.subjectKey as SubjectKey) || "history";
   const subject = session?.subject || "";
 
-  const studentsPath = useMemo(
-    () => teacherId ? tenantCollection(teacherId, subjectKey, "students") : "",
-    [teacherId, subjectKey],
-  );
-  const classesPath = useMemo(
-    () => teacherId ? tenantCollection(teacherId, subjectKey, "classes") : "",
-    [teacherId, subjectKey],
-  );
+  const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, "students") : "", [teacherId, subjectKey]);
+  const classesPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, "classes") : "", [teacherId, subjectKey]);
 
   const [localStudents, setLocalStudents] = useState<Student[]>([]);
   const [localClasses, setLocalClasses] = useState<SavedClass[]>([]);
   const [sharedStudents, setSharedStudents] = useState<Student[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const localReady = useRef(false);
   const sharedReady = useRef(false);
   const syncing = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/teacher-session", { cache: "no-store" })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!active) return;
+        setAssignments(Array.isArray(data?.assignments) ? data.assignments : []);
+      })
+      .catch(() => active && setAssignments([]));
+    return () => { active = false; };
+  }, [teacherId, subjectKey]);
 
   useEffect(() => {
     if (!teacherId || !studentsPath || !classesPath) return;
@@ -78,28 +98,20 @@ export default function SharedRosterSync() {
     return () => { stopStudents(); stopClasses(); stopShared(); };
   }, [teacherId, studentsPath, classesPath]);
 
+  const subjectAssignments = useMemo(
+    () => assignments.filter(item => item.subjectId === subjectKey),
+    [assignments, subjectKey],
+  );
+
   useEffect(() => {
-    if (!teacherId || !localReady.current || !sharedReady.current || syncing.current) return;
+    if (!teacherId || !localReady.current || !sharedReady.current || syncing.current || !subjectAssignments.length) return;
     syncing.current = true;
 
     const run = async () => {
-      const sharedByIdentity = new Map(
-        sharedStudents.map(student => [`${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`, student]),
-      );
-      const localByIdentity = new Map(
-        localStudents.map(student => [`${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`, student]),
-      );
-      const classNames = new Set<string>();
-      localClasses.forEach(item => {
-        const value = normalizeClass(item.name);
-        if (value) classNames.add(value);
-      });
-      localStudents.forEach(item => {
-        const value = normalizeClass(item.class);
-        if (value) classNames.add(value);
-      });
+      const sharedByIdentity = new Map(sharedStudents.map(student => [`${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`, student]));
+      const localByIdentity = new Map(localStudents.map(student => [`${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`, student]));
 
-      // أي طالب يضيفه أي معلم يصبح جزءًا من سجل المدرسة المشترك.
+      // كل طالب يضيفه أي معلم يُحفظ في سجل المدرسة المشترك.
       for (const student of localStudents) {
         const name = clean(student.name);
         const className = normalizeClass(student.class);
@@ -107,7 +119,7 @@ export default function SharedRosterSync() {
         const identity = `${normalizeArabic(className)}|${normalizeArabic(name)}`;
         const existingShared = sharedByIdentity.get(identity);
         const sharedCode = codeOf(existingShared || student);
-        const payload = {
+        await setDoc(doc(db, SHARED_STUDENTS, rosterId({ ...student, name, class: className })), {
           name,
           class: className,
           grade: student.grade || existingShared?.grade || null,
@@ -116,19 +128,41 @@ export default function SharedRosterSync() {
           firstTeacherId: existingShared?.teacherId || student.teacherId || teacherId,
           firstTeacherName: existingShared?.teacherName || student.teacherName || teacherName,
           updatedAt: serverTimestamp(),
-        };
-        await setDoc(doc(db, SHARED_STUDENTS, rosterId({ ...student, name, class: className })), payload, { merge: true });
+        }, { merge: true });
         await setDoc(doc(db, SHARED_CLASSES, classId(className)), { name: className, updatedAt: serverTimestamp() }, { merge: true });
       }
 
-      // عند إضافة المعلم للفصل نفسه، تُنسخ أسماء طلابه تلقائيًا إلى مادته.
+      // الفصول المحددة للمعلم من الإدارة تُنشأ تلقائيًا في مادته.
+      for (const assignment of subjectAssignments) {
+        if (normalizeArabic(assignment.section) !== "الكل") {
+          const assignedClass = normalizeClass(`${assignment.grade} ${assignment.section}`);
+          await setDoc(doc(db, classesPath, classId(assignedClass)), {
+            name: assignedClass,
+            teacherId,
+            teacherName,
+            subjectKey,
+            linkedFromAssignment: true,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        }
+      }
+
+      // نسخ طلاب كل فصل مسند للمعلم مباشرة، دون أن يضيف الفصل يدويًا.
       for (const shared of sharedStudents) {
         const name = clean(shared.name);
         const className = normalizeClass(shared.class);
-        if (!name || !className || !classNames.has(className)) continue;
+        if (!name || !className || !subjectAssignments.some(item => assignmentMatchesClass(item, className))) continue;
         const identity = `${normalizeArabic(className)}|${normalizeArabic(name)}`;
         if (localByIdentity.has(identity)) continue;
         const code = codeOf(shared) || shared.id;
+        await setDoc(doc(db, classesPath, classId(className)), {
+          name: className,
+          teacherId,
+          teacherName,
+          subjectKey,
+          linkedFromAssignment: true,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
         await setDoc(doc(db, studentsPath, code), {
           name,
           class: className,
@@ -147,7 +181,7 @@ export default function SharedRosterSync() {
     };
 
     void run().finally(() => { syncing.current = false; });
-  }, [teacherId, teacherName, subjectKey, subject, studentsPath, localStudents, localClasses, sharedStudents]);
+  }, [teacherId, teacherName, subjectKey, subject, studentsPath, classesPath, localStudents, localClasses, sharedStudents, subjectAssignments]);
 
   return null;
 }
