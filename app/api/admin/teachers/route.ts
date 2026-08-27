@@ -17,7 +17,7 @@ export async function GET() {
     const data = item.data();
     const storedSubjectIds = Array.isArray(data.subjectIds) ? data.subjectIds.map(String) : [];
     const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
-    const subjectIds = assignments.length ? assignments.map(assignment => assignment.id) : storedSubjectIds;
+    const subjectIds = assignments.length ? [...new Set(assignments.map(assignment => assignment.subjectId))] : [...new Set(storedSubjectIds.map(id => id.split("--")[0]))];
     if (!sameStringList(storedSubjectIds, subjectIds)) {
       batch.set(adminDb().collection("portalV2Users").doc(item.id), { subjectIds }, { merge: true });
       hasRepairs = true;
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const username = name;
     const password = String(body?.password || "");
     const assignments = normalizeAssignments(body?.assignments);
-    const subjectIds = assignments.map(item => item.id);
+    const subjectIds = [...new Set(assignments.map(item => item.subjectId))];
     if (name.length < 3 || password.length < 8 || !subjectIds.length) {
       return NextResponse.json({ ok: false, message: "أكمل اسم المعلم والرقم السري من ٨ خانات واختر مادة" }, { status: 400 });
     }
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
     const reference = adminDb().collection("portalV2Users").doc();
     await reference.set({ username, normalizedUsername, name, role: "teacher", passwordHash: hashPassword(password), active: true, subjectIds, assignments, createdAt: now, updatedAt: now });
     const batch = adminDb().batch();
-    for (const subjectId of subjectIds) {
-      batch.set(adminDb().collection("portalV2Assignments").doc(`${reference.id}__${subjectId}`), { teacherId: reference.id, subjectId, active: true, createdAt: now, updatedAt: now });
+    for (const assignment of assignments) {
+      batch.set(adminDb().collection("portalV2Assignments").doc(`${reference.id}__${assignment.id}`), { teacherId: reference.id, subjectId: assignment.subjectId, assignmentId: assignment.id, grade: assignment.grade, section: assignment.section, active: true, createdAt: now, updatedAt: now });
     }
     await batch.commit();
     return NextResponse.json({ ok: true, id: reference.id }, { status: 201 });
