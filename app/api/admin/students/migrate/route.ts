@@ -14,16 +14,13 @@ import {
 } from "../../../../../lib/school-roster";
 
 const LEGACY_SHARED = "school_shared_students";
-const WRITE_CHUNK_SIZE = 150;
-const SOURCE_CHUNK_SIZE = 3;
+const WRITE_CHUNK_SIZE = 100;
+const SOURCE_CHUNK_SIZE = 5;
 
 type LegacySource = { teacherId: string; subjectId: string };
 type Candidate = Record<string, unknown> & {
   __id?: string;
-  __teacherId?: string;
-  __subjectId?: string;
 };
-type SourceRepair = { path: string; data: Record<string, unknown> };
 
 function isQuotaError(error: unknown) {
   const source = error as { code?: unknown; message?: unknown };
@@ -39,20 +36,17 @@ function isTimeoutError(error: unknown) {
   return String((error as { message?: unknown })?.message || "").includes("migration_timeout");
 }
 
-function withTimeout<T>(promise: Promise<T>, milliseconds = 7000) {
+function withTimeout<T>(promise: Promise<T>, milliseconds = 10000) {
   return Promise.race<T>([
     promise,
     new Promise<T>((_, reject) => setTimeout(() => reject(new Error("migration_timeout")), milliseconds)),
   ]);
 }
 
-function documentReference(path: string) {
-  const separator = path.lastIndexOf("/");
-  return adminDb().collection(path.slice(0, separator)).doc(path.slice(separator + 1));
-}
-
 async function loadLegacySources() {
-  const teachersSnapshot = await withTimeout(adminDb().collection("portalV2Users").where("role", "==", "teacher").get());
+  const teachersSnapshot = await withTimeout(
+    adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
+  );
   const sources = new Map<string, LegacySource>();
   teachersSnapshot.docs.forEach(teacher => {
     const data = teacher.data() as Record<string, unknown>;
@@ -65,23 +59,24 @@ async function loadLegacySources() {
   return [...sources.values()];
 }
 
-async function applySourceRepairs(repairs: SourceRepair[]) {
-  for (let index = 0; index < repairs.length; index += 300) {
-    const batch = adminDb().batch();
-    repairs.slice(index, index + 300).forEach(item => {
-      batch.set(documentReference(item.path), item.data, { merge: true });
-    });
-    await withTimeout(batch.commit());
-  }
+function sameStudentData(left: SchoolStudent, right: SchoolStudent) {
+  return left.name === right.name
+    && left.grade === right.grade
+    && left.section === right.section
+    && left.className === right.className
+    && left.active !== false;
 }
 
 export async function POST(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
+
   try {
     const body = await request.json().catch(() => ({}));
     const cursor = Math.max(0, Number(body?.cursor) || 0);
     const candidates: Candidate[] = [];
 
+    // The central roster is intentionally read once per recovery batch. With the
+    // school size this remains small, while preventing duplicate students/codes.
     const [centralSnapshot, legacySources] = await Promise.all([
       withTimeout(adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get()),
       loadLegacySources(),
@@ -93,7 +88,10 @@ export async function POST(request: Request) {
 
     if (cursor === 0) {
       const sharedSnapshot = await withTimeout(adminDb().collection(LEGACY_SHARED).get());
-      sharedSnapshot.docs.forEach(item => candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) }));
+      sharedSnapshot.docs.forEach(item => {
+        candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) });
+      });
+
       if (Array.isArray(body?.students)) {
         body.students.forEach((item: unknown) => {
           if (item && typeof item === "object") candidates.push(item as Candidate);
@@ -107,14 +105,12 @@ export async function POST(request: Request) {
         const snapshot = await withTimeout(
           adminDb().collection(`portalV2Data/${source.teacherId}/subjects/${source.subjectId}/students`).get(),
         );
-        snapshot.docs.forEach(item => candidates.push({
-          __id: item.id,
-          __teacherId: source.teacherId,
-          __subjectId: source.subjectId,
-          ...(item.data() as Record<string, unknown>),
-        }));
+        snapshot.docs.forEach(item => {
+          candidates.push({ __id: item.id, ...(item.data() as Record<string, unknown>) });
+        });
       } catch (error) {
         if (isQuotaError(error) || isTimeoutError(error)) throw error;
+        console.warn("legacy roster source skipped", source, error);
       }
     }
 
@@ -122,51 +118,41 @@ export async function POST(request: Request) {
     const byIdentity = new Map(centralStudents.map(student => [studentIdentity(student), student]));
     const working = [...centralStudents];
     const changes = new Map<string, SchoolStudent>();
-    const sourceRepairs = new Map<string, SourceRepair>();
     let skipped = 0;
     let added = 0;
     let updated = 0;
+    let unchanged = 0;
     let collisionRecovered = 0;
 
     for (const candidate of candidates) {
-      const normalized = normalizeStudentRecord({ ...candidate, active: true, rosterActive: true }, String(candidate.__id || ""));
-      if (!normalized) { skipped += 1; continue; }
-
-      if (candidate.__teacherId && candidate.__subjectId && candidate.__id) {
-        const canonical = canonicalClassName(normalized.grade, normalized.section);
-        const path = `portalV2Data/${candidate.__teacherId}/subjects/${candidate.__subjectId}/students/${candidate.__id}`;
-        sourceRepairs.set(path, {
-          path,
-          data: {
-            name: normalized.name,
-            class: canonical,
-            className: canonical,
-            grade: normalized.grade,
-            section: normalized.section,
-            code: normalized.code,
-            accessCode: normalized.code,
-            studentCode: normalized.code,
-            teacherId: candidate.__teacherId,
-            subjectKey: candidate.__subjectId,
-            active: true,
-            rosterActive: true,
-            updatedAt: new Date().toISOString(),
-          },
-        });
+      const normalized = normalizeStudentRecord(
+        { ...candidate, active: true, rosterActive: true },
+        String(candidate.__id || ""),
+      );
+      if (!normalized) {
+        skipped += 1;
+        continue;
       }
 
       const identity = studentIdentity(normalized);
       const sameStudent = byIdentity.get(identity);
       if (sameStudent) {
-        const merged = {
+        const merged: SchoolStudent = {
           ...sameStudent,
           name: normalized.name,
           grade: normalized.grade,
           section: normalized.section,
           className: canonicalClassName(normalized.grade, normalized.section),
           active: true,
-          updatedAt: new Date().toISOString(),
+          updatedAt: sameStudent.updatedAt,
         };
+
+        if (sameStudentData(sameStudent, merged)) {
+          unchanged += 1;
+          continue;
+        }
+
+        merged.updatedAt = new Date().toISOString();
         changes.set(sameStudent.code, merged);
         byCode.set(sameStudent.code, merged);
         byIdentity.set(identity, merged);
@@ -181,16 +167,20 @@ export async function POST(request: Request) {
         code = nextStudentCode([...working, ...changes.values()], normalized.grade);
         if (hasCollision) collisionRecovered += 1;
       }
-      if (!code) { skipped += 1; continue; }
+      if (!code) {
+        skipped += 1;
+        continue;
+      }
 
-      const student = {
+      const now = new Date().toISOString();
+      const student: SchoolStudent = {
         ...normalized,
         id: code,
         code,
         active: true,
         className: canonicalClassName(normalized.grade, normalized.section),
-        updatedAt: new Date().toISOString(),
-        createdAt: normalized.createdAt || new Date().toISOString(),
+        updatedAt: now,
+        createdAt: normalized.createdAt || now,
       };
       changes.set(code, student);
       working.push(student);
@@ -228,13 +218,10 @@ export async function POST(request: Request) {
           ...schoolClass,
           active: true,
           updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
         }, { merge: true });
       });
       await withTimeout(batch.commit());
     }
-
-    if (sourceRepairs.size) await applySourceRepairs([...sourceRepairs.values()]);
 
     const nextCursor = cursor + selectedSources.length;
     const complete = nextCursor >= legacySources.length;
@@ -243,28 +230,30 @@ export async function POST(request: Request) {
       migrated: changes.size,
       added,
       updated,
+      unchanged,
       skipped,
       collisionRecovered,
-      linkedToSubjects: sourceRepairs.size,
+      linkedToSubjects: 0,
       total: byCode.size,
       cursor,
       nextCursor,
       complete,
       processedSources: selectedSources.length,
       sourceCount: legacySources.length,
-    });
+      remainingSources: Math.max(0, legacySources.length - nextCursor),
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("migrate school roster failed", error);
     if (isQuotaError(error)) {
       return NextResponse.json({
         ok: false,
-        message: "وصلت قاعدة البيانات إلى حد الاستخدام المؤقت. لم تُحذف أي قائمة؛ أكمل الاسترجاع لاحقًا من الزر نفسه.",
+        message: "انتهت الحصة المجانية لليوم. لم تُحذف أي قائمة، وسيكمل الاسترجاع من آخر نقطة بعد تجدد الحصة.",
       }, { status: 429 });
     }
     if (isTimeoutError(error)) {
       return NextResponse.json({
         ok: false,
-        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة؛ أكمل الاسترجاع لاحقًا من الزر نفسه.",
+        message: "قاعدة البيانات مشغولة الآن. لم تُحذف أي قائمة، وسيكمل الاسترجاع من آخر نقطة.",
       }, { status: 503 });
     }
     return NextResponse.json({ ok: false, message: "تعذر استرجاع القوائم الحالية الآن" }, { status: 500 });
