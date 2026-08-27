@@ -117,8 +117,8 @@ function normalizePortalUser(document: CompatDocumentSnapshot): PortalUser | nul
   const storedSubjectIds = Array.isArray(data.subjectIds) ? data.subjectIds.map(String) : [];
   const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
   const subjectIds = data.role === "teacher" && assignments.length
-    ? assignments.map(item => item.id)
-    : storedSubjectIds;
+    ? [...new Set(assignments.map(item => item.subjectId))]
+    : storedSubjectIds.map(item => item.split("--")[0]);
 
   return {
     id: document.id,
