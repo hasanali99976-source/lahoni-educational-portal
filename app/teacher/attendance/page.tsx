@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { collection, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
-import { useTeacherClient, type TeacherClientAssignment } from "../../../lib/teacher-client";
+import { useTeacherClient } from "../../../lib/teacher-client";
 import {
-  SHARED_STUDENTS_COLLECTION,
-  belongsToTeacher,
   classMatchesAssignments,
   clean,
   hasDetailedAssignments,
@@ -145,11 +143,10 @@ export default function AttendancePage() {
   const subjectKey = (session?.subjectKey as SubjectKey) || "history";
   const subject = session?.subject || "";
   const ready = !!teacherId && !!session?.subjectKey;
+  const assignments = session?.assignments || [];
 
-  const [assignments, setAssignments] = useState<TeacherClientAssignment[]>([]);
   const [localStudents, setLocalStudents] = useState<UnifiedStudent[]>([]);
-  const [subjectStudents, setSubjectStudents] = useState<UnifiedStudent[]>([]);
-  const [sharedStudents, setSharedStudents] = useState<UnifiedStudent[]>([]);
+  const [officialStudents, setOfficialStudents] = useState<UnifiedStudent[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
   const [reportFrom, setReportFrom] = useState(startOfCurrentWeek());
@@ -160,10 +157,6 @@ export default function AttendancePage() {
   const [reporting, setReporting] = useState(false);
   const loadSequence = useRef(0);
 
-  const studentsPath = useMemo(
-    () => (teacherId ? tenantCollection(teacherId, subjectKey, "students") : ""),
-    [teacherId, subjectKey],
-  );
   const attendancePath = useMemo(
     () => (teacherId ? tenantCollection(teacherId, subjectKey, "attendance") : ""),
     [teacherId, subjectKey],
@@ -176,56 +169,67 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (!teacherId) return;
-    let active = true;
-    fetch("/api/teacher-session", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((data) => active && setAssignments(Array.isArray(data.assignments) ? data.assignments : []))
-      .catch(() => active && setAssignments([]));
-    return () => { active = false; };
-  }, [teacherId, subjectKey]);
-
-  useEffect(() => {
-    if (!teacherId) return;
     const load = () => setLocalStudents(loadLocalRoster(teacherId, subjectKey));
     load();
     window.addEventListener("storage", load);
-    window.addEventListener("focus", load);
     window.addEventListener("lahooni-roster-updated", load as EventListener);
     return () => {
       window.removeEventListener("storage", load);
-      window.removeEventListener("focus", load);
       window.removeEventListener("lahooni-roster-updated", load as EventListener);
     };
   }, [teacherId, subjectKey]);
 
   useEffect(() => {
-    if (!ready || !studentsPath) return;
-    const stopSubject = onSnapshot(
-      collection(db, studentsPath),
-      (snapshot) => setSubjectStudents(snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as UnifiedStudent))),
-      () => undefined,
-    );
-    const stopShared = onSnapshot(
-      collection(db, SHARED_STUDENTS_COLLECTION),
-      (snapshot) => setSharedStudents(snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as UnifiedStudent))),
-      () => undefined,
-    );
-    return () => { stopSubject(); stopShared(); };
-  }, [ready, studentsPath]);
+    if (!ready) return;
+    let active = true;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 7000);
 
-  const scopedSubjectStudents = useMemo(
-    () => subjectStudents.filter((student) => classAllowed(normalizeClass(student.class))),
-    [subjectStudents, assignmentScoped, assignments, subjectKey],
-  );
+    fetch(`/api/teacher/students?subjectId=${encodeURIComponent(subjectKey)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("roster_load_failed")))
+      .then(data => {
+        if (!active) return;
+        const list = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
+          const code = String(student.code || student.accessCode || student.studentCode || student.id || "").trim().toUpperCase();
+          const className = String(student.className || student.class || "").trim();
+          return {
+            ...student,
+            id: code,
+            code,
+            accessCode: code,
+            studentCode: code,
+            class: className,
+            className,
+            active: student.active !== false,
+            rosterActive: student.active !== false,
+          } as UnifiedStudent;
+        }).filter((student: UnifiedStudent) => !!student.id && !!student.name && !!student.class);
 
-  const sharedForCurrentAssignments = useMemo(
-    () => assignmentScoped
-      ? sharedStudents.filter((student) => belongsToTeacher(student, teacherId)
-        && classMatchesAssignments(normalizeClass(student.class), assignments, subjectKey)
-        && student.active !== false
-        && student.rosterActive !== false)
-      : [],
-    [sharedStudents, teacherId, assignmentScoped, assignments, subjectKey],
+        setOfficialStudents(list);
+        const cached = loadLocalRoster(teacherId, subjectKey);
+        const merged = mergeStudents(cached, list);
+        setLocalStudents(merged);
+        if (JSON.stringify(cached) !== JSON.stringify(merged)) saveLocalRoster(teacherId, merged, subjectKey);
+        setMessage(current => current.includes("القائمة الرسمية") ? "" : current);
+      })
+      .catch(() => {
+        if (active) setMessage(current => current || "تعذر تحديث القائمة الرسمية، وتم عرض النسخة المحفوظة على الجهاز.");
+      })
+      .finally(() => window.clearTimeout(timer));
+
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [ready, teacherId, subjectKey]);
+
+  const scopedOfficialStudents = useMemo(
+    () => officialStudents.filter((student) => classAllowed(normalizeClass(student.class))),
+    [officialStudents, assignmentScoped, assignments, subjectKey],
   );
 
   const scopedLocalStudents = useMemo(
@@ -235,22 +239,11 @@ export default function AttendancePage() {
 
   const students = useMemo(() => {
     const deleted = loadDeletedCodes(teacherId);
-    return mergeStudents(scopedSubjectStudents, sharedForCurrentAssignments, scopedLocalStudents).filter((student) => {
+    return mergeStudents(scopedLocalStudents, scopedOfficialStudents).filter((student) => {
       const code = studentCode(student);
       return !deleted.has(code) && student.active !== false && student.rosterActive !== false;
     });
-  }, [scopedSubjectStudents, sharedForCurrentAssignments, scopedLocalStudents, teacherId]);
-
-  useEffect(() => {
-    if (!teacherId || (!scopedSubjectStudents.length && !sharedForCurrentAssignments.length)) return;
-    const deleted = loadDeletedCodes(teacherId);
-    const merged = mergeStudents(scopedLocalStudents, scopedSubjectStudents, sharedForCurrentAssignments)
-      .filter((student) => !deleted.has(studentCode(student)) && classAllowed(normalizeClass(student.class)));
-    if (JSON.stringify(mergeStudents(scopedLocalStudents)) !== JSON.stringify(merged)) {
-      setLocalStudents(merged);
-      saveLocalRoster(teacherId, merged, subjectKey);
-    }
-  }, [teacherId, scopedSubjectStudents, sharedForCurrentAssignments, assignmentScoped, assignments, subjectKey]);
+  }, [scopedOfficialStudents, scopedLocalStudents, teacherId]);
 
   const classes = useMemo(
     () => [...new Set(students.map((student) => normalizeClass(student.class)).filter(Boolean))]
