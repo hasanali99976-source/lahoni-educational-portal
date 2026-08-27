@@ -28,6 +28,7 @@ export default function StudentCodeOnlyUI() {
         const label = wrapper?.previousElementSibling;
         if (label instanceof HTMLElement) label.style.display = "none";
         if (wrapper instanceof HTMLElement) wrapper.style.display = "none";
+        identityInput.required = false;
         setNativeValue(identityInput, "0000000000");
       }
 
@@ -40,6 +41,10 @@ export default function StudentCodeOnlyUI() {
         codeInput.placeholder = "مثال: TH1001";
         codeInput.maxLength = 6;
         codeInput.autocomplete = "username";
+        codeInput.inputMode = "text";
+        codeInput.enterKeyHint = "go";
+        codeInput.setAttribute("autocapitalize", "characters");
+        codeInput.setAttribute("spellcheck", "false");
         codeInput.setAttribute("aria-label", "كود الطالب");
         const codeWrapper = codeInput.closest(".portal-input");
         const codeLabel = codeWrapper?.previousElementSibling;
@@ -51,11 +56,37 @@ export default function StudentCodeOnlyUI() {
       }
 
       const submit = form.querySelector<HTMLButtonElement>("button[type='submit'], .portal-submit");
+      if (submit) {
+        submit.type = "submit";
+        submit.style.pointerEvents = "auto";
+        submit.style.touchAction = "manipulation";
+        submit.style.position = "relative";
+        submit.style.zIndex = "5";
+      }
+
       if (submit && !submit.dataset.codeOnlyBound) {
         submit.dataset.codeOnlyBound = "true";
-        form.addEventListener("submit", event => {
-          const value = (codeInput?.value || "").trim().toUpperCase();
+
+        const prepare = () => {
           if (identityInput) setNativeValue(identityInput, "0000000000");
+          if (codeInput) setNativeValue(codeInput, codeInput.value.trim().toUpperCase());
+        };
+
+        submit.addEventListener("touchstart", prepare, { passive: true });
+        submit.addEventListener("pointerdown", prepare, { passive: true });
+        submit.addEventListener("click", prepare);
+
+        codeInput?.addEventListener("keydown", event => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            prepare();
+            form.requestSubmit(submit);
+          }
+        });
+
+        form.addEventListener("submit", event => {
+          prepare();
+          const value = (codeInput?.value || "").trim().toUpperCase();
           if (!CODE_PATTERN.test(value)) {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -73,7 +104,11 @@ export default function StudentCodeOnlyUI() {
 
       if (submit && codeInput && CODE_PATTERN.test(queryCode) && form.dataset.barcodeSubmitted !== queryCode) {
         form.dataset.barcodeSubmitted = queryCode;
-        window.setTimeout(() => form.requestSubmit(submit), 100);
+        window.setTimeout(() => {
+          if (identityInput) setNativeValue(identityInput, "0000000000");
+          setNativeValue(codeInput, queryCode);
+          form.requestSubmit(submit);
+        }, 250);
       }
     };
 
