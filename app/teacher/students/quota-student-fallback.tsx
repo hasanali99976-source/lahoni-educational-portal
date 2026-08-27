@@ -1,21 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { collection, doc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 
 type PendingStudent = { id:string; name:string; className:string; code:string; createdAt:string };
-type StoredStudent = Record<string,unknown> & { id:string };
 
-const SHARED_STUDENTS = "school_shared_students";
 const clean = (value:unknown) => String(value ?? "").replace(/\s+/g," ").trim();
 const normalizeArabic = (value:unknown) => clean(value).replace(/[إأآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").toLowerCase();
 const identityOf = (name:unknown,className:unknown) => `${normalizeArabic(name)}|${normalizeArabic(className)}`;
-const classId = (name:string) => encodeURIComponent(name.replace(/\//g,"-")).slice(0,120);
 const codePattern = /^TH[123]\d{3}$/;
 
 function gradeNumber(className:string):1|2|3|null {
@@ -26,9 +23,9 @@ function gradeNumber(className:string):1|2|3|null {
   return null;
 }
 
-function codeOf(value:Record<string,unknown>&{id?:string}) { return clean(value.accessCode || value.studentCode || value.id).toUpperCase(); }
 function nextCode(used:Set<string>,className:string) {
-  const grade = gradeNumber(className); if (!grade) return "";
+  const grade = gradeNumber(className);
+  if (!grade) return "";
   const prefix = `TH${grade}`;
   for (let number=1; number<=999; number++) {
     const candidate = `${prefix}${String(number).padStart(3,"0")}`;
@@ -36,10 +33,36 @@ function nextCode(used:Set<string>,className:string) {
   }
   return "";
 }
+
 function setInputValue(input:HTMLInputElement,value:string) {
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
   setter?.call(input,value);
   input.dispatchEvent(new Event("input",{bubbles:true}));
+}
+
+function normalizeStored(raw:unknown):PendingStudent[] {
+  if (!Array.isArray(raw)) return [];
+  const used = new Set<string>();
+  const result:PendingStudent[] = [];
+  for (const value of raw) {
+    if (!value || typeof value !== "object") continue;
+    const item = value as Record<string,unknown>;
+    const name = clean(item.name);
+    const className = clean(item.className || item.class);
+    if (!name || !className || !gradeNumber(className)) continue;
+    const requested = clean(item.code).toUpperCase();
+    const code = codePattern.test(requested) && !used.has(requested) ? requested : nextCode(used,className);
+    if (!code) continue;
+    used.add(code);
+    result.push({
+      id:clean(item.id) || crypto.randomUUID(),
+      name,
+      className,
+      code,
+      createdAt:clean(item.createdAt) || new Date().toISOString(),
+    });
+  }
+  return result;
 }
 
 export default function QuotaStudentFallback() {
@@ -55,8 +78,9 @@ export default function QuotaStudentFallback() {
   const [tableTarget,setTableTarget] = useState<HTMLTableSectionElement|null>(null);
   const [messageTarget,setMessageTarget] = useState<HTMLElement|null>(null);
   const [selectedClass,setSelectedClass] = useState("");
+  const syncingRef = useRef(false);
 
-  const savePending = useCallback((items:PendingStudent[])=>{
+  const persistPending = useCallback((items:PendingStudent[])=>{
     setPending(items);
     if (teacherId) localStorage.setItem(storageKey,JSON.stringify(items));
   },[storageKey,teacherId]);
@@ -72,9 +96,12 @@ export default function QuotaStudentFallback() {
   useEffect(()=>{
     if (!teacherId) return;
     try {
-      const stored=JSON.parse(localStorage.getItem(storageKey)||"[]");
-      setPending(Array.isArray(stored)?stored:[]);
-    } catch { setPending([]); }
+      const migrated = normalizeStored(JSON.parse(localStorage.getItem(storageKey)||"[]"));
+      localStorage.setItem(storageKey,JSON.stringify(migrated));
+      setPending(migrated);
+    } catch {
+      setPending([]);
+    }
   },[storageKey,teacherId]);
 
   useEffect(()=>{
@@ -89,68 +116,94 @@ export default function QuotaStudentFallback() {
     return ()=>observer.disconnect();
   },[]);
 
-  const uploadItems = useCallback(async(items:PendingStudent[],manual=false)=>{
-    if (!teacherId || !items.length) return;
-    if (manual) setSyncing(true);
+  const uploadItems = useCallback(async(items:PendingStudent[])=>{
+    if (!teacherId || !items.length || syncingRef.current) return;
+    syncingRef.current=true;
+    setSyncing(true);
     const studentsPath=tenantCollection(teacherId,subjectKey,"students");
-    const classesPath=tenantCollection(teacherId,subjectKey,"classes");
+    let uploaded=0;
 
     try {
-      const [localSnapshot,sharedSnapshot]=await Promise.all([
-        getDocs(collection(db,studentsPath)),
-        getDocs(collection(db,SHARED_STUDENTS)),
-      ]);
-      const localStudents:StoredStudent[]=localSnapshot.docs.map(item=>({id:item.id,...item.data()}));
-      const sharedStudents:StoredStudent[]=sharedSnapshot.docs.map(item=>({id:item.id,...item.data()}));
-      const used=new Set<string>();
-      localStudents.forEach(item=>{const code=codeOf(item);if(codePattern.test(code))used.add(code);});
-      sharedStudents.forEach(item=>{const code=codeOf(item);if(codePattern.test(code))used.add(code);});
-
-      let uploaded=0;
       for (const item of items) {
         const grade=gradeNumber(item.className);
         if (!grade) continue;
-        const identity=identityOf(item.name,item.className);
-        const existingShared=sharedStudents.find(student=>identityOf(student.name,student.class)===identity);
-        const existingLocal=localStudents.find(student=>identityOf(student.name,student.class)===identity);
-        const existingCode=existingLocal ? codeOf(existingLocal) : existingShared ? codeOf(existingShared) : "";
-        const code=codePattern.test(existingCode)
-          ? existingCode
-          : codePattern.test(item.code)&&!used.has(item.code)
-            ? item.code
-            : nextCode(used,item.className);
-        if (!code) continue;
-        used.add(code);
-        const rosterId=existingShared?.id || item.id;
 
-        await setDoc(doc(db,classesPath,classId(item.className)),{
-          name:item.className,teacherId,teacherName,subjectKey,updatedAt:serverTimestamp(),
-        },{merge:true});
-        await setDoc(doc(db,SHARED_STUDENTS,rosterId),{
-          name:item.name,class:item.className,grade,accessCode:code,studentCode:code,active:true,
-          firstTeacherId:clean(existingShared?.firstTeacherId)||teacherId,
-          firstTeacherName:clean(existingShared?.firstTeacherName)||teacherName,
-          lastTeacherId:teacherId,lastTeacherName:teacherName,updatedAt:serverTimestamp(),
-        },{merge:true});
+        let code=item.code;
+        const used=new Set(pending.map(entry=>entry.code).filter(Boolean));
+        for (let attempts=0; attempts<100; attempts++) {
+          if (!codePattern.test(code)) code=nextCode(used,item.className);
+          if (!code) break;
+          const existing=await getDoc(doc(db,studentsPath,code));
+          if (!existing.exists()) break;
+          const data=existing.data();
+          if (identityOf(data.name,data.class)===identityOf(item.name,item.className)) {
+            removePending(item.id);
+            uploaded++;
+            code="";
+            break;
+          }
+          used.add(code);
+          code=nextCode(used,item.className);
+        }
+        if (!code) continue;
+
         await setDoc(doc(db,studentsPath,code),{
-          name:item.name,class:item.className,grade,accessCode:code,studentCode:code,
-          teacherId,teacherName,subjectKey,subject,sharedRosterId:rosterId,rosterActive:true,
-          attendance:0,homework:0,participation:0,research:0,tests:[0,0,0,0,0],
-          createdAt:serverTimestamp(),updatedAt:serverTimestamp(),
+          name:item.name,
+          class:item.className,
+          grade,
+          accessCode:code,
+          studentCode:code,
+          teacherId,
+          teacherName,
+          subjectKey,
+          subject,
+          sharedRosterId:item.id,
+          rosterActive:true,
+          attendance:0,
+          homework:0,
+          participation:0,
+          research:0,
+          tests:[0,0,0,0,0],
+          createdAt:serverTimestamp(),
+          updatedAt:serverTimestamp(),
         },{merge:true});
         removePending(item.id);
         uploaded++;
       }
 
-      setNotice(uploaded===items.length
-        ? `تم الحفظ مباشرة في الخادم${uploaded===1?"":" لجميع الأسماء"}.`
-        : `تم رفع ${uploaded} اسم، وبقيت أسماء محفوظة في الجهاز.`);
-    } catch {
-      setNotice("تعذر اتصال الخادم الآن؛ الاسم محفوظ في القائمة وسيُعاد رفعه عند المحاولة التالية.");
+      if (uploaded) setNotice(`تم رفع ${uploaded===1?"الاسم":"الأسماء"} إلى الخادم تلقائيًا.`);
+    } catch (error) {
+      const code=clean((error as {code?:string})?.code);
+      setNotice(code.includes("resource-exhausted")
+        ? "Firebase ممتلئة حاليًا؛ الأسماء محفوظة وستُرفع تلقائيًا عند عودة الحصة."
+        : "تعذر اتصال الخادم؛ الأسماء محفوظة وستُعاد المحاولة تلقائيًا.");
     } finally {
-      if (manual) setSyncing(false);
+      syncingRef.current=false;
+      setSyncing(false);
     }
-  },[removePending,subject,subjectKey,teacherId,teacherName]);
+  },[pending,removePending,subject,subjectKey,teacherId,teacherName]);
+
+  useEffect(()=>{
+    if (!teacherId || !pending.length) return;
+    const timer=window.setTimeout(()=>void uploadItems(pending),1200);
+    return ()=>window.clearTimeout(timer);
+  },[pending.length,storageKey,teacherId,uploadItems]);
+
+  useEffect(()=>{
+    if (!teacherId) return;
+    const retry=()=>{ if (pending.length) void uploadItems(pending); };
+    const visibility=()=>{ if (document.visibilityState==="visible") retry(); };
+    window.addEventListener("online",retry);
+    window.addEventListener("focus",retry);
+    document.addEventListener("visibilitychange",visibility);
+    const interval=window.setInterval(retry,15*60*1000);
+    return ()=>{
+      window.removeEventListener("online",retry);
+      window.removeEventListener("focus",retry);
+      document.removeEventListener("visibilitychange",visibility);
+      window.clearInterval(interval);
+    };
+  },[pending,teacherId,uploadItems]);
 
   useEffect(()=>{
     const handleAdd=(event:Event)=>{
@@ -174,15 +227,14 @@ export default function QuotaStudentFallback() {
       if (!code) { setNotice("تعذر إنشاء كود للطالب."); return; }
 
       const item={id:crypto.randomUUID(),name:studentName,className,code,createdAt:new Date().toISOString()};
-      const next=[...pending,item];
-      savePending(next);
-      setNotice(`تمت إضافة ${studentName} — الكود ${code} — جارٍ الحفظ في الخادم تلقائيًا.`);
+      persistPending([...pending,item]);
+      setNotice(`تمت إضافة ${studentName} — الكود ${code}. الحفظ في الخادم تلقائي.`);
       if (inputs?.[0]) setInputValue(inputs[0],"");
-      void uploadItems([item]);
+      window.setTimeout(()=>void uploadItems([item]),0);
     };
     document.addEventListener("click",handleAdd,true);
     return ()=>document.removeEventListener("click",handleAdd,true);
-  },[pending,savePending,uploadItems]);
+  },[pending,persistPending,uploadItems]);
 
   const visiblePending=pending.filter(item=>!selectedClass||item.className===selectedClass);
   const rows=tableTarget ? createPortal(<>{visiblePending.map((student,index)=><tr key={`pending-${student.id}`}>
@@ -190,12 +242,11 @@ export default function QuotaStudentFallback() {
     <td><strong>{student.name}</strong></td>
     <td>{student.className}</td>
     <td><button className="code-button" type="button">{student.code}</button></td>
-    <td><div className="row-actions"><button type="button" onClick={()=>removePending(student.id)}>حذف</button></div></td>
+    <td><div className="row-actions"><span>{syncing?"جارٍ الحفظ…":"محفوظ"}</span><button type="button" onClick={()=>removePending(student.id)}>حذف</button></div></td>
   </tr>)}</>,tableTarget) : null;
 
   const banner=messageTarget&&(notice||pending.length) ? createPortal(<div className="smart-message" style={{marginTop:10}}>
-    <strong>{notice||`تمت إضافة ${pending.length} طالبًا بأكوادهم داخل القوائم.`}</strong>
-    {pending.length?<button className="btn secondary" type="button" disabled={syncing} onClick={()=>void uploadItems(pending,true)} style={{marginInlineStart:10}}>{syncing?"جارٍ الرفع…":"إعادة محاولة الرفع"}</button>:null}
+    <strong>{notice||`الأسماء محفوظة، والرفع إلى الخادم تلقائي عند توفر Firebase.`}</strong>
   </div>,messageTarget) : null;
 
   return <>{rows}{banner}</>;
