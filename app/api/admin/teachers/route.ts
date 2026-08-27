@@ -15,9 +15,13 @@ export async function GET() {
   let hasRepairs = false;
   const teachers = snapshot.docs.map((item) => {
     const data = item.data();
-    const storedSubjectIds = Array.isArray(data.subjectIds) ? data.subjectIds.map(String) : [];
+    const storedSubjectIds: string[] = Array.isArray(data.subjectIds)
+      ? data.subjectIds.map((id: unknown) => String(id))
+      : [];
     const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
-    const subjectIds = assignments.length ? [...new Set(assignments.map(assignment => assignment.subjectId))] : [...new Set(storedSubjectIds.map(id => id.split("--")[0]))];
+    const subjectIds: string[] = assignments.length
+      ? [...new Set<string>(assignments.map(assignment => assignment.subjectId))]
+      : [...new Set<string>(storedSubjectIds.map((id: string) => id.split("--")[0]))];
     if (!sameStringList(storedSubjectIds, subjectIds)) {
       batch.set(adminDb().collection("portalV2Users").doc(item.id), { subjectIds }, { merge: true });
       hasRepairs = true;
@@ -36,7 +40,7 @@ export async function POST(request: Request) {
     const username = name;
     const password = String(body?.password || "");
     const assignments = normalizeAssignments(body?.assignments);
-    const subjectIds = [...new Set(assignments.map(item => item.subjectId))];
+    const subjectIds: string[] = [...new Set<string>(assignments.map(item => item.subjectId))];
     if (name.length < 3 || password.length < 8 || !subjectIds.length) {
       return NextResponse.json({ ok: false, message: "أكمل اسم المعلم والرقم السري من ٨ خانات واختر مادة" }, { status: 400 });
     }
