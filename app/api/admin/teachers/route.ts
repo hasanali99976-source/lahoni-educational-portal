@@ -4,14 +4,28 @@ import { hashPassword } from "../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
+function sameStringList(left: string[], right: string[]) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
 export async function GET() {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   const snapshot = await adminDb().collection("portalV2Users").where("role", "==", "teacher").get();
+  const batch = adminDb().batch();
+  let hasRepairs = false;
   const teachers = snapshot.docs.map((item) => {
     const data = item.data();
-    return { id: item.id, username: data.username, name: data.name, active: data.active, subjectIds: data.subjectIds || [], assignments: normalizeAssignments(data.assignments, data.subjectIds), createdAt: data.createdAt };
+    const storedSubjectIds = Array.isArray(data.subjectIds) ? data.subjectIds.map(String) : [];
+    const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
+    const subjectIds = assignments.length ? assignments.map(assignment => assignment.id) : storedSubjectIds;
+    if (!sameStringList(storedSubjectIds, subjectIds)) {
+      batch.set(item.ref, { subjectIds }, { merge: true });
+      hasRepairs = true;
+    }
+    return { id: item.id, username: data.username, name: data.name, active: data.active, subjectIds, assignments, createdAt: data.createdAt };
   }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
-  return NextResponse.json({ ok: true, teachers });
+  if (hasRepairs) await batch.commit();
+  return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request) {
