@@ -3,11 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
-import { TeacherClientContext } from "../../lib/teacher-client";
+import { TeacherClientContext, type TeacherClientAssignment } from "../../lib/teacher-client";
 import "./print-theme.css";
 import "./teacher-v3.css";
 import "./teacher-navigation-v4.css";
@@ -26,9 +26,15 @@ const tabs = [
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
 ];
 
-const IDLE_LIMIT = 3 * 60 * 1000;
 type TeacherSubject = { subjectId: string; subjectName: string };
-type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; subject?: string; subjects?: TeacherSubject[] };
+type TeacherSession = {
+  teacherId?: string;
+  teacherName?: string;
+  subjectKey?: SubjectKey;
+  subject?: string;
+  subjects?: TeacherSubject[];
+  assignments?: TeacherClientAssignment[];
+};
 
 function TabIcon({ type }: { type: string }) {
   const common = { width: 23, height: 23, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -54,9 +60,18 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const [subjectKey, setSubjectKey] = useState<SubjectKey>("history");
   const [subjectName, setSubjectName] = useState("التاريخ");
   const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
+  const [assignments, setAssignments] = useState<TeacherClientAssignment[]>([]);
   const [switchingSubject, setSwitchingSubject] = useState(false);
-  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const subjectConfig = getSubjectConfig(subjectKey);
+
+  function applySession(session: TeacherSession) {
+    setTeacherId(session.teacherId);
+    setTeacherName(session.teacherName || "المعلم");
+    setSubjectKey(session.subjectKey || "history");
+    setSubjectName(session.subject || getSubjectConfig(session.subjectKey).label);
+    setSubjects(Array.isArray(session.subjects) ? session.subjects : []);
+    setAssignments(Array.isArray(session.assignments) ? session.assignments : []);
+  }
 
   async function logout() {
     try { await Promise.all([fetch("/api/teacher-logout", { method: "POST", cache: "no-store" }), signOut(auth)]); }
@@ -70,32 +85,15 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoginPage) { setReady(true); return; }
     let active = true;
-    const applySession = (session: TeacherSession) => {
-      setTeacherId(session.teacherId);
-      setTeacherName(session.teacherName || "المعلم");
-      setSubjectKey(session.subjectKey || "history");
-      setSubjectName(session.subject || getSubjectConfig(session.subjectKey).label);
-      setSubjects(Array.isArray(session.subjects) ? session.subjects : []);
-    };
-    const check = async () => {
-      const response = await fetch("/api/teacher-session", { cache: "no-store" });
-      if (!response.ok) throw new Error();
-      if (active) { applySession(await response.json()); setReady(true); }
-    };
-    const reset = () => {
-      if (idleTimer.current) clearTimeout(idleTimer.current);
-      idleTimer.current = setTimeout(() => void logout(), IDLE_LIMIT);
-    };
-    const activity = () => reset();
-    check().catch(() => active && router.replace("/teacher"));
-    reset();
-    const events = ["pointerdown", "keydown", "touchstart", "scroll"];
-    events.forEach(name => window.addEventListener(name, activity, { passive: true }));
-    return () => {
-      active = false;
-      if (idleTimer.current) clearTimeout(idleTimer.current);
-      events.forEach(name => window.removeEventListener(name, activity));
-    };
+    fetch("/api/teacher-session", { cache: "no-store" })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
+      .then((session: TeacherSession) => {
+        if (!active) return;
+        applySession(session);
+        setReady(true);
+      })
+      .catch(() => active && router.replace("/teacher"));
+    return () => { active = false; };
   }, [isLoginPage, router]);
 
   async function changeSubject(subjectId: string) {
@@ -121,12 +119,13 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     teacherName,
     subjectKey,
     subject: subjectName,
+    subjects,
+    assignments,
     setSubject: changeSubject,
     refresh: async () => {
       const response = await fetch("/api/teacher-session", { cache: "no-store" });
       if (!response.ok) return;
-      const session = await response.json();
-      setTeacherId(session.teacherId); setTeacherName(session.teacherName || "المعلم"); setSubjectKey(session.subjectKey || "history"); setSubjectName(session.subject || getSubjectConfig(session.subjectKey).label); setSubjects(session.subjects || []);
+      applySession(await response.json());
     },
   };
 
