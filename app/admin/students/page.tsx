@@ -9,16 +9,22 @@ type SchoolClass = { id:string; grade:number; section:string; name:string; activ
 
 const GRADES = [{ value:1, label:"الأول الثانوي" }, { value:2, label:"الثاني الثانوي" }, { value:3, label:"الثالث الثانوي" }];
 const SECTIONS = ["1","2","3","4","5","6","7","8"];
+const MIGRATION_CURSOR_KEY = "lahooni-central-roster-migration-cursor";
 const arabicNumber = (value:string|number) => String(value).replace(/\d/g, digit => "٠١٢٣٤٥٦٧٨٩"[Number(digit)] || digit);
 
-async function api(input: RequestInfo | URL, init: RequestInit = {}) {
+async function api(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 12000) {
   const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), 12000);
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(input, { ...init, signal: controller.signal, cache:"no-store" });
+    const response = await fetch(input, { ...init, signal:controller.signal, cache:"no-store" });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || "تعذر تنفيذ العملية");
     return data;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("انتهت مهلة الاتصال. لم تُحذف أي بيانات؛ أعد المحاولة من الزر نفسه.");
+    }
+    throw error;
   } finally { window.clearTimeout(timer); }
 }
 
@@ -57,7 +63,6 @@ export default function AdminStudentsPage() {
       const data = await api("/api/admin/students");
       setStudents(Array.isArray(data.students) ? data.students : []);
       setClasses(Array.isArray(data.classes) ? data.classes : []);
-      setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر تحميل سجل الطلاب");
     } finally { setLoading(false); }
@@ -78,7 +83,7 @@ export default function AdminStudentsPage() {
     event.preventDefault(); setBusy(true); setMessage("");
     try {
       const data = await api("/api/admin/students", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ name, grade, section }) });
-      setName(""); setMessage(`تمت إضافة الطالب، والكود: ${data.student.code}`); await load();
+      setName(""); await load(); setMessage(`تمت إضافة الطالب، والكود: ${data.student.code}`);
     } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر إضافة الطالب"); }
     finally { setBusy(false); }
   }
@@ -87,7 +92,7 @@ export default function AdminStudentsPage() {
     event.preventDefault(); setBusy(true); setMessage("");
     try {
       await api("/api/admin/students/classes", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ grade:classGrade, section:classSection }) });
-      setMessage("تمت إضافة الفصل"); await load();
+      await load(); setMessage("تمت إضافة الفصل");
     } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر إضافة الفصل"); }
     finally { setBusy(false); }
   }
@@ -96,8 +101,8 @@ export default function AdminStudentsPage() {
     if (!editing) return; setBusy(true); setMessage("");
     try {
       const data = await api(`/api/admin/students/${editing.id}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ name:editing.name, grade:editing.grade, section:editing.section }) });
-      setMessage(data.moved ? `تم نقل الطالب إلى ${data.className} مع بقاء الكود ${editing.code}` : "تم تعديل اسم الطالب");
-      setEditing(null); await load();
+      const savedMessage = data.moved ? `تم نقل الطالب إلى ${data.className} مع بقاء الكود ${editing.code}` : "تم تعديل اسم الطالب";
+      setEditing(null); await load(); setMessage(savedMessage);
     } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر حفظ التعديل"); }
     finally { setBusy(false); }
   }
@@ -105,7 +110,7 @@ export default function AdminStudentsPage() {
   async function removeStudent(student:Student) {
     if (!confirm(`حذف ${student.name} من القوائم؟ ستبقى سجلاته القديمة محفوظة.`)) return;
     setBusy(true); setMessage("");
-    try { await api(`/api/admin/students/${student.id}`, { method:"DELETE" }); setMessage("تم حذف الطالب من القوائم الحالية"); await load(); }
+    try { await api(`/api/admin/students/${student.id}`, { method:"DELETE" }); await load(); setMessage("تم حذف الطالب من القوائم الحالية"); }
     catch (error) { setMessage(error instanceof Error ? error.message : "تعذر حذف الطالب"); }
     finally { setBusy(false); }
   }
@@ -113,23 +118,57 @@ export default function AdminStudentsPage() {
   async function removeClass(schoolClass:SchoolClass) {
     if (!confirm(`حذف فصل ${schoolClass.name}؟`)) return;
     setBusy(true); setMessage("");
-    try { await api(`/api/admin/students/classes/${schoolClass.id}`, { method:"DELETE" }); setMessage("تم حذف الفصل"); await load(); }
+    try { await api(`/api/admin/students/classes/${schoolClass.id}`, { method:"DELETE" }); await load(); setMessage("تم حذف الفصل"); }
     catch (error) { setMessage(error instanceof Error ? error.message : "تعذر حذف الفصل"); }
     finally { setBusy(false); }
   }
 
   async function migrate() {
-    if (!confirm("نقل وتجميع جميع قوائم الطلاب الحالية إلى سجل المدير؟ لن تتغير أكواد الطلاب الصحيحة.")) return;
-    setBusy(true); setMessage("جارٍ تجميع القوائم الحالية...");
+    if (!confirm("استرجاع القوائم القديمة وتصحيح الفصول المدمجة؟ لن يُحذف أي طالب، وستُعالج الأكواد المتكررة تلقائيًا.")) return;
+    setBusy(true);
+    let cursor = Math.max(0, Number(localStorage.getItem(MIGRATION_CURSOR_KEY)) || 0);
+    let totalAdded = 0;
+    let totalUpdated = 0;
+    let totalRecovered = 0;
+    let totalSkipped = 0;
+    let finalTotal = students.length;
+    let complete = false;
+
     try {
-      const data = await api("/api/admin/students/migrate", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ students:localLegacyStudents() }) });
-      setMessage(`تم تجميع ${data.migrated} سجلًا. إجمالي السجل المركزي: ${data.total}`); await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر نقل القوائم"); }
-    finally { setBusy(false); }
+      while (!complete) {
+        setMessage(cursor ? "جارٍ استكمال استرجاع الفصول الناقصة..." : "جارٍ فحص القوائم وتصحيح الفصول المدمجة...");
+        const data = await api("/api/admin/students/migrate", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({ students:cursor===0 ? localLegacyStudents() : [], cursor }),
+        }, 30000);
+
+        totalAdded += Number(data.added) || 0;
+        totalUpdated += Number(data.updated) || 0;
+        totalRecovered += Number(data.collisionRecovered) || 0;
+        totalSkipped += Number(data.skipped) || 0;
+        finalTotal = Number(data.total) || finalTotal;
+        cursor = Number(data.nextCursor) || cursor;
+        complete = data.complete === true;
+
+        if (complete) localStorage.removeItem(MIGRATION_CURSOR_KEY);
+        else localStorage.setItem(MIGRATION_CURSOR_KEY, String(cursor));
+
+        const processed = Math.min(cursor, Number(data.sourceCount) || cursor);
+        setMessage(`تم فحص ${arabicNumber(processed)} من ${arabicNumber(data.sourceCount || processed)} من مصادر القوائم...`);
+        if (!complete) await new Promise(resolve => window.setTimeout(resolve, 500));
+      }
+
+      await load();
+      setMessage(`اكتمل التصحيح: أُعيد ${arabicNumber(totalAdded)} طالبًا، وفُك دمج ${arabicNumber(totalRecovered)} كودًا متكررًا، والإجمالي ${arabicNumber(finalTotal)} طالبًا.${totalSkipped ? ` تعذر قراءة ${arabicNumber(totalSkipped)} سجلًا ناقصًا.` : ""}`);
+    } catch (error) {
+      localStorage.setItem(MIGRATION_CURSOR_KEY, String(cursor));
+      setMessage(error instanceof Error ? `${error.message} وسيكمل الزر من آخر نقطة.` : "تعذر استرجاع القوائم، وسيكمل الزر من آخر نقطة.");
+    } finally { setBusy(false); }
   }
 
   return <main className="school-roster-admin" dir="rtl"><div className="school-roster-shell">
-    <header className="school-roster-head"><div><small>بوابة المدير</small><h1>السجل المركزي للطلاب</h1><p>أضف الطالب مرة واحدة، ثم يظهر تلقائيًا للمعلمين حسب الصف والفصل المسند لهم.</p></div><div><Link href="/admin">إدارة المعلمين</Link><button type="button" onClick={migrate} disabled={busy}>نقل القوائم الحالية</button></div></header>
+    <header className="school-roster-head"><div><small>بوابة المدير</small><h1>السجل المركزي للطلاب</h1><p>أضف الطالب مرة واحدة، ثم يظهر تلقائيًا للمعلمين حسب الصف والفصل المسند لهم.</p></div><div><Link href="/admin">إدارة المعلمين</Link><button type="button" onClick={migrate} disabled={busy}>{busy ? "جارٍ الاسترجاع..." : "استرجاع وتصحيح القوائم"}</button></div></header>
     {message && <p className="school-roster-message">{message}</p>}
     <section className="school-roster-stats"><article><span>إجمالي الطلاب</span><strong>{students.length}</strong></article>{GRADES.map(item => <article key={item.value}><span>{item.label}</span><strong>{students.filter(student=>student.grade===item.value).length}</strong></article>)}</section>
 
