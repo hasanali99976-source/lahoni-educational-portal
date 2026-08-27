@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { collection, doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -17,14 +17,20 @@ type Student = {
   teacherName?: string;
   subjectKey?: string;
   subject?: string;
+  sharedRosterId?: string;
+  rosterActive?: boolean;
+  linkedFromSharedRoster?: boolean;
+  active?: boolean;
+  firstTeacherId?: string;
+  firstTeacherName?: string;
   [key: string]: unknown;
 };
 
-type SavedClass = { id: string; name?: string; [key: string]: unknown };
 type Assignment = { id: string; subjectId: string; grade: string; section: string; label: string };
 
 const SHARED_STUDENTS = "school_shared_students";
 const SHARED_CLASSES = "school_shared_classes";
+const ARCHIVED_STUDENTS = "archivedStudents";
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
 const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
@@ -35,10 +41,8 @@ const normalizeArabic = (value: unknown) => clean(value)
   .replace(/[٠-٩]/g, digit => String(ARABIC_DIGITS.indexOf(digit)))
   .toLowerCase();
 const normalizeClass = (value: unknown) => clean(value);
-const rosterId = (student: Student) => {
-  const identity = `${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`;
-  return encodeURIComponent(identity).replace(/%/g, "_").slice(0, 180);
-};
+const identityOf = (student: Student) => `${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`;
+const legacyRosterId = (student: Student) => encodeURIComponent(`${identityOf(student)}|${codeOf(student)}`).replace(/%/g, "_").slice(0, 180);
 const classId = (name: string) => encodeURIComponent(normalizeArabic(name)).replace(/%/g, "_").slice(0, 140);
 const codeOf = (student: Student) => clean(student.accessCode || student.studentCode || student.id).toUpperCase();
 
@@ -61,9 +65,9 @@ export default function SharedRosterSync() {
 
   const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, "students") : "", [teacherId, subjectKey]);
   const classesPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, "classes") : "", [teacherId, subjectKey]);
+  const archivePath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey, ARCHIVED_STUDENTS) : "", [teacherId, subjectKey]);
 
   const [localStudents, setLocalStudents] = useState<Student[]>([]);
-  const [localClasses, setLocalClasses] = useState<SavedClass[]>([]);
   const [sharedStudents, setSharedStudents] = useState<Student[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const localReady = useRef(false);
@@ -83,20 +87,17 @@ export default function SharedRosterSync() {
   }, [teacherId, subjectKey]);
 
   useEffect(() => {
-    if (!teacherId || !studentsPath || !classesPath) return;
+    if (!teacherId || !studentsPath) return;
     const stopStudents = onSnapshot(collection(db, studentsPath), snapshot => {
       setLocalStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as Student)));
       localReady.current = true;
-    });
-    const stopClasses = onSnapshot(collection(db, classesPath), snapshot => {
-      setLocalClasses(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as SavedClass)));
     });
     const stopShared = onSnapshot(collection(db, SHARED_STUDENTS), snapshot => {
       setSharedStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as Student)));
       sharedReady.current = true;
     });
-    return () => { stopStudents(); stopClasses(); stopShared(); };
-  }, [teacherId, studentsPath, classesPath]);
+    return () => { stopStudents(); stopShared(); };
+  }, [teacherId, studentsPath]);
 
   const subjectAssignments = useMemo(
     () => assignments.filter(item => item.subjectId === subjectKey),
@@ -104,32 +105,156 @@ export default function SharedRosterSync() {
   );
 
   useEffect(() => {
-    if (!teacherId || !localReady.current || !sharedReady.current || syncing.current || !subjectAssignments.length) return;
+    if (!teacherId || !studentsPath || !classesPath || !archivePath || !localReady.current || !sharedReady.current || syncing.current || !subjectAssignments.length) return;
     syncing.current = true;
 
     const run = async () => {
-      const sharedByIdentity = new Map(sharedStudents.map(student => [`${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`, student]));
-      const localByIdentity = new Map(localStudents.map(student => [`${normalizeArabic(student.class)}|${normalizeArabic(student.name)}`, student]));
+      const sharedById = new Map(sharedStudents.map(student => [student.id, student]));
+      const sharedByCode = new Map<string, Student>();
+      const sharedByIdentity = new Map<string, Student>();
+      sharedStudents.forEach(student => {
+        const code = codeOf(student);
+        const identity = identityOf(student);
+        if (code && !sharedByCode.has(code)) sharedByCode.set(code, student);
+        if (identity !== "|" && !sharedByIdentity.has(identity)) sharedByIdentity.set(identity, student);
+      });
 
-      // كل طالب يضيفه أي معلم يُحفظ في سجل المدرسة المشترك.
+      const localBySharedId = new Map<string, Student>();
+      const localByCode = new Map<string, Student>();
+      const localByIdentity = new Map<string, Student>();
+      localStudents.forEach(student => {
+        if (student.rosterActive === false) return;
+        const rosterId = clean(student.sharedRosterId);
+        const code = codeOf(student);
+        const identity = identityOf(student);
+        if (rosterId) localBySharedId.set(rosterId, student);
+        if (code) localByCode.set(code, student);
+        if (identity !== "|") localByIdentity.set(identity, student);
+      });
+
+      const findShared = (student: Student) => {
+        const rosterId = clean(student.sharedRosterId);
+        return (rosterId ? sharedById.get(rosterId) : undefined)
+          || sharedByCode.get(codeOf(student))
+          || sharedByIdentity.get(identityOf(student));
+      };
+
+      const archiveLocal = async (student: Student, reason: "deleted" | "transferred") => {
+        const { id, ...data } = student;
+        await setDoc(doc(db, archivePath, id), {
+          ...data,
+          sharedRosterId: clean(student.sharedRosterId),
+          rosterActive: false,
+          archivedReason: reason,
+          archivedAt: serverTimestamp(),
+        }, { merge: true });
+        await deleteDoc(doc(db, studentsPath, id));
+      };
+
+      const ensureLocalFromShared = async (shared: Student) => {
+        const name = clean(shared.name);
+        const className = normalizeClass(shared.class);
+        const code = codeOf(shared) || shared.id;
+        if (!name || !className || !code) return;
+
+        const identity = identityOf(shared);
+        const existing = localBySharedId.get(shared.id) || localByCode.get(code) || localByIdentity.get(identity);
+        const localId = existing?.id || code;
+        const profile = {
+          name,
+          class: className,
+          grade: shared.grade || null,
+          accessCode: code,
+          studentCode: code,
+          teacherId,
+          teacherName,
+          subjectKey,
+          subject,
+          sharedRosterId: shared.id,
+          rosterActive: true,
+          linkedFromSharedRoster: true,
+          updatedAt: serverTimestamp(),
+        };
+
+        await setDoc(doc(db, classesPath, classId(className)), {
+          name: className,
+          teacherId,
+          teacherName,
+          subjectKey,
+          linkedFromAssignment: true,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+
+        if (existing) {
+          await setDoc(doc(db, studentsPath, localId), profile, { merge: true });
+          return;
+        }
+
+        const archivedReference = doc(db, archivePath, localId);
+        const archivedSnapshot = await getDoc(archivedReference);
+        const archivedData = archivedSnapshot.exists() ? archivedSnapshot.data() : {};
+        await setDoc(doc(db, studentsPath, localId), {
+          ...archivedData,
+          ...profile,
+          createdAt: archivedData.createdAt || serverTimestamp(),
+          restoredAt: archivedSnapshot.exists() ? serverTimestamp() : null,
+        }, { merge: true });
+        if (archivedSnapshot.exists()) await deleteDoc(archivedReference);
+      };
+
+      // ترحيل السجلات القديمة إلى السجل الموحد، مع تثبيت معرف لا يتغير عند تعديل الاسم أو الفصل.
       for (const student of localStudents) {
+        if (student.rosterActive === false) continue;
         const name = clean(student.name);
         const className = normalizeClass(student.class);
         if (!name || !className) continue;
-        const identity = `${normalizeArabic(className)}|${normalizeArabic(name)}`;
-        const existingShared = sharedByIdentity.get(identity);
-        const sharedCode = codeOf(existingShared || student);
-        await setDoc(doc(db, SHARED_STUDENTS, rosterId({ ...student, name, class: className })), {
-          name,
-          class: className,
-          grade: student.grade || existingShared?.grade || null,
-          accessCode: sharedCode,
-          studentCode: sharedCode,
-          firstTeacherId: existingShared?.teacherId || student.teacherId || teacherId,
-          firstTeacherName: existingShared?.teacherName || student.teacherName || teacherName,
+
+        const shared = findShared(student);
+        if (!shared) {
+          const sharedRosterId = clean(student.sharedRosterId) || legacyRosterId({ ...student, name, class: className });
+          const code = codeOf(student);
+          await setDoc(doc(db, SHARED_STUDENTS, sharedRosterId), {
+            name,
+            class: className,
+            grade: student.grade || null,
+            accessCode: code,
+            studentCode: code,
+            active: true,
+            firstTeacherId: student.teacherId || teacherId,
+            firstTeacherName: student.teacherName || teacherName,
+            lastTeacherId: teacherId,
+            lastTeacherName: teacherName,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+          await setDoc(doc(db, studentsPath, student.id), {
+            sharedRosterId,
+            rosterActive: true,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+          continue;
+        }
+
+        const sharedClass = normalizeClass(shared.class);
+        if (shared.active === false) {
+          await archiveLocal({ ...student, sharedRosterId: shared.id }, "deleted");
+          continue;
+        }
+        if (!subjectAssignments.some(item => assignmentMatchesClass(item, sharedClass))) {
+          await archiveLocal({ ...student, sharedRosterId: shared.id }, "transferred");
+          continue;
+        }
+
+        await setDoc(doc(db, studentsPath, student.id), {
+          name: clean(shared.name),
+          class: sharedClass,
+          grade: shared.grade || null,
+          accessCode: codeOf(shared) || codeOf(student),
+          studentCode: codeOf(shared) || codeOf(student),
+          sharedRosterId: shared.id,
+          rosterActive: true,
+          linkedFromSharedRoster: true,
           updatedAt: serverTimestamp(),
         }, { merge: true });
-        await setDoc(doc(db, SHARED_CLASSES, classId(className)), { name: className, updatedAt: serverTimestamp() }, { merge: true });
       }
 
       // الفصول المحددة للمعلم من الإدارة تُنشأ تلقائيًا في مادته.
@@ -147,41 +272,16 @@ export default function SharedRosterSync() {
         }
       }
 
-      // نسخ طلاب كل فصل مسند للمعلم مباشرة، دون أن يضيف الفصل يدويًا.
+      // إضافة أو تحديث الطالب في كل مادة مسندة للفصل، مع دمج الملف الشخصي فقط والإبقاء على الدرجات كما هي.
       for (const shared of sharedStudents) {
-        const name = clean(shared.name);
         const className = normalizeClass(shared.class);
-        if (!name || !className || !subjectAssignments.some(item => assignmentMatchesClass(item, className))) continue;
-        const identity = `${normalizeArabic(className)}|${normalizeArabic(name)}`;
-        if (localByIdentity.has(identity)) continue;
-        const code = codeOf(shared) || shared.id;
-        await setDoc(doc(db, classesPath, classId(className)), {
-          name: className,
-          teacherId,
-          teacherName,
-          subjectKey,
-          linkedFromAssignment: true,
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-        await setDoc(doc(db, studentsPath, code), {
-          name,
-          class: className,
-          grade: shared.grade || null,
-          accessCode: code,
-          studentCode: code,
-          teacherId,
-          teacherName,
-          subjectKey,
-          subject,
-          linkedFromSharedRoster: true,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
+        if (shared.active === false || !className || !subjectAssignments.some(item => assignmentMatchesClass(item, className))) continue;
+        await ensureLocalFromShared(shared);
       }
     };
 
     void run().finally(() => { syncing.current = false; });
-  }, [teacherId, teacherName, subjectKey, subject, studentsPath, classesPath, localStudents, localClasses, sharedStudents, subjectAssignments]);
+  }, [teacherId, teacherName, subjectKey, subject, studentsPath, classesPath, archivePath, localStudents, sharedStudents, subjectAssignments]);
 
   return null;
 }
