@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { findUserById, requireSession } from "../../../../lib/server/portal-auth";
@@ -76,6 +77,13 @@ function classGradeFromId(value: string) {
   return grade === 1 || grade === 2 || grade === 3 ? grade as Grade : null;
 }
 
+function gradeFromWorkspace(value: string, subjectId: string): Grade | null {
+  const [workspaceSubject, workspaceGrade] = value.split("--");
+  if (workspaceSubject !== subjectId) return null;
+  const grade = Number(workspaceGrade || 0);
+  return grade === 1 || grade === 2 || grade === 3 ? grade as Grade : null;
+}
+
 export async function GET(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
@@ -86,7 +94,9 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const subjectId = String(url.searchParams.get("subjectId") || "").split("--")[0];
-    const requestedGradeValue = Number(url.searchParams.get("grade") || 0);
+    const cookieStore = await cookies();
+    const workspaceGrade = gradeFromWorkspace(cookieStore.get("lahooni_active_subject")?.value || "", subjectId);
+    const requestedGradeValue = Number(url.searchParams.get("grade") || workspaceGrade || 0);
     const requestedGrade: Grade | null = requestedGradeValue === 1 || requestedGradeValue === 2 || requestedGradeValue === 3
       ? requestedGradeValue as Grade
       : null;
@@ -192,7 +202,7 @@ export async function GET(request: Request) {
     });
 
     const students = [...byIdentity.values()]
-      .map(item => ({ ...item, className: canonicalClassName(item.grade, item.section), active: true }))
+      .map(item => ({ ...item, className: canonicalClassName(item.grade, item.section), active: true, officialRoster: true }))
       .sort((a, b) => a.className.localeCompare(b.className, "ar", { numeric: true }) || a.name.localeCompare(b.name, "ar"));
 
     const repairs: Repair[] = [];
