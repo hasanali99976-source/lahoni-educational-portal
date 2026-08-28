@@ -12,42 +12,55 @@ export type TeacherClientAssignment = {
   label: string;
 };
 
+export type TeacherClientSubject = {
+  workspaceKey: string;
+  subjectId: string;
+  subjectName: string;
+  grade?: number | null;
+  grades?: string[];
+  gradeLabel?: string;
+};
+
 export type TeacherClientSession = {
   authenticated?: boolean;
   teacherId?: string | null;
   teacherName?: string | null;
   subjectKey?: string | null;
+  workspaceKey?: string | null;
+  activeGrade?: number | null;
+  activeGradeLabel?: string | null;
   subject?: string | null;
-  subjects?: Array<{ subjectId: string; subjectName: string }>;
+  subjects?: TeacherClientSubject[];
   assignments?: TeacherClientAssignment[];
-  setSubject?: (subjectId: string) => Promise<void>;
+  setSubject?: (workspaceKey: string) => Promise<void>;
   refresh?: () => Promise<void>;
 };
 
 export const TeacherClientContext = createContext<TeacherClientSession>({});
 
 const recentBootstraps = new Map<string, number>();
-const DIRECT_ROSTER_PAGES = new Set(["/teacher/students", "/teacher/attendance"]);
+const DIRECT_ROSTER_PAGES = new Set(["/teacher/students", "/teacher/attendance", "/teacher/grades", "/teacher/timetable"]);
 
 export function useTeacherClient() {
   const session = useContext(TeacherClientContext);
   const pathname = usePathname();
   const teacherId = session.teacherId || "";
   const subjectKey = session.subjectKey || "";
+  const activeGrade = session.activeGrade || null;
 
   useEffect(() => {
-    // These pages already load their roster directly. Running the background
-    // bootstrap there caused the same endpoint to be requested twice.
     if (DIRECT_ROSTER_PAGES.has(pathname)) return;
     if (!teacherId || !subjectKey) return;
 
-    const key = `${teacherId}:${subjectKey}`;
+    const key = `${teacherId}:${subjectKey}:${activeGrade || "all"}`;
     const lastRun = recentBootstraps.get(key) || 0;
     if (Date.now() - lastRun < 60_000) return;
     recentBootstraps.set(key, Date.now());
 
     let active = true;
-    fetch(`/api/teacher/students?subjectId=${encodeURIComponent(subjectKey)}`, { cache: "no-store" })
+    const params = new URLSearchParams({ subjectId: subjectKey });
+    if (activeGrade) params.set("grade", String(activeGrade));
+    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store" })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("roster_load_failed")))
       .then(data => {
         if (!active || !Array.isArray(data.students)) return;
@@ -73,7 +86,7 @@ export function useTeacherClient() {
       });
 
     return () => { active = false; };
-  }, [pathname, teacherId, subjectKey]);
+  }, [pathname, teacherId, subjectKey, activeGrade]);
 
   return session;
 }
