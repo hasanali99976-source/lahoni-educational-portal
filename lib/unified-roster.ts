@@ -1,3 +1,5 @@
+import { canonicalClassName, gradeNumber as rosterGradeNumber, sectionNumber as rosterSectionNumber } from "./school-roster";
+
 export type UnifiedStudent = {
   id: string;
   name?: string;
@@ -7,6 +9,7 @@ export type UnifiedStudent = {
   studentCode?: string;
   code?: string;
   grade?: number;
+  section?: string;
   active?: boolean;
   rosterActive?: boolean;
   ownerTeacherId?: string;
@@ -43,7 +46,9 @@ export function normalizeArabic(value: unknown) {
 }
 
 export function normalizeClass(value: unknown) {
-  return clean(value);
+  const grade = rosterGradeNumber(value);
+  const section = rosterSectionNumber("", value);
+  return grade && section ? canonicalClassName(grade, section) : "";
 }
 
 function westernDigits(value: unknown) {
@@ -89,8 +94,6 @@ export function classMatchesAssignments(className: string, assignments: Assignme
   const classGrade = gradeNumber(className);
   if (!classGrade) return false;
 
-  // ربط القوائم يكون على مستوى الصف كاملًا داخل المادة.
-  // رقم الفصل في التكليف يحدد عدد الحصص/التوزيع الإداري فقط، ولا يخفي بقية فصول المرحلة.
   return relevant.some((assignment) => gradeNumber(clean(assignment.grade)) === classGrade);
 }
 
@@ -102,7 +105,8 @@ export function assignmentClassNames(assignments: AssignmentLike[] | undefined, 
       const section = clean(assignment.section);
       const normalizedSection = normalizeArabic(section);
       if (!section || normalizedSection === "الكل" || normalizedSection === "كل" || normalizedSection === "جميع الفصول") return [];
-      return [normalizeClass(`${grade} ${section}`)];
+      const className = normalizeClass(`${grade} ${section}`);
+      return className ? [className] : [];
     });
 }
 
@@ -182,20 +186,25 @@ export function saveLocalRoster(teacherId: string, students: UnifiedStudent[], s
   const deleted = loadDeletedCodes(teacherId);
   const normalized = mergeStudents(students).filter((student) => !deleted.has(studentCode(student)));
   localStorage.setItem(rosterStorageKey(teacherId, subjectKey), JSON.stringify(normalized));
+  if (subjectKey) localStorage.removeItem(`lahooni-pending-students:${teacherId}:${subjectKey}`);
   window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId, subjectKey: clean(subjectKey) } }));
 }
 
 export function loadLocalRoster(teacherId: string, subjectKey?: string) {
   if (!browserReady() || !teacherId) return [] as UnifiedStudent[];
   const sources: UnifiedStudent[][] = [];
+  let hasCurrentRoster = false;
   try {
     const parsed = JSON.parse(localStorage.getItem(rosterStorageKey(teacherId, subjectKey)) || "[]");
-    if (Array.isArray(parsed)) sources.push(parsed as UnifiedStudent[]);
+    if (Array.isArray(parsed)) {
+      sources.push(parsed as UnifiedStudent[]);
+      hasCurrentRoster = parsed.length > 0;
+    }
   } catch {
     // Rebuild from the older subject queue below.
   }
 
-  if (subjectKey) {
+  if (subjectKey && !hasCurrentRoster) {
     try {
       const parsed = JSON.parse(localStorage.getItem(`lahooni-pending-students:${teacherId}:${subjectKey}`) || "[]");
       if (Array.isArray(parsed)) sources.push(parsed as UnifiedStudent[]);
