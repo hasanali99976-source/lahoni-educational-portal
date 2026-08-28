@@ -7,7 +7,11 @@ import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
-import { TeacherClientContext, type TeacherClientAssignment } from "../../lib/teacher-client";
+import {
+  TeacherClientContext,
+  type TeacherClientAssignment,
+  type TeacherClientSubject,
+} from "../../lib/teacher-client";
 import "./print-theme.css";
 import "./teacher-v3.css";
 import "./teacher-navigation-v4.css";
@@ -26,13 +30,15 @@ const tabs = [
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
 ];
 
-type TeacherSubject = { subjectId: string; subjectName: string };
 type TeacherSession = {
   teacherId?: string;
   teacherName?: string;
   subjectKey?: SubjectKey;
+  workspaceKey?: string;
+  activeGrade?: number | null;
+  activeGradeLabel?: string;
   subject?: string;
-  subjects?: TeacherSubject[];
+  subjects?: TeacherClientSubject[];
   assignments?: TeacherClientAssignment[];
 };
 
@@ -58,17 +64,24 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const [teacherId, setTeacherId] = useState<string>();
   const [teacherName, setTeacherName] = useState("المعلم");
   const [subjectKey, setSubjectKey] = useState<SubjectKey>("history");
+  const [workspaceKey, setWorkspaceKey] = useState("history");
+  const [activeGrade, setActiveGrade] = useState<number | null>(null);
+  const [activeGradeLabel, setActiveGradeLabel] = useState("");
   const [subjectName, setSubjectName] = useState("التاريخ");
-  const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
+  const [subjects, setSubjects] = useState<TeacherClientSubject[]>([]);
   const [assignments, setAssignments] = useState<TeacherClientAssignment[]>([]);
   const [switchingSubject, setSwitchingSubject] = useState(false);
   const subjectConfig = getSubjectConfig(subjectKey);
 
   function applySession(session: TeacherSession) {
+    const nextSubjectKey = session.subjectKey || "history";
     setTeacherId(session.teacherId);
     setTeacherName(session.teacherName || "المعلم");
-    setSubjectKey(session.subjectKey || "history");
-    setSubjectName(session.subject || getSubjectConfig(session.subjectKey).label);
+    setSubjectKey(nextSubjectKey);
+    setWorkspaceKey(session.workspaceKey || nextSubjectKey);
+    setActiveGrade(session.activeGrade || null);
+    setActiveGradeLabel(session.activeGradeLabel || "");
+    setSubjectName(session.subject || getSubjectConfig(nextSubjectKey).label);
     setSubjects(Array.isArray(session.subjects) ? session.subjects : []);
     setAssignments(Array.isArray(session.assignments) ? session.assignments : []);
   }
@@ -78,9 +91,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     finally { router.replace("/teacher"); router.refresh(); }
   }
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   useEffect(() => {
     if (isLoginPage) { setReady(true); return; }
@@ -96,17 +107,27 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     return () => { active = false; };
   }, [isLoginPage, router]);
 
-  async function changeSubject(subjectId: string) {
-    if (subjectId === subjectKey || switchingSubject) return;
+  async function changeSubject(nextWorkspaceKey: string) {
+    if (nextWorkspaceKey === workspaceKey || switchingSubject) return;
     try {
       setSwitchingSubject(true);
-      const response = await fetch("/api/teacher-session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subjectId }), cache: "no-store" });
+      const response = await fetch("/api/teacher-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceKey: nextWorkspaceKey }),
+        cache: "no-store",
+      });
       if (!response.ok) throw new Error();
-      setSubjectKey(subjectId as SubjectKey);
-      setSubjectName(subjects.find(subject => subject.subjectId === subjectId)?.subjectName || getSubjectConfig(subjectId).label);
+      const selected = subjects.find(subject => subject.workspaceKey === nextWorkspaceKey);
+      if (selected) {
+        setWorkspaceKey(selected.workspaceKey);
+        setSubjectKey(selected.subjectId as SubjectKey);
+        setSubjectName(selected.subjectName || getSubjectConfig(selected.subjectId).label);
+        setActiveGrade(selected.grade || null);
+        setActiveGradeLabel(selected.gradeLabel || "");
+      }
       setMenuOpen(false);
-      router.push("/teacher/dashboard");
-      router.refresh();
+      window.location.assign("/teacher/dashboard");
     } finally { setSwitchingSubject(false); }
   }
 
@@ -118,6 +139,9 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     teacherId,
     teacherName,
     subjectKey,
+    workspaceKey,
+    activeGrade,
+    activeGradeLabel,
     subject: subjectName,
     subjects,
     assignments,
@@ -135,14 +159,14 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       {menuOpen ? <button className="teacher-menu-backdrop" type="button" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/> : null}
       <aside className="teacher-sidebar">
         <div className="teacher-shell-brand"><Image className="teacher-portal-logo" src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={52} height={52} priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>{teacherName}</small></div><button className="teacher-menu-close" type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق القائمة">×</button></div>
-        {subjects.length > 1 ? <section className="teacher-subject-switcher" aria-label="تغيير المادة"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><label><span>المادة والصف والفصل الحالي</span><select value={subjectKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>)}</select></label></section> : <section className="teacher-single-subject"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><div><small>المادة والصف والفصل</small><strong>{subjectName}</strong></div></section>}
+        {subjects.length > 1 ? <section className="teacher-subject-switcher" aria-label="تغيير المادة أو المرحلة"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><label><span>المادة والمرحلة الحالية</span><select value={workspaceKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}</option>)}</select></label></section> : <section className="teacher-single-subject"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><div><small>المادة والمرحلة</small><strong>{subjectName}</strong><span>{activeGradeLabel}</span></div></section>}
         <div className="teacher-nav-title">أقسام بوابة المعلم</div>
         <nav className="teacher-tabs" aria-label="أقسام بوابة المعلم">{tabs.map(tab => { const active = pathname.startsWith(tab.href); return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}><span className="teacher-tab-icon"><TabIcon type={tab.key}/></span><span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span>{tab.badge ? <em>{tab.badge}</em> : null}</Link>; })}</nav>
         <div className="teacher-header-actions"><Link href="/" className="teacher-home-link">الصفحة الرئيسية</Link><button className="teacher-logout" onClick={() => void logout()}>تسجيل الخروج</button></div>
       </aside>
       <main className="teacher-main">
-        <header className="teacher-mobile-header"><div><small>بوابة المعلم</small><strong>{teacherName}</strong></div><span>{subjectConfig.label}</span></header>
-        <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">مساحة {subjectConfig.label}</span><h2>أهلًا أستاذ {teacherName}</h2><p>أدواتك التعليمية مرتبة في قائمة واحدة واضحة.</p></div><Link className="teacher-ai-quick" href="/teacher/ai"><span>AI</span><div><b>المساعد التعليمي الذكي</b><small>تحليل النتائج والخطط العلاجية</small></div></Link></section>
+        <header className="teacher-mobile-header"><div><small>بوابة المعلم</small><strong>{teacherName}</strong></div><span>{subjectConfig.label}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</span></header>
+        <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">مساحة {subjectConfig.label}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</span><h2>أهلًا أستاذ {teacherName}</h2><p>أدواتك التعليمية مرتبة في قائمة واحدة واضحة.</p></div><Link className="teacher-ai-quick" href="/teacher/ai"><span>AI</span><div><b>المساعد التعليمي الذكي</b><small>تحليل النتائج والخطط العلاجية</small></div></Link></section>
         <div className="teacher-page-content">{children}</div>
       </main>
     </div>
