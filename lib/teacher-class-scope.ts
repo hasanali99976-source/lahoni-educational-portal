@@ -9,6 +9,7 @@ export type TeacherClassScope = {
   subjectId: string;
   selectedClassIds: string[];
   customized: boolean;
+  assignmentSignature?: string;
   updatedAt?: string;
 };
 
@@ -23,6 +24,14 @@ export function subjectClassOwnerId(subjectId: string, schoolClassId: string) {
 export function normalizeClassIds(value: unknown) {
   if (!Array.isArray(value)) return [] as string[];
   return [...new Set(value.map(item => String(item || "").trim()).filter(item => /^\d+-\d+$/.test(item)))];
+}
+
+export function assignmentScopeSignature(assignments: TeacherAssignment[], subjectId: string) {
+  return assignments
+    .filter(item => item.subjectId === subjectId)
+    .map(item => `${gradeNumber(item.grade) || 0}:${sectionNumber(item.section) || normalizeArabic(item.section)}`)
+    .sort()
+    .join("|");
 }
 
 export function assignmentAllowsClassExact(assignment: Pick<TeacherAssignment, "grade" | "section">, grade: number, section: string) {
