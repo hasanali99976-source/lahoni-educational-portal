@@ -2,15 +2,30 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { getSubjectConfig } from "../../../../lib/subject-config";
 import { createStudentAccessToken } from "../../../../lib/server/portal-auth";
-import { normalizeAssignments } from "../../../../lib/teacher-assignments";
-import { canonicalClassName, gradeNumber, normalizeStudentRecord } from "../../../../lib/school-roster";
+import { normalizeAssignments, type TeacherAssignment } from "../../../../lib/teacher-assignments";
+import { canonicalClassName, classId, gradeNumber, normalizeArabic, normalizeStudentRecord, type SchoolStudent } from "../../../../lib/school-roster";
+import {
+  SUBJECT_CLASS_OWNERS_COLLECTION,
+  TEACHER_CLASS_SCOPES_COLLECTION,
+  assignmentAllowsClassExact,
+  normalizeClassIds,
+  subjectClassOwnerId,
+  teacherClassScopeId,
+} from "../../../../lib/teacher-class-scope";
 
-type SubjectAssignment = { subjectId: string; grade?: string; section?: string; label?: string };
 type LocatedStudent = {
   studentId: string;
   teacherId: string;
   subjectId: string;
   data: Record<string, unknown>;
+};
+type Candidate = {
+  teacherId: string;
+  subjectId: string;
+  teacherData: Record<string, unknown>;
+  assignments: TeacherAssignment[];
+  existing?: LocatedStudent;
+  priority: number;
 };
 
 const STUDENT_CODE_PATTERN = /^TH[123]\d{3}$/;
@@ -72,6 +87,16 @@ async function loadCentralStudent(accessCode: string) {
   return normalized && normalized.active !== false ? normalized : null;
 }
 
+function allSections(value: unknown) {
+  const normalized = normalizeArabic(value);
+  return !normalized || normalized === "الكل" || normalized === "كل" || normalized === "جميع الفصول";
+}
+
+function candidatePriority(assignments: TeacherAssignment[], student: SchoolStudent, customized: boolean, hasExisting: boolean) {
+  const exactSection = assignments.some(item => assignmentAllowsClassExact(item, student.grade, student.section) && !allSections(item.section));
+  return (customized ? 80 : exactSection ? 60 : 40) + (hasExisting ? 5 : 0);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -86,56 +111,108 @@ export async function POST(request: Request) {
       adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
     ]);
 
-    const teachers = new Map<string, Record<string, unknown>>();
-    teachersSnapshot.docs.forEach(document => {
-      const data = document.data() as Record<string, unknown>;
-      if (data.active === true) teachers.set(document.id, data);
-    });
-
-    const located = new Map<string, LocatedStudent>();
-    existingStudents.forEach(item => located.set(`${item.teacherId}:${item.subjectId}`, item));
-
-    const repairWrites: Array<{ path: string; data: Record<string, unknown> }> = [];
-    if (centralStudent) {
-      teachers.forEach((teacherData, teacherId) => {
-        const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds) as SubjectAssignment[];
-        const studentGrade = centralStudent.grade;
-        const subjects = new Map<string, SubjectAssignment>();
-
-        assignments.forEach(assignment => {
-          if (!assignment.subjectId || gradeNumber(assignment.grade) !== studentGrade) return;
-          if (!subjects.has(assignment.subjectId)) subjects.set(assignment.subjectId, assignment);
-        });
-
-        subjects.forEach((assignment, subjectId) => {
-          const key = `${teacherId}:${subjectId}`;
-          if (!located.has(key)) {
-            const data = {
-              ...centralStudent,
-              id: accessCode,
-              code: accessCode,
-              accessCode,
-              studentCode: accessCode,
-              class: canonicalClassName(centralStudent.grade, centralStudent.section),
-              className: canonicalClassName(centralStudent.grade, centralStudent.section),
-              teacherId,
-              subjectKey: subjectId,
-              active: true,
-              rosterActive: true,
-            } as Record<string, unknown>;
-            located.set(key, { studentId: accessCode, teacherId, subjectId, data });
-            repairWrites.push({
-              path: `portalV2Data/${teacherId}/subjects/${subjectId}/students/${accessCode}`,
-              data: { ...data, linkedFromCentralRoster: true, updatedAt: new Date().toISOString() },
-            });
-          }
-        });
-      });
-    }
-
-    if (!located.size) {
+    const existingByTeacherSubject = new Map(existingStudents.map(item => [`${item.teacherId}:${item.subjectId}`, item]));
+    const fallbackStudent = existingStudents
+      .map(item => normalizeStudentRecord(item.data, item.studentId))
+      .find((item): item is SchoolStudent => !!item);
+    const student = centralStudent || fallbackStudent;
+    if (!student) {
       return NextResponse.json({ ok: false, message: "كود الطالب غير صحيح، أو لم تُربط له مادة بعد." }, { status: 401 });
     }
+
+    const studentClassId = classId(student.grade, student.section);
+    const teacherEntries = teachersSnapshot.docs.flatMap(document => {
+      const data = document.data() as Record<string, unknown>;
+      if (data.active !== true) return [];
+      const assignments = normalizeAssignments(data.assignments, data.subjectIds)
+        .filter(item => gradeNumber(item.grade) === student.grade);
+      if (!assignments.length) return [];
+      return [{ teacherId: document.id, teacherData: data, assignments }];
+    });
+
+    const scopeRequests = new Map<string, Promise<any>>();
+    teacherEntries.forEach(entry => {
+      [...new Set(entry.assignments.map(item => item.subjectId))].forEach(subjectId => {
+        const key = `${entry.teacherId}:${subjectId}`;
+        scopeRequests.set(key, adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(entry.teacherId, subjectId)).get());
+      });
+    });
+    const scopeResults = await Promise.all([...scopeRequests.entries()].map(async ([key, promise]) => [key, await promise] as const));
+    const scopes = new Map(scopeResults);
+
+    const subjectIds = [...new Set(teacherEntries.flatMap(entry => entry.assignments.map(item => item.subjectId)))];
+    const ownerResults = await Promise.all(subjectIds.map(async subjectId => {
+      const snapshot = await adminDb().collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(subjectClassOwnerId(subjectId, studentClassId)).get();
+      return [subjectId, snapshot] as const;
+    }));
+    const owners = new Map(ownerResults);
+
+    const candidates: Candidate[] = [];
+    teacherEntries.forEach(entry => {
+      const grouped = new Map<string, TeacherAssignment[]>();
+      entry.assignments.forEach(assignment => {
+        const list = grouped.get(assignment.subjectId) || [];
+        list.push(assignment);
+        grouped.set(assignment.subjectId, list);
+      });
+
+      grouped.forEach((assignments, subjectId) => {
+        const ownerSnapshot = owners.get(subjectId);
+        const ownerTeacherId = ownerSnapshot?.exists ? String(ownerSnapshot.data()?.teacherId || "") : "";
+        if (ownerTeacherId && ownerTeacherId !== entry.teacherId) return;
+
+        const scopeSnapshot = scopes.get(`${entry.teacherId}:${subjectId}`);
+        const customized = scopeSnapshot?.exists && scopeSnapshot.data()?.customized === true;
+        const selectedClassIds = customized ? normalizeClassIds(scopeSnapshot.data()?.selectedClassIds) : [];
+        const allowed = ownerTeacherId === entry.teacherId
+          || (customized ? selectedClassIds.includes(studentClassId) : assignments.some(item => assignmentAllowsClassExact(item, student.grade, student.section)));
+        if (!allowed) return;
+
+        const existing = existingByTeacherSubject.get(`${entry.teacherId}:${subjectId}`);
+        candidates.push({
+          teacherId: entry.teacherId,
+          subjectId,
+          teacherData: entry.teacherData,
+          assignments,
+          existing,
+          priority: ownerTeacherId === entry.teacherId ? 100 : candidatePriority(assignments, student, customized, !!existing),
+        });
+      });
+    });
+
+    const chosenBySubject = new Map<string, Candidate>();
+    candidates
+      .sort((a, b) => b.priority - a.priority || a.teacherId.localeCompare(b.teacherId))
+      .forEach(candidate => {
+        if (!chosenBySubject.has(candidate.subjectId)) chosenBySubject.set(candidate.subjectId, candidate);
+      });
+
+    if (!chosenBySubject.size) {
+      return NextResponse.json({ ok: false, message: "لم تُحدّد فصول هذا الطالب عند معلمي مواده بعد." }, { status: 401 });
+    }
+
+    const repairWrites: Array<{ path: string; data: Record<string, unknown> }> = [];
+    const located = [...chosenBySubject.values()].map(candidate => {
+      if (candidate.existing) return candidate.existing;
+      const data = {
+        ...student,
+        id: accessCode,
+        code: accessCode,
+        accessCode,
+        studentCode: accessCode,
+        class: canonicalClassName(student.grade, student.section),
+        className: canonicalClassName(student.grade, student.section),
+        teacherId: candidate.teacherId,
+        subjectKey: candidate.subjectId,
+        active: true,
+        rosterActive: true,
+      } as Record<string, unknown>;
+      repairWrites.push({
+        path: `portalV2Data/${candidate.teacherId}/subjects/${candidate.subjectId}/students/${accessCode}`,
+        data: { ...data, linkedFromCentralRoster: true, updatedAt: new Date().toISOString() },
+      });
+      return { studentId: accessCode, teacherId: candidate.teacherId, subjectId: candidate.subjectId, data };
+    });
 
     if (repairWrites.length) {
       try {
@@ -153,12 +230,9 @@ export async function POST(request: Request) {
       }
     }
 
-    const matches = [...located.values()].flatMap(item => {
-      const teacherData = teachers.get(item.teacherId);
-      if (!teacherData) return [];
-
-      const assignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds) as SubjectAssignment[];
-      const assignment = assignments.find(entry => entry.subjectId === item.subjectId);
+    const matches = located.map(item => {
+      const candidate = chosenBySubject.get(item.subjectId)!;
+      const assignment = candidate.assignments[0];
       const subject = getSubjectConfig(item.subjectId);
       const accessToken = createStudentAccessToken({
         studentId: item.studentId,
@@ -167,26 +241,23 @@ export async function POST(request: Request) {
         expiresAt: Date.now() + 2 * 60 * 60 * 1000,
       });
 
-      return [{
+      return {
         id: item.studentId,
         teacherId: item.teacherId,
         subjectKey: item.subjectId,
         subjectLabel: assignment?.label || subject.label,
-        teacherName: String(teacherData.name || "المعلم"),
+        teacherName: String(candidate.teacherData.name || "المعلم"),
         icon: subject.icon || "📘",
         accessToken,
         data: item.data,
-      }];
+      };
     });
-
-    if (!matches.length) {
-      return NextResponse.json({ ok: false, message: "المواد المرتبطة بهذا الكود غير متاحة حاليًا." }, { status: 401 });
-    }
 
     return NextResponse.json({
       ok: true,
       matches,
       linkedFromCentralRoster: repairWrites.length,
+      uniqueTeacherPerSubject: true,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("student lookup failed", error);
