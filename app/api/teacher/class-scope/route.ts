@@ -12,10 +12,13 @@ import {
   teacherClassScopeId,
 } from "../../../../lib/teacher-class-scope";
 
-function classParts(classId: string) {
+type Grade = 1 | 2 | 3;
+
+function classParts(classId: string): { grade: Grade | null; section: string } {
   const [gradeText, section = ""] = classId.split("-");
-  const grade = Number(gradeText);
-  return { grade: grade === 1 || grade === 2 || grade === 3 ? grade : null, section };
+  const value = Number(gradeText);
+  const grade: Grade | null = value === 1 || value === 2 || value === 3 ? value : null;
+  return { grade, section };
 }
 
 function allSections(value: unknown) {
@@ -40,7 +43,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ ok: false, message: "المادة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
-    const allowedGrades = new Set(relevant.map(item => gradeNumber(item.grade)).filter(Boolean));
+    const allowedGrades = new Set<Grade>(relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item));
     const invalid = selectedClassIds.filter(item => {
       const { grade } = classParts(item);
       return !grade || !allowedGrades.has(grade);
