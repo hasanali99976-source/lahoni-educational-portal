@@ -20,6 +20,10 @@ function classParts(classId: string): { grade: Grade | null; section: string } {
   return { grade, section };
 }
 
+function assignmentSignature(ids: string[]) {
+  return [...new Set(ids)].sort().join("|");
+}
+
 export async function PATCH(request: Request) {
   const session = await requireSession("teacher");
   if (!session?.user) return NextResponse.json({ ok: false }, { status: 401 });
@@ -35,6 +39,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ ok: false, message: "المادة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
+    const currentAssignmentSignature = assignmentSignature(relevant.map(item => item.id));
     const allowedGrades = new Set<Grade>(
       relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
     );
@@ -115,6 +120,7 @@ export async function PATCH(request: Request) {
       subjectId,
       selectedClassIds,
       customized: true,
+      assignmentSignature: currentAssignmentSignature,
       updatedAt: now,
     }, { merge: true });
 
