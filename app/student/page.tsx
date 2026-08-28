@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ACADEMIC_UNITS, FINAL_MAX, GRADE_DISTRIBUTION, RESEARCH_MAX, UNIT_MAX, calculatePercentage, calculateUnitTotal } from "../../lib/academic-config";
+import { officialClassName } from "../../lib/official-class";
 import "./student-diagnostics.css";
 import "./student-portal-tabs.css";
 import "./attendance-summary.css";
@@ -10,7 +11,7 @@ import StudentDiagnostics from "./student-diagnostics";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
 type AttendanceSummary = { present: number; absent: number; late: number; excused: number; escaped: number; total: number; disciplineRate: number; latestDate?: string };
-type StudentRecord = { name?: string; class?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; absences?: number; late?: number; attendanceSummary?: AttendanceSummary; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
+type StudentRecord = { name?: string; class?: string; className?: string; section?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; absences?: number; late?: number; attendanceSummary?: AttendanceSummary; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
 type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
 type StudentTab = "home" | "grades" | "tests" | "plan" | "ai";
 
@@ -181,7 +182,7 @@ export default function StudentPage() {
   const targetScore = Math.min(FINAL_MAX, Math.max(0, goal / 100 * FINAL_MAX));
   const remainingForGoal = Math.max(0, targetScore - finalTotal);
   const goalReached = percentage >= goal;
-  const classLabel = selected?.data.class?.trim() || "الفصل غير محدد";
+  const classLabel = officialClassName(selected?.data.class || selected?.data.className, selected?.data.section) || "الفصل غير محدد";
   const attendanceSummary = selected?.data.attendanceSummary || { present: 0, absent: Number(selected?.data.absences || 0), late: Number(selected?.data.late || 0), excused: 0, escaped: 0, total: 0, disciplineRate: 100 };
   const disciplineMessage = attendanceSummary.escaped > 0 || attendanceSummary.absent >= 3
     ? "يحتاج انتظامك إلى متابعة مباشرة مع المعلم وولي الأمر."
