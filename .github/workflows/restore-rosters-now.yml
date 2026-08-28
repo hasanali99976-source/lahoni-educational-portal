@@ -1,0 +1,89 @@
+name: Restore rosters now
+
+on:
+  push:
+    branches:
+      - ops/restore-rosters-now
+
+concurrency:
+  group: restore-rosters-production
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Restore and link student rosters safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://tahdheeb-history.vercel.app"
+          COOKIE_JAR="$(mktemp)"
+          trap 'rm -f "$COOKIE_JAR" /tmp/login.json /tmp/students-before.json /tmp/students-after.json /tmp/classes-after.json /tmp/migrate.json' EXIT
+
+          login_status=$(curl --fail-with-body --silent --show-error \
+            --output /tmp/login.json --write-out '%{http_code}' \
+            --cookie-jar "$COOKIE_JAR" \
+            --header 'content-type: application/json' \
+            --request POST "$BASE/api/auth/admin-name-login" \
+            --data '{"username":"حسن علي"}')
+          test "$login_status" = "200"
+          node -e 'const d=require("/tmp/login.json"); if(!d.ok||d.role!=="admin") process.exit(1); console.log("Admin session ready")'
+
+          before_status=$(curl --fail-with-body --silent --show-error \
+            --output /tmp/students-before.json --write-out '%{http_code}' \
+            --cookie "$COOKIE_JAR" "$BASE/api/admin/students")
+          test "$before_status" = "200"
+          node -e 'const d=require("/tmp/students-before.json"); const list=Array.isArray(d.students)?d.students:(Array.isArray(d)?d:[]); console.log(`Students before: ${list.length}`)'
+
+          cursor=0
+          linked_total=0
+          migrated_total=0
+          completed=0
+
+          for attempt in $(seq 1 40); do
+            migrate_status=$(curl --fail-with-body --silent --show-error \
+              --output /tmp/migrate.json --write-out '%{http_code}' \
+              --cookie "$COOKIE_JAR" \
+              --header 'content-type: application/json' \
+              --request POST "$BASE/api/admin/students/migrate" \
+              --data "{\"cursor\":$cursor}")
+
+            if [ "$migrate_status" != "200" ]; then
+              node -e 'const fs=require("fs"); try { const d=JSON.parse(fs.readFileSync("/tmp/migrate.json","utf8")); console.error(d.message||"Migration failed"); } catch { console.error("Migration failed"); }'
+              exit 1
+            fi
+
+            node -e 'const d=require("/tmp/migrate.json"); if(!d.ok) process.exit(1); console.log(JSON.stringify({cursor:d.cursor,nextCursor:d.nextCursor,complete:d.complete,processedSources:d.processedSources,remainingSources:d.remainingSources,migrated:d.migrated,added:d.added,updated:d.updated,unchanged:d.unchanged,linkedToSubjects:d.linkedToSubjects,total:d.total}))'
+
+            linked=$(node -p 'Number(require("/tmp/migrate.json").linkedToSubjects||0)')
+            migrated=$(node -p 'Number(require("/tmp/migrate.json").migrated||0)')
+            linked_total=$((linked_total + linked))
+            migrated_total=$((migrated_total + migrated))
+            completed=$(node -p 'require("/tmp/migrate.json").complete ? 1 : 0')
+            cursor=$(node -p 'Number(require("/tmp/migrate.json").nextCursor||0)')
+
+            if [ "$completed" = "1" ]; then
+              break
+            fi
+            sleep 3
+          done
+
+          test "$completed" = "1"
+
+          after_status=$(curl --fail-with-body --silent --show-error \
+            --output /tmp/students-after.json --write-out '%{http_code}' \
+            --cookie "$COOKIE_JAR" "$BASE/api/admin/students")
+          test "$after_status" = "200"
+
+          classes_status=$(curl --fail-with-body --silent --show-error \
+            --output /tmp/classes-after.json --write-out '%{http_code}' \
+            --cookie "$COOKIE_JAR" "$BASE/api/admin/students/classes")
+          test "$classes_status" = "200"
+
+          node -e 'const d=require("/tmp/students-after.json"); const list=Array.isArray(d.students)?d.students:(Array.isArray(d)?d:[]); console.log(`Students after: ${list.length}`)'
+          node -e 'const d=require("/tmp/classes-after.json"); const list=Array.isArray(d.classes)?d.classes:(Array.isArray(d)?d:[]); console.log(`Classes after: ${list.length}`)'
+          echo "Migration changes total: $migrated_total"
+          echo "Subject links created total: $linked_total"
+          echo "Roster restore completed safely"
