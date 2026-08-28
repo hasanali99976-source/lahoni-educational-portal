@@ -7,15 +7,19 @@ import {
   SCHOOL_STUDENTS_COLLECTION,
   canonicalClassName,
   classId,
-  classMatchesAssignments,
   gradeNumber,
   normalizeClassRecord,
   normalizeStudentRecord,
   studentIdentity,
-  studentMatchesAssignments,
   type SchoolClass,
   type SchoolStudent,
 } from "../../../../lib/school-roster";
+import {
+  TEACHER_CLASS_SCOPES_COLLECTION,
+  defaultSelectedClassIds,
+  normalizeClassIds,
+  teacherClassScopeId,
+} from "../../../../lib/teacher-class-scope";
 
 type Repair = { path: string; data: Record<string, unknown> };
 type Grade = 1 | 2 | 3;
@@ -145,6 +149,16 @@ function normalizeCentralRows(documents: any[]) {
     .filter((item): item is SchoolStudent => !!item && item.active !== false);
 }
 
+function classFromStudent(student: SchoolStudent): SchoolClass {
+  return {
+    id: classId(student.grade, student.section),
+    grade: student.grade,
+    section: student.section,
+    name: canonicalClassName(student.grade, student.section),
+    active: true,
+  };
+}
+
 export async function GET(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
@@ -157,36 +171,65 @@ export async function GET(request: Request) {
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const relevant = assignments.filter(item => item.subjectId === subjectId);
     if (!subjectId || !relevant.length) {
-      return NextResponse.json({ ok: true, students: [], classes: [], assignments: [] });
+      return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: [] });
     }
 
     const detailedAssignments = relevant.filter(item => !!gradeNumber(item.grade));
     const hasDetailedAssignments = detailedAssignments.length > 0;
     const subjectPath = `portalV2Data/${session.userId}/subjects/${subjectId}/students`;
+    const scopeRef = adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(session.userId, subjectId));
 
-    const legacySnapshot = await adminDb().collection(subjectPath).get();
+    const [legacySnapshot, scopeSnapshot] = await Promise.all([
+      adminDb().collection(subjectPath).get(),
+      scopeRef.get(),
+    ]);
+
     const legacyRows = legacySnapshot.docs
       .map(item => ({ id: item.id, raw: item.data() as Record<string, unknown> }))
       .map(item => ({ ...item, student: normalizeLegacy(item.raw, item.id) }))
       .filter((item): item is LegacyRow => !!item.student);
 
-    const legacyClassKeys = new Set(legacyRows.map(item => classId(item.student.grade, item.student.section)));
     const assignmentScopes = hasDetailedAssignments ? scopesFromAssignments(detailedAssignments) : new Map<Grade, Set<string> | null>();
     const legacyScopes = scopesFromStudents(legacyRows.map(item => item.student));
     const scopes = mergeScopes(assignmentScopes, legacyScopes);
+    if (!scopes.size) {
+      return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: relevant });
+    }
 
     const [centralDocuments, classDocuments] = await Promise.all([
       loadScopedStudentDocuments(scopes),
       loadScopedClassDocuments(scopes),
     ]);
 
-    const centralRows = normalizeCentralRows(centralDocuments)
-      .filter(item => hasDetailedAssignments
-        ? studentMatchesAssignments(item, assignments, subjectId) || legacyClassKeys.has(classId(item.grade, item.section))
-        : legacyClassKeys.has(classId(item.grade, item.section)));
+    const centralAllRows = normalizeCentralRows(centralDocuments);
+    const availableMap = new Map<string, SchoolClass>();
+
+    classDocuments.forEach(item => {
+      const data = item.data();
+      if (!data) return;
+      const schoolClass = normalizeClassRecord({ id: item.id, ...data } as Partial<SchoolClass>);
+      if (!schoolClass || schoolClass.active === false) return;
+      availableMap.set(schoolClass.id, schoolClass);
+    });
+    centralAllRows.forEach(student => availableMap.set(classId(student.grade, student.section), classFromStudent(student)));
+    legacyRows.forEach(item => availableMap.set(classId(item.student.grade, item.student.section), classFromStudent(item.student)));
+
+    const availableClasses = [...availableMap.values()]
+      .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
+    const scopeData = scopeSnapshot.exists ? scopeSnapshot.data() as Record<string, unknown> : null;
+    const scopeCustomized = scopeData?.customized === true;
+    const selectedClassIds = scopeCustomized
+      ? normalizeClassIds(scopeData?.selectedClassIds)
+      : hasDetailedAssignments
+        ? defaultSelectedClassIds(assignments, subjectId, availableClasses)
+        : availableClasses.map(item => item.id);
+    const selected = new Set(selectedClassIds);
+
+    const selectedLegacyRows = legacyRows.filter(item => selected.has(classId(item.student.grade, item.student.section)));
+    const centralRows = centralAllRows.filter(item => selected.has(classId(item.grade, item.section)));
 
     const byIdentity = new Map<string, SchoolStudent>();
-    legacyRows.forEach(item => byIdentity.set(studentIdentity(item.student), { ...item.student, active: true }));
+    selectedLegacyRows.forEach(item => byIdentity.set(studentIdentity(item.student), { ...item.student, active: true }));
     centralRows.forEach(item => {
       const identity = studentIdentity(item);
       const previous = byIdentity.get(identity);
@@ -199,9 +242,9 @@ export async function GET(request: Request) {
 
     const repairs: Repair[] = [];
     const existingIds = new Set(legacySnapshot.docs.map(item => item.id));
-    const legacyIdentities = new Set(legacyRows.map(item => studentIdentity(item.student)));
+    const legacyIdentities = new Set(selectedLegacyRows.map(item => studentIdentity(item.student)));
 
-    legacyRows.forEach(item => {
+    selectedLegacyRows.forEach(item => {
       const canonical = canonicalClassName(item.student.grade, item.student.section);
       if (item.raw.active === false
         || item.raw.rosterActive === false
@@ -262,43 +305,22 @@ export async function GET(request: Request) {
       console.warn("teacher roster repair deferred", repairError);
     }
 
-    const classMap = new Map<string, SchoolClass>();
-    classDocuments.forEach(item => {
-      const data = item.data();
-      if (!data) return;
-      const schoolClass = normalizeClassRecord({ id: item.id, ...data } as Partial<SchoolClass>);
-      if (!schoolClass || schoolClass.active === false) return;
-      const assigned = hasDetailedAssignments && classMatchesAssignments(schoolClass, assignments, subjectId);
-      if (!assigned && !legacyClassKeys.has(schoolClass.id)) return;
-      classMap.set(schoolClass.id, schoolClass);
-    });
-
-    students.forEach(student => {
-      const id = classId(student.grade, student.section);
-      if (!classMap.has(id)) {
-        classMap.set(id, {
-          id,
-          grade: student.grade,
-          section: student.section,
-          name: student.className,
-          active: true,
-        });
-      }
-    });
-
-    const classes = [...classMap.values()].sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
+    const classes = availableClasses.filter(item => selected.has(item.id));
     return NextResponse.json({
       ok: true,
       students,
       classes,
+      availableClasses,
+      selectedClassIds,
+      scopeCustomized,
       assignments: relevant,
-      recoveredLegacy: legacyRows.length,
-      centralAdded: Math.max(0, students.length - legacyRows.length),
+      recoveredLegacy: selectedLegacyRows.length,
+      preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
+      centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
       repairPending: repairs.length,
       centralReadCount: centralDocuments.length,
       classReadCount: classDocuments.length,
-      gradeWideRoster: true,
-      preservedLegacyClasses: true,
+      preservedTeacherData: true,
     }, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=60" } });
   } catch (error) {
     console.error("teacher central roster failed", error);
