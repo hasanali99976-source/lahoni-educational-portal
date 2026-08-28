@@ -77,6 +77,20 @@ function scopesFromStudents(students: SchoolStudent[]) {
   return scopes;
 }
 
+function mergeScopes(...maps: ScopeMap[]) {
+  const merged: ScopeMap = new Map();
+  maps.forEach(scopes => {
+    scopes.forEach((sections, grade) => {
+      if (sections === null) {
+        addScope(merged, grade, null);
+        return;
+      }
+      sections.forEach(section => addScope(merged, grade, section));
+    });
+  });
+  return merged;
+}
+
 async function loadScopedStudentDocuments(scopes: ScopeMap) {
   const collection = adminDb().collection(SCHOOL_STUDENTS_COLLECTION);
   const queries: Promise<any>[] = [];
@@ -151,51 +165,32 @@ export async function GET(request: Request) {
     const subjectPath = `portalV2Data/${session.userId}/subjects/${subjectId}/students`;
 
     const legacySnapshot = await adminDb().collection(subjectPath).get();
-    const allLegacyRows = legacySnapshot.docs
+    const legacyRows = legacySnapshot.docs
       .map(item => ({ id: item.id, raw: item.data() as Record<string, unknown> }))
       .map(item => ({ ...item, student: normalizeLegacy(item.raw, item.id) }))
       .filter((item): item is LegacyRow => !!item.student);
 
-    let legacyRows = allLegacyRows.filter(item =>
-      !hasDetailedAssignments || studentMatchesAssignments(item.student, assignments, subjectId),
-    );
-    let scopes = hasDetailedAssignments
-      ? scopesFromAssignments(detailedAssignments)
-      : scopesFromStudents(legacyRows.map(item => item.student));
+    const legacyClassKeys = new Set(legacyRows.map(item => classId(item.student.grade, item.student.section)));
+    const assignmentScopes = hasDetailedAssignments ? scopesFromAssignments(detailedAssignments) : new Map<Grade, Set<string> | null>();
+    const legacyScopes = scopesFromStudents(legacyRows.map(item => item.student));
+    const scopes = mergeScopes(assignmentScopes, legacyScopes);
 
-    let [centralDocuments, classDocuments] = await Promise.all([
+    const [centralDocuments, classDocuments] = await Promise.all([
       loadScopedStudentDocuments(scopes),
       loadScopedClassDocuments(scopes),
     ]);
 
-    let legacyClassKeys = new Set(legacyRows.map(item => classId(item.student.grade, item.student.section)));
-    let centralRows = normalizeCentralRows(centralDocuments)
+    const centralRows = normalizeCentralRows(centralDocuments)
       .filter(item => hasDetailedAssignments
-        ? studentMatchesAssignments(item, assignments, subjectId)
+        ? studentMatchesAssignments(item, assignments, subjectId) || legacyClassKeys.has(classId(item.grade, item.section))
         : legacyClassKeys.has(classId(item.grade, item.section)));
-
-    const fallbackToLegacy = hasDetailedAssignments
-      && legacyRows.length === 0
-      && centralRows.length === 0
-      && allLegacyRows.length > 0;
-
-    if (fallbackToLegacy) {
-      legacyRows = allLegacyRows;
-      scopes = scopesFromStudents(legacyRows.map(item => item.student));
-      [centralDocuments, classDocuments] = await Promise.all([
-        loadScopedStudentDocuments(scopes),
-        loadScopedClassDocuments(scopes),
-      ]);
-      legacyClassKeys = new Set(legacyRows.map(item => classId(item.student.grade, item.student.section)));
-      centralRows = normalizeCentralRows(centralDocuments)
-        .filter(item => legacyClassKeys.has(classId(item.grade, item.section)));
-    }
 
     const byIdentity = new Map<string, SchoolStudent>();
     legacyRows.forEach(item => byIdentity.set(studentIdentity(item.student), { ...item.student, active: true }));
     centralRows.forEach(item => {
       const identity = studentIdentity(item);
-      if (!byIdentity.has(identity)) byIdentity.set(identity, { ...item, active: true });
+      const previous = byIdentity.get(identity);
+      byIdentity.set(identity, { ...item, ...previous, code: previous?.code || item.code, active: true });
     });
 
     const students = [...byIdentity.values()]
@@ -273,8 +268,8 @@ export async function GET(request: Request) {
       if (!data) return;
       const schoolClass = normalizeClassRecord({ id: item.id, ...data } as Partial<SchoolClass>);
       if (!schoolClass || schoolClass.active === false) return;
-      if (!fallbackToLegacy && hasDetailedAssignments && !classMatchesAssignments(schoolClass, assignments, subjectId)) return;
-      if ((fallbackToLegacy || !hasDetailedAssignments) && !legacyClassKeys.has(schoolClass.id)) return;
+      const assigned = hasDetailedAssignments && classMatchesAssignments(schoolClass, assignments, subjectId);
+      if (!assigned && !legacyClassKeys.has(schoolClass.id)) return;
       classMap.set(schoolClass.id, schoolClass);
     });
 
@@ -302,9 +297,9 @@ export async function GET(request: Request) {
       repairPending: repairs.length,
       centralReadCount: centralDocuments.length,
       classReadCount: classDocuments.length,
-      fallbackToLegacy,
       gradeWideRoster: true,
-    }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=120" } });
+      preservedLegacyClasses: true,
+    }, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=60" } });
   } catch (error) {
     console.error("teacher central roster failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل قائمة الطلاب" }, { status: 500 });
