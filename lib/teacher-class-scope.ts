@@ -7,14 +7,16 @@ export const SUBJECT_CLASS_OWNERS_COLLECTION = "portalV2SubjectClassOwners";
 export type TeacherClassScope = {
   teacherId: string;
   subjectId: string;
+  grade?: number | null;
   selectedClassIds: string[];
   customized: boolean;
   assignmentSignature?: string;
   updatedAt?: string;
 };
 
-export function teacherClassScopeId(teacherId: string, subjectId: string) {
-  return `${encodeURIComponent(teacherId)}__${encodeURIComponent(subjectId)}`;
+export function teacherClassScopeId(teacherId: string, subjectId: string, grade?: number | null) {
+  const base = `${encodeURIComponent(teacherId)}__${encodeURIComponent(subjectId)}`;
+  return grade === 1 || grade === 2 || grade === 3 ? `${base}__grade_${grade}` : base;
 }
 
 export function subjectClassOwnerId(subjectId: string, schoolClassId: string) {
@@ -26,9 +28,10 @@ export function normalizeClassIds(value: unknown) {
   return [...new Set(value.map(item => String(item || "").trim()).filter(item => /^\d+-\d+$/.test(item)))];
 }
 
-export function assignmentScopeSignature(assignments: TeacherAssignment[], subjectId: string) {
+export function assignmentScopeSignature(assignments: TeacherAssignment[], subjectId: string, grade?: number | null) {
   return assignments
     .filter(item => item.subjectId === subjectId)
+    .filter(item => !grade || gradeNumber(item.grade) === grade)
     .map(item => `${gradeNumber(item.grade) || 0}:${sectionNumber(item.section) || normalizeArabic(item.section)}`)
     .sort()
     .join("|");
@@ -42,8 +45,9 @@ export function assignmentAllowsClassExact(assignment: Pick<TeacherAssignment, "
   return sectionNumber(assignment.section) === westernDigits(section);
 }
 
-export function defaultSelectedClassIds(assignments: TeacherAssignment[], subjectId: string, availableClasses: Array<Pick<SchoolClass, "id" | "grade" | "section">>) {
-  const relevant = assignments.filter(item => item.subjectId === subjectId && !!gradeNumber(item.grade));
+export function defaultSelectedClassIds(assignments: TeacherAssignment[], subjectId: string, availableClasses: Array<Pick<SchoolClass, "id" | "grade" | "section">>, grade?: number | null) {
+  const relevant = assignments.filter(item => item.subjectId === subjectId && !!gradeNumber(item.grade))
+    .filter(item => !grade || gradeNumber(item.grade) === grade);
   const exact = availableClasses.filter(schoolClass => relevant.some(assignment => assignmentAllowsClassExact(assignment, schoolClass.grade, schoolClass.section)));
   if (exact.length) return exact.map(item => item.id);
 
