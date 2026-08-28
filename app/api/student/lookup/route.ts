@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     teacherEntries.forEach(entry => {
       [...new Set(entry.assignments.map(item => item.subjectId))].forEach(subjectId => {
         const key = `${entry.teacherId}:${subjectId}`;
-        scopeRequests.set(key, adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(entry.teacherId, subjectId)).get());
+        scopeRequests.set(key, adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(entry.teacherId, subjectId, student.grade)).get());
       });
     });
     const scopeResults = await Promise.all([...scopeRequests.entries()].map(async ([key, promise]) => [key, await promise] as const));
@@ -251,13 +251,16 @@ export async function POST(request: Request) {
         accessToken,
         data: item.data,
       };
-    });
+    }).sort((a, b) => a.subjectLabel.localeCompare(b.subjectLabel, "ar", { numeric: true }));
 
     return NextResponse.json({
       ok: true,
       matches,
       linkedFromCentralRoster: repairWrites.length,
       uniqueTeacherPerSubject: true,
+      grade: student.grade,
+      classId: studentClassId,
+      subjectCount: matches.length,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("student lookup failed", error);
