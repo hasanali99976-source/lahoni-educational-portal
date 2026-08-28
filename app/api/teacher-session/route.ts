@@ -145,7 +145,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await requireSession("teacher");
-    if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+    if (!session?.user?.active) return NextResponse.json({ ok: false }, { status: 401 });
     const user = session.user;
     const body = await request.json().catch(() => ({}));
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
     const requested = String(body?.workspaceKey || body?.subjectId || "").trim();
     const workspace = workspaces.find(item => item.workspaceKey === requested)
       || workspaces.find(item => item.subjectId === requested);
-    if (!user?.active || !workspace) return NextResponse.json({ ok: false, error: "subject_not_assigned" }, { status: 403 });
+    if (!workspace) return NextResponse.json({ ok: false, error: "subject_not_assigned" }, { status: 403 });
     const response = NextResponse.json({
       ok: true,
       subjectId: workspace.subjectId,
