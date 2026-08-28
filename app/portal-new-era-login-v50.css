@@ -1,0 +1,15 @@
+@media screen{
+  .neo-login-steps{display:grid;gap:8px;margin-top:28px}
+  .neo-login-steps span{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #ffffff18;border-radius:13px;background:#ffffff0c;color:#dce7ef;font-size:11px;font-weight:800}
+  .neo-login-steps b{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#fff;color:#22384b}
+  .neo-login-label{display:inline-flex;width:max-content;margin-bottom:7px;padding:6px 9px;border-radius:999px;background:#e8efff;color:#315ead;font-size:9px;font-weight:900}
+  .neo-login-form{display:grid;gap:8px;margin-top:18px}
+  .neo-login-form .portal-field{margin-top:7px}
+  .neo-password-input button{border:0;background:transparent;color:#315ead;font-size:10px;font-weight:900;cursor:pointer}
+  .neo-login-note{margin:16px 0 0;padding:11px 12px;border-radius:12px;background:#f4f6f8;color:#64758a;font-size:10px;line-height:1.7}
+}
+
+@media screen and (max-width:760px){
+  .neo-teacher-login-visual{min-height:225px!important}
+  .neo-login-steps{display:none}
+}
