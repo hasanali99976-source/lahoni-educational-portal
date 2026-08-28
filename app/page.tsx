@@ -2,70 +2,92 @@ import Image from "next/image";
 import Link from "next/link";
 import StudentDirectQr from "./student-direct-qr";
 import "./student-direct-qr.css";
-import "./crazy-school-home.css";
 
 const portals = [
-  { href: "/admin", icon: "🏫", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات والتقارير من لوحة مدرسية ذكية ومترابطة.", tone: "admin" },
-  { href: "/teacher", icon: "👨‍🏫", title: "بوابة المعلم", text: "الطلاب والدرجات والحضور والاختبارات التشخيصية والخطط العلاجية في مساحة واحدة.", tone: "teacher" },
-  { href: "/student", icon: "🎒", title: "الطالب وولي الأمر", text: "متابعة الدرجات والحضور والانضباط والاختبارات والخطة العلاجية بسهولة ووضوح.", tone: "student" },
+  {
+    href: "/student",
+    number: "01",
+    icon: "🎓",
+    title: "الطالب وولي الأمر",
+    subtitle: "متابعة يومية واضحة",
+    text: "المواد والدرجات والحضور والاختبارات والخطة العلاجية في مسار واحد سهل.",
+    action: "الدخول والمتابعة",
+    tone: "student",
+  },
+  {
+    href: "/teacher",
+    number: "02",
+    icon: "✎",
+    title: "مساحة المعلم",
+    subtitle: "إدارة تعليمية متكاملة",
+    text: "الطلاب والتحضير والرصد والإتقان والاختبارات والذكاء الاصطناعي دون تشتيت.",
+    action: "فتح مساحة العمل",
+    tone: "teacher",
+  },
+  {
+    href: "/admin",
+    number: "03",
+    icon: "⌂",
+    title: "إدارة النظام",
+    subtitle: "الربط والصلاحيات",
+    text: "إدارة المعلمين والطلاب والمواد والفصول الرسمية من مركز تحكم واحد.",
+    action: "فتح لوحة الإدارة",
+    tone: "admin",
+  },
 ];
 
-const smartFeatures = [
-  { icon: "🧠", title: "ذكاء تعليمي", text: "تحليل النتائج واقتراح الخطط العلاجية ومساعدة المعلم في اتخاذ القرار." },
-  { icon: "🎨", title: "هوية لكل مادة", text: "ألوان وحركات ورموز تتبدل تلقائيًا حسب المادة دون تغيير طريقة الاستخدام." },
-  { icon: "📊", title: "متابعة لحظية", text: "درجات وحضور واختبارات وتقارير مترابطة بين المعلم والطالب والإدارة." },
+const highlights = [
+  ["٣", "بوابات مترابطة"],
+  ["١٧", "مادة تعليمية"],
+  ["٢٤/٧", "متابعة متاحة"],
+  ["AI", "تحليل تعليمي"],
 ];
 
 export default function HomePage() {
-  return <main className="crazy-school-home" dir="rtl">
-    <nav className="school-topbar">
-      <div className="school-brand">
-        <Image src="/icons/ostadh-lahooni-192.jpg" width={58} height={58} alt="شعار بوابة أستاذ لحوني التعليمية" priority />
-        <div><strong>بوابة أستاذ لحوني التعليمية</strong><span>منصة مدرسية ذكية لإدارة التعليم والمتابعة</span></div>
+  return <main className="neo-home" dir="rtl">
+    <header className="neo-home-header">
+      <div className="neo-home-brand">
+        <Image src="/icons/ostadh-lahooni-192.jpg" width={54} height={54} alt="شعار بوابة أستاذ لحوني التعليمية" priority />
+        <div><strong>أستاذ لحوني</strong><span>منظومة تعليمية للمتابعة والإنجاز</span></div>
       </div>
-      <div className="school-status"><i /> النظام يعمل الآن ✨</div>
-    </nav>
+      <div className="neo-home-live"><i /> البوابة متصلة وآمنة</div>
+    </header>
 
-    <section className="school-hero">
-      <div className="school-copy">
-        <span className="school-kicker">🎓 جيل جديد من الإدارة التعليمية</span>
-        <h1>التعليم والمتابعة<br/><em>في بوابة واحدة ذكية</em></h1>
-        <p>تجربة تعليمية مدرسية حديثة تجمع الإدارة والمعلم والطالب وولي الأمر، وتحافظ على جميع بياناتك ووظائفك مع هوية متحركة ومميزة لكل مادة.</p>
-        <div className="school-chips"><span>🧠 ذكاء تعليمي</span><span>🎨 هوية لكل مادة</span><span>🔗 ربط مباشر</span><span>📱 جوال وكمبيوتر</span></div>
+    <section className="neo-hero">
+      <div className="neo-hero-copy">
+        <span className="neo-eyebrow">منصة تعليمية مصممة للمدرسة</span>
+        <h1>كل ما يحتاجه التعليم<br/><em>في مسارات واضحة.</em></h1>
+        <p>بدل الصفحات المتشابهة والقوائم المزدحمة، تبدأ من دورك مباشرة وتصل إلى أداتك بخطوات قليلة وواضحة.</p>
+        <div className="neo-hero-actions">
+          <Link href="/student" className="neo-primary-action">دخول الطالب وولي الأمر</Link>
+          <Link href="/teacher" className="neo-secondary-action">دخول المعلم</Link>
+        </div>
+        <div className="neo-highlights">{highlights.map(([value, label]) => <article key={label}><strong>{value}</strong><span>{label}</span></article>)}</div>
       </div>
-      <div className="school-scene" aria-hidden="true">
-        <div className="school-board" />
-        <span className="school-float one">📚 المواد تتحرك بهويتها</span>
-        <span className="school-float two">📊 نتائج وتقارير فورية</span>
-        <span className="school-float three">🧠 اقتراحات ذكية</span>
-      </div>
-    </section>
 
-    <section className="school-portals" aria-label="مزايا البوابة الذكية">
-      <div className="school-section-head"><small>كيف تساعدك البوابة؟</small><h2>تعليم أوضح وقرار أذكى</h2><p>ستايل تعليمي جديد مع بقاء البوابات والوظائف والبيانات كما هي.</p></div>
-      <div className="school-grid">
-        {smartFeatures.map(feature => <article key={feature.title} className="school-card teacher">
-          <span className="school-card-icon">{feature.icon}</span><small>ميزة ذكية</small><h3>{feature.title}</h3><p>{feature.text}</p>
-        </article>)}
-      </div>
-    </section>
-
-    <StudentDirectQr />
-
-    <section className="school-portals" aria-label="بوابات الدخول">
-      <div className="school-section-head"><small>اختر بوابتك</small><h2>كل دور له تجربته الخاصة</h2><p>نفس النظام والبيانات، لكن بواجهة تعليمية مصممة لكل مستخدم.</p></div>
-      <div className="school-grid">
-        {portals.map(portal => <Link key={portal.href} href={portal.href} className={`school-card ${portal.tone}`}>
-          <span className="school-card-icon">{portal.icon}</span>
-          <small>دخول آمن وسريع</small>
-          <h3>{portal.title}</h3>
-          <p>{portal.text}</p>
-          <b>ابدأ الآن ←</b>
-        </Link>)}
+      <div className="neo-launch-panel" aria-label="بوابات الدخول">
+        <header><small>اختر المسار</small><h2>إلى أين تريد الذهاب؟</h2></header>
+        <div className="neo-launch-list">{portals.map(portal => <Link key={portal.href} href={portal.href} className={`neo-launch-card ${portal.tone}`}>
+          <span className="neo-launch-number">{portal.number}</span>
+          <span className="neo-launch-icon">{portal.icon}</span>
+          <div><small>{portal.subtitle}</small><h3>{portal.title}</h3><p>{portal.text}</p></div>
+          <b>{portal.action} ←</b>
+        </Link>)}</div>
       </div>
     </section>
 
-    <section className="school-ribbon"><span>🔒 حسابات آمنة</span><span>🔗 بيانات مترابطة</span><span>🎨 هويات تعليمية</span><span>✨ حركات خفيفة</span><span>🧠 ذكاء مساعد</span></section>
-    <footer className="school-signature">بوابة أستاذ لحوني التعليمية • تعليم أوضح، متابعة أذكى، وهوية أقرب لكل مادة</footer>
+    <section className="neo-home-lower">
+      <article className="neo-qr-card">
+        <div><span>دخول مباشر</span><h2>باركود الطالب</h2><p>يمسح الطالب أو ولي الأمر الباركود ثم يدخل الكود الخاص به، دون المرور على قوائم إضافية.</p></div>
+        <StudentDirectQr />
+      </article>
+      <article className="neo-system-card">
+        <span>طريقة العمل</span>
+        <h2>بيانات واحدة، واجهات مختلفة</h2>
+        <ol><li><b>الإدارة</b><small>تربط المعلمين والمواد والفصول.</small></li><li><b>المعلم</b><small>يرصد ويحفظ ويتابع مستوى طلابه.</small></li><li><b>الطالب وولي الأمر</b><small>يشاهدان النتائج والمتابعة من نفس البوابة.</small></li></ol>
+      </article>
+    </section>
+
+    <footer className="neo-home-footer"><span>بوابة أستاذ لحوني التعليمية</span><b>تعليم أوضح • متابعة أسرع • بيانات محفوظة</b></footer>
   </main>;
 }
