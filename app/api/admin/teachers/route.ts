@@ -72,19 +72,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "أكمل اسم المعلم والرقم السري من ٨ خانات واختر مادة" }, { status: 400 });
     }
     const normalizedUsername = normalizeUsername(username);
-    const duplicate = await adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizedUsername).limit(1).get();
+    const duplicate = await withTimeout(
+      adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizedUsername).limit(1).get(),
+    );
     if (!duplicate.empty) return NextResponse.json({ ok: false, message: "اسم المعلم موجود مسبقًا" }, { status: 409 });
     const now = new Date().toISOString();
     const reference = adminDb().collection("portalV2Users").doc();
-    await reference.set({ username, normalizedUsername, name, role: "teacher", passwordHash: hashPassword(password), active: true, subjectIds, assignments, createdAt: now, updatedAt: now });
+    await withTimeout(reference.set({ username, normalizedUsername, name, role: "teacher", passwordHash: hashPassword(password), active: true, subjectIds, assignments, createdAt: now, updatedAt: now }));
     const batch = adminDb().batch();
     for (const assignment of assignments) {
       batch.set(adminDb().collection("portalV2Assignments").doc(`${reference.id}__${assignment.id}`), { teacherId: reference.id, subjectId: assignment.subjectId, assignmentId: assignment.id, grade: assignment.grade, section: assignment.section, active: true, createdAt: now, updatedAt: now });
     }
-    await batch.commit();
+    await withTimeout(batch.commit());
     return NextResponse.json({ ok: true, id: reference.id }, { status: 201 });
   } catch (error) {
     console.error("create teacher failed", error);
-    return NextResponse.json({ ok: false, message: "تعذر إنشاء حساب المعلم" }, { status: 500 });
+    const unavailable = String((error as { message?: unknown })?.message || "").includes("firestore_timeout");
+    return NextResponse.json({
+      ok: false,
+      databaseUnavailable: unavailable,
+      message: unavailable
+        ? "قاعدة البيانات مشغولة الآن. لم يُنشأ حساب ناقص؛ أعد المحاولة بعد قليل."
+        : "تعذر إنشاء حساب المعلم",
+    }, { status: unavailable ? 503 : 500 });
   }
 }
