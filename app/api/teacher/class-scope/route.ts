@@ -6,6 +6,7 @@ import { gradeNumber } from "../../../../lib/school-roster";
 import {
   SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
+  assignmentScopeSignature,
   normalizeClassIds,
   subjectClassOwnerId,
   teacherClassScopeId,
@@ -18,10 +19,6 @@ function classParts(classId: string): { grade: Grade | null; section: string } {
   const value = Number(gradeText);
   const grade: Grade | null = value === 1 || value === 2 || value === 3 ? value : null;
   return { grade, section };
-}
-
-function assignmentSignature(ids: string[]) {
-  return [...new Set(ids)].sort().join("|");
 }
 
 export async function PATCH(request: Request) {
@@ -39,7 +36,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ ok: false, message: "المادة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
-    const currentAssignmentSignature = assignmentSignature(relevant.map(item => item.id));
+    const currentAssignmentSignature = assignmentScopeSignature(assignments, subjectId);
     const allowedGrades = new Set<Grade>(
       relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
     );
