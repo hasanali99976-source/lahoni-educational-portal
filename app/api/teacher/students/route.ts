@@ -15,9 +15,11 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 import {
+  SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
   assignmentScopeSignature,
   normalizeClassIds,
+  subjectClassOwnerId,
   teacherClassScopeId,
 } from "../../../../lib/teacher-class-scope";
 
@@ -105,12 +107,13 @@ export async function GET(request: Request) {
     const legacySubjectScopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId));
 
-    const [legacySnapshot, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentSnapshot, centralClassSnapshot] = await Promise.all([
+    const [legacySnapshot, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentSnapshot, centralClassSnapshot, ownerSnapshot] = await Promise.all([
       database.collection(subjectPath).get(),
       scopeRef.get(),
       requestedGrade ? legacySubjectScopeRef.get() : Promise.resolve({ exists: false, data: () => undefined }),
       database.collection(SCHOOL_STUDENTS_COLLECTION).get(),
       database.collection(SCHOOL_CLASSES_COLLECTION).get(),
+      database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("subjectId", "==", subjectId).get(),
     ]);
 
     const legacyRows = legacySnapshot.docs
@@ -132,33 +135,50 @@ export async function GET(request: Request) {
     centralAllRows.forEach(student => availableMap.set(classId(student.grade, student.section), classFromStudent(student)));
     legacyRows.forEach(item => availableMap.set(classId(item.student.grade, item.student.section), classFromStudent(item.student)));
 
-    const availableClasses = [...availableMap.values()]
+    const allStageClasses = [...availableMap.values()]
       .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
+
+    const ownerByClass = new Map<string, string>();
+    ownerSnapshot.docs.forEach(item => {
+      const data = item.data() as Record<string, unknown>;
+      const ownedClassId = String(data.classId || "");
+      const teacherId = String(data.teacherId || "");
+      if (ownedClassId && teacherId) ownerByClass.set(ownedClassId, teacherId);
+    });
+    const classIsClaimable = (id: string) => {
+      const owner = ownerByClass.get(id);
+      return !owner || owner === session.userId;
+    };
 
     const currentSignature = assignmentScopeSignature(assignments, subjectId, requestedGrade);
     const scopeData = scopeSnapshot.exists ? scopeSnapshot.data() as Record<string, unknown> : null;
     const storedSignature = String(scopeData?.assignmentSignature || "");
     const storedSelection = normalizeClassIds(scopeData?.selectedClassIds)
-      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade) && classIsClaimable(id));
     const savedScopeValid = scopeData?.customized === true && storedSignature === currentSignature;
 
     const legacyScopeData = legacySubjectScopeSnapshot.exists
       ? legacySubjectScopeSnapshot.data() as Record<string, unknown>
       : null;
     const legacySelection = normalizeClassIds(legacyScopeData?.selectedClassIds)
-      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade) && classIsClaimable(id));
     const canMigrateLegacySelection = !scopeSnapshot.exists
       && requestedGrade !== null
       && legacyScopeData?.customized === true
       && legacySelection.length > 0;
 
+    const scopeCustomized = savedScopeValid || canMigrateLegacySelection;
+    const claimableClasses = allStageClasses.filter(item => classIsClaimable(item.id));
     const selectedClassIds = savedScopeValid
       ? storedSelection
       : canMigrateLegacySelection
         ? legacySelection
-        : availableClasses.map(item => item.id);
+        : claimableClasses.map(item => item.id);
     const selected = new Set(selectedClassIds);
+    const availableClasses = scopeCustomized
+      ? allStageClasses.filter(item => selected.has(item.id))
+      : claimableClasses;
 
     const selectedLegacyRows = legacyRows.filter(item => selected.has(classId(item.student.grade, item.student.section)));
     const centralRows = centralAllRows.filter(item => selected.has(classId(item.grade, item.section)));
@@ -235,6 +255,23 @@ export async function GET(request: Request) {
       });
     });
 
+    if (scopeCustomized) {
+      selectedClassIds.forEach(selectedClassId => {
+        if (ownerByClass.get(selectedClassId)) return;
+        repairs.push({
+          path: `${SUBJECT_CLASS_OWNERS_COLLECTION}/${subjectClassOwnerId(subjectId, selectedClassId)}`,
+          data: {
+            teacherId: session.userId,
+            subjectId,
+            classId: selectedClassId,
+            grade: classGradeFromId(selectedClassId),
+            active: true,
+            updatedAt: now,
+          },
+        });
+      });
+    }
+
     if (canMigrateLegacySelection) {
       repairs.push({
         path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId, requestedGrade)}`,
@@ -271,18 +308,20 @@ export async function GET(request: Request) {
       console.warn("teacher roster repair deferred", repairError);
     }
 
-    const classes = availableClasses.filter(item => selected.has(item.id));
+    const classes = allStageClasses.filter(item => selected.has(item.id));
     return NextResponse.json({
       ok: true,
       students,
       classes,
       availableClasses,
       selectedClassIds,
-      scopeCustomized: savedScopeValid || canMigrateLegacySelection,
+      scopeCustomized,
       scopeInvalidated: Boolean(scopeSnapshot.exists && !savedScopeValid),
       assignments: relevant,
       assignedGrades: [...grades],
       activeGrade: requestedGrade,
+      reservedForTeacher: selectedClassIds.length,
+      hiddenOwnedByOtherTeachers: Math.max(0, allStageClasses.length - claimableClasses.length),
       recoveredLegacy: selectedLegacyRows.length,
       preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
       centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
