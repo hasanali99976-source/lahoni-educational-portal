@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getSubjectConfig } from "../lib/subject-config";
 import "./teacher-subject-switcher.css";
 
-type SubjectItem = { subjectId: string; subjectName: string };
+type SubjectItem = { subjectId: string; subjectName: string; grades?: string[]; gradeLabel?: string };
 type SessionData = { authenticated?: boolean; subjectKey?: string; subjects?: SubjectItem[] };
 
 export default function TeacherSubjectSwitcher() {
@@ -65,22 +65,28 @@ export default function TeacherSubjectSwitcher() {
 
   if (!visible || !target || subjects.length < 1) return null;
 
+  const currentGradeLabel = currentSubject?.gradeLabel || "جميع الصفوف المسندة";
+
   return createPortal(
     <div className="teacher-subject-switcher no-print" dir="rtl" aria-label="المادة المفتوحة">
       <div className="subject-switcher-mark" aria-hidden="true">{config.shortMark || "م"}</div>
       <div className="subject-switcher-copy">
         <small>مساحة العمل الحالية</small>
         <strong>{currentSubject?.subjectName || config.label}</strong>
-        <span>{changing ? "جارٍ تجهيز هوية المادة..." : "الطلاب والدرجات والتقارير مرتبطة بهذه المادة"}</span>
+        <span>{changing ? "جارٍ تجهيز هوية المادة..." : `${currentGradeLabel} — الطلاب والدرجات والتقارير مرتبطة بهذه المادة`}</span>
       </div>
       {subjects.length > 1 ? (
         <label className="subject-switcher-control">
           <span>تبديل المادة</span>
           <select value={current} disabled={changing} onChange={(event) => changeSubject(event.target.value)}>
-            {subjects.map((subject) => <option key={subject.subjectId} value={subject.subjectId}>{subject.subjectName}</option>)}
+            {subjects.map((subject) => (
+              <option key={subject.subjectId} value={subject.subjectId}>
+                {subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}
+              </option>
+            ))}
           </select>
         </label>
-      ) : <a className="subject-switcher-manage" href="/teacher/subjects">إدارة المواد</a>}
+      ) : <span className="subject-switcher-manage">{currentGradeLabel}</span>}
     </div>,
     target,
   );
