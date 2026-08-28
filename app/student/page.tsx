@@ -85,7 +85,7 @@ export default function StudentPage() {
     const query = new URLSearchParams(window.location.search);
     const code = normalizeStudentCode(query.get("code") || "");
     if (code) setAccessCode(code);
-    if (query.has("code") || query.has("entry") || query.has("v")) {
+    if (query.has("code") || query.has("entry") || query.has("v") || query.has("logout")) {
       window.history.replaceState({}, "", "/student");
     }
     if (CODE_PATTERN.test(code) && !automaticLoginStarted.current) {
@@ -140,6 +140,12 @@ export default function StudentPage() {
     void lookup(accessCode);
   }
 
+  function showStudentSubjects() {
+    setSelected(null);
+    setActiveTab("home");
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+  }
+
   function exitStudentPortal() {
     setSelected(null);
     setMatches([]);
@@ -148,8 +154,11 @@ export default function StudentPage() {
     setActiveTab("home");
     try {
       sessionStorage.removeItem("lahooni-student-active");
+      sessionStorage.removeItem("lahooni-student-session");
       localStorage.removeItem("lahooni-student-last-path");
+      localStorage.removeItem("lahooni-student-active");
     } catch {}
+    window.location.replace(`/student?logout=${Date.now()}`);
   }
 
   const units = useMemo(() => ACADEMIC_UNITS.map(unit => {
@@ -203,12 +212,12 @@ export default function StudentPage() {
               <label className="portal-field" htmlFor="student-access-code">كود الطالب</label>
               <div className="portal-input"><span>🔐</span><input id="student-access-code" dir="ltr" inputMode="text" enterKeyHint="go" autoComplete="username" autoCapitalize="characters" spellCheck={false} value={accessCode} onChange={event => setAccessCode(normalizeStudentCode(event.target.value))} placeholder={`مثال: ${STUDENT_CODE_EXAMPLE}`} maxLength={6} required autoFocus /></div>
               {message && <p className="portal-error">{message}</p>}
-              <button className="portal-submit" disabled={loading}>{loading ? "جارٍ التحقق..." : "دخول الطالب"}</button>
+              <button type="submit" className="portal-submit" disabled={loading}>{loading ? "جارٍ التحقق..." : "دخول الطالب"}</button>
             </form>
           </> : <section className="student-subject-choices">
             <div className="student-choice-heading"><small>تم تسجيل الدخول بنجاح</small><h2>اختر المادة</h2><p>اختر المادة لعرض لوحة الأداء والدرجات.</p></div>
-            <div className="student-choice-grid">{matches.map(match => <button data-subject={match.subjectKey} key={`${match.id}-${match.subjectKey}`} onClick={() => { setSelected(match); setActiveTab("home"); }}><span className="subject-icon">{match.icon}</span><div><strong>{match.subjectLabel}</strong><small>{match.teacherName}</small></div><b>دخول ←</b></button>)}</div>
-            <button className="student-login-reset" onClick={exitStudentPortal}>تسجيل دخول آخر</button>
+            <div className="student-choice-grid">{matches.map(match => <button type="button" data-subject={match.subjectKey} key={`${match.id}-${match.subjectKey}`} onClick={() => { setSelected(match); setActiveTab("home"); }}><span className="subject-icon">{match.icon}</span><div><strong>{match.subjectLabel}</strong><small>{match.teacherName}</small></div><b>دخول ←</b></button>)}</div>
+            <button type="button" className="student-login-reset" onClick={exitStudentPortal}>تسجيل دخول آخر</button>
           </section>}
         </div>
       </section>
@@ -218,13 +227,17 @@ export default function StudentPage() {
   return <main className={`student-clean student-theme-${selected.subjectKey} student-portal-v2`} data-subject={selected.subjectKey} dir="rtl">
     <header className="student-clean-head student-identity-head">
       <div><span>{selected.icon} {selected.subjectLabel}</span><h1>{selected.data.name || "الطالب"}</h1><p><b>{classLabel}</b> • {selected.teacherName}</p></div>
-      <div className="student-head-actions"><button onClick={() => window.print()}>طباعة / PDF</button><button className="ghost" onClick={() => setSelected(null)}>المواد</button><button className="ghost" onClick={exitStudentPortal}>تسجيل الخروج</button></div>
+      <div className="student-head-actions">
+        <button type="button" data-student-action="print" onClick={() => window.print()}>طباعة / PDF</button>
+        <button type="button" data-student-action="subjects" className="ghost" onClick={showStudentSubjects}>المواد</button>
+        <button type="button" data-student-action="logout" className="ghost" onClick={exitStudentPortal}>تسجيل الخروج</button>
+      </div>
     </header>
 
-    <nav className="student-portal-tabs" aria-label="أقسام بوابة الطالب">{tabs.map(tab => <button key={tab.key} className={activeTab === tab.key ? "active" : ""} onClick={() => setActiveTab(tab.key)}><span>{tab.icon}</span><div><b>{tab.label}</b><small>{tab.note}</small></div></button>)}</nav>
+    <nav className="student-portal-tabs" aria-label="أقسام بوابة الطالب">{tabs.map(tab => <button type="button" key={tab.key} className={activeTab === tab.key ? "active" : ""} onClick={() => setActiveTab(tab.key)}><span>{tab.icon}</span><div><b>{tab.label}</b><small>{tab.note}</small></div></button>)}</nav>
 
     {activeTab === "home" && <div className="student-tab-panel">
-      <section className="student-main-summary"><div className="student-score-ring" style={{ "--score": percentage } as CSSProperties}><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div><div><small>✦ ملخصك اليوم</small><h2>{percentage >= 90 ? "أداء متميز" : percentage >= 75 ? "تقدم جيد" : "تحتاج إلى خطة تحسين"}</h2><p>{smartMessage}</p><button className="student-smart-action" onClick={() => setActiveTab("plan")}>ابدأ مهمتي اليوم ←</button></div></section>
+      <section className="student-main-summary"><div className="student-score-ring" style={{ "--score": percentage } as CSSProperties}><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div><div><small>✦ ملخصك اليوم</small><h2>{percentage >= 90 ? "أداء متميز" : percentage >= 75 ? "تقدم جيد" : "تحتاج إلى خطة تحسين"}</h2><p>{smartMessage}</p><button type="button" className="student-smart-action" onClick={() => setActiveTab("plan")}>ابدأ مهمتي اليوم ←</button></div></section>
       <section className="student-mini-stats"><article><span>الفصل</span><strong>{classLabel}</strong></article><article><span>نسبة الإنجاز</span><strong>{ar(percentage)}٪</strong></article><article><span>الغياب</span><strong>{ar(attendanceSummary.absent)}</strong></article><article><span>التأخر</span><strong>{ar(attendanceSummary.late)}</strong></article></section>
       <section className="student-attendance-summary"><header><div><h2>الحضور والانضباط</h2><p>{attendanceSummary.latestDate ? `آخر تحديث: ${attendanceSummary.latestDate}` : "بانتظار أول تحضير مسجل"}</p></div><div className="attendance-discipline-rate" style={{ "--rate": attendanceSummary.disciplineRate } as CSSProperties}><strong>{ar(attendanceSummary.disciplineRate)}٪</strong></div></header><div className="attendance-discipline-grid"><article><span>الحضور</span><strong>{ar(attendanceSummary.present)}</strong></article><article className="absent"><span>الغياب</span><strong>{ar(attendanceSummary.absent)}</strong></article><article className="late"><span>التأخير</span><strong>{ar(attendanceSummary.late)}</strong></article><article><span>الاستئذان</span><strong>{ar(attendanceSummary.excused)}</strong></article><article className="escaped"><span>الهروب</span><strong>{ar(attendanceSummary.escaped)}</strong></article></div><p className={`attendance-discipline-message ${disciplineClass}`}>{disciplineMessage}</p></section>
       <section className="student-home-grid"><article><small>أقوى أداء</small><strong>{strongestUnit?.label || "لم تُرصد درجات"}</strong><span>{strongestUnit ? `${ar(strongestUnit.total)} من ${ar(UNIT_MAX)}` : "بانتظار الرصد"}</span></article><article><small>يحتاج تركيزًا</small><strong>{weakestUnit?.label || "لم تُرصد درجات"}</strong><span>{weakestUnit ? `${ar(weakestUnit.total)} من ${ar(UNIT_MAX)}` : "بانتظار الرصد"}</span></article><article><small>آخر تنبيه</small><strong>{selected.data.parentCounselorLastNotice?.title || "لا توجد تنبيهات"}</strong><span>{selected.data.parentCounselorLastNotice?.message || selected.data.teacherNote || "أمورك جيدة، استمر."}</span></article></section>
