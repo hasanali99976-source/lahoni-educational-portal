@@ -10,10 +10,11 @@ export default function PrintPopupCompat() {
   useEffect(() => {
     const originalOpen = window.open.bind(window);
     const compatibleOpen: typeof window.open = (url, target, features) => {
-      const isPrintableBlank = (url === "" || url === undefined) && features?.includes("noopener");
+      const featureText = features || "";
+      const isPrintableBlank = (url === "" || url === undefined) && featureText.includes("noopener");
       if (!isPrintableBlank) return originalOpen(url, target, features);
 
-      const cleanedFeatures = features
+      const cleanedFeatures = featureText
         .split(",")
         .map(value => value.trim())
         .filter(value => value && value !== "noopener" && value !== "noreferrer")
