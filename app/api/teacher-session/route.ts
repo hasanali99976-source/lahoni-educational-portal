@@ -6,7 +6,11 @@ import { requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { normalizeAssignments } from "../../../lib/teacher-assignments";
 import { gradeLabel, gradeNumber } from "../../../lib/school-roster";
-import { TEACHER_CLASS_SCOPES_COLLECTION, teacherClassScopeId } from "../../../lib/teacher-class-scope";
+import {
+  TEACHER_CLASS_SCOPES_COLLECTION,
+  assignmentScopeSignature,
+  teacherClassScopeId,
+} from "../../../lib/teacher-class-scope";
 
 const SUBJECT_COOKIE = "lahooni_active_subject";
 
@@ -25,10 +29,6 @@ function databaseUnavailable() {
     databaseUnavailable: true,
     message: "قاعدة البيانات مشغولة الآن. أعد المحاولة بعد قليل.",
   }, { status: 503, headers: { "Cache-Control": "no-store" } });
-}
-
-function assignmentSignature(ids: string[]) {
-  return [...new Set(ids)].sort().join("|");
 }
 
 function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof normalizeAssignments>) {
@@ -65,25 +65,32 @@ function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof no
 
 async function resetStaleClassScopes(teacherId: string, subjectIds: string[], assignments: ReturnType<typeof normalizeAssignments>) {
   const database = adminDb();
-  const resetSubjects: string[] = [];
+  const resetWorkspaces: string[] = [];
 
   for (const subjectId of subjectIds) {
-    const relevant = assignments.filter(item => item.subjectId === subjectId);
-    const expectedSignature = assignmentSignature(relevant.map(item => item.id));
-    const reference = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
-      .doc(teacherClassScopeId(teacherId, subjectId));
-    const snapshot = await reference.get();
-    if (!snapshot.exists) continue;
+    const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
+    const assignedGrades = [...new Set(subjectAssignments
+      .map(item => gradeNumber(item.grade))
+      .filter((item): item is 1 | 2 | 3 => !!item))];
+    const gradesToCheck: Array<1 | 2 | 3 | null> = assignedGrades.length ? assignedGrades : [null];
 
-    const data = snapshot.data() as Record<string, unknown>;
-    const savedSignature = String(data.assignmentSignature || "");
-    if (savedSignature === expectedSignature && savedSignature) continue;
+    for (const grade of gradesToCheck) {
+      const reference = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
+        .doc(teacherClassScopeId(teacherId, subjectId, grade));
+      const snapshot = await reference.get();
+      if (!snapshot.exists) continue;
 
-    await reference.delete();
-    resetSubjects.push(subjectId);
+      const data = snapshot.data() as Record<string, unknown>;
+      const savedSignature = String(data.assignmentSignature || "");
+      const expectedSignature = assignmentScopeSignature(assignments, subjectId, grade);
+      if (savedSignature === expectedSignature && savedSignature) continue;
+
+      await reference.delete();
+      resetWorkspaces.push(grade ? `${subjectId}--${grade}` : subjectId);
+    }
   }
 
-  return resetSubjects;
+  return resetWorkspaces;
 }
 
 export async function GET() {
