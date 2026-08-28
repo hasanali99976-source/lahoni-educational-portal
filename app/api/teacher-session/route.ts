@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { restoreLegacyTeacherLearningData } from "../../../lib/server/legacy-teacher-data";
 import { requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { normalizeAssignments } from "../../../lib/teacher-assignments";
@@ -25,7 +26,28 @@ export async function GET() {
     const saved = (store.get(SUBJECT_COOKIE)?.value || "").split("--")[0];
     const current = user.subjectIds.includes(saved) ? saved : user.subjectIds[0] || null;
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
-    const subjects = user.subjectIds.map(subjectId => ({ subjectId, subjectName: getSubjectConfig(subjectId).label }));
+    const subjects = user.subjectIds.map(subjectId => {
+      const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
+      const grades = [...new Set(subjectAssignments.map(item => item.grade).filter(Boolean))];
+      return {
+        subjectId,
+        subjectName: getSubjectConfig(subjectId).label,
+        grades,
+        gradeLabel: grades.length ? grades.join("، ") : "",
+      };
+    });
+
+    let legacyRestore = { restored: 0, alreadyChecked: false };
+    try {
+      legacyRestore = await restoreLegacyTeacherLearningData({
+        teacherId: user.id,
+        teacherName: user.name,
+        subjectIds: user.subjectIds,
+      });
+    } catch (error) {
+      console.warn("legacy teacher data restoration skipped", error);
+    }
+
     const response = NextResponse.json({
       authenticated: true,
       teacherId: user.id,
@@ -34,6 +56,7 @@ export async function GET() {
       subject: current ? getSubjectConfig(current).label : null,
       subjects,
       assignments,
+      legacyRestore,
     }, { headers: { "Cache-Control": "no-store" } });
     if (current) response.cookies.set(SUBJECT_COOKIE, current, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     return response;
