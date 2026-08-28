@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v11";
+const CACHE_NAME = "ostadh-lahooni-v12";
 const STATIC_FILES = [
   "/",
   "/student",
@@ -32,11 +32,17 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
   if (request.mode === "navigate") {
+    const portalFallback = url.pathname.startsWith("/teacher")
+      ? "/teacher"
+      : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
+        ? "/student"
+        : "/";
+
     event.respondWith(
       fetch(request, { cache: "no-store" }).catch(async () => {
         return (await caches.match(request))
           || (await caches.match(url.pathname))
-          || (await caches.match("/student"))
+          || (await caches.match(portalFallback))
           || (await caches.match("/"));
       })
     );
