@@ -8,7 +8,7 @@ import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
 type UnitGrade = { percentage?: number; total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
-type Student = { id: string; name?: string; class?: string; research?: number; researchScore?: number; units?: Record<string, UnitGrade> };
+type Student = { id: string; code?: string; name?: string; class?: string; className?: string; research?: number; researchScore?: number; units?: Record<string, UnitGrade> };
 type AttendanceRecord = { records?: Record<string, "present" | "absent" | "late" | "excused" | "escaped"> };
 type Scope = "all" | "class" | "student";
 
@@ -37,16 +37,53 @@ export default function TeacherDashboardPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!session?.teacherId || !session?.subjectKey) { setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; }
-    const studentsPath = tenantCollection(session.teacherId, session.subjectKey as any, "students");
-    const attendancePath = tenantCollection(session.teacherId, session.subjectKey as any, "attendance");
-    const stopStudents = onSnapshot(collection(db, studentsPath), snap => setStudents(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as Omit<Student, "id">) }))), () => setMessage("تعذر تحميل بيانات الطلاب"));
-    const stopAttendance = onSnapshot(collection(db, attendancePath), snap => setAttendance(snap.docs.map(doc => doc.data() as AttendanceRecord)), () => setAttendance([]));
-    return () => { stopStudents(); stopAttendance(); };
-  }, [session?.teacherId, session?.subjectKey]);
+    if (!session?.teacherId || !session?.subjectKey) {
+      setMessage("انتهت الجلسة. سجّل الدخول من جديد.");
+      return;
+    }
 
-  const classes = useMemo(() => [...new Set(students.map(student => (student.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar")), [students]);
-  const availableStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass).sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar")), [students, selectedClass]);
+    const controller = new AbortController();
+    const params = new URLSearchParams({ subjectId: session.subjectKey });
+    if (session.activeGrade) params.set("grade", String(session.activeGrade));
+    const attendancePath = tenantCollection(session.teacherId, session.subjectKey as any, "attendance");
+
+    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "تعذر تحميل فصول المعلم");
+        return data;
+      })
+      .then(data => {
+        const list = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
+          const id = String(student.id || student.code || student.accessCode || student.studentCode || "").trim().toUpperCase();
+          const className = String(student.className || student.class || "").trim();
+          return { ...student, id, code: id, class: className, className } as Student;
+        }).filter((student: Student) => !!student.id && !!student.name && !!student.class);
+        setStudents(list);
+        setMessage("");
+      })
+      .catch(error => {
+        if (error?.name === "AbortError") return;
+        setStudents([]);
+        setMessage(error instanceof Error ? error.message : "تعذر تحميل فصول المعلم");
+      });
+
+    const stopAttendance = onSnapshot(
+      collection(db, attendancePath),
+      snap => setAttendance(snap.docs.map(item => item.data() as AttendanceRecord)),
+      () => setAttendance([]),
+    );
+
+    return () => {
+      controller.abort();
+      stopAttendance();
+    };
+  }, [session?.teacherId, session?.subjectKey, session?.activeGrade]);
+
+  const classes = useMemo(() => [...new Set(students.map(student => (student.class || "").trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+  const availableStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass)
+    .sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar")), [students, selectedClass]);
 
   const analyses = useMemo(() => students.map(student => {
     const units = Object.values(student.units || {});
@@ -96,15 +133,15 @@ export default function TeacherDashboardPage() {
   }
 
   return <main className="analytics-dashboard" dir="rtl">
-    <section className="analytics-heading"><div><span>التحليل الذكي لأداء الطلاب</span><h1>لوحة تحليل {subject}</h1><p>قارن جميع الفصول، أو حلّل فصلًا معينًا، أو اعرض أداء طالب معين.</p></div><div className="analysis-scope" role="group" aria-label="نطاق التحليل"><button className={scope === "all" ? "active" : ""} onClick={() => changeScope("all")}>جميع الفصول</button><button className={scope === "class" ? "active" : ""} onClick={() => changeScope("class")}>فصل معين</button><button className={scope === "student" ? "active" : ""} onClick={() => changeScope("student")}>طالب معين</button></div></section>
+    <section className="analytics-heading"><div><span>التحليل الذكي لأداء الطلاب</span><h1>لوحة تحليل {subject}</h1><p>تعرض هذه اللوحة الفصول التي حفظها المعلم فقط، ويمكن تحليل فصل أو طالب منها.</p></div><div className="analysis-scope" role="group" aria-label="نطاق التحليل"><button className={scope === "all" ? "active" : ""} onClick={() => changeScope("all")}>جميع فصولي</button><button className={scope === "class" ? "active" : ""} onClick={() => changeScope("class")}>فصل معين</button><button className={scope === "student" ? "active" : ""} onClick={() => changeScope("student")}>طالب معين</button></div></section>
     <section className="analytics-filters">
       {scope !== "all" ? <label><span>اختيار الفصل</span><select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label> : null}
       {scope === "student" ? <label><span>اختيار الطالب</span><select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">اختر الطالب</option>{availableStudents.map(student => <option key={student.id} value={student.id}>{student.name} — {student.class || "بدون فصل"}</option>)}</select></label> : null}
-      <div className="analysis-current"><small>التحليل الحالي</small><strong>{scope === "all" ? `مقارنة جميع الفصول (${classes.length})` : scope === "class" ? selectedClass || "اختر فصلًا" : selectedAnalysis?.name || "اختر طالبًا"}</strong></div>
+      <div className="analysis-current"><small>التحليل الحالي</small><strong>{scope === "all" ? `مقارنة فصولي (${classes.length})` : scope === "class" ? selectedClass || "اختر فصلًا" : selectedAnalysis?.name || "اختر طالبًا"}</strong></div>
     </section>
     {message ? <p className="smart-message">{message}</p> : null}
-    <section className="analytics-stats"><article><small>الطلاب المشمولون</small><b>{filtered.length}</b><span>{rated.length} لديهم درجات مرصودة</span></article><article><small>متوسط الأداء</small><b>{overall}%</b><span>{level(overall).label}</span></article><article className="positive"><small>الطلاب المتميزون</small><b>{excellent}</b><span>متوسط ٩٠٪ فأعلى</span></article><article className="warning"><small>يحتاجون دعمًا</small><b>{needsSupport}</b><span>أقل من ٦٠٪</span></article><article><small>الغياب المسجل</small><b>{absences}</b><span>غياب أو هروب</span></article><article><small>التأخر المسجل</small><b>{lates}</b><span>حالات التأخر</span></article></section>
+    <section className="analytics-stats"><article><small>طلاب فصولي</small><b>{filtered.length}</b><span>{rated.length} لديهم درجات مرصودة</span></article><article><small>متوسط الأداء</small><b>{overall}%</b><span>{level(overall).label}</span></article><article className="positive"><small>الطلاب المتميزون</small><b>{excellent}</b><span>متوسط ٩٠٪ فأعلى</span></article><article className="warning"><small>يحتاجون دعمًا</small><b>{needsSupport}</b><span>أقل من ٦٠٪</span></article><article><small>الغياب المسجل</small><b>{absences}</b><span>غياب أو هروب</span></article><article><small>التأخر المسجل</small><b>{lates}</b><span>حالات التأخر</span></article></section>
     <section className="analytics-grid"><article className="analysis-card dimensions-card"><header><div><h2>مقارنة عناصر الأداء</h2><p>الفروقات بين الحضور والمشاركة والواجبات والاختبارات</p></div></header><div className="dimension-bars">{dimensionAverages.map(item => <div key={item.key}><span><b>{item.label}</b><em>{item.value}%</em></span><i><u style={{ width: `${item.value}%` }}/></i></div>)}</div><footer><span>نقطة القوة: <b>{strongest?.label || "—"}</b></span><span>الأولوية للتحسين: <b>{weakest?.label || "—"}</b></span></footer></article><article className="analysis-card insight-card"><span className="ai-label">AI تحليل ذكي</span><h2>{selectedAnalysis ? `تحليل ${selectedAnalysis.name}` : "قراءة المجموعة الحالية"}</h2><strong className={level(selectedAnalysis?.average ?? overall).className}>{level(selectedAnalysis?.average ?? overall).label}</strong><p>{level(selectedAnalysis?.average ?? overall).advice}</p><dl><div><dt>المتوسط</dt><dd>{selectedAnalysis?.average ?? overall}%</dd></div><div><dt>الوحدات المرصودة</dt><dd>{selectedAnalysis?.ratedUnits ?? rated.reduce((sum, student) => sum + student.ratedUnits, 0)}</dd></div><div><dt>الغياب</dt><dd>{selectedAnalysis?.absence ?? absences}</dd></div><div><dt>التأخر</dt><dd>{selectedAnalysis?.late ?? lates}</dd></div></dl></article></section>
-    <section className="analysis-card comparison-table"><header><div><h2>{scope === "all" ? "مقارنة الفصول والفوارق" : "تفاصيل الطلاب والفوارق"}</h2><p>{scope === "all" ? "ترتيب الفصول تنازليًا حسب متوسط الأداء" : "ترتيب الطلاب تنازليًا حسب متوسط الأداء"}</p></div></header><div className="analytics-table-wrap"><table>{scope === "all" ? <><thead><tr><th>الفصل</th><th>عدد الطلاب</th><th>المتوسط</th>{dimensions.map(([, label]) => <th key={label}>{label}</th>)}<th>المتميزون</th><th>يحتاجون دعمًا</th><th>الغياب</th><th>التأخر</th><th>التصنيف</th></tr></thead><tbody>{classAnalyses.map(item => <tr key={item.name}><td><strong>{item.name}</strong></td><td>{item.count}</td><td><b>{item.average}%</b></td>{dimensions.map(([key]) => <td key={key}>{item.dimensionScores[key]}%</td>)}<td>{item.excellent}</td><td>{item.needsSupport}</td><td>{item.absence}</td><td>{item.late}</td><td><span className={`level-badge ${item.level.className}`}>{item.level.label}</span></td></tr>)}{!classAnalyses.length ? <tr><td colSpan={11} className="analysis-empty">لا توجد فصول للمقارنة.</td></tr> : null}</tbody></> : <><thead><tr><th>الطالب</th><th>الفصل</th><th>المتوسط</th>{dimensions.map(([, label]) => <th key={label}>{label}</th>)}<th>الغياب</th><th>التأخر</th><th>التصنيف</th></tr></thead><tbody>{[...filtered].sort((a, b) => b.average - a.average).map(student => <tr key={student.id}><td><strong>{student.name || "طالب"}</strong></td><td>{student.class || "—"}</td><td><b>{student.average}%</b></td>{dimensions.map(([key]) => <td key={key}>{student.dimensionScores[key]}%</td>)}<td>{student.absence}</td><td>{student.late}</td><td><span className={`level-badge ${student.level.className}`}>{student.level.label}</span></td></tr>)}{!filtered.length ? <tr><td colSpan={10} className="analysis-empty">اختر نطاق التحليل لعرض البيانات.</td></tr> : null}</tbody></>}</table></div></section>
+    <section className="analysis-card comparison-table"><header><div><h2>{scope === "all" ? "مقارنة فصول المعلم" : "تفاصيل الطلاب والفوارق"}</h2><p>{scope === "all" ? "ترتيب الفصول المحفوظة تنازليًا حسب متوسط الأداء" : "ترتيب الطلاب تنازليًا حسب متوسط الأداء"}</p></div></header><div className="analytics-table-wrap"><table>{scope === "all" ? <><thead><tr><th>الفصل</th><th>عدد الطلاب</th><th>المتوسط</th>{dimensions.map(([, label]) => <th key={label}>{label}</th>)}<th>المتميزون</th><th>يحتاجون دعمًا</th><th>الغياب</th><th>التأخر</th><th>التصنيف</th></tr></thead><tbody>{classAnalyses.map(item => <tr key={item.name}><td><strong>{item.name}</strong></td><td>{item.count}</td><td><b>{item.average}%</b></td>{dimensions.map(([key]) => <td key={key}>{item.dimensionScores[key]}%</td>)}<td>{item.excellent}</td><td>{item.needsSupport}</td><td>{item.absence}</td><td>{item.late}</td><td><span className={`level-badge ${item.level.className}`}>{item.level.label}</span></td></tr>)}{!classAnalyses.length ? <tr><td colSpan={11} className="analysis-empty">لا توجد فصول محفوظة لهذه المادة والمرحلة.</td></tr> : null}</tbody></> : <><thead><tr><th>الطالب</th><th>الفصل</th><th>المتوسط</th>{dimensions.map(([, label]) => <th key={label}>{label}</th>)}<th>الغياب</th><th>التأخر</th><th>التصنيف</th></tr></thead><tbody>{[...filtered].sort((a, b) => b.average - a.average).map(student => <tr key={student.id}><td><strong>{student.name || "طالب"}</strong></td><td>{student.class || "—"}</td><td><b>{student.average}%</b></td>{dimensions.map(([key]) => <td key={key}>{student.dimensionScores[key]}%</td>)}<td>{student.absence}</td><td>{student.late}</td><td><span className={`level-badge ${student.level.className}`}>{student.level.label}</span></td></tr>)}{!filtered.length ? <tr><td colSpan={10} className="analysis-empty">اختر نطاق التحليل لعرض البيانات.</td></tr> : null}</tbody></>}</table></div></section>
   </main>;
 }
