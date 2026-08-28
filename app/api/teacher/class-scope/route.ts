@@ -67,7 +67,7 @@ export async function PATCH(request: Request) {
       const data = document.data() as Record<string, unknown>;
       if (String(data.subjectId || "") !== subjectId) return;
       const ownedClassId = String(data.classId || "");
-      if (!selected.has(ownedClassId)) batch.delete(document.ref);
+      if (!selected.has(ownedClassId)) batch.delete(ownerCollection.doc(document.id));
     });
 
     selectedClassIds.forEach(classId => {
