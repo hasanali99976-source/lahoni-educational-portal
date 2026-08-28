@@ -17,7 +17,7 @@ type Grade = 1 | 2 | 3;
 function classParts(classId: string): { grade: Grade | null; section: string } {
   const [gradeText, section = ""] = classId.split("-");
   const value = Number(gradeText);
-  const grade: Grade | null = value === 1 || value === 2 || value === 3 ? value : null;
+  const grade: Grade | null = value === 1 || value === 2 || value === 3 ? value as Grade : null;
   return { grade, section };
 }
 
@@ -59,75 +59,67 @@ export async function PATCH(request: Request) {
 
     const database = adminDb();
     const ownerCollection = database.collection(SUBJECT_CLASS_OWNERS_COLLECTION);
+    const ownerReferences = selectedClassIds.map(classIdValue =>
+      ownerCollection.doc(subjectClassOwnerId(subjectId, classIdValue)),
+    );
+    const ownerSnapshots = await Promise.all(ownerReferences.map(reference => reference.get()));
+    const unavailableClassIds: string[] = [];
+
+    ownerSnapshots.forEach((snapshot, index) => {
+      if (!snapshot.exists) return;
+      const data = snapshot.data() as Record<string, unknown>;
+      const previousTeacherId = String(data.teacherId || "");
+      if (previousTeacherId && previousTeacherId !== session.userId) {
+        unavailableClassIds.push(selectedClassIds[index]);
+      }
+    });
+
+    if (unavailableClassIds.length) {
+      return NextResponse.json({
+        ok: false,
+        message: "أحد الفصول اختاره معلم آخر بالفعل. حدّث القائمة وستظهر لك الفصول المتبقية فقط.",
+        unavailableClassIds,
+      }, { status: 409 });
+    }
+
+    const previousOwners = await ownerCollection.where("teacherId", "==", session.userId).get();
     const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId, activeGrade));
-    const previousOwners = await ownerCollection.where("teacherId", "==", session.userId).get();
     const selected = new Set(selectedClassIds);
     const now = new Date().toISOString();
+    const batch = database.batch();
 
-    try {
-      await database.runTransaction(async transaction => {
-        const ownerReferences = selectedClassIds.map(classIdValue =>
-          ownerCollection.doc(subjectClassOwnerId(subjectId, classIdValue)),
-        );
-        const ownerSnapshots = await Promise.all(ownerReferences.map(reference => transaction.get(reference)));
+    previousOwners.docs.forEach(document => {
+      const data = document.data() as Record<string, unknown>;
+      if (String(data.subjectId || "") !== subjectId) return;
+      const ownedClassId = String(data.classId || "");
+      const ownedGrade = classParts(ownedClassId).grade;
+      if (activeGrade && ownedGrade !== activeGrade) return;
+      if (!selected.has(ownedClassId)) batch.delete(ownerCollection.doc(document.id));
+    });
 
-        const unavailableClassIds: string[] = [];
-        ownerSnapshots.forEach((snapshot, index) => {
-          if (!snapshot.exists) return;
-          const data = snapshot.data() as Record<string, unknown>;
-          const previousTeacherId = String(data.teacherId || "");
-          if (previousTeacherId && previousTeacherId !== session.userId) {
-            unavailableClassIds.push(selectedClassIds[index]);
-          }
-        });
+    selectedClassIds.forEach((classIdValue, index) => {
+      batch.set(ownerReferences[index], {
+        teacherId: session.userId,
+        subjectId,
+        classId: classIdValue,
+        grade: classParts(classIdValue).grade,
+        active: true,
+        updatedAt: now,
+      }, { merge: true });
+    });
 
-        if (unavailableClassIds.length) {
-          const error = new Error(unavailableClassIds.join(","));
-          error.name = "class_reserved";
-          throw error;
-        }
+    batch.set(scopeRef, {
+      teacherId: session.userId,
+      subjectId,
+      grade: activeGrade,
+      selectedClassIds,
+      customized: true,
+      assignmentSignature: assignmentScopeSignature(assignments, subjectId, activeGrade),
+      updatedAt: now,
+    }, { merge: true });
 
-        previousOwners.docs.forEach(document => {
-          const data = document.data() as Record<string, unknown>;
-          if (String(data.subjectId || "") !== subjectId) return;
-          const ownedClassId = String(data.classId || "");
-          const ownedGrade = classParts(ownedClassId).grade;
-          if (activeGrade && ownedGrade !== activeGrade) return;
-          if (!selected.has(ownedClassId)) transaction.delete(ownerCollection.doc(document.id));
-        });
-
-        selectedClassIds.forEach((classIdValue, index) => {
-          transaction.set(ownerReferences[index], {
-            teacherId: session.userId,
-            subjectId,
-            classId: classIdValue,
-            grade: classParts(classIdValue).grade,
-            active: true,
-            updatedAt: now,
-          }, { merge: true });
-        });
-
-        transaction.set(scopeRef, {
-          teacherId: session.userId,
-          subjectId,
-          grade: activeGrade,
-          selectedClassIds,
-          customized: true,
-          assignmentSignature: assignmentScopeSignature(assignments, subjectId, activeGrade),
-          updatedAt: now,
-        }, { merge: true });
-      });
-    } catch (error) {
-      if (error instanceof Error && error.name === "class_reserved") {
-        return NextResponse.json({
-          ok: false,
-          message: "أحد الفصول اختاره معلم آخر بالفعل. حدّث القائمة وستظهر لك الفصول المتبقية فقط.",
-          unavailableClassIds: error.message.split(",").filter(Boolean),
-        }, { status: 409 });
-      }
-      throw error;
-    }
+    await batch.commit();
 
     return NextResponse.json({
       ok: true,
