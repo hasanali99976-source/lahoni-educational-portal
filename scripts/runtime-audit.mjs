@@ -16,6 +16,11 @@ function forbid(relativePath, pattern, message) {
   if (pattern.test(source)) failures.push(`${relativePath}: ${message}`);
 }
 
+function requirePattern(relativePath, pattern, message) {
+  const source = read(relativePath);
+  if (source === null || !pattern.test(source)) failures.push(`${relativePath}: ${message}`);
+}
+
 function requireMissing(relativePath, message) {
   if (fs.existsSync(path.join(root, relativePath))) failures.push(`${relativePath}: ${message}`);
 }
@@ -54,6 +59,21 @@ forbid(
   "app/teacher/attendance/page.tsx",
   /\bonSnapshot\s*\(/,
   "قائمة التحضير لا تفتح مراقبة Firestore مباشرة مستمرة.",
+);
+forbid(
+  "app/api/teacher-session/route.ts",
+  /\bfindUserById\b/,
+  "جلسة المعلم يجب أن تعيد استخدام المستخدم الذي تحققت منه requireSession بدل قراءة Firebase مرتين.",
+);
+requirePattern(
+  "lib/server/portal-auth.ts",
+  /firestore_auth_timeout/,
+  "قراءات التحقق من حسابات المعلمين تحتاج مهلة قصيرة حتى لا تعلق وظائف Vercel.",
+);
+requirePattern(
+  "app/api/admin/teachers/route.ts",
+  /withTimeout\s*\(\s*reference\.set\s*\(/,
+  "إنشاء حساب المعلم يجب أن يملك مهلة زمنية قصيرة.",
 );
 
 const teacherRosterRequests = count(
