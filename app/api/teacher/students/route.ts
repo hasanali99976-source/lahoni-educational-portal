@@ -98,15 +98,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: relevant });
     }
 
+    const database = adminDb();
     const subjectPath = `portalV2Data/${session.userId}/subjects/${subjectId}/students`;
-    const scopeRef = adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION)
+    const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
+      .doc(teacherClassScopeId(session.userId, subjectId, requestedGrade));
+    const legacySubjectScopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId));
 
-    const [legacySnapshot, scopeSnapshot, centralStudentSnapshot, centralClassSnapshot] = await Promise.all([
-      adminDb().collection(subjectPath).get(),
+    const [legacySnapshot, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentSnapshot, centralClassSnapshot] = await Promise.all([
+      database.collection(subjectPath).get(),
       scopeRef.get(),
-      adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get(),
-      adminDb().collection(SCHOOL_CLASSES_COLLECTION).get(),
+      requestedGrade ? legacySubjectScopeRef.get() : Promise.resolve({ exists: false, data: () => undefined }),
+      database.collection(SCHOOL_STUDENTS_COLLECTION).get(),
+      database.collection(SCHOOL_CLASSES_COLLECTION).get(),
     ]);
 
     const legacyRows = legacySnapshot.docs
@@ -132,18 +136,28 @@ export async function GET(request: Request) {
       .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
 
+    const currentSignature = assignmentScopeSignature(assignments, subjectId, requestedGrade);
     const scopeData = scopeSnapshot.exists ? scopeSnapshot.data() as Record<string, unknown> : null;
-    const currentSignature = assignmentScopeSignature(assignments, subjectId);
     const storedSignature = String(scopeData?.assignmentSignature || "");
     const storedSelection = normalizeClassIds(scopeData?.selectedClassIds)
       .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
-    const scopeCustomized = scopeData?.customized === true
-      && storedSignature === currentSignature
-      && storedSelection.length > 0;
+    const savedScopeValid = scopeData?.customized === true && storedSignature === currentSignature;
 
-    const selectedClassIds = scopeCustomized
+    const legacyScopeData = legacySubjectScopeSnapshot.exists
+      ? legacySubjectScopeSnapshot.data() as Record<string, unknown>
+      : null;
+    const legacySelection = normalizeClassIds(legacyScopeData?.selectedClassIds)
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
+    const canMigrateLegacySelection = !scopeSnapshot.exists
+      && requestedGrade !== null
+      && legacyScopeData?.customized === true
+      && legacySelection.length > 0;
+
+    const selectedClassIds = savedScopeValid
       ? storedSelection
-      : availableClasses.map(item => item.id);
+      : canMigrateLegacySelection
+        ? legacySelection
+        : availableClasses.map(item => item.id);
     const selected = new Set(selectedClassIds);
 
     const selectedLegacyRows = legacyRows.filter(item => selected.has(classId(item.student.grade, item.student.section)));
@@ -221,16 +235,31 @@ export async function GET(request: Request) {
       });
     });
 
-    if (!scopeCustomized && scopeSnapshot.exists && !requestedGrade) {
+    if (canMigrateLegacySelection) {
       repairs.push({
-        path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId)}`,
+        path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId, requestedGrade)}`,
         data: {
           teacherId: session.userId,
           subjectId,
+          grade: requestedGrade,
+          selectedClassIds,
+          customized: true,
+          assignmentSignature: currentSignature,
+          migratedFromSubjectScope: true,
+          updatedAt: now,
+        },
+      });
+    } else if (scopeSnapshot.exists && !savedScopeValid) {
+      repairs.push({
+        path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId, requestedGrade)}`,
+        data: {
+          teacherId: session.userId,
+          subjectId,
+          grade: requestedGrade,
           selectedClassIds,
           customized: false,
           assignmentSignature: currentSignature,
-          resetReason: "assignment_or_legacy_scope_changed",
+          resetReason: "assignment_changed",
           updatedAt: now,
         },
       });
@@ -249,8 +278,8 @@ export async function GET(request: Request) {
       classes,
       availableClasses,
       selectedClassIds,
-      scopeCustomized,
-      scopeInvalidated: Boolean(scopeSnapshot.exists && !scopeCustomized),
+      scopeCustomized: savedScopeValid || canMigrateLegacySelection,
+      scopeInvalidated: Boolean(scopeSnapshot.exists && !savedScopeValid),
       assignments: relevant,
       assignedGrades: [...grades],
       activeGrade: requestedGrade,
