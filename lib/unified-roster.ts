@@ -152,14 +152,24 @@ function asStudent(value: unknown): UnifiedStudent | null {
 }
 
 export function mergeStudents(...groups: UnifiedStudent[][]) {
+  const normalizedGroups = groups.map(group => group.map(asStudent).filter((item): item is UnifiedStudent => !!item));
+  const authoritative = normalizedGroups.length > 1
+    ? normalizedGroups[normalizedGroups.length - 1].filter(item => item.officialRoster === true)
+    : [];
+  const allowedClasses = authoritative.length
+    ? new Set(authoritative.map(item => normalizeClass(item.class)).filter(Boolean))
+    : null;
   const merged = new Map<string, UnifiedStudent>();
-  groups.flat().forEach((item) => {
-    const normalized = asStudent(item);
-    if (!normalized) return;
-    const code = studentCode(normalized);
-    const previous = merged.get(code);
-    merged.set(code, { ...previous, ...normalized, id: code });
+
+  normalizedGroups.forEach((group, groupIndex) => {
+    group.forEach(normalized => {
+      if (allowedClasses && groupIndex < normalizedGroups.length - 1 && !allowedClasses.has(normalizeClass(normalized.class))) return;
+      const code = studentCode(normalized);
+      const previous = merged.get(code);
+      merged.set(code, { ...previous, ...normalized, id: code });
+    });
   });
+
   return [...merged.values()].sort((a, b) => {
     const classCompare = normalizeClass(a.class).localeCompare(normalizeClass(b.class), "ar", { numeric: true });
     return classCompare || normalizeArabic(a.name).localeCompare(normalizeArabic(b.name), "ar", { numeric: true });
