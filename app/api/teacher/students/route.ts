@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { findUserById, requireSession } from "../../../../lib/server/portal-auth";
-import { normalizeAssignments, type TeacherAssignment } from "../../../../lib/teacher-assignments";
+import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 import {
   SCHOOL_CLASSES_COLLECTION,
   SCHOOL_STUDENTS_COLLECTION,
@@ -16,14 +16,13 @@ import {
 } from "../../../../lib/school-roster";
 import {
   TEACHER_CLASS_SCOPES_COLLECTION,
-  defaultSelectedClassIds,
+  assignmentScopeSignature,
   normalizeClassIds,
   teacherClassScopeId,
 } from "../../../../lib/teacher-class-scope";
 
 type Repair = { path: string; data: Record<string, unknown> };
 type Grade = 1 | 2 | 3;
-type ScopeMap = Map<Grade, Set<string> | null>;
 type LegacyRow = { id: string; raw: Record<string, unknown>; student: SchoolStudent };
 
 function explicitlyArchived(value: Record<string, unknown>) {
@@ -54,101 +53,6 @@ async function applyRepairs(repairs: Repair[]) {
   }
 }
 
-function addScope(scopes: ScopeMap, grade: Grade, section: string | null) {
-  const current = scopes.get(grade);
-  if (current === null) return;
-  if (section === null) {
-    scopes.set(grade, null);
-    return;
-  }
-  const sections = current || new Set<string>();
-  sections.add(section);
-  scopes.set(grade, sections);
-}
-
-function scopesFromAssignments(assignments: TeacherAssignment[]) {
-  const scopes: ScopeMap = new Map();
-  assignments.forEach(assignment => {
-    const grade = gradeNumber(assignment.grade);
-    if (grade) addScope(scopes, grade, null);
-  });
-  return scopes;
-}
-
-function scopesFromStudents(students: SchoolStudent[]) {
-  const scopes: ScopeMap = new Map();
-  students.forEach(student => addScope(scopes, student.grade as Grade, student.section));
-  return scopes;
-}
-
-function mergeScopes(...maps: ScopeMap[]) {
-  const merged: ScopeMap = new Map();
-  maps.forEach(scopes => {
-    scopes.forEach((sections, grade) => {
-      if (sections === null) {
-        addScope(merged, grade, null);
-        return;
-      }
-      sections.forEach(section => addScope(merged, grade, section));
-    });
-  });
-  return merged;
-}
-
-async function loadScopedStudentDocuments(scopes: ScopeMap) {
-  const collection = adminDb().collection(SCHOOL_STUDENTS_COLLECTION);
-  const queries: Promise<any>[] = [];
-
-  scopes.forEach((sections, grade) => {
-    if (sections === null) {
-      queries.push(collection.where("grade", "==", grade).get());
-      return;
-    }
-    sections.forEach(section => {
-      queries.push(collection.where("className", "==", canonicalClassName(grade, section)).get());
-    });
-  });
-
-  const snapshots = await Promise.all(queries);
-  const documents = new Map<string, any>();
-  snapshots.forEach(snapshot => snapshot.docs.forEach((item: any) => documents.set(item.id, item)));
-  return [...documents.values()];
-}
-
-async function loadScopedClassDocuments(scopes: ScopeMap) {
-  const collection = adminDb().collection(SCHOOL_CLASSES_COLLECTION);
-  const queryTasks: Promise<any>[] = [];
-  const documentTasks: Promise<any>[] = [];
-
-  scopes.forEach((sections, grade) => {
-    if (sections === null) {
-      queryTasks.push(collection.where("grade", "==", grade).get());
-      return;
-    }
-    sections.forEach(section => {
-      documentTasks.push(collection.doc(classId(grade, section)).get());
-    });
-  });
-
-  const [snapshots, exactDocuments] = await Promise.all([
-    Promise.all(queryTasks),
-    Promise.all(documentTasks),
-  ]);
-
-  const documents = new Map<string, any>();
-  snapshots.forEach(snapshot => snapshot.docs.forEach((item: any) => documents.set(item.id, item)));
-  exactDocuments.forEach(item => {
-    if (item.exists) documents.set(item.id, item);
-  });
-  return [...documents.values()];
-}
-
-function normalizeCentralRows(documents: any[]) {
-  return documents
-    .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
-    .filter((item): item is SchoolStudent => !!item && item.active !== false);
-}
-
 function classFromStudent(student: SchoolStudent): SchoolClass {
   return {
     id: classId(student.grade, student.section),
@@ -157,6 +61,17 @@ function classFromStudent(student: SchoolStudent): SchoolClass {
     name: canonicalClassName(student.grade, student.section),
     active: true,
   };
+}
+
+function assignedGrades(assignments: Array<{ grade: string }>) {
+  return new Set<Grade>(
+    assignments.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
+  );
+}
+
+function classGradeFromId(value: string) {
+  const grade = Number(value.split("-")[0]);
+  return grade === 1 || grade === 2 || grade === 3 ? grade as Grade : null;
 }
 
 export async function GET(request: Request) {
@@ -170,59 +85,57 @@ export async function GET(request: Request) {
     const subjectId = String(new URL(request.url).searchParams.get("subjectId") || "").split("--")[0];
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const relevant = assignments.filter(item => item.subjectId === subjectId);
-    if (!subjectId || !relevant.length) {
-      return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: [] });
+    const grades = assignedGrades(relevant);
+    if (!subjectId || !relevant.length || !grades.size) {
+      return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: relevant });
     }
 
-    const detailedAssignments = relevant.filter(item => !!gradeNumber(item.grade));
-    const hasDetailedAssignments = detailedAssignments.length > 0;
     const subjectPath = `portalV2Data/${session.userId}/subjects/${subjectId}/students`;
-    const scopeRef = adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(session.userId, subjectId));
+    const scopeRef = adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION)
+      .doc(teacherClassScopeId(session.userId, subjectId));
 
-    const [legacySnapshot, scopeSnapshot] = await Promise.all([
+    const [legacySnapshot, scopeSnapshot, centralStudentSnapshot, centralClassSnapshot] = await Promise.all([
       adminDb().collection(subjectPath).get(),
       scopeRef.get(),
+      adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get(),
+      adminDb().collection(SCHOOL_CLASSES_COLLECTION).get(),
     ]);
 
     const legacyRows = legacySnapshot.docs
       .map(item => ({ id: item.id, raw: item.data() as Record<string, unknown> }))
       .map(item => ({ ...item, student: normalizeLegacy(item.raw, item.id) }))
-      .filter((item): item is LegacyRow => !!item.student);
+      .filter((item): item is LegacyRow => !!item.student && grades.has(item.student.grade as Grade));
 
-    const assignmentScopes = hasDetailedAssignments ? scopesFromAssignments(detailedAssignments) : new Map<Grade, Set<string> | null>();
-    const legacyScopes = scopesFromStudents(legacyRows.map(item => item.student));
-    const scopes = mergeScopes(assignmentScopes, legacyScopes);
-    if (!scopes.size) {
-      return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: relevant });
-    }
+    const centralAllRows = centralStudentSnapshot.docs
+      .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
+      .filter((item): item is SchoolStudent => !!item && item.active !== false && grades.has(item.grade as Grade));
 
-    const [centralDocuments, classDocuments] = await Promise.all([
-      loadScopedStudentDocuments(scopes),
-      loadScopedClassDocuments(scopes),
-    ]);
-
-    const centralAllRows = normalizeCentralRows(centralDocuments);
     const availableMap = new Map<string, SchoolClass>();
-
-    classDocuments.forEach(item => {
-      const data = item.data();
-      if (!data) return;
+    centralClassSnapshot.docs.forEach(item => {
+      const data = item.data() as Record<string, unknown>;
       const schoolClass = normalizeClassRecord({ id: item.id, ...data } as Partial<SchoolClass>);
-      if (!schoolClass || schoolClass.active === false) return;
+      if (!schoolClass || schoolClass.active === false || !grades.has(schoolClass.grade as Grade)) return;
       availableMap.set(schoolClass.id, schoolClass);
     });
     centralAllRows.forEach(student => availableMap.set(classId(student.grade, student.section), classFromStudent(student)));
     legacyRows.forEach(item => availableMap.set(classId(item.student.grade, item.student.section), classFromStudent(item.student)));
 
     const availableClasses = [...availableMap.values()]
+      .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
+
     const scopeData = scopeSnapshot.exists ? scopeSnapshot.data() as Record<string, unknown> : null;
-    const scopeCustomized = scopeData?.customized === true;
+    const currentSignature = assignmentScopeSignature(assignments, subjectId);
+    const storedSignature = String(scopeData?.assignmentSignature || "");
+    const storedSelection = normalizeClassIds(scopeData?.selectedClassIds)
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
+    const scopeCustomized = scopeData?.customized === true
+      && storedSignature === currentSignature
+      && storedSelection.length > 0;
+
     const selectedClassIds = scopeCustomized
-      ? normalizeClassIds(scopeData?.selectedClassIds)
-      : hasDetailedAssignments
-        ? defaultSelectedClassIds(assignments, subjectId, availableClasses)
-        : availableClasses.map(item => item.id);
+      ? storedSelection
+      : availableClasses.map(item => item.id);
     const selected = new Set(selectedClassIds);
 
     const selectedLegacyRows = legacyRows.filter(item => selected.has(classId(item.student.grade, item.student.section)));
@@ -243,6 +156,7 @@ export async function GET(request: Request) {
     const repairs: Repair[] = [];
     const existingIds = new Set(legacySnapshot.docs.map(item => item.id));
     const legacyIdentities = new Set(selectedLegacyRows.map(item => studentIdentity(item.student)));
+    const now = new Date().toISOString();
 
     selectedLegacyRows.forEach(item => {
       const canonical = canonicalClassName(item.student.grade, item.student.section);
@@ -267,7 +181,7 @@ export async function GET(request: Request) {
             subjectKey: subjectId,
             active: true,
             rosterActive: true,
-            updatedAt: new Date().toISOString(),
+            updatedAt: now,
           },
         });
       }
@@ -294,10 +208,25 @@ export async function GET(request: Request) {
           subjectKey: subjectId,
           active: true,
           rosterActive: true,
-          updatedAt: new Date().toISOString(),
+          updatedAt: now,
         },
       });
     });
+
+    if (!scopeCustomized && scopeSnapshot.exists) {
+      repairs.push({
+        path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId)}`,
+        data: {
+          teacherId: session.userId,
+          subjectId,
+          selectedClassIds,
+          customized: false,
+          assignmentSignature: currentSignature,
+          resetReason: "assignment_or_legacy_scope_changed",
+          updatedAt: now,
+        },
+      });
+    }
 
     try {
       if (repairs.length) await applyRepairs(repairs);
@@ -313,15 +242,17 @@ export async function GET(request: Request) {
       availableClasses,
       selectedClassIds,
       scopeCustomized,
+      scopeInvalidated: Boolean(scopeSnapshot.exists && !scopeCustomized),
       assignments: relevant,
+      assignedGrades: [...grades],
       recoveredLegacy: selectedLegacyRows.length,
       preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
       centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
       repairPending: repairs.length,
-      centralReadCount: centralDocuments.length,
-      classReadCount: classDocuments.length,
+      centralReadCount: centralStudentSnapshot.docs.length,
+      classReadCount: centralClassSnapshot.docs.length,
       preservedTeacherData: true,
-    }, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=60" } });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("teacher central roster failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل قائمة الطلاب" }, { status: 500 });
