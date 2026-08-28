@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { officialClassName } from "../../../../lib/official-class";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
 
@@ -13,6 +14,8 @@ export async function GET(request: Request) {
   const student = await adminDb().collection(`${root}/students`).doc(access.studentId).get();
   if (!student.exists) return NextResponse.json({ ok: false, message: "لم يعد سجل الطالب متاحًا." }, { status: 404 });
 
+  const studentData = student.data() || {};
+  const className = officialClassName(studentData.class || studentData.className, studentData.section);
   const attendance = await adminDb().collection(`${root}/attendance`).get();
   const counts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0 };
   let latestDate = "";
@@ -33,11 +36,13 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ok: true,
     data: {
-      ...student.data(),
+      ...studentData,
+      class: className || "",
+      className: className || "",
       absences: counts.absent,
       late: counts.late,
       attendanceSummary: { ...counts, disciplineRate, latestDate },
     },
     updatedAt: new Date().toISOString(),
-  });
+  }, { headers: { "Cache-Control": "no-store" } });
 }
