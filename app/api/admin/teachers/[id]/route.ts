@@ -25,23 +25,40 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const userRef = adminDb().collection("portalV2Users").doc(id);
   await userRef.update(update);
   if (normalizedAssignments) {
-    const previousAssignments = await adminDb().collection("portalV2Assignments").where("teacherId", "==", id).get();
+    const assignmentCollection = adminDb().collection("portalV2Assignments");
+    const previousAssignments = await assignmentCollection.where("teacherId", "==", id).get();
+    const previousById = new Map(previousAssignments.docs.map(item => [item.id, item]));
+    const activeDocumentIds = new Set(normalizedAssignments.map(assignment => `${id}__${assignment.id}`));
     const batch = adminDb().batch();
-    previousAssignments.docs.forEach(item => batch.delete(adminDb().collection("portalV2Assignments").doc(item.id)));
     const now = new Date().toISOString();
-    normalizedAssignments.forEach(assignment => batch.set(adminDb().collection("portalV2Assignments").doc(`${id}__${assignment.id}`), {
-      teacherId: id,
-      subjectId: assignment.subjectId,
-      assignmentId: assignment.id,
-      grade: assignment.grade,
-      section: assignment.section,
-      active: true,
-      updatedAt: now,
-      createdAt: now,
-    }, { merge: true }));
+
+    previousAssignments.docs.forEach(item => {
+      if (activeDocumentIds.has(item.id)) return;
+      batch.set(item.ref, {
+        active: false,
+        archivedAt: now,
+        updatedAt: now,
+      }, { merge: true });
+    });
+
+    normalizedAssignments.forEach(assignment => {
+      const documentId = `${id}__${assignment.id}`;
+      const existed = previousById.has(documentId);
+      batch.set(assignmentCollection.doc(documentId), {
+        teacherId: id,
+        subjectId: assignment.subjectId,
+        assignmentId: assignment.id,
+        grade: assignment.grade,
+        section: assignment.section,
+        active: true,
+        archivedAt: null,
+        updatedAt: now,
+        ...(existed ? {} : { createdAt: now }),
+      }, { merge: true });
+    });
     await batch.commit();
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, preservedTeacherData: true });
 }
 
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
