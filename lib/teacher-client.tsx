@@ -46,13 +46,14 @@ export function useTeacherClient() {
   const pathname = usePathname();
   const teacherId = session.teacherId || "";
   const subjectKey = session.subjectKey || "";
+  const workspaceKey = session.workspaceKey || subjectKey;
   const activeGrade = session.activeGrade || null;
 
   useEffect(() => {
     if (DIRECT_ROSTER_PAGES.has(pathname)) return;
     if (!teacherId || !subjectKey) return;
 
-    const key = `${teacherId}:${subjectKey}:${activeGrade || "all"}`;
+    const key = `${teacherId}:${workspaceKey}`;
     const lastRun = recentBootstraps.get(key) || 0;
     if (Date.now() - lastRun < 60_000) return;
     recentBootstraps.set(key, Date.now());
@@ -79,14 +80,14 @@ export function useTeacherClient() {
             rosterActive: true,
           } as UnifiedStudent;
         }).filter((student: UnifiedStudent) => !!student.id && !!student.name && !!student.class);
-        saveLocalRoster(teacherId, students, subjectKey);
+        saveLocalRoster(teacherId, students, workspaceKey);
       })
       .catch(() => {
         recentBootstraps.delete(key);
       });
 
     return () => { active = false; };
-  }, [pathname, teacherId, subjectKey, activeGrade]);
+  }, [pathname, teacherId, subjectKey, workspaceKey, activeGrade]);
 
   return session;
 }
