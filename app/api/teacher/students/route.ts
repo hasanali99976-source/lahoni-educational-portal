@@ -9,10 +9,8 @@ import {
   classId,
   classMatchesAssignments,
   gradeNumber,
-  normalizeArabic,
   normalizeClassRecord,
   normalizeStudentRecord,
-  sectionNumber,
   studentIdentity,
   studentMatchesAssignments,
   type SchoolClass,
@@ -52,14 +50,6 @@ async function applyRepairs(repairs: Repair[]) {
   }
 }
 
-function allSections(value: unknown) {
-  const normalized = normalizeArabic(value);
-  return !normalized
-    || normalized === "الكل"
-    || normalized === "كل"
-    || normalized === "جميع الفصول";
-}
-
 function addScope(scopes: ScopeMap, grade: Grade, section: string | null) {
   const current = scopes.get(grade);
   if (current === null) return;
@@ -76,13 +66,7 @@ function scopesFromAssignments(assignments: TeacherAssignment[]) {
   const scopes: ScopeMap = new Map();
   assignments.forEach(assignment => {
     const grade = gradeNumber(assignment.grade);
-    if (!grade) return;
-    if (allSections(assignment.section)) {
-      addScope(scopes, grade, null);
-      return;
-    }
-    const section = sectionNumber(assignment.section);
-    if (section) addScope(scopes, grade, section);
+    if (grade) addScope(scopes, grade, null);
   });
   return scopes;
 }
@@ -319,6 +303,7 @@ export async function GET(request: Request) {
       centralReadCount: centralDocuments.length,
       classReadCount: classDocuments.length,
       fallbackToLegacy,
+      gradeWideRoster: true,
     }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=120" } });
   } catch (error) {
     console.error("teacher central roster failed", error);
