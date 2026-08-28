@@ -21,6 +21,11 @@ function classParts(classId: string): { grade: Grade | null; section: string } {
   return { grade, section };
 }
 
+function parseGrade(value: unknown): Grade | null {
+  const number = Number(value || 0);
+  return number === 1 || number === 2 || number === 3 ? number as Grade : null;
+}
+
 export async function PATCH(request: Request) {
   const session = await requireSession("teacher");
   if (!session?.user) return NextResponse.json({ ok: false }, { status: 401 });
@@ -29,29 +34,33 @@ export async function PATCH(request: Request) {
     const user = session.user;
     const body = await request.json();
     const subjectId = String(body?.subjectId || "").split("--")[0].trim();
+    const activeGrade = parseGrade(body?.grade);
     const selectedClassIds = normalizeClassIds(body?.selectedClassIds);
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
-    const relevant = assignments.filter(item => item.subjectId === subjectId);
+    const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
+    const relevant = activeGrade
+      ? subjectAssignments.filter(item => gradeNumber(item.grade) === activeGrade)
+      : subjectAssignments;
+
     if (!subjectId || !relevant.length) {
-      return NextResponse.json({ ok: false, message: "المادة غير مرتبطة بحسابك." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "المادة أو المرحلة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
-    const currentAssignmentSignature = assignmentScopeSignature(assignments, subjectId);
     const allowedGrades = new Set<Grade>(
       relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
     );
     const invalid = selectedClassIds.filter(item => {
       const { grade } = classParts(item);
-      return !grade || !allowedGrades.has(grade);
+      return !grade || !allowedGrades.has(grade) || (activeGrade !== null && grade !== activeGrade);
     });
     if (invalid.length) {
-      return NextResponse.json({ ok: false, message: "لا يمكن إضافة فصل خارج الصفوف المسندة لك." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "لا يمكن إضافة فصل خارج المرحلة المسندة لك." }, { status: 400 });
     }
 
     const database = adminDb();
     const ownerCollection = database.collection(SUBJECT_CLASS_OWNERS_COLLECTION);
     const ownerSnapshots = await Promise.all(
-      selectedClassIds.map(classId => ownerCollection.doc(subjectClassOwnerId(subjectId, classId)).get()),
+      selectedClassIds.map(classIdValue => ownerCollection.doc(subjectClassOwnerId(subjectId, classIdValue)).get()),
     );
 
     const transferredFrom = new Map<string, Set<string>>();
@@ -59,18 +68,22 @@ export async function PATCH(request: Request) {
       if (!snapshot.exists) return;
       const data = snapshot.data() as Record<string, unknown>;
       const previousTeacherId = String(data.teacherId || "");
-      const classId = selectedClassIds[index];
-      if (!classId || !previousTeacherId || previousTeacherId === session.userId) return;
+      const classIdValue = selectedClassIds[index];
+      if (!classIdValue || !previousTeacherId || previousTeacherId === session.userId) return;
       const classes = transferredFrom.get(previousTeacherId) || new Set<string>();
-      classes.add(classId);
+      classes.add(classIdValue);
       transferredFrom.set(previousTeacherId, classes);
     });
 
     const transferredScopeSnapshots = await Promise.all(
-      [...transferredFrom.keys()].map(async teacherId => {
-        const reference = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
-          .doc(teacherClassScopeId(teacherId, subjectId));
-        return { teacherId, reference, snapshot: await reference.get() };
+      [...transferredFrom.entries()].map(async ([teacherId, classIds]) => {
+        const grades = [...new Set([...classIds].map(item => classParts(item).grade).filter((item): item is Grade => !!item))];
+        const scopes = await Promise.all(grades.map(async grade => {
+          const reference = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
+            .doc(teacherClassScopeId(teacherId, subjectId, grade));
+          return { grade, reference, snapshot: await reference.get() };
+        }));
+        return { teacherId, scopes };
       }),
     );
 
@@ -83,41 +96,49 @@ export async function PATCH(request: Request) {
       const data = document.data() as Record<string, unknown>;
       if (String(data.subjectId || "") !== subjectId) return;
       const ownedClassId = String(data.classId || "");
+      const ownedGrade = classParts(ownedClassId).grade;
+      if (activeGrade && ownedGrade !== activeGrade) return;
       if (!selected.has(ownedClassId)) batch.delete(ownerCollection.doc(document.id));
     });
 
-    transferredScopeSnapshots.forEach(({ teacherId, reference, snapshot }) => {
-      if (!snapshot.exists) return;
-      const data = snapshot.data() as Record<string, unknown>;
+    transferredScopeSnapshots.forEach(({ teacherId, scopes }) => {
       const removed = transferredFrom.get(teacherId) || new Set<string>();
-      const remaining = normalizeClassIds(data.selectedClassIds).filter(classId => !removed.has(classId));
-      batch.set(reference, {
-        teacherId,
-        subjectId,
-        selectedClassIds: remaining,
-        customized: true,
-        updatedAt: now,
-      }, { merge: true });
+      scopes.forEach(({ grade, reference, snapshot }) => {
+        if (!snapshot.exists) return;
+        const data = snapshot.data() as Record<string, unknown>;
+        const remaining = normalizeClassIds(data.selectedClassIds)
+          .filter(classIdValue => classParts(classIdValue).grade === grade && !removed.has(classIdValue));
+        batch.set(reference, {
+          teacherId,
+          subjectId,
+          grade,
+          selectedClassIds: remaining,
+          customized: true,
+          updatedAt: now,
+        }, { merge: true });
+      });
     });
 
-    selectedClassIds.forEach(classId => {
-      batch.set(ownerCollection.doc(subjectClassOwnerId(subjectId, classId)), {
+    selectedClassIds.forEach(classIdValue => {
+      batch.set(ownerCollection.doc(subjectClassOwnerId(subjectId, classIdValue)), {
         teacherId: session.userId,
         subjectId,
-        classId,
+        classId: classIdValue,
+        grade: classParts(classIdValue).grade,
         active: true,
         updatedAt: now,
       }, { merge: true });
     });
 
     const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
-      .doc(teacherClassScopeId(session.userId, subjectId));
+      .doc(teacherClassScopeId(session.userId, subjectId, activeGrade));
     batch.set(scopeRef, {
       teacherId: session.userId,
       subjectId,
+      grade: activeGrade,
       selectedClassIds,
       customized: true,
-      assignmentSignature: currentAssignmentSignature,
+      assignmentSignature: assignmentScopeSignature(assignments, subjectId, activeGrade),
       updatedAt: now,
     }, { merge: true });
 
@@ -125,9 +146,12 @@ export async function PATCH(request: Request) {
     const transferredClassIds = [...new Set([...transferredFrom.values()].flatMap(items => [...items]))];
     return NextResponse.json({
       ok: true,
+      subjectId,
+      activeGrade,
       selectedClassIds,
       transferredClassIds,
       transferredCount: transferredClassIds.length,
+      preservedOtherGrades: true,
       preservedData: true,
     });
   } catch (error) {
