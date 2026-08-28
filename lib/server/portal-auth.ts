@@ -8,6 +8,7 @@ import { adminDb } from "./firebase-admin";
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+const FIRESTORE_AUTH_TIMEOUT_MS = 4500;
 
 export type PortalRole = "admin" | "teacher";
 export type PortalSession = {
@@ -32,6 +33,10 @@ export type PortalUser = {
   updatedAt: string;
 };
 
+export type VerifiedPortalSession = PortalSession & {
+  user?: PortalUser;
+};
+
 type CompatDocumentSnapshot = {
   id: string;
   exists: boolean;
@@ -45,6 +50,23 @@ function secret() {
 
 function sign(payload: string) {
   return createHmac("sha256", secret()).update(payload).digest("base64url");
+}
+
+async function withFirestoreAuthTimeout<T>(
+  promise: Promise<T>,
+  milliseconds = FIRESTORE_AUTH_TIMEOUT_MS,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("firestore_auth_timeout")), milliseconds);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 export function createSessionToken(session: PortalSession) {
@@ -96,7 +118,7 @@ export async function currentSession() {
   return readSessionToken(store.get(PORTAL_SESSION_COOKIE)?.value);
 }
 
-export async function requireSession(role?: PortalRole) {
+export async function requireSession(role?: PortalRole): Promise<VerifiedPortalSession | null> {
   const session = await currentSession();
   if (!session || (role && session.role !== role)) return null;
 
@@ -111,7 +133,7 @@ export async function requireSession(role?: PortalRole) {
   const user = await findUserById(session.userId);
   if (!user || !user.active || user.role !== session.role) return null;
   if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
-  return { ...session, name: user.name };
+  return { ...session, name: user.name, user };
 }
 
 export function normalizeUsername(value: string) {
@@ -139,12 +161,19 @@ function normalizePortalUser(document: CompatDocumentSnapshot): PortalUser | nul
 }
 
 export async function findUserByUsername(username: string): Promise<PortalUser | null> {
-  const snapshot = await adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizeUsername(username)).limit(1).get();
+  const snapshot = await withFirestoreAuthTimeout(
+    adminDb().collection("portalV2Users")
+      .where("normalizedUsername", "==", normalizeUsername(username))
+      .limit(1)
+      .get(),
+  );
   if (snapshot.empty) return null;
   return normalizePortalUser(snapshot.docs[0]!);
 }
 
 export async function findUserById(id: string): Promise<PortalUser | null> {
-  const document = await adminDb().collection("portalV2Users").doc(id).get();
+  const document = await withFirestoreAuthTimeout(
+    adminDb().collection("portalV2Users").doc(id).get(),
+  );
   return normalizePortalUser(document);
 }
