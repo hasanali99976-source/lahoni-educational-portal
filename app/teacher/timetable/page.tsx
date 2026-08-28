@@ -24,6 +24,15 @@ const emptyLesson = (): Lesson => ({ subject: "", className: "", notes: "" });
 const ar = new Intl.NumberFormat("ar-SA-u-nu-arab");
 const keyFor = (day: string, period: number) => `${day}-${period}`;
 
+function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function cleanSchedule(value: unknown, subjectLabel: string) {
   if (!value || typeof value !== "object") return {} as Schedule;
   const cleaned: Schedule = {};
@@ -121,15 +130,21 @@ export default function TimetablePage() {
     setDraft({ ...current, subject: current.subject || subject.label });
     setMessage("");
   }
-  function closeEditor() { setSelected(null); setDraft(emptyLesson()); }
+
+  function closeEditor() {
+    setSelected(null);
+    setDraft(emptyLesson());
+  }
 
   async function persist(nextVisible: Schedule, success: string) {
     if (!timetablePath) return;
     try {
       setSaving(true);
       const allowed = new Set(classes);
-      const retained = Object.fromEntries(Object.entries(schedule).filter(([, lesson]) => allowed.has(lesson.className))) as Schedule;
-      const next = { ...retained, ...nextVisible };
+      const otherStages = Object.fromEntries(
+        Object.entries(schedule).filter(([, lesson]) => !allowed.has(lesson.className)),
+      ) as Schedule;
+      const next = { ...otherStages, ...nextVisible };
       await setDoc(doc(db, timetablePath, "weekly"), {
         lessons: next,
         teacherId,
@@ -139,8 +154,11 @@ export default function TimetablePage() {
       }, { merge: true });
       setSchedule(next);
       setMessage(success);
-    } catch { setMessage("تعذر حفظ الجدول"); }
-    finally { setSaving(false); }
+    } catch {
+      setMessage("تعذر حفظ الجدول");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function saveLesson() {
@@ -162,7 +180,65 @@ export default function TimetablePage() {
 
   async function clearAll() {
     if (!timetablePath || !window.confirm("سيتم حذف جميع حصص الجدول الأسبوعي للمرحلة الحالية. هل أنت متأكد؟")) return;
-    await persist({}, "تم تفريغ الجدول بالكامل");
+    await persist({}, "تم تفريغ جدول المرحلة الحالية بالكامل");
+    closeEditor();
+  }
+
+  function printTimetable() {
+    setMessage("");
+    const printable = window.open("", "lahooni-timetable-print", "width=1200,height=850");
+    if (!printable) {
+      setMessage("تعذر فتح صفحة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.");
+      return;
+    }
+
+    const rows = days.map(day => {
+      const cells = periods.map(period => {
+        const lesson = visibleSchedule[keyFor(day.key, period)];
+        if (!lesson) return "<td class=\"empty\">—</td>";
+        return `<td><strong>${escapeHtml(lesson.subject || subject.label)}</strong><span>${escapeHtml(lesson.className)}</span>${lesson.notes ? `<small>${escapeHtml(lesson.notes)}</small>` : ""}</td>`;
+      }).join("");
+      return `<tr><th>${escapeHtml(day.label)}</th>${cells}</tr>`;
+    }).join("");
+
+    const printedAt = new Intl.DateTimeFormat("ar-SA-u-nu-arab", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date());
+
+    printable.document.open();
+    printable.document.write(`<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>الجدول الدراسي - ${escapeHtml(session.teacherName || "المعلم")}</title>
+<style>
+@page{size:A4 landscape;margin:9mm}
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef4f7;color:#17384a;font-family:Arial,Tahoma,sans-serif;direction:rtl}
+body{padding:18px}.toolbar{display:flex;justify-content:center;gap:10px;margin-bottom:14px}.toolbar button{border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:800;cursor:pointer}.toolbar .print{background:#1768c5;color:#fff}.toolbar .close{background:#fff;color:#17384a}
+.report{width:min(1120px,100%);margin:auto;background:#fff;padding:18px;border-radius:16px;box-shadow:0 10px 28px rgba(23,56,74,.12)}
+header{text-align:center;border-bottom:2px solid #173f5d;padding-bottom:12px;margin-bottom:12px}header small{color:#60798a}h1{margin:5px 0;font-size:25px}header p{margin:4px 0;font-weight:700}
+.meta{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin:10px 0 14px}.meta span{padding:6px 10px;border-radius:999px;background:#edf5fb;font-size:12px;font-weight:700}
+table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #9fb2bd;padding:7px;text-align:center;vertical-align:middle;height:72px;font-size:11px}thead th{height:auto;background:#173f5d;color:#fff}tbody th{width:78px;background:#e9f1f5}td strong,td span,td small{display:block}td strong{color:#1768c5;margin-bottom:4px}td span{font-weight:800}td small{margin-top:4px;color:#5e7380}.empty{color:#a6b2b8;background:#fafcfd}
+footer{text-align:center;margin-top:12px;padding-top:9px;border-top:1px solid #cbd8df;color:#617581;font-size:10px}
+@media print{html,body{background:#fff}body{padding:0}.toolbar{display:none}.report{width:100%;padding:0;border-radius:0;box-shadow:none}thead th{background:#dce8ee!important;color:#111!important}th,td{break-inside:avoid;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="toolbar"><button class="print" onclick="window.print()">🖨️ طباعة أو حفظ PDF</button><button class="close" onclick="window.close()">إغلاق</button></div>
+<main class="report">
+<header><small>بوابة أستاذ لحوني التعليمية</small><h1>الجدول الدراسي الأسبوعي</h1><p>${escapeHtml(subject.label)}${session.activeGradeLabel ? ` — ${escapeHtml(session.activeGradeLabel)}` : ""}</p></header>
+<div class="meta"><span>المعلم: ${escapeHtml(session.teacherName || "المعلم")}</span><span>عدد الحصص: ${escapeHtml(ar.format(smart.total))}</span><span>تاريخ الطباعة: ${escapeHtml(printedAt)}</span></div>
+<table><thead><tr><th>اليوم</th>${periods.map(period => `<th>الحصة ${escapeHtml(ar.format(period))}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>
+<footer>تم إنشاء الجدول من بوابة أستاذ لحوني التعليمية</footer>
+</main>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.focus();window.print();},300);});<\/script>
+</body>
+</html>`);
+    printable.document.close();
   }
 
   async function smartAdd() {
@@ -180,12 +256,12 @@ export default function TimetablePage() {
   if (!session) return <main className="timetable-page"><section className="timetable-hero"><h1>الجدول الدراسي</h1><p>جارٍ تحميل الجدول...</p></section></main>;
 
   return <main className="timetable-page" dir="rtl">
-    <section className="timetable-hero"><div><span>📅 تنظيم أسبوعك</span><h1>الجدول الدراسي الذكي</h1><p>{subject.label}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. لا تظهر إلا الفصول الرقمية المختارة.</p></div><div className="timetable-actions no-print"><button className="print-main" onClick={() => window.print()}>🖨 طباعة صفحة واحدة</button><button className="danger" onClick={clearAll} disabled={saving}>تفريغ الجدول</button></div></section>
-    {message && <p className="timetable-message no-print">{message}</p>}
-    <section className="smart-strip no-print"><div className="smart-head"><span>✨ مساعد الجدول الذكي</span><strong>{smart.suggestion}</strong><button className="smart-action" onClick={smartAdd} disabled={saving}>🤖 اقترح وأضف أفضل حصة</button></div><div className="smart-stats"><article><small>الحصص المسجلة</small><b>{ar.format(smart.total)}</b></article><article><small>الخانات الفارغة</small><b>{ar.format(smart.empty)}</b></article><article><small>أكثر يوم ازدحامًا</small><b>{smart.busiest?.count ? smart.busiest.day : "—"}</b></article><article><small>أكثر فصل تكرارًا</small><b>{smart.mostClass ? smart.mostClass[0] : "—"}</b></article></div></section>
+    <section className="timetable-hero"><div><span>📅 تنظيم أسبوعك</span><h1>الجدول الدراسي الذكي</h1><p>{subject.label}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. لا تظهر إلا الفصول الرقمية المختارة.</p></div><div className="timetable-actions no-print"><button type="button" className="print-main" onClick={printTimetable}>🖨 طباعة صفحة واحدة</button><button type="button" className="danger" onClick={() => void clearAll()} disabled={saving}>تفريغ الجدول</button></div></section>
+    {message && <p className="timetable-message no-print" role="status">{message}</p>}
+    <section className="smart-strip no-print"><div className="smart-head"><span>✨ مساعد الجدول الذكي</span><strong>{smart.suggestion}</strong><button type="button" className="smart-action" onClick={() => void smartAdd()} disabled={saving}>🤖 اقترح وأضف أفضل حصة</button></div><div className="smart-stats"><article><small>الحصص المسجلة</small><b>{ar.format(smart.total)}</b></article><article><small>الخانات الفارغة</small><b>{ar.format(smart.empty)}</b></article><article><small>أكثر يوم ازدحامًا</small><b>{smart.busiest?.count ? smart.busiest.day : "—"}</b></article><article><small>أكثر فصل تكرارًا</small><b>{smart.mostClass ? smart.mostClass[0] : "—"}</b></article></div></section>
     <section className="timetable-meta"><strong>{session.teacherName}</strong><span>{subject.label}</span><span>{session.activeGradeLabel || "جميع المراحل"}</span><span>{ar.format(smart.total)} حصة مسجلة</span></section>
-    <section className="table-wrap"><table className="weekly-table"><thead><tr><th>اليوم</th>{periods.map(period => <th key={period}>الحصة {ar.format(period)}</th>)}</tr></thead><tbody>{days.map(day => <tr key={day.key}><th>{day.label}</th>{periods.map(period => { const lesson = visibleSchedule[keyFor(day.key, period)]; return <td key={period}><button className={`lesson-cell ${lesson ? "filled" : ""}`} onClick={() => openCell(day.key, period)}><small>{ar.format(period)}</small>{lesson ? <><strong>{lesson.subject}</strong><span>{lesson.className}</span>{lesson.notes && <em>{lesson.notes}</em>}</> : <b>＋</b>}</button></td>; })}</tr>)}</tbody></table></section>
-    <section className="mobile-days">{days.map(day => <article key={day.key}><h2>{day.label}</h2><div>{periods.map(period => { const lesson = visibleSchedule[keyFor(day.key, period)]; return <button key={period} className={lesson ? "filled" : ""} onClick={() => openCell(day.key, period)}><span>الحصة {ar.format(period)}</span>{lesson ? <><strong>{subject.label}</strong><small>{lesson.className}</small></> : <b>إضافة الفصل</b>}</button>; })}</div></article>)}</section>
-    {selected && <div className="lesson-modal no-print" role="dialog" aria-modal="true"><div className="lesson-editor"><header><div><span>تعديل الحصة {ar.format(selected.period)}</span><h2>{days.find(day => day.key === selected.day)?.label}</h2></div><button className="close" onClick={closeEditor}>×</button></header><div className="fixed-subject"><span>المادة الحالية</span><strong>{subject.label}</strong><small>{session.activeGradeLabel || ""}</small></div><label><span>الفصل</span><select value={draft.className} onChange={event => setDraft(current => ({ ...current, className: event.target.value }))}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select>{!classes.length && <small>حدد فصولك الرقمية من إدارة الطلاب أولًا.</small>}</label><label><span>ملاحظات اختيارية</span><textarea value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="قاعة، نشاط، اختبار..."/></label><footer><button className="save" onClick={saveLesson} disabled={saving}>{saving ? "جارٍ الحفظ..." : "حفظ الحصة"}</button><button className="delete" onClick={clearLesson} disabled={saving}>حذف الحصة</button><button onClick={closeEditor}>إلغاء</button></footer></div></div>}
+    <section className="table-wrap"><table className="weekly-table"><thead><tr><th>اليوم</th>{periods.map(period => <th key={period}>الحصة {ar.format(period)}</th>)}</tr></thead><tbody>{days.map(day => <tr key={day.key}><th>{day.label}</th>{periods.map(period => { const lesson = visibleSchedule[keyFor(day.key, period)]; return <td key={period}><button type="button" className={`lesson-cell ${lesson ? "filled" : ""}`} onClick={() => openCell(day.key, period)}><small>{ar.format(period)}</small>{lesson ? <><strong>{lesson.subject}</strong><span>{lesson.className}</span>{lesson.notes && <em>{lesson.notes}</em>}</> : <b>＋</b>}</button></td>; })}</tr>)}</tbody></table></section>
+    <section className="mobile-days">{days.map(day => <article key={day.key}><h2>{day.label}</h2><div>{periods.map(period => { const lesson = visibleSchedule[keyFor(day.key, period)]; return <button type="button" key={period} className={lesson ? "filled" : ""} onClick={() => openCell(day.key, period)}><span>الحصة {ar.format(period)}</span>{lesson ? <><strong>{subject.label}</strong><small>{lesson.className}</small></> : <b>إضافة الفصل</b>}</button>; })}</div></article>)}</section>
+    {selected && <div className="lesson-modal no-print" role="dialog" aria-modal="true"><div className="lesson-editor"><header><div><span>تعديل الحصة {ar.format(selected.period)}</span><h2>{days.find(day => day.key === selected.day)?.label}</h2></div><button type="button" className="close" onClick={closeEditor}>×</button></header><div className="fixed-subject"><span>المادة الحالية</span><strong>{subject.label}</strong><small>{session.activeGradeLabel || ""}</small></div><label><span>الفصل</span><select value={draft.className} onChange={event => setDraft(current => ({ ...current, className: event.target.value }))}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select>{!classes.length && <small>حدد فصولك الرقمية من إدارة الطلاب أولًا.</small>}</label><label><span>ملاحظات اختيارية</span><textarea value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="قاعة، نشاط، اختبار..." /></label><footer><button type="button" className="save" onClick={() => void saveLesson()} disabled={saving}>{saving ? "جارٍ الحفظ..." : "حفظ الحصة"}</button><button type="button" className="delete" onClick={() => void clearLesson()} disabled={saving}>حذف الحصة</button><button type="button" onClick={closeEditor}>إلغاء</button></footer></div></div>}
   </main>;
 }
