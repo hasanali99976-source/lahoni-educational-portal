@@ -173,12 +173,9 @@ export function subjectAssignments(assignments: AssignmentLike[] | undefined, su
   return (Array.isArray(assignments) ? assignments : []).filter(item => clean(item.subjectId) === clean(subjectId));
 }
 
-export function assignmentMatchesClass(assignment: AssignmentLike, grade: number, section: string) {
+export function assignmentMatchesClass(assignment: AssignmentLike, grade: number, _section: string) {
   const assignedGrade = gradeNumber(assignment.grade);
-  if (!assignedGrade || assignedGrade !== grade) return false;
-  const assignedSection = normalizeArabic(assignment.section);
-  if (!assignedSection || assignedSection === "الكل" || assignedSection === "كل" || assignedSection === "جميع الفصول") return true;
-  return sectionNumber(assignment.section) === westernDigits(section);
+  return Boolean(assignedGrade && assignedGrade === grade);
 }
 
 export function studentMatchesAssignments(student: Pick<SchoolStudent, "grade" | "section">, assignments: AssignmentLike[] | undefined, subjectId: string) {
