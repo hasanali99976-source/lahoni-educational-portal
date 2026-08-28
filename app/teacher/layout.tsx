@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
@@ -19,15 +19,15 @@ import "./subject-themes-v5.css";
 import "./mobile-card-tables.css";
 
 const tabs = [
-  { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء" },
-  { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
-  { href: "/teacher/attendance", key: "attendance", label: "الحضور والغياب", note: "التحضير اليومي" },
-  { href: "/teacher/timetable", key: "timetable", label: "جدولي الدراسي", note: "الأحد إلى الخميس" },
-  { href: "/teacher/grades", key: "grades", label: "رصد الدرجات", note: "مرتبط بالمعلم والمادة" },
-  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
-  { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
-  { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
-  { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
+  { href: "/teacher/dashboard", key: "dashboard", label: "نظرة عامة", note: "مؤشرات اليوم" },
+  { href: "/teacher/students", key: "students", label: "الطلاب", note: "القوائم والأكواد" },
+  { href: "/teacher/attendance", key: "attendance", label: "التحضير", note: "الحضور والغياب" },
+  { href: "/teacher/timetable", key: "timetable", label: "الجدول", note: "الحصص الأسبوعية" },
+  { href: "/teacher/grades", key: "grades", label: "الدرجات", note: "الرصد والنتائج" },
+  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات", note: "التشخيص والخطط" },
+  { href: "/teacher/follow-up", key: "follow", label: "الإتقان", note: "المتابعة والتدخل" },
+  { href: "/teacher/portfolio", key: "portfolio", label: "الإنجاز", note: "الشواهد والطباعة" },
+  { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل واقتراحات", badge: "AI" },
 ];
 
 type TeacherSession = {
@@ -43,7 +43,7 @@ type TeacherSession = {
 };
 
 function TabIcon({ type }: { type: string }) {
-  const common = { width: 23, height: 23, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   if (type === "dashboard") return <svg {...common}><path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/></svg>;
   if (type === "grades") return <svg {...common}><path d="M4 19.5h16M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
   if (type === "attendance") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
@@ -87,8 +87,14 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    try { await Promise.all([fetch("/api/teacher-logout", { method: "POST", cache: "no-store" }), signOut(auth)]); }
-    finally { router.replace("/teacher"); router.refresh(); }
+    try {
+      await Promise.all([
+        fetch("/api/teacher-logout", { method: "POST", cache: "no-store" }),
+        signOut(auth),
+      ]);
+    } finally {
+      window.location.replace("/teacher");
+    }
   }
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
@@ -96,6 +102,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoginPage) { setReady(true); return; }
     let active = true;
+    setReady(false);
     fetch("/api/teacher-session", { cache: "no-store" })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
       .then((session: TeacherSession) => {
@@ -118,21 +125,15 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         cache: "no-store",
       });
       if (!response.ok) throw new Error();
-      const selected = subjects.find(subject => subject.workspaceKey === nextWorkspaceKey);
-      if (selected) {
-        setWorkspaceKey(selected.workspaceKey);
-        setSubjectKey(selected.subjectId as SubjectKey);
-        setSubjectName(selected.subjectName || getSubjectConfig(selected.subjectId).label);
-        setActiveGrade(selected.grade || null);
-        setActiveGradeLabel(selected.gradeLabel || "");
-      }
       setMenuOpen(false);
       window.location.assign("/teacher/dashboard");
-    } finally { setSwitchingSubject(false); }
+    } finally {
+      setSwitchingSubject(false);
+    }
   }
 
   if (isLoginPage) return <>{children}</>;
-  if (!ready) return <main className="teacher-shell-loading">جارٍ تجهيز بوابة المعلم…</main>;
+  if (!ready) return <main className="teacher-shell-loading">جارٍ تجهيز مساحة المعلم…</main>;
 
   const contextValue = {
     authenticated: true,
@@ -148,27 +149,54 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     setSubject: changeSubject,
     refresh: async () => {
       const response = await fetch("/api/teacher-session", { cache: "no-store" });
-      if (!response.ok) return;
-      applySession(await response.json());
+      if (response.ok) applySession(await response.json());
     },
   };
 
+  const activeTab = tabs.find(tab => pathname.startsWith(tab.href)) || tabs[0];
+
   return <TeacherClientContext.Provider value={contextValue}>
-    <div className={`teacher-app-shell ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
-      <button className="teacher-menu-button" type="button" aria-label="فتح أقسام بوابة المعلم" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span/><span/><span/><b>القائمة</b></button>
-      {menuOpen ? <button className="teacher-menu-backdrop" type="button" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/> : null}
-      <aside className="teacher-sidebar">
-        <div className="teacher-shell-brand"><Image className="teacher-portal-logo" src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={52} height={52} priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>{teacherName}</small></div><button className="teacher-menu-close" type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق القائمة">×</button></div>
-        {subjects.length > 1 ? <section className="teacher-subject-switcher" aria-label="تغيير المادة أو المرحلة"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><label><span>المادة والمرحلة الحالية</span><select value={workspaceKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}</option>)}</select></label></section> : <section className="teacher-single-subject"><div className="subject-switcher-icon">{subjectConfig.shortMark}</div><div><small>المادة والمرحلة</small><strong>{subjectName}</strong><span>{activeGradeLabel}</span></div></section>}
-        <div className="teacher-nav-title">أقسام بوابة المعلم</div>
-        <nav className="teacher-tabs" aria-label="أقسام بوابة المعلم">{tabs.map(tab => { const active = pathname.startsWith(tab.href); return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}><span className="teacher-tab-icon"><TabIcon type={tab.key}/></span><span className="teacher-tab-copy"><b>{tab.label}</b><small>{tab.note}</small></span>{tab.badge ? <em>{tab.badge}</em> : null}</Link>; })}</nav>
-        <div className="teacher-header-actions"><Link href="/" className="teacher-home-link">الصفحة الرئيسية</Link><button className="teacher-logout" onClick={() => void logout()}>تسجيل الخروج</button></div>
-      </aside>
-      <main className="teacher-main">
-        <header className="teacher-mobile-header"><div><small>بوابة المعلم</small><strong>{teacherName}</strong></div><span>{subjectConfig.label}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</span></header>
-        <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">مساحة {subjectConfig.label}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</span><h2>أهلًا أستاذ {teacherName}</h2><p>أدواتك التعليمية مرتبة في قائمة واحدة واضحة.</p></div><Link className="teacher-ai-quick" href="/teacher/ai"><span>AI</span><div><b>المساعد التعليمي الذكي</b><small>تحليل النتائج والخطط العلاجية</small></div></Link></section>
-        <div className="teacher-page-content">{children}</div>
-      </main>
+    <div className={`teacher-app-shell neo-teacher-shell ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
+      <header className="neo-teacher-topbar">
+        <div className="neo-teacher-brand">
+          <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={48} height={48} priority />
+          <div><small>مساحة العمل التعليمية</small><strong>أستاذ لحوني</strong></div>
+        </div>
+        <div className="neo-teacher-current"><span>{subjectConfig.shortMark}</span><div><small>المادة والمرحلة</small><b>{subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</b></div></div>
+        <div className="neo-teacher-top-actions">
+          <Link href="/teacher/ai" className="neo-ai-button">AI <span>المساعد</span></Link>
+          <button type="button" className="neo-menu-trigger" onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen}>الأدوات</button>
+          <button type="button" className="neo-logout-button" onClick={() => void logout()}>خروج</button>
+        </div>
+      </header>
+
+      <div className="neo-teacher-body">
+        {menuOpen && <button type="button" className="neo-teacher-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)} />}
+        <aside className="teacher-sidebar neo-teacher-rail">
+          <div className="neo-rail-profile"><span>{teacherName.trim().charAt(0) || "م"}</span><div><small>مرحبًا</small><strong>{teacherName}</strong></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق">×</button></div>
+
+          {subjects.length > 1 ? <label className="neo-subject-picker"><span>تغيير المادة أو المرحلة</span><select value={workspaceKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(item => <option key={item.workspaceKey} value={item.workspaceKey}>{item.subjectName}{item.gradeLabel ? ` — ${item.gradeLabel}` : ""}</option>)}</select></label> : <div className="neo-single-subject"><small>المساحة الحالية</small><strong>{subjectName}</strong><span>{activeGradeLabel}</span></div>}
+
+          <nav className="teacher-tabs neo-teacher-nav" aria-label="أقسام بوابة المعلم">{tabs.map(tab => {
+            const active = pathname.startsWith(tab.href);
+            return <Link key={tab.href} href={tab.href} className={active ? "active" : ""} onClick={() => setMenuOpen(false)}>
+              <span className="neo-nav-icon"><TabIcon type={tab.key}/></span>
+              <span><b>{tab.label}</b><small>{tab.note}</small></span>
+              {tab.badge ? <em>{tab.badge}</em> : null}
+            </Link>;
+          })}</nav>
+
+          <div className="neo-rail-footer"><Link href="/">العودة للصفحة الرئيسية</Link><small>البيانات محفوظة لكل معلم ومادة</small></div>
+        </aside>
+
+        <main className="teacher-main neo-teacher-main">
+          <header className="neo-page-context">
+            <div><span>{activeTab?.key === "ai" ? "AI" : subjectConfig.shortMark}</span><div><small>{subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</small><h1>{activeTab?.label}</h1><p>{activeTab?.note}</p></div></div>
+            <button type="button" onClick={() => setMenuOpen(true)}>عرض جميع الأدوات</button>
+          </header>
+          <div className="teacher-page-content neo-teacher-content">{children}</div>
+        </main>
+      </div>
     </div>
   </TeacherClientContext.Provider>;
 }
