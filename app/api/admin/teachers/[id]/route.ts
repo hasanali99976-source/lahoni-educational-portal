@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     previousAssignments.docs.forEach(item => {
       if (activeDocumentIds.has(item.id)) return;
-      batch.set(item.ref, {
+      batch.set(assignmentCollection.doc(item.id), {
         active: false,
         archivedAt: now,
         updatedAt: now,
