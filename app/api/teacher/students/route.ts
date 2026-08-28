@@ -46,9 +46,7 @@ function documentReference(path: string) {
 async function applyRepairs(repairs: Repair[]) {
   for (let index = 0; index < repairs.length; index += 350) {
     const batch = adminDb().batch();
-    repairs.slice(index, index + 350).forEach(item => {
-      batch.set(documentReference(item.path), item.data, { merge: true });
-    });
+    repairs.slice(index, index + 350).forEach(item => batch.set(documentReference(item.path), item.data, { merge: true }));
     await batch.commit();
   }
 }
@@ -63,10 +61,12 @@ function classFromStudent(student: SchoolStudent): SchoolClass {
   };
 }
 
-function assignedGrades(assignments: Array<{ grade: string }>) {
-  return new Set<Grade>(
+function assignedGrades(assignments: Array<{ grade: string }>, requestedGrade: Grade | null) {
+  const grades = new Set<Grade>(
     assignments.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
   );
+  if (requestedGrade) return grades.has(requestedGrade) ? new Set<Grade>([requestedGrade]) : new Set<Grade>();
+  return grades;
 }
 
 function classGradeFromId(value: string) {
@@ -82,10 +82,18 @@ export async function GET(request: Request) {
     const user = await findUserById(session.userId);
     if (!user) return NextResponse.json({ ok: false }, { status: 401 });
 
-    const subjectId = String(new URL(request.url).searchParams.get("subjectId") || "").split("--")[0];
+    const url = new URL(request.url);
+    const subjectId = String(url.searchParams.get("subjectId") || "").split("--")[0];
+    const requestedGradeValue = Number(url.searchParams.get("grade") || 0);
+    const requestedGrade: Grade | null = requestedGradeValue === 1 || requestedGradeValue === 2 || requestedGradeValue === 3
+      ? requestedGradeValue as Grade
+      : null;
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
-    const relevant = assignments.filter(item => item.subjectId === subjectId);
-    const grades = assignedGrades(relevant);
+    const allRelevant = assignments.filter(item => item.subjectId === subjectId);
+    const relevant = requestedGrade
+      ? allRelevant.filter(item => gradeNumber(item.grade) === requestedGrade)
+      : allRelevant;
+    const grades = assignedGrades(allRelevant, requestedGrade);
     if (!subjectId || !relevant.length || !grades.size) {
       return NextResponse.json({ ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: relevant });
     }
@@ -213,7 +221,7 @@ export async function GET(request: Request) {
       });
     });
 
-    if (!scopeCustomized && scopeSnapshot.exists) {
+    if (!scopeCustomized && scopeSnapshot.exists && !requestedGrade) {
       repairs.push({
         path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId)}`,
         data: {
@@ -245,6 +253,7 @@ export async function GET(request: Request) {
       scopeInvalidated: Boolean(scopeSnapshot.exists && !scopeCustomized),
       assignments: relevant,
       assignedGrades: [...grades],
+      activeGrade: requestedGrade,
       recoveredLegacy: selectedLegacyRows.length,
       preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
       centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
