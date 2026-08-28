@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { adminDb } from "../../../lib/server/firebase-admin";
 import { restoreLegacyTeacherLearningData } from "../../../lib/server/legacy-teacher-data";
 import { requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { normalizeAssignments } from "../../../lib/teacher-assignments";
+import { TEACHER_CLASS_SCOPES_COLLECTION, teacherClassScopeId } from "../../../lib/teacher-class-scope";
 
 const SUBJECT_COOKIE = "lahooni_active_subject";
 
@@ -13,6 +15,33 @@ function databaseUnavailable() {
     databaseUnavailable: true,
     message: "قاعدة البيانات مشغولة الآن. أعد المحاولة بعد قليل.",
   }, { status: 503, headers: { "Cache-Control": "no-store" } });
+}
+
+function assignmentSignature(ids: string[]) {
+  return [...new Set(ids)].sort().join("|");
+}
+
+async function resetStaleClassScopes(teacherId: string, subjectIds: string[], assignments: ReturnType<typeof normalizeAssignments>) {
+  const database = adminDb();
+  const resetSubjects: string[] = [];
+
+  for (const subjectId of subjectIds) {
+    const relevant = assignments.filter(item => item.subjectId === subjectId);
+    const expectedSignature = assignmentSignature(relevant.map(item => item.id));
+    const reference = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
+      .doc(teacherClassScopeId(teacherId, subjectId));
+    const snapshot = await reference.get();
+    if (!snapshot.exists) continue;
+
+    const data = snapshot.data() as Record<string, unknown>;
+    const savedSignature = String(data.assignmentSignature || "");
+    if (savedSignature === expectedSignature && savedSignature) continue;
+
+    await reference.delete();
+    resetSubjects.push(subjectId);
+  }
+
+  return resetSubjects;
 }
 
 export async function GET() {
@@ -37,7 +66,14 @@ export async function GET() {
       };
     });
 
-    let legacyRestore = { restored: 0, alreadyChecked: false };
+    let resetClassScopes: string[] = [];
+    try {
+      resetClassScopes = await resetStaleClassScopes(user.id, user.subjectIds, assignments);
+    } catch (error) {
+      console.warn("stale teacher class scope reset skipped", error);
+    }
+
+    let legacyRestore: Record<string, unknown> = { restored: 0, alreadyChecked: false };
     try {
       legacyRestore = await restoreLegacyTeacherLearningData({
         teacherId: user.id,
@@ -48,6 +84,15 @@ export async function GET() {
       console.warn("legacy teacher data restoration skipped", error);
     }
 
+    console.info("teacher session data status", {
+      teacherId: user.id,
+      teacherName: user.name,
+      subjectIds: user.subjectIds,
+      assignments: assignments.map(item => item.id),
+      resetClassScopes,
+      legacyRestore,
+    });
+
     const response = NextResponse.json({
       authenticated: true,
       teacherId: user.id,
@@ -56,6 +101,7 @@ export async function GET() {
       subject: current ? getSubjectConfig(current).label : null,
       subjects,
       assignments,
+      resetClassScopes,
       legacyRestore,
     }, { headers: { "Cache-Control": "no-store" } });
     if (current) response.cookies.set(SUBJECT_COOKIE, current, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
