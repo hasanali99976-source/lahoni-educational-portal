@@ -8,16 +8,20 @@ export async function GET(request: Request, context: { params: Promise<{ code: s
   const origin = new URL(request.url).origin;
 
   if (!CODE_PATTERN.test(code)) {
-    return NextResponse.redirect(new URL("/student?entry=qr-invalid", origin), 307);
+    return NextResponse.redirect(new URL("/student?entry=qr-invalid", origin), 302);
   }
 
   const target = new URL("/student", origin);
   target.searchParams.set("code", code);
   target.searchParams.set("entry", "iphone-qr");
-  target.searchParams.set("v", "45");
-  const response = NextResponse.redirect(target, 307);
-  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  target.searchParams.set("source", "camera");
+  target.searchParams.set("v", "46");
+
+  const response = NextResponse.redirect(target, 302);
+  response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate, max-age=0");
   response.headers.set("Pragma", "no-cache");
   response.headers.set("Expires", "0");
+  response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
   return response;
 }
