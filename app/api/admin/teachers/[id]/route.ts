@@ -3,6 +3,7 @@ import { adminDb } from "../../../../../lib/server/firebase-admin";
 import { hashPassword } from "../../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../../lib/teacher-assignments";
+import { SUBJECT_CLASS_OWNERS_COLLECTION, TEACHER_CLASS_SCOPES_COLLECTION } from "../../../../../lib/teacher-class-scope";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
@@ -22,14 +23,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     update.assignments = normalizedAssignments;
     update.subjectIds = [...new Set(normalizedAssignments.map(item => item.subjectId))];
   }
-  const userRef = adminDb().collection("portalV2Users").doc(id);
+  const database = adminDb();
+  const userRef = database.collection("portalV2Users").doc(id);
   await userRef.update(update);
   if (normalizedAssignments) {
-    const assignmentCollection = adminDb().collection("portalV2Assignments");
+    const assignmentCollection = database.collection("portalV2Assignments");
     const previousAssignments = await assignmentCollection.where("teacherId", "==", id).get();
     const previousById = new Map(previousAssignments.docs.map(item => [item.id, item]));
     const activeDocumentIds = new Set(normalizedAssignments.map(assignment => `${id}__${assignment.id}`));
-    const batch = adminDb().batch();
+    const batch = database.batch();
     const now = new Date().toISOString();
 
     previousAssignments.docs.forEach(item => {
@@ -57,17 +59,33 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       }, { merge: true });
     });
     await batch.commit();
+
+    const [classScopes, classOwners] = await Promise.all([
+      database.collection(TEACHER_CLASS_SCOPES_COLLECTION).where("teacherId", "==", id).get(),
+      database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("teacherId", "==", id).get(),
+    ]);
+    const resetBatch = database.batch();
+    classScopes.docs.forEach(item => resetBatch.delete(database.collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(item.id)));
+    classOwners.docs.forEach(item => resetBatch.delete(database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(item.id)));
+    await resetBatch.commit();
   }
-  return NextResponse.json({ ok: true, preservedTeacherData: true });
+  return NextResponse.json({ ok: true, preservedTeacherData: true, classScopeReset: !!normalizedAssignments });
 }
 
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   const { id } = await context.params;
-  await adminDb().collection("portalV2Users").doc(id).delete();
-  const assignments = await adminDb().collection("portalV2Assignments").where("teacherId", "==", id).get();
-  const batch = adminDb().batch();
-  assignments.docs.forEach(item => batch.delete(adminDb().collection("portalV2Assignments").doc(item.id)));
+  const database = adminDb();
+  await database.collection("portalV2Users").doc(id).delete();
+  const [assignments, classScopes, classOwners] = await Promise.all([
+    database.collection("portalV2Assignments").where("teacherId", "==", id).get(),
+    database.collection(TEACHER_CLASS_SCOPES_COLLECTION).where("teacherId", "==", id).get(),
+    database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("teacherId", "==", id).get(),
+  ]);
+  const batch = database.batch();
+  assignments.docs.forEach(item => batch.delete(database.collection("portalV2Assignments").doc(item.id)));
+  classScopes.docs.forEach(item => batch.delete(database.collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(item.id)));
+  classOwners.docs.forEach(item => batch.delete(database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(item.id)));
   await batch.commit();
   return NextResponse.json({ ok: true });
 }
