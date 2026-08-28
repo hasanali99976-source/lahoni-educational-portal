@@ -86,30 +86,12 @@ export function hasDetailedAssignments(assignments: AssignmentLike[] | undefined
 export function classMatchesAssignments(className: string, assignments: AssignmentLike[] | undefined, subjectKey: string) {
   const relevant = subjectAssignments(assignments, subjectKey).filter((assignment) => !!clean(assignment.grade));
   if (!relevant.length) return false;
-  const normalizedClass = normalizeArabic(westernDigits(className));
   const classGrade = gradeNumber(className);
-  const classNumbers = westernDigits(className).match(/\d+/g) || [];
-  const classSectionNumber = classNumbers.length ? classNumbers[classNumbers.length - 1] : "";
+  if (!classGrade) return false;
 
-  return relevant.some((assignment) => {
-    const assignmentGrade = clean(assignment.grade);
-    const assignmentGradeNumber = gradeNumber(assignmentGrade);
-    const normalizedGrade = normalizeArabic(westernDigits(assignmentGrade)).replace(/(^|\s)الصف(\s|$)/g, " ").trim();
-    const gradeMatches = assignmentGradeNumber && classGrade
-      ? assignmentGradeNumber === classGrade
-      : !!normalizedGrade && normalizedClass.includes(normalizedGrade);
-    if (!gradeMatches) return false;
-
-    const section = clean(assignment.section);
-    const normalizedSection = normalizeArabic(westernDigits(section)).replace(/(^|\s)الفصل(\s|$)/g, " ").trim();
-    if (!section || normalizedSection === "الكل" || normalizedSection === "كل" || normalizedSection === "جميع الفصول") return true;
-
-    const sectionNumber = westernDigits(section).match(/\d+/)?.[0] || "";
-    if (sectionNumber) return classSectionNumber === sectionNumber;
-
-    const classTokens = normalizedClass.split(/\s+/).filter(Boolean);
-    return normalizedClass.endsWith(normalizedSection) || classTokens.slice(-2).includes(normalizedSection);
-  });
+  // ربط القوائم يكون على مستوى الصف كاملًا داخل المادة.
+  // رقم الفصل في التكليف يحدد عدد الحصص/التوزيع الإداري فقط، ولا يخفي بقية فصول المرحلة.
+  return relevant.some((assignment) => gradeNumber(clean(assignment.grade)) === classGrade);
 }
 
 export function assignmentClassNames(assignments: AssignmentLike[] | undefined, subjectKey: string) {
