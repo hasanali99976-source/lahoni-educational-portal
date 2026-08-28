@@ -6,8 +6,21 @@ import { usePathname, useRouter } from "next/navigation";
 import { getSubjectConfig } from "../lib/subject-config";
 import "./teacher-subject-switcher.css";
 
-type SubjectItem = { subjectId: string; subjectName: string; grades?: string[]; gradeLabel?: string };
-type SessionData = { authenticated?: boolean; subjectKey?: string; subjects?: SubjectItem[] };
+type SubjectItem = {
+  workspaceKey: string;
+  subjectId: string;
+  subjectName: string;
+  grade?: number | null;
+  grades?: string[];
+  gradeLabel?: string;
+};
+type SessionData = {
+  authenticated?: boolean;
+  subjectKey?: string;
+  workspaceKey?: string;
+  activeGrade?: number | null;
+  subjects?: SubjectItem[];
+};
 
 export default function TeacherSubjectSwitcher() {
   const pathname = usePathname();
@@ -18,8 +31,8 @@ export default function TeacherSubjectSwitcher() {
   const [target, setTarget] = useState<Element | null>(null);
 
   const visible = pathname.startsWith("/teacher/") && pathname !== "/teacher/subjects";
-  const currentSubject = useMemo(() => subjects.find((item) => item.subjectId === current), [subjects, current]);
-  const config = getSubjectConfig(current || "history");
+  const currentSubject = useMemo(() => subjects.find(item => item.workspaceKey === current), [subjects, current]);
+  const config = getSubjectConfig(currentSubject?.subjectId || "history");
 
   useEffect(() => {
     if (!visible) return;
@@ -32,30 +45,27 @@ export default function TeacherSubjectSwitcher() {
   useEffect(() => {
     if (!visible) return;
     fetch("/api/teacher-session", { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return (await response.json()) as SessionData;
-      })
-      .then((data) => {
+      .then(async response => response.ok ? await response.json() as SessionData : null)
+      .then(data => {
         if (!data?.authenticated) return;
         setSubjects(data.subjects || []);
-        setCurrent(data.subjectKey || data.subjects?.[0]?.subjectId || "");
+        setCurrent(data.workspaceKey || data.subjects?.[0]?.workspaceKey || "");
       })
       .catch(() => undefined);
   }, [visible, pathname]);
 
-  async function changeSubject(subjectId: string) {
-    if (!subjectId || subjectId === current || changing) return;
+  async function changeSubject(workspaceKey: string) {
+    if (!workspaceKey || workspaceKey === current || changing) return;
     try {
       setChanging(true);
       const response = await fetch("/api/teacher-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subjectId }),
+        body: JSON.stringify({ workspaceKey }),
         cache: "no-store",
       });
       if (!response.ok) throw new Error("subject_change_failed");
-      setCurrent(subjectId);
+      setCurrent(workspaceKey);
       router.refresh();
       window.location.reload();
     } catch {
@@ -68,19 +78,19 @@ export default function TeacherSubjectSwitcher() {
   const currentGradeLabel = currentSubject?.gradeLabel || "جميع الصفوف المسندة";
 
   return createPortal(
-    <div className="teacher-subject-switcher no-print" dir="rtl" aria-label="المادة المفتوحة">
+    <div className="teacher-subject-switcher no-print" dir="rtl" aria-label="المادة والمرحلة المفتوحة">
       <div className="subject-switcher-mark" aria-hidden="true">{config.shortMark || "م"}</div>
       <div className="subject-switcher-copy">
         <small>مساحة العمل الحالية</small>
         <strong>{currentSubject?.subjectName || config.label}</strong>
-        <span>{changing ? "جارٍ تجهيز هوية المادة..." : `${currentGradeLabel} — الطلاب والدرجات والتقارير مرتبطة بهذه المادة`}</span>
+        <span>{changing ? "جارٍ تجهيز المرحلة..." : `${currentGradeLabel} — الطلاب والدرجات والتقارير مرتبطة بهذه المرحلة`}</span>
       </div>
       {subjects.length > 1 ? (
         <label className="subject-switcher-control">
-          <span>تبديل المادة</span>
-          <select value={current} disabled={changing} onChange={(event) => changeSubject(event.target.value)}>
-            {subjects.map((subject) => (
-              <option key={subject.subjectId} value={subject.subjectId}>
+          <span>تبديل المادة أو المرحلة</span>
+          <select value={current} disabled={changing} onChange={event => changeSubject(event.target.value)}>
+            {subjects.map(subject => (
+              <option key={subject.workspaceKey} value={subject.workspaceKey}>
                 {subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}
               </option>
             ))}
