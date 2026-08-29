@@ -1,11 +1,14 @@
 import "server-only";
 
-import { applicationDefault, cert, getApp, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
+import { createSign } from "node:crypto";
 
-let cachedApp: App | null | undefined;
+type ServiceAccount = {
+  projectId: string;
+  clientEmail: string;
+  privateKey: string;
+};
 
-function serviceAccountFromEnvironment() {
+function serviceAccountFromEnvironment(): ServiceAccount | null {
   const encoded = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (encoded) {
     try {
@@ -18,11 +21,11 @@ function serviceAccountFromEnvironment() {
         private_key?: string;
       };
       if (value.project_id && value.client_email && value.private_key) {
-        return cert({
+        return {
           projectId: value.project_id,
           clientEmail: value.client_email,
           privateKey: value.private_key.replace(/\\n/g, "\n"),
-        });
+        };
       }
     } catch (error) {
       console.warn("Firebase service account JSON is invalid", error);
@@ -33,48 +36,46 @@ function serviceAccountFromEnvironment() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n").trim();
   if (projectId && clientEmail && privateKey) {
-    return cert({ projectId, clientEmail, privateKey });
+    return { projectId, clientEmail, privateKey };
   }
 
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) return applicationDefault();
   return null;
 }
 
-function portalAdminApp() {
-  if (cachedApp !== undefined) return cachedApp;
-
-  try {
-    cachedApp = getApp("portal-auth");
-    return cachedApp;
-  } catch {
-    // The named app has not been initialized yet.
-  }
-
-  const credential = serviceAccountFromEnvironment();
-  if (!credential) {
-    cachedApp = null;
-    return null;
-  }
-
-  cachedApp = initializeApp({
-    credential,
-    projectId: process.env.FIREBASE_PROJECT_ID || "tahdheeb-history",
-  }, "portal-auth");
-  return cachedApp;
+function base64UrlJson(value: unknown) {
+  return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
 }
 
 export async function createTeacherFirebaseToken(input: {
   teacherId: string;
   subjectIds: string[];
 }) {
-  const app = portalAdminApp();
-  if (!app) return null;
+  const account = serviceAccountFromEnvironment();
+  if (!account) return null;
 
   try {
-    return await getAuth(app).createCustomToken(input.teacherId, {
-      role: "teacher",
-      subjectIds: input.subjectIds,
+    const now = Math.floor(Date.now() / 1000);
+    const header = base64UrlJson({ alg: "RS256", typ: "JWT" });
+    const payload = base64UrlJson({
+      iss: account.clientEmail,
+      sub: account.clientEmail,
+      aud: "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+      iat: now,
+      exp: now + 3600,
+      uid: input.teacherId,
+      claims: {
+        role: "teacher",
+        subjectIds: input.subjectIds,
+      },
     });
+    const signingInput = `${header}.${payload}`;
+    const signature = createSign("RSA-SHA256")
+      .update(signingInput)
+      .end()
+      .sign(account.privateKey)
+      .toString("base64url");
+
+    return `${signingInput}.${signature}`;
   } catch (error) {
     console.warn("Firebase custom token creation skipped", error);
     return null;
