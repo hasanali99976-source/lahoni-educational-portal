@@ -1,10 +1,10 @@
 import "server-only";
 
-import { addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, limit, query, runTransaction as firestoreRunTransaction, setDoc, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 
 class DocumentSnapshotCompat {
-  constructor(private snapshot: Awaited<ReturnType<typeof getDoc>>) {}
+  constructor(private snapshot: any) {}
   get id() { return this.snapshot.id; }
   get exists() { return this.snapshot.exists(); }
   get ref() { return { path: this.snapshot.ref.path }; }
@@ -56,10 +56,30 @@ class BatchCompat {
   async commit() { await this.batch.commit(); }
 }
 
+class TransactionCompat {
+  constructor(private transaction: any) {}
+  async get(reference: DocumentReferenceCompat) {
+    const snapshot = await this.transaction.get(doc(db, reference.path, reference.id));
+    return new DocumentSnapshotCompat(snapshot);
+  }
+  set(reference: DocumentReferenceCompat, value: Record<string, unknown>, options?: { merge?: boolean }) {
+    if (options) this.transaction.set(doc(db, reference.path, reference.id), value, options);
+    else this.transaction.set(doc(db, reference.path, reference.id), value);
+    return this;
+  }
+  delete(reference: DocumentReferenceCompat) {
+    this.transaction.delete(doc(db, reference.path, reference.id));
+    return this;
+  }
+}
+
 class FirestoreCompat {
   collection(path: string) { return new CollectionReferenceCompat(path); }
   collectionGroup(id: string) { return new CollectionGroupReferenceCompat(id); }
   batch() { return new BatchCompat(); }
+  runTransaction<T>(callback: (transaction: TransactionCompat) => Promise<T>) {
+    return firestoreRunTransaction(db, transaction => callback(new TransactionCompat(transaction)));
+  }
 }
 
 const firestore = new FirestoreCompat();
