@@ -2,31 +2,16 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v16";
-const RELOAD_KEY = "ostadh-lahooni-v16-reloaded";
-
 export default function PwaRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    let refreshing = false;
-    const handleControllerChange = () => {
-      if (refreshing) return;
-      refreshing = true;
-      if (!sessionStorage.getItem(RELOAD_KEY)) {
-        sessionStorage.setItem(RELOAD_KEY, "1");
-        window.location.reload();
-      }
-    };
-
-    navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-
     const register = async () => {
       try {
         const keys = await caches.keys();
-        await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        const registration = await navigator.serviceWorker.register("/sw.js?v=16", { scope: "/", updateViaCache: "none" });
-        await registration.update();
+        await Promise.all(keys.filter((key) => key !== "ostadh-lahooni-v10").map((key) => caches.delete(key)));
+        const registration = await navigator.serviceWorker.register("/sw.js?v=10", { scope: "/", updateViaCache: "none" });
+        void registration.update();
         if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
       } catch {
         // تبقى المنصة متاحة حتى لو تعذر تشغيل وضع التطبيق.
@@ -35,11 +20,7 @@ export default function PwaRegister() {
 
     if (document.readyState === "complete") void register();
     else window.addEventListener("load", register, { once: true });
-
-    return () => {
-      window.removeEventListener("load", register);
-      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
-    };
+    return () => window.removeEventListener("load", register);
   }, []);
 
   return null;

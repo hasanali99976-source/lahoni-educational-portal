@@ -1,54 +1,32 @@
-const CACHE_NAME = "ostadh-lahooni-v16";
+const CACHE_NAME = "ostadh-lahooni-v10";
 const STATIC_FILES = [
-  "/",
-  "/student",
-  "/teacher",
-  "/admin",
   "/manifest.webmanifest",
   "/icon.svg",
   "/icons/ostadh-lahooni-192.jpg",
 ];
 
-self.addEventListener("message", event => {
+self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => Promise.all(STATIC_FILES.map(path => cache.add(new Request(path, { cache: "reload" })))))
-      .catch(() => undefined)
-  );
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_FILES)).catch(() => undefined));
   self.skipWaiting();
 });
 
-self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))));
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))));
   self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
+self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
   if (request.mode === "navigate") {
-    const portalFallback = url.pathname.startsWith("/teacher")
-      ? "/teacher"
-      : url.pathname.startsWith("/admin")
-        ? "/admin"
-        : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
-          ? "/student"
-          : "/";
-
-    event.respondWith(fetch(request, { cache: "no-store" }).catch(async () =>
-      (await caches.match(request))
-      || (await caches.match(url.pathname))
-      || (await caches.match(portalFallback))
-      || (await caches.match("/"))
-    ));
+    event.respondWith(fetch(request, { cache: "no-store" }).catch(() => caches.match("/")));
     return;
   }
 
@@ -58,9 +36,11 @@ self.addEventListener("fetch", event => {
   }
 
   if (["image", "manifest"].includes(request.destination)) {
-    event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
-      return response;
-    })));
+    event.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        return response;
+      }))
+    );
   }
 });
