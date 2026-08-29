@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v14";
+const CACHE_NAME = "ostadh-lahooni-v15";
 const STATIC_FILES = [
   "/",
   "/student",
@@ -14,7 +14,11 @@ self.addEventListener("message", event => {
 });
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_FILES)).catch(() => undefined));
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => Promise.all(STATIC_FILES.map(path => cache.add(new Request(path, { cache: "reload" })))))
+      .catch(() => undefined)
+  );
   self.skipWaiting();
 });
 
