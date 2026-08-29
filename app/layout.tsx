@@ -4,6 +4,7 @@ import "./subject-identities.css";
 import "./attendance-students-v31.css";
 import "./portal-new-era-v50.css";
 import "./portal-new-era-login-v50.css";
+import "./teacher-shell-fix-v51.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";

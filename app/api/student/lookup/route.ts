@@ -26,6 +26,7 @@ type Candidate = {
   assignments: TeacherAssignment[];
   existing?: LocatedStudent;
   priority: number;
+  matchedClass: boolean;
 };
 
 const STUDENT_CODE_PATTERN = /^TH[123]\d{3}$/;
@@ -164,9 +165,8 @@ export async function POST(request: Request) {
         const scopeSnapshot = scopes.get(`${entry.teacherId}:${subjectId}`);
         const customized = scopeSnapshot?.exists && scopeSnapshot.data()?.customized === true;
         const selectedClassIds = customized ? normalizeClassIds(scopeSnapshot.data()?.selectedClassIds) : [];
-        const allowed = ownerTeacherId === entry.teacherId
+        const matchedClass = ownerTeacherId === entry.teacherId
           || (customized ? selectedClassIds.includes(studentClassId) : assignments.some(item => assignmentAllowsClassExact(item, student.grade, student.section)));
-        if (!allowed) return;
 
         const existing = existingByTeacherSubject.get(`${entry.teacherId}:${subjectId}`);
         candidates.push({
@@ -175,7 +175,12 @@ export async function POST(request: Request) {
           teacherData: entry.teacherData,
           assignments,
           existing,
-          priority: ownerTeacherId === entry.teacherId ? 100 : candidatePriority(assignments, student, customized, !!existing),
+          matchedClass,
+          priority: ownerTeacherId === entry.teacherId
+            ? 100
+            : matchedClass
+              ? candidatePriority(assignments, student, customized, !!existing)
+              : 10 + (existing ? 5 : 0),
         });
       });
     });
@@ -188,7 +193,7 @@ export async function POST(request: Request) {
       });
 
     if (!chosenBySubject.size) {
-      return NextResponse.json({ ok: false, message: "لم تُحدّد فصول هذا الطالب عند معلمي مواده بعد." }, { status: 401 });
+      return NextResponse.json({ ok: false, message: "لم تُربط مواد هذا الصف بالمعلمين بعد." }, { status: 401 });
     }
 
     const repairWrites: Array<{ path: string; data: Record<string, unknown> }> = [];
@@ -209,7 +214,12 @@ export async function POST(request: Request) {
       } as Record<string, unknown>;
       repairWrites.push({
         path: `portalV2Data/${candidate.teacherId}/subjects/${candidate.subjectId}/students/${accessCode}`,
-        data: { ...data, linkedFromCentralRoster: true, updatedAt: new Date().toISOString() },
+        data: {
+          ...data,
+          linkedFromCentralRoster: true,
+          linkedByGradeFallback: !candidate.matchedClass,
+          updatedAt: new Date().toISOString(),
+        },
       });
       return { studentId: accessCode, teacherId: candidate.teacherId, subjectId: candidate.subjectId, data };
     });
@@ -232,7 +242,6 @@ export async function POST(request: Request) {
 
     const matches = located.map(item => {
       const candidate = chosenBySubject.get(item.subjectId)!;
-      const assignment = candidate.assignments[0];
       const subject = getSubjectConfig(item.subjectId);
       const accessToken = createStudentAccessToken({
         studentId: item.studentId,
@@ -245,7 +254,7 @@ export async function POST(request: Request) {
         id: item.studentId,
         teacherId: item.teacherId,
         subjectKey: item.subjectId,
-        subjectLabel: assignment?.label || subject.label,
+        subjectLabel: subject.label,
         teacherName: String(candidate.teacherData.name || "المعلم"),
         icon: subject.icon || "📘",
         accessToken,
@@ -257,6 +266,7 @@ export async function POST(request: Request) {
       ok: true,
       matches,
       linkedFromCentralRoster: repairWrites.length,
+      linkedByGradeFallback: [...chosenBySubject.values()].filter(item => !item.matchedClass).length,
       uniqueTeacherPerSubject: true,
       grade: student.grade,
       classId: studentClassId,

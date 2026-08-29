@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v15";
+const CACHE_NAME = "ostadh-lahooni-v16";
 const STATIC_FILES = [
   "/",
   "/student",
