@@ -71,18 +71,17 @@ export async function PATCH(request: Request) {
     const ownerReferences = selectedClassIds.map(classIdValue =>
       ownerCollection.doc(subjectClassOwnerId(subjectId, classIdValue)),
     );
+    const previousOwners = await ownerCollection.where("teacherId", "==", session.userId).get();
     const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId, activeGrade));
     const selected = new Set(selectedClassIds);
     const now = new Date().toISOString();
 
     await database.runTransaction(async transaction => {
-      const selectedSnapshots = ownerReferences.length
-        ? await transaction.getAll(...ownerReferences)
-        : [];
-      const previousOwners = await transaction.get(
-        ownerCollection.where("teacherId", "==", session.userId),
-      );
+      const selectedSnapshots = [];
+      for (const reference of ownerReferences) {
+        selectedSnapshots.push(await transaction.get(reference));
+      }
 
       const unavailableClassIds: string[] = [];
       selectedSnapshots.forEach((snapshot, index) => {
@@ -101,7 +100,7 @@ export async function PATCH(request: Request) {
         const ownedClassId = String(data.classId || "");
         const ownedGrade = classParts(ownedClassId).grade;
         if (activeGrade && ownedGrade !== activeGrade) return;
-        if (!selected.has(ownedClassId)) transaction.delete(document.ref);
+        if (!selected.has(ownedClassId)) transaction.delete(ownerCollection.doc(document.id));
       });
 
       selectedClassIds.forEach((classIdValue, index) => {
