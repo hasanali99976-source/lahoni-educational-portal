@@ -1,9 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v17-stable";
+const CACHE_NAME = "ostadh-lahooni-v18-admin-students";
 const STATIC_FILES = [
   "/",
   "/student",
   "/teacher",
   "/admin",
+  "/admin/students",
   "/manifest.webmanifest",
   "/icon.svg",
   "/icons/ostadh-lahooni-192.jpg",
@@ -37,11 +38,13 @@ self.addEventListener("fetch", event => {
   if (request.mode === "navigate") {
     const fallback = url.pathname.startsWith("/teacher")
       ? "/teacher"
-      : url.pathname.startsWith("/admin")
-        ? "/admin"
-        : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
-          ? "/student"
-          : "/";
+      : url.pathname.startsWith("/admin/students")
+        ? "/admin/students"
+        : url.pathname.startsWith("/admin")
+          ? "/admin"
+          : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
+            ? "/student"
+            : "/";
     event.respondWith(fetch(request, { cache: "no-store" }).catch(async () =>
       (await caches.match(request))
       || (await caches.match(url.pathname))
