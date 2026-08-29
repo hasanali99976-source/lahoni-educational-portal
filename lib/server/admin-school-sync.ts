@@ -4,6 +4,7 @@ import { adminDb } from "./firebase-admin";
 import {
   SCHOOL_STUDENTS_COLLECTION,
   canonicalClassName,
+  gradeLabel,
   gradeNumber,
   normalizeStudentRecord,
   sectionNumber,
@@ -49,6 +50,14 @@ function normalizedSection(value: unknown) {
     .trim()
     .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
     .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+}
+
+function referenceFromPath(path: string) {
+  const separator = path.lastIndexOf("/");
+  if (separator <= 0 || separator === path.length - 1) {
+    throw new Error(`مسار مستند غير صالح: ${path}`);
+  }
+  return adminDb().collection(path.slice(0, separator)).doc(path.slice(separator + 1));
 }
 
 function isAllSections(value: unknown) {
@@ -101,10 +110,11 @@ async function synchronizeStudents(previous: ManagedClass, next: ManagedClass | 
   centralSnapshot.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
     if (!studentMatchesClass(data, previous)) return;
+    const reference = referenceFromPath(document.ref.path);
     if (next) {
       operations.push({
         type: "set",
-        ref: document.ref,
+        ref: reference,
         data: {
           grade: next.grade,
           section: next.section,
@@ -120,7 +130,7 @@ async function synchronizeStudents(previous: ManagedClass, next: ManagedClass | 
     } else if (archiveStudents) {
       operations.push({
         type: "set",
-        ref: document.ref,
+        ref: reference,
         data: { active: false, rosterActive: false, archivedAt: now, updatedAt: now },
         options: { merge: true },
       });
@@ -134,10 +144,11 @@ async function synchronizeStudents(previous: ManagedClass, next: ManagedClass | 
     linkedSnapshot.docs.forEach(document => {
       const data = document.data() as Record<string, unknown>;
       if (!studentMatchesClass(data, previous)) return;
+      const reference = referenceFromPath(document.ref.path);
       if (next) {
         operations.push({
           type: "set",
-          ref: document.ref,
+          ref: reference,
           data: {
             grade: next.grade,
             section: next.section,
@@ -152,7 +163,7 @@ async function synchronizeStudents(previous: ManagedClass, next: ManagedClass | 
       } else if (archiveStudents) {
         operations.push({
           type: "set",
-          ref: document.ref,
+          ref: reference,
           data: { active: false, rosterActive: false, archivedAt: now, updatedAt: now },
           options: { merge: true },
         });
@@ -189,7 +200,7 @@ async function synchronizeTeachers(previous: ManagedClass, next: ManagedClass | 
       if (next) {
         nextAssignments.push(assignmentFromId(assignmentId(
           assignment.subjectId,
-          next.name.replace(/\s+[٠-٩0-9]+$/, "").trim(),
+          gradeLabel(next.grade),
           next.section,
         )));
       }
@@ -197,7 +208,7 @@ async function synchronizeTeachers(previous: ManagedClass, next: ManagedClass | 
     const uniqueAssignments = [...new Map(nextAssignments.map(item => [item.id, item])).values()];
     const subjectIds = [...new Set(uniqueAssignments.map(item => item.subjectId))];
 
-    await teacherDocument.ref.set({
+    await database.collection("portalV2Users").doc(teacherDocument.id).set({
       assignments: uniqueAssignments,
       subjectIds,
       updatedAt: now,
@@ -205,7 +216,10 @@ async function synchronizeTeachers(previous: ManagedClass, next: ManagedClass | 
 
     const assignmentCollection = database.collection("portalV2Assignments");
     const previousDocuments = await assignmentCollection.where("teacherId", "==", teacherDocument.id).get();
-    const operations: WriteOperation[] = previousDocuments.docs.map(document => ({ type: "delete", ref: document.ref }));
+    const operations: WriteOperation[] = previousDocuments.docs.map(document => ({
+      type: "delete",
+      ref: referenceFromPath(document.ref.path),
+    }));
     uniqueAssignments.forEach(assignment => {
       operations.push({
         type: "set",
@@ -249,7 +263,7 @@ async function synchronizeScopesAndOwners(previous: ManagedClass, next: ManagedC
     const subjectId = String(data.subjectId || "");
     const targetGrade = next?.grade || Number(data.grade || previous.grade);
     const targetId = teacherClassScopeId(teacherId, subjectId, targetGrade);
-    operations.push({ type: "delete", ref: document.ref });
+    operations.push({ type: "delete", ref: referenceFromPath(document.ref.path) });
     if (nextSelected.length && teacherId && subjectId) {
       operations.push({
         type: "set",
@@ -273,7 +287,7 @@ async function synchronizeScopesAndOwners(previous: ManagedClass, next: ManagedC
   ownersSnapshot.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
     const subjectId = String(data.subjectId || "");
-    operations.push({ type: "delete", ref: document.ref });
+    operations.push({ type: "delete", ref: referenceFromPath(document.ref.path) });
     if (next && subjectId) {
       operations.push({
         type: "set",
