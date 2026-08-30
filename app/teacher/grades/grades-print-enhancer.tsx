@@ -3,14 +3,6 @@
 import { useEffect } from "react";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
-function replaceInputWithText(input: HTMLInputElement, root: HTMLElement) {
-  const cloneInput = root.querySelector<HTMLInputElement>(`[data-print-input="${input.dataset.printInput}"]`);
-  if (!cloneInput) return;
-  const span = document.createElement("span");
-  span.textContent = input.value || "—";
-  cloneInput.replaceWith(span);
-}
-
 export default function GradesPrintEnhancer() {
   const session = useTeacherClient();
 
@@ -50,8 +42,7 @@ export default function GradesPrintEnhancer() {
 
       clone.querySelectorAll("tr").forEach(row => {
         const cells = row.querySelectorAll("th,td");
-        const last = cells[cells.length - 1];
-        if (last?.textContent?.includes("مسح") || last?.querySelector(".row-delete-button")) last.remove();
+        cells[cells.length - 1]?.remove();
       });
       clone.querySelectorAll(".header-score-control").forEach(control => {
         const max = control.querySelector("span")?.textContent || control.textContent?.replace(/✓\s*الكل/g, "").trim() || "";
