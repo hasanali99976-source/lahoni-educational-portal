@@ -1,0 +1,89 @@
+/* إصلاح اكتمال بوابة الطالب على الآيفون وأندرويد */
+html.student-qr-session .portal-back,
+html.student-qr-session a[href="/"],
+html.student-qr-session a[href^="/admin"],
+html.student-qr-session a[href^="/teacher"]{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+@media (max-width:760px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .student-clean.student-portal-v2{
+    width:100%!important;
+    max-width:100%!important;
+    min-height:100dvh!important;
+    padding:10px 10px calc(104px + env(safe-area-inset-bottom))!important;
+    overflow:visible!important;
+  }
+  .student-clean.student-portal-v2>*{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+  .student-clean-head.student-identity-head{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+    overflow:visible!important;
+  }
+  .student-head-actions{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:7px!important;
+    padding:0!important;
+    margin:0!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    z-index:auto!important;
+  }
+  .student-head-actions button{
+    min-width:0!important;
+    min-height:48px!important;
+    padding:9px 5px!important;
+    font-size:11px!important;
+    line-height:1.2!important;
+    white-space:normal!important;
+  }
+  .student-portal-tabs{
+    right:6px!important;
+    left:6px!important;
+    bottom:max(6px,env(safe-area-inset-bottom))!important;
+    width:auto!important;
+  }
+  .student-tab-panel,
+  .student-main-summary,
+  .student-mini-stats,
+  .student-attendance-summary,
+  .student-home-grid,
+  .student-units-table,
+  .student-goal-panel,
+  .student-ai-hub,
+  .student-diagnostics{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+  }
+  .student-main-summary{grid-template-columns:78px minmax(0,1fr)!important;gap:12px!important}
+  .student-score-ring{width:78px!important;height:78px!important;flex-basis:78px!important}
+  .student-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .student-home-grid,.student-ai-grid,.goal-numbers{grid-template-columns:1fr!important}
+  .student-table-scroll{width:100%!important;max-width:100%!important;overflow:visible!important}
+  .student-table-scroll table{width:100%!important;min-width:0!important}
+  .portal-smart-strip{max-width:calc(100vw - 16px)!important;margin-inline:auto!important}
+}
+
+@media (max-width:390px){
+  .student-clean.student-portal-v2{padding-inline:7px!important}
+  .student-head-actions button{font-size:10px!important}
+  .student-portal-tabs button{padding-inline:1px!important}
+  .student-portal-tabs b{font-size:9px!important}
+}
