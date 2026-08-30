@@ -7,6 +7,7 @@ import "./attendance-schedule-guard.css";
 
 type TimetableLesson = { className?: string; notes?: string; subject?: string };
 type TimetableResponse = { ok?: boolean; lessons?: Record<string, TimetableLesson>; message?: string };
+type ExistingResponse = { ok?: boolean; exists?: boolean; unavailable?: boolean; message?: string };
 type ScheduledDate = { date: string; weekday: number; periods: number[] };
 
 const DAY_INDEX: Record<string, number> = {
@@ -86,6 +87,9 @@ export default function AttendanceScheduleGuard() {
   const [loadMessage, setLoadMessage] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(dateInput(new Date()));
+  const [remoteSaved, setRemoteSaved] = useState(false);
+  const [checkingRemote, setCheckingRemote] = useState(false);
+  const [remoteUnavailable, setRemoteUnavailable] = useState(false);
   const [notice, setNotice] = useState("");
   const programmatic = useRef(false);
 
@@ -157,8 +161,50 @@ export default function AttendanceScheduleGuard() {
     }
   }, [teacherId, subjectKey]);
 
-  const selectedIsSaved = hasSavedAttendance(normalizedClass, selectedDate);
-  const locked = guardEnabled && !isScheduled && !selectedIsSaved;
+  const localSaved = hasSavedAttendance(normalizedClass, selectedDate);
+
+  useEffect(() => {
+    setRemoteSaved(false);
+    setRemoteUnavailable(false);
+    setCheckingRemote(false);
+    if (!teacherId || !guardEnabled || isScheduled || localSaved || !normalizedClass || !selectedDate) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 6500);
+    setCheckingRemote(true);
+    const params = new URLSearchParams({
+      subjectId: subjectKey,
+      className: normalizedClass,
+      date: selectedDate,
+    });
+    fetch(`/api/teacher/attendance/exists?${params.toString()}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+      signal: controller.signal,
+    })
+      .then(async response => {
+        const data = await response.json().catch(() => ({})) as ExistingResponse;
+        if (!response.ok) throw new Error(data.message || "attendance_exists_failed");
+        return data;
+      })
+      .then(data => setRemoteSaved(data.exists === true))
+      .catch(() => {
+        // نفشل بشكل مفتوح حتى لا يُحجب أي تحضير قديم عند تعطل الاتصال.
+        setRemoteUnavailable(true);
+      })
+      .finally(() => {
+        window.clearTimeout(timer);
+        setCheckingRemote(false);
+      });
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [teacherId, subjectKey, guardEnabled, isScheduled, localSaved, normalizedClass, selectedDate]);
+
+  const selectedIsSaved = localSaved || remoteSaved;
+  const locked = guardEnabled && !isScheduled && !selectedIsSaved && !remoteUnavailable;
 
   const periodsForDate = useCallback((className: string, value: string) => {
     const canonical = normalizeClass(className);
@@ -212,13 +258,7 @@ export default function AttendanceScheduleGuard() {
       if (target === controls.classSelect) {
         const className = controls.classSelect?.value || "";
         setSelectedClass(className);
-        window.setTimeout(() => {
-          const current = dailyControls().dateInput?.value || dateInput(new Date());
-          const days = classDays.get(normalizeClass(className));
-          if (!days?.size || periodsForDate(className, current).length || hasSavedAttendance(className, current)) return;
-          const next = findScheduled(className, current, 1, true) || findScheduled(className, current, -1, true);
-          if (next) setAllowedDate(next, "تم فتح أقرب تاريخ توجد فيه حصة لهذا الفصل.");
-        }, 0);
+        setNotice("");
       }
       if (target === controls.dateInput && controls.dateInput) {
         const value = controls.dateInput.value;
@@ -226,11 +266,11 @@ export default function AttendanceScheduleGuard() {
         if (programmatic.current) return;
         const className = controls.classSelect?.value || "";
         const days = classDays.get(normalizeClass(className));
-        if (!days?.size || periodsForDate(className, value).length || hasSavedAttendance(className, value)) return;
-        window.setTimeout(() => {
-          const next = findScheduled(className, value, 1, true) || findScheduled(className, value, -1, true);
-          if (next) setAllowedDate(next, "هذا اليوم لا توجد فيه حصة؛ تم الانتقال لأقرب موعد في الجدول.");
-        }, 0);
+        if (days?.size && !periodsForDate(className, value).length && !hasSavedAttendance(className, value)) {
+          setNotice("هذا اليوم ليس ضمن حصص الفصل؛ يتم التحقق من وجود تحضير سابق محفوظ.");
+        } else {
+          setNotice("");
+        }
       }
     };
 
@@ -250,14 +290,15 @@ export default function AttendanceScheduleGuard() {
         const next = text === "اليوم"
           ? (periodsForDate(className, base).length ? base : findScheduled(className, base, 1, true) || findScheduled(className, base, -1, true))
           : findScheduled(className, base, direction, false);
-        if (next) setAllowedDate(next, "تم الانتقال إلى موعد الحصة التالي حسب الجدول.");
+        if (next) setAllowedDate(next, "تم الانتقال إلى موعد الحصة حسب الجدول.");
         return;
       }
-      const invalid = !!days?.size && !periodsForDate(className, value).length && !hasSavedAttendance(className, value);
-      if (invalid && (button.closest(".status-buttons") || text.includes("حفظ التحضير"))) {
+      if (locked && (button.closest(".status-buttons") || text.includes("حفظ التحضير"))) {
         event.preventDefault();
         event.stopPropagation();
-        setNotice("لا يمكن إنشاء تحضير جديد؛ لا توجد حصة لهذا الفصل في التاريخ المختار.");
+        setNotice(checkingRemote
+          ? "جارٍ التحقق من وجود تحضير سابق لهذا التاريخ."
+          : "لا يمكن إنشاء تحضير جديد؛ لا توجد حصة لهذا الفصل في التاريخ المختار.");
       }
     };
 
@@ -268,7 +309,7 @@ export default function AttendanceScheduleGuard() {
       document.removeEventListener("change", onChange, true);
       document.removeEventListener("click", onClick, true);
     };
-  }, [classDays, findScheduled, hasSavedAttendance, periodsForDate, selectedClass, selectedDate, setAllowedDate]);
+  }, [classDays, findScheduled, hasSavedAttendance, periodsForDate, selectedClass, selectedDate, setAllowedDate, locked, checkingRemote]);
 
   useEffect(() => {
     const page = document.querySelector<HTMLElement>(".attendance-page");
@@ -297,8 +338,10 @@ export default function AttendanceScheduleGuard() {
       {loaded && !selectedClass ? <strong>اختر الفصل لعرض مواعيد تحضيره.</strong> : null}
       {loaded && selectedClass && !guardEnabled ? <strong>لا توجد حصص محفوظة لهذا الفصل في الجدول؛ التحضير يعمل بالطريقة السابقة دون تقييد.</strong> : null}
       {guardEnabled && isScheduled ? <strong>التحضير متاح: {DAY_LABEL[selectedWeekday]} — الحصة {selectedPeriods.map(arabicNumber).join("، ")}</strong> : null}
+      {guardEnabled && checkingRemote && !isScheduled && !localSaved ? <strong>جارٍ التحقق من وجود تحضير سابق في هذا التاريخ…</strong> : null}
       {guardEnabled && selectedIsSaved && !isScheduled ? <strong>هذا سجل تحضير سابق محفوظ؛ بقي متاحًا للمراجعة والتعديل.</strong> : null}
-      {locked ? <strong>لا توجد حصة لهذا الفصل في هذا التاريخ، لذلك إنشاء تحضير جديد مقفول.</strong> : null}
+      {guardEnabled && remoteUnavailable && !isScheduled ? <strong>تعذر التحقق من السجل السحابي؛ لم يُفرض القفل حفاظًا على التحاضير السابقة.</strong> : null}
+      {locked && !checkingRemote ? <strong>لا توجد حصة لهذا الفصل في هذا التاريخ، لذلك إنشاء تحضير جديد مقفول.</strong> : null}
       {loadMessage ? <small>{loadMessage} — لم يتم فرض القفل حتى يعود الاتصال.</small> : null}
       {notice ? <small>{notice}</small> : null}
     </div>
