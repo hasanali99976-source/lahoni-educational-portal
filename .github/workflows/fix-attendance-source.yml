@@ -1,0 +1,128 @@
+name: Fix attendance classes source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fix-attendance-source.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply source fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          attendance_path = Path("app/teacher/attendance/page.tsx")
+          attendance = attendance_path.read_text(encoding="utf-8")
+
+          old_import = "  classMatchesAssignments,\n  clean,"
+          new_import = "  assignmentClassNames,\n  classMatchesAssignments,\n  clean,"
+          if old_import not in attendance:
+              raise SystemExit("attendance import anchor not found")
+          attendance = attendance.replace(old_import, new_import, 1)
+
+          old_scope = '''  const assignmentScoped = useMemo(
+            () => hasDetailedAssignments(assignments, subjectKey),
+            [assignments, subjectKey],
+          );
+          const classAllowed = (className: string) => !assignmentScoped || classMatchesAssignments(className, assignments, subjectKey);
+          '''
+          new_scope = '''  const assignmentScoped = useMemo(
+            () => hasDetailedAssignments(assignments, subjectKey),
+            [assignments, subjectKey],
+          );
+          const assignedClasses = useMemo(
+            () => assignmentClassNames(assignments, subjectKey),
+            [assignments, subjectKey],
+          );
+          const classAllowed = (className: string) => !assignmentScoped || classMatchesAssignments(className, assignments, subjectKey);
+          '''
+          if old_scope not in attendance:
+              raise SystemExit("assignment scope anchor not found")
+          attendance = attendance.replace(old_scope, new_scope, 1)
+
+          old_classes = '''  const classes = useMemo(() => [...new Set([
+            ...officialClasses,
+            ...timetableClasses,
+            ...students.map(student => normalizeClass(student.class)),
+          ].filter(Boolean))]
+            .filter(classAllowed)
+            .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
+          [officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
+          '''
+          new_classes = '''  const classes = useMemo(() => [...new Set([
+            ...assignedClasses,
+            ...officialClasses,
+            ...timetableClasses,
+            ...students.map(student => normalizeClass(student.class)),
+          ].filter(Boolean))]
+            .filter(classAllowed)
+            .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
+          [assignedClasses, officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
+          '''
+          if old_classes not in attendance:
+              raise SystemExit("classes anchor not found")
+          attendance = attendance.replace(old_classes, new_classes, 1)
+          attendance_path.write_text(attendance, encoding="utf-8")
+
+          runtime_path = Path("app/teacher/v24-runtime-fixes.tsx")
+          runtime = runtime_path.read_text(encoding="utf-8")
+          runtime = runtime.replace('import { useEffect, useMemo } from "react";', 'import { useEffect } from "react";', 1)
+          runtime = runtime.replace('import { useTeacherClient } from "../../lib/teacher-client";\n', '', 1)
+          runtime = runtime.replace('import { assignmentClassNames, normalizeClass } from "../../lib/unified-roster";\n', '', 1)
+
+          helper_start = runtime.find("function payloadClasses")
+          helper_end = runtime.find("function escapeHtml")
+          if helper_start == -1 or helper_end == -1 or helper_end <= helper_start:
+              raise SystemExit("runtime helper anchors not found")
+          runtime = runtime[:helper_start] + runtime[helper_end:]
+
+          component_session = '''  const session = useTeacherClient();
+          const assignedClasses = useMemo(
+            () => assignmentClassNames(session.assignments, session.subjectKey || ""),
+            [session.assignments, session.subjectKey],
+          );
+
+          '''
+          if component_session not in runtime:
+              raise SystemExit("runtime session anchor not found")
+          runtime = runtime.replace(component_session, '', 1)
+
+          attendance_effect_start = runtime.find('  useEffect(() => {\n    if (pathname !== "/teacher/attendance"')
+          timetable_effect_start = runtime.find('  useEffect(() => {\n    if (pathname !== "/teacher/timetable"', attendance_effect_start)
+          if attendance_effect_start == -1 or timetable_effect_start == -1:
+              raise SystemExit("runtime effects anchors not found")
+          runtime = runtime[:attendance_effect_start] + runtime[timetable_effect_start:]
+          runtime_path.write_text(runtime, encoding="utf-8")
+
+          sw_path = Path("public/sw.js")
+          sw = sw_path.read_text(encoding="utf-8")
+          sw = sw.replace('ostadh-lahooni-v24-attendance-print', 'ostadh-lahooni-v25-attendance-source')
+          sw_path.write_text(sw, encoding="utf-8")
+          PY
+
+      - name: Verify build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified fix
+        run: |
+          rm -f .github/workflows/fix-attendance-source.yml
+          git config user.name "hasan taweel"
+          git config user.email "hasan.ali99976@gmail.com"
+          git add app/teacher/attendance/page.tsx app/teacher/v24-runtime-fixes.tsx public/sw.js .github/workflows/fix-attendance-source.yml
+          git commit -m "إزالة تكرار فصول التحضير وتفعيل فتح الفصل المسند"
+          git push origin main
