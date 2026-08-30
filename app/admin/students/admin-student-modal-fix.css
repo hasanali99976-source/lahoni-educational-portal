@@ -1,0 +1,46 @@
+/* نافذة تعديل ونقل الطالب — تعمل فوق جميع طبقات البوابة وعلى الجوال */
+.school-roster-modal{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483000!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:16px!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  background:rgba(5,28,40,.72)!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  isolation:isolate;
+}
+.school-roster-modal>section{
+  position:relative!important;
+  z-index:1!important;
+  display:grid!important;
+  gap:14px!important;
+  width:min(540px,100%)!important;
+  max-height:calc(100dvh - 32px)!important;
+  overflow:auto!important;
+  padding:22px!important;
+  border:1px solid #d7e4e8!important;
+  border-radius:22px!important;
+  background:#fff!important;
+  color:#173344!important;
+  box-shadow:0 28px 90px rgba(0,0,0,.35)!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+}
+.school-roster-modal header,.school-roster-modal footer{position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important}
+.school-roster-modal label{display:grid!important;gap:7px!important;color:#173344!important;font-weight:800!important}
+.school-roster-modal input,.school-roster-modal select{display:block!important;width:100%!important;min-height:48px!important;color:#173344!important;background:#fff!important;opacity:1!important;visibility:visible!important}
+.school-roster-modal button{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:44px!important;opacity:1!important;visibility:visible!important}
+body.school-roster-dialog-open{overflow:hidden!important}
+@media(max-width:600px){
+  .school-roster-modal{align-items:flex-end!important;padding:8px!important}
+  .school-roster-modal>section{width:100%!important;max-height:calc(100dvh - 12px)!important;border-radius:22px 22px 12px 12px!important;padding:18px 15px calc(18px + env(safe-area-inset-bottom))!important}
+  .school-roster-modal footer{position:sticky!important;bottom:0!important;padding-top:10px!important;background:#fff!important}
+  .school-roster-modal footer button{flex:1!important}
+}
