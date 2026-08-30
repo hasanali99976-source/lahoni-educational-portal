@@ -88,11 +88,14 @@ export default function DiagnosticsExportEnhancer() {
       const classSelect = document.querySelector<HTMLSelectElement>(".diag-filters select");
       classSelect?.querySelectorAll("option").forEach(option => {
         if (option.value === "all") return;
-        option.textContent = classDisplay(option.value || option.textContent, fallbackGrade);
+        const next = classDisplay(option.value || option.textContent, fallbackGrade);
+        if (option.textContent !== next) option.textContent = next;
       });
       document.querySelectorAll<HTMLTableRowElement>(".diag-table tbody tr").forEach(row => {
         const classCell = row.querySelectorAll<HTMLTableCellElement>("td")[1];
-        if (classCell) classCell.textContent = classDisplay(classCell.textContent, fallbackGrade);
+        if (!classCell) return;
+        const next = classDisplay(classCell.textContent, fallbackGrade);
+        if (classCell.textContent !== next) classCell.textContent = next;
       });
       document.querySelectorAll<HTMLButtonElement>(".diag-results button").forEach(button => {
         const text = button.textContent?.replace(/\s+/g, " ").trim() || "";
