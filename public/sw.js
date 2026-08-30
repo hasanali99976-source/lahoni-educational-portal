@@ -1,8 +1,9 @@
-const CACHE_NAME = "ostadh-lahooni-v20-student-mobile-admin";
+const CACHE_NAME = "ostadh-lahooni-v21-timetable-save";
 const STATIC_FILES = [
   "/",
   "/student",
   "/teacher",
+  "/teacher/timetable",
   "/admin",
   "/admin/students",
   "/manifest.webmanifest",
@@ -36,15 +37,17 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
   if (request.mode === "navigate") {
-    const fallback = url.pathname.startsWith("/teacher")
-      ? "/teacher"
-      : url.pathname.startsWith("/admin/students")
-        ? "/admin/students"
-        : url.pathname.startsWith("/admin")
-          ? "/admin"
-          : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
-            ? "/student"
-            : "/";
+    const fallback = url.pathname.startsWith("/teacher/timetable")
+      ? "/teacher/timetable"
+      : url.pathname.startsWith("/teacher")
+        ? "/teacher"
+        : url.pathname.startsWith("/admin/students")
+          ? "/admin/students"
+          : url.pathname.startsWith("/admin")
+            ? "/admin"
+            : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
+              ? "/student"
+              : "/";
     event.respondWith(fetch(request, { cache: "no-store" }).catch(async () =>
       (await caches.match(request))
       || (await caches.match(url.pathname))
