@@ -1,0 +1,45 @@
+name: Fix attendance classes to match grades
+
+on:
+  push:
+    branches: [fix-attendance-match-grades-v27]
+    paths:
+      - ".github/workflows/fix-attendance-match-grades-v27.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: fix-attendance-match-grades-v27
+          fetch-depth: 0
+
+      - name: Apply source fix
+        run: python3 scripts/fix_attendance_match_grades.py
+
+      - name: Verify source
+        run: |
+          grep -q "القائمة الرسمية التي يعرضها الخادم" app/teacher/attendance/page.tsx
+          grep -q 'const SECTIONS = \["الكل", "١", "٢", "٣", "٤", "٥", "٦", "٧"\]' app/admin/page.tsx
+          grep -q 'SECTION_OPTIONS = \["1", "2", "3", "4", "5", "6", "7"\]' lib/school-roster.ts
+          grep -q "v27-attendance-grades-source" public/sw.js
+
+      - name: Verify production build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified fix
+        run: |
+          rm -f .github/workflows/fix-attendance-match-grades-v27.yml
+          rm -f scripts/fix_attendance_match_grades.py
+          git config user.name "hasan taweel"
+          git config user.email "hasan.ali99976@gmail.com"
+          git add app/teacher/attendance/page.tsx app/admin/page.tsx lib/school-roster.ts public/sw.js .github/workflows/fix-attendance-match-grades-v27.yml scripts/fix_attendance_match_grades.py
+          git commit -m "توحيد فصول التحضير مع الدرجات وتصحيح عدد الفصول"
+          git push origin fix-attendance-match-grades-v27
