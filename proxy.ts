@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const QR_LOCK_COOKIE = "lahooni_student_qr_lock";
+const STUDENT_CODE_PATTERN = /^TH[123]\d{3}$/;
+const LOCK_MAX_AGE = 60 * 60 * 4;
+
+function setStudentLock(response: NextResponse) {
+  response.cookies.set(QR_LOCK_COOKIE, "1", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: LOCK_MAX_AGE,
+  });
+  response.headers.set("Cache-Control", "no-store, max-age=0");
+  return response;
+}
 
 export function proxy(request: NextRequest) {
-  if (request.cookies.get(QR_LOCK_COOKIE)?.value !== "1") {
-    return NextResponse.next();
+  const pathname = request.nextUrl.pathname;
+  const queryCode = String(request.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
+  const directStudentBarcode = pathname === "/student" && STUDENT_CODE_PATTERN.test(queryCode);
+  const locked = request.cookies.get(QR_LOCK_COOKIE)?.value === "1";
+
+  // بعض الباركودات القديمة تفتح /student?code= مباشرة؛ فعّل القفل لها أيضًا.
+  if (directStudentBarcode && !locked) {
+    return setStudentLock(NextResponse.next());
   }
 
-  const pathname = request.nextUrl.pathname;
+  if (!locked) return NextResponse.next();
+
   if (pathname.startsWith("/student") || pathname.startsWith("/api/student")) {
     return NextResponse.next();
   }
