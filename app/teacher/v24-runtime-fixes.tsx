@@ -1,27 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useTeacherClient } from "../../lib/teacher-client";
-import { assignmentClassNames, normalizeClass } from "../../lib/unified-roster";
-
-function payloadClasses(value: unknown) {
-  if (!Array.isArray(value)) return [] as string[];
-  return value.map(item => {
-    if (typeof item === "string") return normalizeClass(item);
-    if (!item || typeof item !== "object") return "";
-    const row = item as Record<string, unknown>;
-    return normalizeClass(row.name || row.className || row.class || row.id);
-  }).filter(Boolean);
-}
-
-function timetableClasses(value: unknown) {
-  if (!value || typeof value !== "object") return [] as string[];
-  return Object.values(value as Record<string, unknown>).map(item => {
-    if (!item || typeof item !== "object") return "";
-    return normalizeClass((item as Record<string, unknown>).className);
-  }).filter(Boolean);
-}
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, character => ({
@@ -66,75 +46,6 @@ function printableTimetable() {
 
 export default function TeacherV24RuntimeFixes() {
   const pathname = usePathname();
-  const session = useTeacherClient();
-  const assignedClasses = useMemo(
-    () => assignmentClassNames(session.assignments, session.subjectKey || ""),
-    [session.assignments, session.subjectKey],
-  );
-
-  useEffect(() => {
-    if (pathname !== "/teacher/attendance" || !session.teacherId || !session.subjectKey) return;
-    let active = true;
-    let apiClasses: string[] = [];
-
-    const ensureClasses = () => {
-      const select = document.querySelector<HTMLSelectElement>(".attendance-page .attendance-controls select");
-      if (!select) return;
-      const all = [...new Set([...assignedClasses, ...apiClasses])]
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
-      const existing = new Set([...select.options].map(option => option.value));
-      all.forEach(className => {
-        if (existing.has(className)) return;
-        const option = document.createElement("option");
-        option.value = className;
-        option.textContent = className;
-        option.dataset.v24Class = "assignment-timetable";
-        select.append(option);
-        existing.add(className);
-      });
-    };
-
-    const params = new URLSearchParams({ subjectId: session.subjectKey });
-    if (session.activeGrade) params.set("grade", String(session.activeGrade));
-    const requestJson = (url: string) => fetch(url, { cache: "no-store", credentials: "same-origin" })
-      .then(response => response.ok ? response.json() : Promise.reject(new Error("classes_failed")));
-
-    Promise.allSettled([
-      requestJson(`/api/teacher/students?${params.toString()}`),
-      requestJson(`/api/teacher/timetable?subjectId=${encodeURIComponent(session.subjectKey)}`),
-    ]).then(results => {
-      if (!active) return;
-      const studentsData = results[0].status === "fulfilled" ? results[0].value as Record<string, unknown> : {};
-      const timetableData = results[1].status === "fulfilled" ? results[1].value as Record<string, unknown> : {};
-      const rawAssignments = Array.isArray(studentsData.assignments) ? studentsData.assignments : [];
-      apiClasses = [...new Set([
-        ...payloadClasses(studentsData.classes),
-        ...payloadClasses(studentsData.availableClasses),
-        ...payloadClasses(rawAssignments.map(item => {
-          const row = item as Record<string, unknown>;
-          return `${row.grade || ""} ${row.section || ""}`;
-        })),
-        ...timetableClasses(timetableData.lessons),
-      ])];
-      ensureClasses();
-      window.setTimeout(ensureClasses, 250);
-    }).catch(() => ensureClasses());
-
-    ensureClasses();
-    const observer = new MutationObserver(ensureClasses);
-    observer.observe(document.body, { childList: true, subtree: true });
-    document.addEventListener("pointerdown", ensureClasses, true);
-    document.addEventListener("focusin", ensureClasses, true);
-
-    return () => {
-      active = false;
-      observer.disconnect();
-      document.removeEventListener("pointerdown", ensureClasses, true);
-      document.removeEventListener("focusin", ensureClasses, true);
-    };
-  }, [pathname, session.teacherId, session.subjectKey, session.activeGrade, assignedClasses]);
-
   useEffect(() => {
     if (pathname !== "/teacher/timetable") return;
     const onClick = (event: MouseEvent) => {

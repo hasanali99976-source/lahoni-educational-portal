@@ -7,6 +7,7 @@ import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import {
+  assignmentClassNames,
   classMatchesAssignments,
   clean,
   hasDetailedAssignments,
@@ -178,6 +179,10 @@ export default function AttendancePage() {
     () => hasDetailedAssignments(assignments, subjectKey),
     [assignments, subjectKey],
   );
+  const assignedClasses = useMemo(
+    () => assignmentClassNames(assignments, subjectKey),
+    [assignments, subjectKey],
+  );
   const classAllowed = (className: string) => !assignmentScoped || classMatchesAssignments(className, assignments, subjectKey);
 
   useEffect(() => {
@@ -284,13 +289,14 @@ export default function AttendancePage() {
   }, [scopedOfficialStudents, scopedLocalStudents, teacherId]);
 
   const classes = useMemo(() => [...new Set([
+    ...assignedClasses,
     ...officialClasses,
     ...timetableClasses,
     ...students.map(student => normalizeClass(student.class)),
   ].filter(Boolean))]
     .filter(classAllowed)
     .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
-  [officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
+  [assignedClasses, officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
 
   const classStudents = useMemo(
     () => students.filter(student => normalizeClass(student.class) === selectedClass),
