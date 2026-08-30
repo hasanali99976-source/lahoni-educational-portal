@@ -12,7 +12,7 @@ const SUBJECTS = Object.values(SUBJECT_CONFIG)
   .map(item => [item.key, item.label] as const)
   .sort((a, b) => a[1].localeCompare(b[1], "ar"));
 const GRADES = ["الأول الثانوي", "الثاني الثانوي", "الثالث الثانوي"] as const;
-const SECTIONS = ["الكل", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨"] as const;
+const SECTIONS = ["الكل", "١", "٢", "٣", "٤", "٥", "٦", "٧"] as const;
 const emptyAssignment = (): Assignment => ({ subjectId: "", grade: "", section: "" });
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeout = 10000) {

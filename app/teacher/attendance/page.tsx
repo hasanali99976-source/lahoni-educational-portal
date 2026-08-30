@@ -141,10 +141,11 @@ function withTimeout<T>(promise: Promise<T>, milliseconds: number) {
 function classNamesFromPayload(value: unknown) {
   if (!Array.isArray(value)) return [] as string[];
   return value.map(item => {
-    if (typeof item === "string") return normalizeClass(item);
+    if (typeof item === "string") return normalizeClass(item) || clean(item);
     if (!item || typeof item !== "object") return "";
     const row = item as Record<string, unknown>;
-    return normalizeClass(row.name || row.className || row.class || row.id);
+    const rawClassName = clean(row.name || row.className || row.class || row.id);
+    return normalizeClass(rawClassName) || rawClassName;
   }).filter(Boolean);
 }
 
@@ -215,7 +216,8 @@ export default function AttendancePage() {
         if (!active) return;
         const list = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
           const code = String(student.code || student.accessCode || student.studentCode || student.id || "").trim().toUpperCase();
-          const className = normalizeClass(student.className || student.class);
+          const rawClassName = clean(student.className || student.class);
+          const className = normalizeClass(rawClassName) || rawClassName;
           return {
             ...student,
             id: code,
@@ -271,35 +273,45 @@ export default function AttendancePage() {
     return () => controller.abort();
   }, [ready, subjectKey]);
 
-  const scopedOfficialStudents = useMemo(
-    () => officialStudents.filter(student => classAllowed(normalizeClass(student.class))),
-    [officialStudents, assignmentScoped, assignments, subjectKey],
-  );
+  // القائمة الرسمية التي يعرضها الخادم هي المرجع نفسه المستخدم في صفحة الدرجات.
+  // لا نعيد فلترتها في المتصفح حتى لا يسقط فصل صحيح بسبب صيغة تكليف قديمة.
+  const scopedOfficialStudents = useMemo(() => officialStudents, [officialStudents]);
   const scopedLocalStudents = useMemo(
-    () => localStudents.filter(student => classAllowed(normalizeClass(student.class))),
+    () => localStudents.filter(student => classAllowed(normalizeClass(student.class) || clean(student.class))),
     [localStudents, assignmentScoped, assignments, subjectKey],
   );
 
   const students = useMemo(() => {
     const deleted = loadDeletedCodes(teacherId);
-    return mergeStudents(scopedLocalStudents, scopedOfficialStudents).filter(student => {
+    const source = scopedOfficialStudents.length
+      ? scopedOfficialStudents
+      : mergeStudents(scopedLocalStudents, scopedOfficialStudents);
+    return source.filter(student => {
       const code = studentCode(student);
       return !deleted.has(code) && student.active !== false && student.rosterActive !== false;
     });
   }, [scopedOfficialStudents, scopedLocalStudents, teacherId]);
 
-  const classes = useMemo(() => [...new Set([
-    ...assignedClasses,
-    ...officialClasses,
-    ...timetableClasses,
-    ...students.map(student => normalizeClass(student.class)),
-  ].filter(Boolean))]
-    .filter(classAllowed)
-    .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
-  [assignedClasses, officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
+  const officialStudentClasses = useMemo(
+    () => officialStudents
+      .map(student => normalizeClass(student.class) || clean(student.class))
+      .filter(Boolean),
+    [officialStudents],
+  );
+
+  const classes = useMemo(() => {
+    const officialSource = [...officialClasses, ...officialStudentClasses].filter(Boolean);
+    const fallbackSource = [
+      ...assignedClasses,
+      ...timetableClasses,
+      ...students.map(student => normalizeClass(student.class) || clean(student.class)),
+    ].filter(Boolean).filter(classAllowed);
+    const source = officialSource.length ? officialSource : fallbackSource;
+    return [...new Set(source)].sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
+  }, [officialClasses, officialStudentClasses, assignedClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
 
   const classStudents = useMemo(
-    () => students.filter(student => normalizeClass(student.class) === selectedClass),
+    () => students.filter(student => (normalizeClass(student.class) || clean(student.class)) === selectedClass),
     [students, selectedClass],
   );
 
