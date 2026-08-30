@@ -1,10 +1,12 @@
-const CACHE_NAME = "ostadh-lahooni-v22-attendance-timetable";
+const CACHE_NAME = "ostadh-lahooni-v23-print-diagnostics";
 const STATIC_FILES = [
   "/",
   "/student",
   "/teacher",
   "/teacher/attendance",
   "/teacher/timetable",
+  "/teacher/grades",
+  "/teacher/diagnostics",
   "/admin",
   "/admin/students",
   "/manifest.webmanifest",
@@ -42,15 +44,19 @@ self.addEventListener("fetch", event => {
       ? "/teacher/attendance"
       : url.pathname.startsWith("/teacher/timetable")
         ? "/teacher/timetable"
-        : url.pathname.startsWith("/teacher")
-          ? "/teacher"
-          : url.pathname.startsWith("/admin/students")
-            ? "/admin/students"
-            : url.pathname.startsWith("/admin")
-              ? "/admin"
-              : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
-                ? "/student"
-                : "/";
+        : url.pathname.startsWith("/teacher/grades")
+          ? "/teacher/grades"
+          : url.pathname.startsWith("/teacher/diagnostics")
+            ? "/teacher/diagnostics"
+            : url.pathname.startsWith("/teacher")
+              ? "/teacher"
+              : url.pathname.startsWith("/admin/students")
+                ? "/admin/students"
+                : url.pathname.startsWith("/admin")
+                  ? "/admin"
+                  : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
+                    ? "/student"
+                    : "/";
     event.respondWith(fetch(request, { cache: "no-store" }).catch(async () =>
       (await caches.match(request))
       || (await caches.match(url.pathname))
