@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 
 const CODE_PATTERN = /^TH[123]\d{3}$/;
+const OFFICIAL_PORTAL_ORIGIN = "https://tahdheeb-history.vercel.app";
 
 export default function StudentQrLinkUpgrader() {
   const [code, setCode] = useState("");
@@ -46,7 +47,8 @@ export default function StudentQrLinkUpgrader() {
 
   if (!target || !code) return null;
 
-  const url = `${window.location.origin}/student/qr/${encodeURIComponent(code)}`;
+  // استخدم الرابط الرسمي دائمًا حتى لو فتح المعلم رابط معاينة قديمًا.
+  const url = `${OFFICIAL_PORTAL_ORIGIN}/student/qr/${encodeURIComponent(code)}`;
 
   return createPortal(
     <>
@@ -65,7 +67,7 @@ export default function StudentQrLinkUpgrader() {
           includeMargin
         />
       </a>
-      <small style={{ display: "block", marginTop: 8 }}>امسح الباركود بالآيفون أو اضغط عليه لفتح بوابة الطالب بالكود فقط</small>
+      <small style={{ display: "block", marginTop: 8 }}>امسح الباركود بالآيفون أو الجالكسي لفتح بوابة الطالب المقفلة</small>
       <a
         href={url}
         target="_blank"
