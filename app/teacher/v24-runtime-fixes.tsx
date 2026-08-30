@@ -118,6 +118,7 @@ export default function TeacherV24RuntimeFixes() {
         ...timetableClasses(timetableData.lessons),
       ])];
       ensureClasses();
+      window.setTimeout(ensureClasses, 250);
     }).catch(() => ensureClasses());
 
     ensureClasses();
