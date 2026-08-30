@@ -23,95 +23,127 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           attendance_path = Path("app/teacher/attendance/page.tsx")
           attendance = attendance_path.read_text(encoding="utf-8")
 
-          old_import = "  classMatchesAssignments,\n  clean,"
-          new_import = "  assignmentClassNames,\n  classMatchesAssignments,\n  clean,"
-          if old_import not in attendance:
-              raise SystemExit("attendance import anchor not found")
-          attendance = attendance.replace(old_import, new_import, 1)
+          import_anchor = "  classMatchesAssignments,\n"
+          if "  assignmentClassNames,\n" not in attendance:
+              if import_anchor not in attendance:
+                  raise SystemExit("attendance import anchor not found")
+              attendance = attendance.replace(
+                  import_anchor,
+                  "  assignmentClassNames,\n" + import_anchor,
+                  1,
+              )
 
-          old_scope = '''  const assignmentScoped = useMemo(
-            () => hasDetailedAssignments(assignments, subjectKey),
-            [assignments, subjectKey],
-          );
-          const classAllowed = (className: string) => !assignmentScoped || classMatchesAssignments(className, assignments, subjectKey);
-          '''
-          new_scope = '''  const assignmentScoped = useMemo(
-            () => hasDetailedAssignments(assignments, subjectKey),
-            [assignments, subjectKey],
-          );
-          const assignedClasses = useMemo(
-            () => assignmentClassNames(assignments, subjectKey),
-            [assignments, subjectKey],
-          );
-          const classAllowed = (className: string) => !assignmentScoped || classMatchesAssignments(className, assignments, subjectKey);
-          '''
-          if old_scope not in attendance:
-              raise SystemExit("assignment scope anchor not found")
-          attendance = attendance.replace(old_scope, new_scope, 1)
+          if "const assignedClasses = useMemo(" not in attendance:
+              scope_pattern = re.compile(
+                  r"(  const assignmentScoped = useMemo\(\n"
+                  r"\s*\(\) => hasDetailedAssignments\(assignments, subjectKey\),\n"
+                  r"\s*\[assignments, subjectKey\],\n"
+                  r"\s*\);\n)"
+              )
+              scope_replacement = (
+                  r"\1"
+                  "  const assignedClasses = useMemo(\n"
+                  "    () => assignmentClassNames(assignments, subjectKey),\n"
+                  "    [assignments, subjectKey],\n"
+                  "  );\n"
+              )
+              attendance, count = scope_pattern.subn(scope_replacement, attendance, count=1)
+              if count != 1:
+                  raise SystemExit("assignment scope anchor not found")
 
-          old_classes = '''  const classes = useMemo(() => [...new Set([
-            ...officialClasses,
-            ...timetableClasses,
-            ...students.map(student => normalizeClass(student.class)),
-          ].filter(Boolean))]
-            .filter(classAllowed)
-            .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
-          [officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
-          '''
-          new_classes = '''  const classes = useMemo(() => [...new Set([
-            ...assignedClasses,
-            ...officialClasses,
-            ...timetableClasses,
-            ...students.map(student => normalizeClass(student.class)),
-          ].filter(Boolean))]
-            .filter(classAllowed)
-            .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
-          [assignedClasses, officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
-          '''
-          if old_classes not in attendance:
-              raise SystemExit("classes anchor not found")
-          attendance = attendance.replace(old_classes, new_classes, 1)
+          classes_anchor = "  const classes = useMemo(() => [...new Set([\n    ...officialClasses,"
+          if "...assignedClasses," not in attendance:
+              if classes_anchor not in attendance:
+                  raise SystemExit("classes array anchor not found")
+              attendance = attendance.replace(
+                  classes_anchor,
+                  "  const classes = useMemo(() => [...new Set([\n    ...assignedClasses,\n    ...officialClasses,",
+                  1,
+              )
+
+          dependency_anchor = "[officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);"
+          if "[assignedClasses, officialClasses, timetableClasses" not in attendance:
+              if dependency_anchor not in attendance:
+                  raise SystemExit("classes dependency anchor not found")
+              attendance = attendance.replace(
+                  dependency_anchor,
+                  "[assignedClasses, officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);",
+                  1,
+              )
+
           attendance_path.write_text(attendance, encoding="utf-8")
 
           runtime_path = Path("app/teacher/v24-runtime-fixes.tsx")
           runtime = runtime_path.read_text(encoding="utf-8")
-          runtime = runtime.replace('import { useEffect, useMemo } from "react";', 'import { useEffect } from "react";', 1)
+          runtime = runtime.replace(
+              'import { useEffect, useMemo } from "react";',
+              'import { useEffect } from "react";',
+              1,
+          )
           runtime = runtime.replace('import { useTeacherClient } from "../../lib/teacher-client";\n', '', 1)
           runtime = runtime.replace('import { assignmentClassNames, normalizeClass } from "../../lib/unified-roster";\n', '', 1)
 
           helper_start = runtime.find("function payloadClasses")
           helper_end = runtime.find("function escapeHtml")
-          if helper_start == -1 or helper_end == -1 or helper_end <= helper_start:
-              raise SystemExit("runtime helper anchors not found")
-          runtime = runtime[:helper_start] + runtime[helper_end:]
+          if helper_start != -1:
+              if helper_end == -1 or helper_end <= helper_start:
+                  raise SystemExit("runtime helper anchors not found")
+              runtime = runtime[:helper_start] + runtime[helper_end:]
 
-          component_session = '''  const session = useTeacherClient();
-          const assignedClasses = useMemo(
-            () => assignmentClassNames(session.assignments, session.subjectKey || ""),
-            [session.assignments, session.subjectKey],
-          );
+          session_start = runtime.find("  const session = useTeacherClient();")
+          attendance_effect_start = runtime.find(
+              '  useEffect(() => {\n    if (pathname !== "/teacher/attendance"'
+          )
+          timetable_effect_start = runtime.find(
+              '  useEffect(() => {\n    if (pathname !== "/teacher/timetable"'
+          )
 
-          '''
-          if component_session not in runtime:
-              raise SystemExit("runtime session anchor not found")
-          runtime = runtime.replace(component_session, '', 1)
+          if session_start != -1:
+              if attendance_effect_start == -1 or attendance_effect_start <= session_start:
+                  raise SystemExit("runtime session/effect anchors not found")
+              runtime = runtime[:session_start] + runtime[attendance_effect_start:]
+              attendance_effect_start = runtime.find(
+                  '  useEffect(() => {\n    if (pathname !== "/teacher/attendance"'
+              )
+              timetable_effect_start = runtime.find(
+                  '  useEffect(() => {\n    if (pathname !== "/teacher/timetable"'
+              )
 
-          attendance_effect_start = runtime.find('  useEffect(() => {\n    if (pathname !== "/teacher/attendance"')
-          timetable_effect_start = runtime.find('  useEffect(() => {\n    if (pathname !== "/teacher/timetable"', attendance_effect_start)
-          if attendance_effect_start == -1 or timetable_effect_start == -1:
-              raise SystemExit("runtime effects anchors not found")
-          runtime = runtime[:attendance_effect_start] + runtime[timetable_effect_start:]
+          if attendance_effect_start != -1:
+              if timetable_effect_start == -1 or timetable_effect_start <= attendance_effect_start:
+                  raise SystemExit("runtime effects anchors not found")
+              runtime = runtime[:attendance_effect_start] + runtime[timetable_effect_start:]
+
+          if "/teacher/attendance" in runtime:
+              raise SystemExit("temporary attendance injection still exists")
+          if 'pathname !== "/teacher/timetable"' not in runtime:
+              raise SystemExit("timetable print fix was removed unexpectedly")
+
           runtime_path.write_text(runtime, encoding="utf-8")
 
           sw_path = Path("public/sw.js")
           sw = sw_path.read_text(encoding="utf-8")
-          sw = sw.replace('ostadh-lahooni-v24-attendance-print', 'ostadh-lahooni-v25-attendance-source')
+          sw = re.sub(
+              r'const CACHE_NAME = "[^"]+";',
+              'const CACHE_NAME = "ostadh-lahooni-v25-attendance-source";',
+              sw,
+              count=1,
+          )
           sw_path.write_text(sw, encoding="utf-8")
           PY
+
+      - name: Verify source
+        run: |
+          grep -q "assignmentClassNames" app/teacher/attendance/page.tsx
+          grep -q "assignedClasses" app/teacher/attendance/page.tsx
+          ! grep -q 'pathname !== "/teacher/attendance"' app/teacher/v24-runtime-fixes.tsx
+          grep -q 'pathname !== "/teacher/timetable"' app/teacher/v24-runtime-fixes.tsx
+          grep -q "v25-attendance-source" public/sw.js
 
       - name: Verify build
         run: |
@@ -127,4 +159,4 @@ jobs:
           git commit -m "إزالة تكرار فصول التحضير وتفعيل فتح الفصل المسند"
           git push origin main
 
-# trigger-source-fix
+# trigger-source-fix-v3
