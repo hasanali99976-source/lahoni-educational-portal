@@ -1,4 +1,5 @@
 import { getSubjectConfig } from "./subject-config";
+import { arabicNumber, gradeLabel, gradeNumber, normalizeArabic, sectionNumber } from "./school-roster";
 
 export type TeacherAssignment = {
   id: string;
@@ -26,20 +27,57 @@ export function assignmentFromId(id: string): TeacherAssignment {
 }
 
 export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown = []): TeacherAssignment[] {
+  const normalized: TeacherAssignment[] = [];
+
+  const append = (raw: unknown) => {
+    if (!raw || typeof raw !== "object") return;
+    const row = raw as Partial<TeacherAssignment> & {
+      subjectKey?: unknown;
+      workspaceKey?: unknown;
+      className?: unknown;
+      class?: unknown;
+      sections?: unknown;
+    };
+
+    let fromId: TeacherAssignment | null = null;
+    if (row.id) {
+      try { fromId = assignmentFromId(String(row.id)); }
+      catch { fromId = null; }
+    }
+
+    const subjectId = String(row.subjectId || row.subjectKey || fromId?.subjectId || row.workspaceKey || "")
+      .trim()
+      .split("--")[0];
+    const className = String(row.className || row.class || "").trim();
+    const rawGrade = String(row.grade || fromId?.grade || className || "").trim();
+    const parsedGrade = gradeNumber(rawGrade || className);
+    const grade = parsedGrade ? gradeLabel(parsedGrade) : rawGrade;
+
+    const sectionSource = String(row.section || fromId?.section || "").trim();
+    const normalizedSection = normalizeArabic(sectionSource);
+    const allSections = ["الكل", "كل", "جميع الفصول"].includes(normalizedSection);
+    const parsedSection = sectionNumber(sectionSource, className);
+    const section = allSections ? "الكل" : parsedSection ? arabicNumber(parsedSection) : sectionSource;
+
+    if (!subjectId || !grade || !section) return;
+    normalized.push(assignmentFromId(assignmentId(subjectId, grade, section)));
+  };
+
   if (Array.isArray(value)) {
-    const assignments = value.map(item => {
-      if (!item || typeof item !== "object") return null;
-      const row = item as Partial<TeacherAssignment>;
-      const subjectId = String(row.subjectId || "").trim();
-      const grade = String(row.grade || "").trim();
-      const section = String(row.section || "").trim();
-      if (!subjectId || !grade || !section) return null;
-      const id = assignmentId(subjectId, grade, section);
-      return assignmentFromId(id);
-    }).filter(Boolean) as TeacherAssignment[];
-    if (assignments.length) return [...new Map(assignments.map(item => [item.id, item])).values()];
+    value.forEach(item => {
+      if (item && typeof item === "object" && Array.isArray((item as { sections?: unknown }).sections)) {
+        const row = item as Record<string, unknown>;
+        (row.sections as unknown[]).forEach(section => append({ ...row, section }));
+      } else {
+        append(item);
+      }
+    });
   }
+
+  if (normalized.length) return [...new Map(normalized.map(item => [item.id, item])).values()];
+
   return Array.isArray(fallbackSubjectIds)
-    ? fallbackSubjectIds.map(String).filter(Boolean).map(assignmentFromId)
+    ? [...new Set(fallbackSubjectIds.map(item => String(item || "").trim().split("--")[0]).filter(Boolean))]
+        .map(assignmentFromId)
     : [];
 }
