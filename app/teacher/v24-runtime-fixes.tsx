@@ -15,6 +15,14 @@ function payloadClasses(value: unknown) {
   }).filter(Boolean);
 }
 
+function timetableClasses(value: unknown) {
+  if (!value || typeof value !== "object") return [] as string[];
+  return Object.values(value as Record<string, unknown>).map(item => {
+    if (!item || typeof item !== "object") return "";
+    return normalizeClass((item as Record<string, unknown>).className);
+  }).filter(Boolean);
+}
+
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, character => ({
     "&": "&amp;",
@@ -81,7 +89,7 @@ export default function TeacherV24RuntimeFixes() {
         const option = document.createElement("option");
         option.value = className;
         option.textContent = className;
-        option.dataset.v24Class = "assignment";
+        option.dataset.v24Class = "assignment-timetable";
         select.append(option);
         existing.add(className);
       });
@@ -89,18 +97,28 @@ export default function TeacherV24RuntimeFixes() {
 
     const params = new URLSearchParams({ subjectId: session.subjectKey });
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
-    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", credentials: "same-origin" })
-      .then(response => response.ok ? response.json() : Promise.reject(new Error("classes_failed")))
-      .then(data => {
-        if (!active) return;
-        apiClasses = [...new Set([
-          ...payloadClasses(data.classes),
-          ...payloadClasses(data.availableClasses),
-          ...payloadClasses(data.assignments?.map((item: Record<string, unknown>) => `${item.grade || ""} ${item.section || ""}`)),
-        ])];
-        ensureClasses();
-      })
-      .catch(() => ensureClasses());
+    const requestJson = (url: string) => fetch(url, { cache: "no-store", credentials: "same-origin" })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("classes_failed")));
+
+    Promise.allSettled([
+      requestJson(`/api/teacher/students?${params.toString()}`),
+      requestJson(`/api/teacher/timetable?subjectId=${encodeURIComponent(session.subjectKey)}`),
+    ]).then(results => {
+      if (!active) return;
+      const studentsData = results[0].status === "fulfilled" ? results[0].value as Record<string, unknown> : {};
+      const timetableData = results[1].status === "fulfilled" ? results[1].value as Record<string, unknown> : {};
+      const rawAssignments = Array.isArray(studentsData.assignments) ? studentsData.assignments : [];
+      apiClasses = [...new Set([
+        ...payloadClasses(studentsData.classes),
+        ...payloadClasses(studentsData.availableClasses),
+        ...payloadClasses(rawAssignments.map(item => {
+          const row = item as Record<string, unknown>;
+          return `${row.grade || ""} ${row.section || ""}`;
+        })),
+        ...timetableClasses(timetableData.lessons),
+      ])];
+      ensureClasses();
+    }).catch(() => ensureClasses());
 
     ensureClasses();
     const observer = new MutationObserver(ensureClasses);
