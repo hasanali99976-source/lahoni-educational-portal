@@ -126,3 +126,5 @@ jobs:
           git add app/teacher/attendance/page.tsx app/teacher/v24-runtime-fixes.tsx public/sw.js .github/workflows/fix-attendance-source.yml
           git commit -m "إزالة تكرار فصول التحضير وتفعيل فتح الفصل المسند"
           git push origin main
+
+# trigger-source-fix
