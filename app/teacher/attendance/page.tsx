@@ -39,6 +39,7 @@ type RangeRow = {
   escapedDates: string[];
   attendanceRate: number;
 };
+type TimetableLesson = { className?: string };
 
 const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
 const STATUS_LABELS: Record<AttendanceStatus, string> = {
@@ -77,7 +78,7 @@ function safeFile(value: string) {
 }
 
 function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (character) => ({
+  return value.replace(/[&<>"']/g, character => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
@@ -136,6 +137,16 @@ function withTimeout<T>(promise: Promise<T>, milliseconds: number) {
   ]);
 }
 
+function classNamesFromPayload(value: unknown) {
+  if (!Array.isArray(value)) return [] as string[];
+  return value.map(item => {
+    if (typeof item === "string") return normalizeClass(item);
+    if (!item || typeof item !== "object") return "";
+    const row = item as Record<string, unknown>;
+    return normalizeClass(row.name || row.className || row.class || row.id);
+  }).filter(Boolean);
+}
+
 export default function AttendancePage() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
@@ -147,6 +158,8 @@ export default function AttendancePage() {
 
   const [localStudents, setLocalStudents] = useState<UnifiedStudent[]>([]);
   const [officialStudents, setOfficialStudents] = useState<UnifiedStudent[]>([]);
+  const [officialClasses, setOfficialClasses] = useState<string[]>([]);
+  const [timetableClasses, setTimetableClasses] = useState<string[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
   const [reportFrom, setReportFrom] = useState(startOfCurrentWeek());
@@ -183,10 +196,13 @@ export default function AttendancePage() {
     if (!ready) return;
     let active = true;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 7000);
+    const timer = window.setTimeout(() => controller.abort(), 8000);
+    const params = new URLSearchParams({ subjectId: subjectKey });
+    if (session?.activeGrade) params.set("grade", String(session.activeGrade));
 
-    fetch(`/api/teacher/students?subjectId=${encodeURIComponent(subjectKey)}`, {
+    fetch(`/api/teacher/students?${params.toString()}`, {
       cache: "no-store",
+      credentials: "same-origin",
       signal: controller.signal,
     })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("roster_load_failed")))
@@ -194,7 +210,7 @@ export default function AttendancePage() {
         if (!active) return;
         const list = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
           const code = String(student.code || student.accessCode || student.studentCode || student.id || "").trim().toUpperCase();
-          const className = String(student.className || student.class || "").trim();
+          const className = normalizeClass(student.className || student.class);
           return {
             ...student,
             id: code,
@@ -208,12 +224,16 @@ export default function AttendancePage() {
           } as UnifiedStudent;
         }).filter((student: UnifiedStudent) => !!student.id && !!student.name && !!student.class);
 
+        const receivedClasses = [
+          ...classNamesFromPayload(data.classes),
+          ...classNamesFromPayload(data.availableClasses),
+        ];
+        setOfficialClasses([...new Set(receivedClasses)]);
         setOfficialStudents(list);
         const cached = loadLocalRoster(teacherId, subjectKey);
         const merged = mergeStudents(cached, list);
         setLocalStudents(merged);
         if (JSON.stringify(cached) !== JSON.stringify(merged)) saveLocalRoster(teacherId, merged, subjectKey);
-        setMessage(current => current.includes("القائمة الرسمية") ? "" : current);
       })
       .catch(() => {
         if (active) setMessage(current => current || "تعذر تحديث القائمة الرسمية، وتم عرض النسخة المحفوظة على الجهاز.");
@@ -225,78 +245,117 @@ export default function AttendancePage() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [ready, teacherId, subjectKey]);
+  }, [ready, teacherId, subjectKey, session?.activeGrade]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const controller = new AbortController();
+    fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectKey)}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+      signal: controller.signal,
+    })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("timetable_load_failed")))
+      .then(data => {
+        const lessons = data.lessons && typeof data.lessons === "object"
+          ? Object.values(data.lessons as Record<string, TimetableLesson>)
+          : [];
+        setTimetableClasses([...new Set(lessons.map(lesson => normalizeClass(lesson.className)).filter(Boolean))]);
+      })
+      .catch(() => setTimetableClasses([]));
+    return () => controller.abort();
+  }, [ready, subjectKey]);
 
   const scopedOfficialStudents = useMemo(
-    () => officialStudents.filter((student) => classAllowed(normalizeClass(student.class))),
+    () => officialStudents.filter(student => classAllowed(normalizeClass(student.class))),
     [officialStudents, assignmentScoped, assignments, subjectKey],
   );
-
   const scopedLocalStudents = useMemo(
-    () => localStudents.filter((student) => classAllowed(normalizeClass(student.class))),
+    () => localStudents.filter(student => classAllowed(normalizeClass(student.class))),
     [localStudents, assignmentScoped, assignments, subjectKey],
   );
 
   const students = useMemo(() => {
     const deleted = loadDeletedCodes(teacherId);
-    return mergeStudents(scopedLocalStudents, scopedOfficialStudents).filter((student) => {
+    return mergeStudents(scopedLocalStudents, scopedOfficialStudents).filter(student => {
       const code = studentCode(student);
       return !deleted.has(code) && student.active !== false && student.rosterActive !== false;
     });
   }, [scopedOfficialStudents, scopedLocalStudents, teacherId]);
 
-  const classes = useMemo(
-    () => [...new Set(students.map((student) => normalizeClass(student.class)).filter(Boolean))]
-      .filter(classAllowed)
-      .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
-    [students, assignmentScoped, assignments, subjectKey],
-  );
+  const classes = useMemo(() => [...new Set([
+    ...officialClasses,
+    ...timetableClasses,
+    ...students.map(student => normalizeClass(student.class)),
+  ].filter(Boolean))]
+    .filter(classAllowed)
+    .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })),
+  [officialClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
 
   const classStudents = useMemo(
-    () => students.filter((student) => normalizeClass(student.class) === selectedClass),
+    () => students.filter(student => normalizeClass(student.class) === selectedClass),
     [students, selectedClass],
   );
 
   useEffect(() => {
-    if (!classes.length) { setSelectedClass(""); return; }
+    if (!classes.length) {
+      setSelectedClass("");
+      return;
+    }
     if (!selectedClass || !classes.includes(selectedClass)) setSelectedClass(classes[0]);
   }, [classes, selectedClass]);
 
   useEffect(() => {
     const sequence = ++loadSequence.current;
     async function load() {
-      if (!selectedClass || !attendancePath) { setRecords({}); return; }
+      if (!selectedClass || !attendancePath) {
+        setRecords({});
+        return;
+      }
       const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
       const local = readRecords(key) || readRecords(legacyAttendanceKey(teacherId, subjectKey, selectedClass, selectedDate));
       if (local) {
-        if (sequence === loadSequence.current) setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), local[studentCode(student)] || "present"])));
+        if (sequence === loadSequence.current) {
+          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), local[studentCode(student)] || "present"])));
+        }
         return;
       }
       try {
-        const snapshot = await withTimeout(getDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`)), 3500);
+        const snapshot = await withTimeout(getDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`)), 4000);
         const saved = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;
-        if (sequence === loadSequence.current) setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));
+        if (sequence === loadSequence.current) {
+          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));
+        }
       } catch {
-        if (sequence === loadSequence.current) setRecords(Object.fromEntries(classStudents.map((student) => [studentCode(student), "present"])));
+        if (sequence === loadSequence.current) {
+          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));
+        }
       }
     }
     void load();
   }, [selectedClass, selectedDate, classStudents, attendancePath, teacherId, subjectKey]);
 
   const counts = useMemo(() => {
-    const values = classStudents.map((student) => records[studentCode(student)] || "present");
+    const values = classStudents.map(student => records[studentCode(student)] || "present");
     return {
-      present: values.filter((value) => value === "present").length,
-      absent: values.filter((value) => value === "absent").length,
-      late: values.filter((value) => value === "late").length,
-      excused: values.filter((value) => value === "excused").length,
-      escaped: values.filter((value) => value === "escaped").length,
+      present: values.filter(value => value === "present").length,
+      absent: values.filter(value => value === "absent").length,
+      late: values.filter(value => value === "late").length,
+      excused: values.filter(value => value === "excused").length,
+      escaped: values.filter(value => value === "escaped").length,
     };
   }, [classStudents, records]);
 
   function persistLocal(nextRecords: Record<string, AttendanceStatus>) {
     if (!selectedClass || !teacherId) return;
-    const payload: AttendanceDocument = { class: selectedClass, date: selectedDate, records: nextRecords, teacherId, subjectKey, updatedAt: new Date().toISOString() };
+    const payload: AttendanceDocument = {
+      class: selectedClass,
+      date: selectedDate,
+      records: nextRecords,
+      teacherId,
+      subjectKey,
+      updatedAt: new Date().toISOString(),
+    };
     const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
     localStorage.setItem(key, JSON.stringify(nextRecords));
     localStorage.setItem(`${key}:details`, JSON.stringify(payload));
@@ -327,9 +386,19 @@ export default function AttendancePage() {
     try {
       await withTimeout(setDoc(
         doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`),
-        { class: selectedClass, date: selectedDate, hijriDate: formatHijri(selectedDate), records, teacherId, teacherName, subjectKey, subject, updatedAt: new Date().toISOString() },
+        {
+          class: selectedClass,
+          date: selectedDate,
+          hijriDate: formatHijri(selectedDate),
+          records,
+          teacherId,
+          teacherName,
+          subjectKey,
+          subject,
+          updatedAt: new Date().toISOString(),
+        },
         { merge: true },
-      ), 3500);
+      ), 4000);
       setMessage("تم حفظ التحضير ومزامنته بنجاح");
     } catch {
       setMessage("تم حفظ التحضير بنجاح على الجهاز، وستتم المزامنة عند توفر الاتصال");
@@ -350,22 +419,28 @@ export default function AttendancePage() {
 
   function exportExcel() {
     const rows = reportRows();
-    if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
-    const details = rows.map((row) => ({ "م": row.number, "اسم الطالب": row.name, "الفصل": row.className, "حالة الطالب": row.status, "ملاحظات": row.notes }));
+    if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
+    const details = rows.map(row => ({
+      "م": row.number,
+      "اسم الطالب": row.name,
+      "الفصل": row.className,
+      "حالة الطالب": row.status,
+      "ملاحظات": row.notes,
+    }));
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.json_to_sheet(details);
-    sheet["!cols"] = [{ wch: 6 }, { wch: 34 }, { wch: 18 }, { wch: 18 }, { wch: 28 }];
+    sheet["!cols"] = [{ wch: 6 }, { wch: 34 }, { wch: 22 }, { wch: 18 }, { wch: 28 }];
     XLSX.utils.book_append_sheet(workbook, sheet, "الحضور اليومي");
     XLSX.writeFile(workbook, `تقرير-حضور-${safeFile(selectedClass)}-${selectedDate}.xlsx`);
   }
 
   function printAdminReport() {
     const rows = reportRows();
-    if (!selectedClass || !rows.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
+    if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
     const popup = window.open("", "_blank", "width=1200,height=900");
     if (!popup) return setMessage("اسمح بالنوافذ المنبثقة لفتح التقرير");
-    const bodyRows = rows.map((row) => `<tr><td>${row.number}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.className)}</td><td>${escapeHtml(row.status)}</td><td></td></tr>`).join("");
-    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير حضور ${escapeHtml(selectedClass)}</title><style>@page{size:A4 landscape;margin:0}*{box-sizing:border-box}body{margin:0;background:#eef2f5;font-family:Arial,Tahoma,sans-serif}.toolbar{display:flex;justify-content:center;gap:10px;padding:10px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:10px 18px;font-weight:800}.page{position:relative;width:297mm;height:210mm;margin:8mm auto;background:#fff;padding:7mm 9mm 12mm;overflow:hidden}.portal{text-align:center;font-weight:900;color:#173f61;border-bottom:2px solid #173f61;padding-bottom:4px}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;border:1px solid #222;padding:5px;font-size:9px}h1{text-align:center;font-size:16px;margin:5px}.summary{display:flex;justify-content:space-around;border:1px solid #222;border-top:0;padding:4px;font-size:9px;font-weight:800}table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed}th,td{border:1px solid #222;padding:2.5px 4px;font-size:8.3px}th{background:#edf3f7}.signatures{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;font-weight:700}footer{position:absolute;right:9mm;left:9mm;bottom:4mm;display:flex;justify-content:space-between;border-top:1px solid #666;padding-top:3px;font-size:8px}@media print{body{background:#fff}.toolbar{display:none}.page{margin:0;width:297mm;height:210mm}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><section class="page"><div class="portal">${PORTAL_NAME}</div><h1>تقرير الحضور اليومي للإدارة</h1><div class="meta"><span><b>المعلم:</b> ${escapeHtml(teacherName)}</span><span><b>المادة:</b> ${escapeHtml(subject)}</span><span><b>الفصل:</b> ${escapeHtml(selectedClass)}</span><span><b>التاريخ:</b> ${selectedDate}</span></div><div class="summary"><span>الإجمالي: ${rows.length}</span><span>حاضر: ${counts.present}</span><span>غائب: ${counts.absent}</span><span>متأخر: ${counts.late}</span><span>مستأذن: ${counts.excused}</span><span>هروب: ${counts.escaped}</span></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody>${bodyRows}</tbody></table><div class="signatures"><span>توقيع المعلم: __________________</span><span>اعتماد الإدارة: __________________</span></div><footer><strong>${PORTAL_NAME}</strong><span>صفحة واحدة</span></footer></section></body></html>`);
+    const bodyRows = rows.map(row => `<tr><td>${row.number}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.className)}</td><td>${escapeHtml(row.status)}</td><td></td></tr>`).join("");
+    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير حضور ${escapeHtml(selectedClass)}</title><style>@page{size:A4 landscape;margin:0}*{box-sizing:border-box}body{margin:0;background:#eef2f5;font-family:Arial,Tahoma,sans-serif}.toolbar{display:flex;justify-content:center;gap:10px;padding:10px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:10px 18px;font-weight:800}.page{position:relative;width:297mm;min-height:210mm;margin:8mm auto;background:#fff;padding:7mm 9mm 12mm}.portal{text-align:center;font-weight:900;color:#173f61;border-bottom:2px solid #173f61;padding-bottom:4px}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;border:1px solid #222;padding:5px;font-size:9px}h1{text-align:center;font-size:16px;margin:5px}.summary{display:flex;justify-content:space-around;border:1px solid #222;border-top:0;padding:4px;font-size:9px;font-weight:800}table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed}th,td{border:1px solid #222;padding:2.5px 4px;font-size:8.3px}th{background:#edf3f7}.signatures{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;font-weight:700}footer{margin-top:7px;display:flex;justify-content:space-between;border-top:1px solid #666;padding-top:3px;font-size:8px}@media print{body{background:#fff}.toolbar{display:none}.page{margin:0;width:297mm;min-height:210mm}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><section class="page"><div class="portal">${PORTAL_NAME}</div><h1>تقرير الحضور اليومي للإدارة</h1><div class="meta"><span><b>المعلم:</b> ${escapeHtml(teacherName)}</span><span><b>المادة:</b> ${escapeHtml(subject)}</span><span><b>الفصل:</b> ${escapeHtml(selectedClass)}</span><span><b>التاريخ:</b> ${selectedDate}</span></div><div class="summary"><span>الإجمالي: ${rows.length}</span><span>حاضر: ${counts.present}</span><span>غائب: ${counts.absent}</span><span>متأخر: ${counts.late}</span><span>مستأذن: ${counts.excused}</span><span>هروب: ${counts.escaped}</span></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody>${bodyRows}</tbody></table><div class="signatures"><span>توقيع المعلم: __________________</span><span>اعتماد الإدارة: __________________</span></div><footer><strong>${PORTAL_NAME}</strong><span>صفحة حضور يومية</span></footer></section></body></html>`);
     popup.document.close();
   }
 
@@ -375,25 +450,30 @@ export default function AttendancePage() {
     const localDocuments = Object.values(readAttendanceIndex(teacherId, subjectKey));
     let serverDocuments: AttendanceDocument[] = [];
     try {
-      const snapshot = await withTimeout(getDocs(collection(db, attendancePath)), 5000);
-      serverDocuments = snapshot.docs.map((item) => item.data() as AttendanceDocument);
+      const snapshot = await withTimeout(getDocs(collection(db, attendancePath)), 5500);
+      serverDocuments = snapshot.docs.map(item => item.data() as AttendanceDocument);
     } catch {
       serverDocuments = [];
     }
     const merged = new Map<string, AttendanceDocument>();
-    [...serverDocuments, ...localDocuments].forEach((item) => {
+    [...serverDocuments, ...localDocuments].forEach(item => {
       if (!item.class || !item.date) return;
       merged.set(`${item.class}|${item.date}`, item);
     });
     const documents = [...merged.values()]
-      .filter((item) => item.class === selectedClass && !!item.date && item.date! >= reportFrom && item.date! <= reportTo)
+      .filter(item => item.class === selectedClass && !!item.date && item.date! >= reportFrom && item.date! <= reportTo)
       .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-    const days = [...new Set(documents.map((item) => item.date || "").filter(Boolean))];
+    const days = [...new Set(documents.map(item => item.date || "").filter(Boolean))];
     const rows = classStudents.map((student, index) => {
       const code = studentCode(student);
-      const dates = { absentDates: [] as string[], lateDates: [] as string[], excusedDates: [] as string[], escapedDates: [] as string[] };
+      const dates = {
+        absentDates: [] as string[],
+        lateDates: [] as string[],
+        excusedDates: [] as string[],
+        escapedDates: [] as string[],
+      };
       let present = 0;
-      documents.forEach((item) => {
+      documents.forEach(item => {
         const date = item.date || "";
         const status = item.records?.[code] || "present";
         if (status === "present") present += 1;
@@ -403,8 +483,16 @@ export default function AttendancePage() {
         if (status === "escaped") dates.escapedDates.push(date);
       });
       const counted = documents.length;
-      const attendanceRate = counted ? Math.round(((present + dates.lateDates.length + dates.excusedDates.length) / counted) * 100) : 0;
-      return { number: index + 1, name: clean(student.name) || "طالب بدون اسم", present, ...dates, attendanceRate };
+      const attendanceRate = counted
+        ? Math.round(((present + dates.lateDates.length + dates.excusedDates.length) / counted) * 100)
+        : 0;
+      return {
+        number: index + 1,
+        name: clean(student.name) || "طالب بدون اسم",
+        present,
+        ...dates,
+        attendanceRate,
+      };
     });
     return { rows, days };
   }
@@ -413,8 +501,9 @@ export default function AttendancePage() {
     try {
       setReporting(true);
       const { rows, days } = await buildRangeRows();
+      if (!classStudents.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
       if (!days.length) return setMessage("لا توجد سجلات حضور محفوظة في الفترة المحددة");
-      const details = rows.map((row) => ({
+      const details = rows.map(row => ({
         "م": row.number,
         "اسم الطالب": row.name,
         "الحضور": row.present,
@@ -441,11 +530,11 @@ export default function AttendancePage() {
   const statuses = Object.entries(STATUS_LABELS) as [AttendanceStatus, string][];
 
   return <main className="attendance-page" dir="rtl"><section className="attendance-card">
-    <header className="attendance-head"><div><h1>التحضير اليومي — {subject}</h1><p>تظهر فقط الفصول المخصصة للمادة الحالية، وكل تغيير يُحفظ مباشرة.</p></div><div className="hijri-card"><small>التاريخ الهجري</small><strong>{formatHijri(selectedDate)}</strong><div><button onClick={() => moveDay(-1)}>اليوم السابق</button><button onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button><button onClick={() => moveDay(1)}>اليوم التالي</button></div></div></header>
-    <div className="attendance-controls"><label>الفصل<select value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map((className) => <option key={className}>{className}</option>)}</select></label><label>التاريخ<input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)}/></label><button onClick={() => void saveAttendance()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button><button type="button" onClick={printAdminReport} disabled={!selectedClass || !classStudents.length}>تقرير يومي PDF</button><button type="button" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تقرير يومي Excel</button></div>
-    <section className="attendance-range-report"><h2>تقرير أسبوعي أو فترة محددة</h2><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب.</p><div className="attendance-controls"><label>من تاريخ<input type="date" value={reportFrom} onChange={(event) => setReportFrom(event.target.value)}/></label><label>إلى تاريخ<input type="date" value={reportTo} onChange={(event) => setReportTo(event.target.value)}/></label><button type="button" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تقرير الفترة Excel"}</button></div></section>
-    <div className="attendance-stats"><span className="present">حاضر: {counts.present}</span><span className="absent">غائب: {counts.absent}</span><span>متأخر: {counts.late}</span><span>مستأذن: {counts.excused}</span><span className="escaped">هروب: {counts.escaped}</span></div>
-    <div className="attendance-list">{classStudents.map((student, index) => <article key={studentCode(student)}><div className="student-info"><b>{index + 1}</b><div><strong>{student.name || "طالب بدون اسم"}</strong><small>{selectedClass} — {studentCode(student)}</small></div></div><div className="status-buttons">{statuses.map(([status, label]) => <button key={status} className={(records[studentCode(student)] || "present") === status ? `active ${status}` : ""} onClick={() => setStudentStatus(student, status)}>{label}</button>)}</div></article>)}{!selectedClass ? <p className="attendance-empty">اختر الفصل لعرض الطلاب.</p> : null}{selectedClass && !classStudents.length ? <p className="attendance-empty">لا يوجد طلاب في هذا الفصل. أضفهم من إدارة الطلاب.</p> : null}</div>
+    <header className="attendance-head"><div><h1>التحضير اليومي — {subject}</h1><p>تظهر جميع الفصول المسندة والمضافة إلى الجدول، وكل تغيير يُحفظ مباشرة.</p></div><div className="hijri-card"><small>التاريخ الهجري</small><strong>{formatHijri(selectedDate)}</strong><div><button onClick={() => moveDay(-1)}>اليوم السابق</button><button onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button><button onClick={() => moveDay(1)}>اليوم التالي</button></div></div></header>
+    <div className="attendance-controls"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select></label><label>التاريخ<input type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/></label><button onClick={() => void saveAttendance()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button><button type="button" onClick={printAdminReport} disabled={!selectedClass || !classStudents.length}>تقرير يومي PDF</button><button type="button" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تقرير يومي Excel</button></div>
+    <section className="attendance-range-report"><h2>تقرير أسبوعي أو فترة محددة</h2><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب.</p><div className="attendance-controls"><label>من تاريخ<input type="date" value={reportFrom} onChange={event => setReportFrom(event.target.value)}/></label><label>إلى تاريخ<input type="date" value={reportTo} onChange={event => setReportTo(event.target.value)}/></label><button type="button" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تقرير الفترة Excel"}</button></div></section>
+    <div className="attendance-stats"><span className="present">حاضر: {counts.present}</span><span className="absent">غائب: {counts.absent}</span><span className="late">متأخر: {counts.late}</span><span className="excused">مستأذن: {counts.excused}</span><span className="escaped">هروب: {counts.escaped}</span></div>
+    <div className="attendance-list">{classStudents.map((student, index) => <article key={studentCode(student)}><div className="student-info"><b>{index + 1}</b><div><strong>{student.name || "طالب بدون اسم"}</strong><small>{selectedClass} — {studentCode(student)}</small></div></div><div className="status-buttons">{statuses.map(([status, label]) => <button key={status} className={(records[studentCode(student)] || "present") === status ? `active ${status}` : ""} onClick={() => setStudentStatus(student, status)}>{label}</button>)}</div></article>)}{!selectedClass ? <p className="attendance-empty">اختر الفصل لعرض الطلاب.</p> : null}{selectedClass && !classStudents.length ? <p className="attendance-empty">الفصل موجود ضمن الجدول أو الإسناد، لكن لا توجد له أسماء طلاب مسجلة حتى الآن.</p> : null}</div>
     {message ? <p className="attendance-message">{message}</p> : null}
   </section></main>;
 }
