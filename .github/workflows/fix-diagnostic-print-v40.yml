@@ -1,0 +1,56 @@
+name: Fix diagnostic print v40
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-diagnostic-print-v40.yml"
+      - "scripts/fix-diagnostic-print-v40.py"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply diagnostic print fix
+        run: python3 scripts/fix-diagnostic-print-v40.py
+
+      - name: Verify diagnostic print
+        shell: bash
+        run: |
+          grep -q 'function printPreviewTest(item: Diagnostic)' app/teacher/diagnostics/page.tsx
+          grep -q 'بوابة أستاذ لحوني التعليمية' app/teacher/diagnostics/page.tsx
+          grep -q 'position:fixed' app/teacher/diagnostics/page.tsx
+          grep -q 'size:A4 portrait' app/teacher/diagnostics/page.tsx
+          grep -q 'طباعة الاختبار' app/teacher/diagnostics/page.tsx
+          grep -q 'ostadh-lahooni-v40-diagnostic-print' app/pwa-register.tsx
+          grep -q 'ostadh-lahooni-v40-diagnostic-print' public/sw.js
+          git diff --check
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run audit:runtime
+          npm run build
+
+      - name: Commit and publish
+        shell: bash
+        run: |
+          rm -f .github/workflows/fix-diagnostic-print-v40.yml
+          rm -f scripts/fix-diagnostic-print-v40.py
+          git config user.name "ChatGPT Upgrade Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "إصلاح طباعة الاختبار وتنسيقه في صفحة واحدة"
+          git push origin main
