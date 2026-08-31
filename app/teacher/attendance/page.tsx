@@ -610,8 +610,8 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
 
       <section className="attendance-setup-panel">
         <div className="attendance-primary-controls">
-          <label><span>الفصل</span><select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select></label>
-          <label><span>تاريخ التحضير</span><input type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/></label>
+          <label><span>الفصل</span><select data-attendance-class-select="true" value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select></label>
+          <label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/></label>
         </div>
         <div className="attendance-main-actions">
           <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>

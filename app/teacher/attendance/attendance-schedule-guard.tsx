@@ -87,11 +87,21 @@ function shortDate(value: string) {
 
 function dailyControls() {
   const page = document.querySelector<HTMLElement>(".attendance-page");
-  const controls = page?.querySelector<HTMLElement>(".attendance-controls");
+  const controls =
+    page?.querySelector<HTMLElement>(".attendance-primary-controls")
+    || page?.querySelector<HTMLElement>(".attendance-controls")
+    || page?.querySelector<HTMLElement>(".attendance-setup-panel")
+    || null;
   return {
     controls,
-    classSelect: controls?.querySelector<HTMLSelectElement>("select") || null,
-    dateInput: controls?.querySelector<HTMLInputElement>('input[type="date"]') || null,
+    classSelect:
+      page?.querySelector<HTMLSelectElement>('[data-attendance-class-select="true"]')
+      || controls?.querySelector<HTMLSelectElement>("select")
+      || null,
+    dateInput:
+      page?.querySelector<HTMLInputElement>('[data-attendance-date-input="true"]')
+      || controls?.querySelector<HTMLInputElement>('input[type="date"]')
+      || null,
   };
 }
 
@@ -152,13 +162,13 @@ export default function AttendanceScheduleGuard() {
         const remote = data.lessons && typeof data.lessons === "object" ? data.lessons : {};
         const latestLocal = readLocalTimetable(storageKey);
         setLessons(mergeTimetable(remote, latestLocal));
-        if (latestLocal) setLoadMessage("تم عرض الحصص المحفوظة على الجهاز حتى اكتمال المزامنة السحابية.");
+        if (latestLocal) setLoadMessage("تم تحميل الجدول وربطه بالتحضير، مع دمج آخر نسخة محفوظة على الجهاز.");
       })
       .catch(error => {
         const latestLocal = readLocalTimetable(storageKey);
         if (latestLocal) {
           setLessons(latestLocal.lessons);
-          setLoadMessage("تم عرض الحصص المحفوظة على الجهاز؛ المزامنة السحابية متوقفة مؤقتًا.");
+          setLoadMessage("تعذر التحديث السحابي؛ تم استخدام آخر جدول محفوظ على الجهاز وسيبقى القفل حسبه.");
         } else {
           setLessons({});
           setLoadMessage(error instanceof Error ? error.message : "تعذر تحميل الجدول");
@@ -241,7 +251,7 @@ export default function AttendanceScheduleGuard() {
       })
       .then(data => setRemoteSaved(data.exists === true))
       .catch(() => {
-        // نفشل بشكل مفتوح حتى لا يُحجب أي تحضير قديم عند تعطل الاتصال.
+        // يبقى القفل حسب الجدول، ويُفتح السجل فقط إذا ثبت أنه تحضير سابق محفوظ.
         setRemoteUnavailable(true);
       })
       .finally(() => {
@@ -256,7 +266,7 @@ export default function AttendanceScheduleGuard() {
   }, [teacherId, subjectKey, guardEnabled, isScheduled, localSaved, normalizedClass, selectedDate]);
 
   const selectedIsSaved = localSaved || remoteSaved;
-  const locked = guardEnabled && !isScheduled && !selectedIsSaved && !remoteUnavailable;
+  const locked = guardEnabled && !isScheduled && !selectedIsSaved;
 
   const periodsForDate = useCallback((className: string, value: string) => {
     const canonical = normalizeClass(className);
@@ -330,16 +340,17 @@ export default function AttendanceScheduleGuard() {
       const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>("button");
       if (!button) return;
       const text = button.textContent?.replace(/\s+/g, " ").trim() || "";
+      const action = button.getAttribute("aria-label") || text;
       const controls = dailyControls();
       const className = controls.classSelect?.value || selectedClass;
       const value = controls.dateInput?.value || selectedDate;
       const days = classDays.get(normalizeClass(className));
-      if (button.closest(".hijri-card") && ["اليوم السابق", "اليوم", "اليوم التالي"].includes(text) && days?.size) {
+      if (button.closest(".hijri-card") && ["اليوم السابق", "السابق", "اليوم", "اليوم التالي", "التالي"].includes(action) && days?.size) {
         event.preventDefault();
         event.stopPropagation();
-        const direction: 1 | -1 = text === "اليوم السابق" ? -1 : 1;
-        const base = text === "اليوم" ? dateInput(new Date()) : value;
-        const next = text === "اليوم"
+        const direction: 1 | -1 = ["اليوم السابق", "السابق"].includes(action) ? -1 : 1;
+        const base = action === "اليوم" ? dateInput(new Date()) : value;
+        const next = action === "اليوم"
           ? (periodsForDate(className, base).length ? base : findScheduled(className, base, 1, true) || findScheduled(className, base, -1, true))
           : findScheduled(className, base, direction, false);
         if (next) setAllowedDate(next, "تم الانتقال إلى موعد الحصة حسب الجدول.");
@@ -368,7 +379,7 @@ export default function AttendanceScheduleGuard() {
     if (!page) return;
     page.classList.toggle("attendance-date-locked", locked);
     page.dataset.scheduleGuard = guardEnabled ? "enabled" : "fallback";
-    const saveButton = [...page.querySelectorAll<HTMLButtonElement>(".attendance-controls button")]
+    const saveButton = [...page.querySelectorAll<HTMLButtonElement>(".attendance-main-actions button, .attendance-controls button")]
       .find(button => button.textContent?.includes("حفظ التحضير"));
     const statusButtons = page.querySelectorAll<HTMLButtonElement>(".status-buttons button");
     if (saveButton) {
@@ -392,9 +403,9 @@ export default function AttendanceScheduleGuard() {
       {guardEnabled && isScheduled ? <strong>التحضير متاح: {DAY_LABEL[selectedWeekday]} — الحصة {selectedPeriods.map(arabicNumber).join("، ")}</strong> : null}
       {guardEnabled && checkingRemote && !isScheduled && !localSaved ? <strong>جارٍ التحقق من وجود تحضير سابق في هذا التاريخ…</strong> : null}
       {guardEnabled && selectedIsSaved && !isScheduled ? <strong>هذا سجل تحضير سابق محفوظ؛ بقي متاحًا للمراجعة والتعديل.</strong> : null}
-      {guardEnabled && remoteUnavailable && !isScheduled ? <strong>تعذر التحقق من السجل السحابي؛ لم يُفرض القفل حفاظًا على التحاضير السابقة.</strong> : null}
+      {guardEnabled && remoteUnavailable && !isScheduled ? <strong>تعذر التحقق من تحضير سابق سحابي؛ بقي القفل مفعّلًا حسب الجدول.</strong> : null}
       {locked && !checkingRemote ? <strong>لا توجد حصة لهذا الفصل في هذا التاريخ، لذلك إنشاء تحضير جديد مقفول.</strong> : null}
-      {loadMessage ? <small>{loadMessage} — لم يتم فرض القفل حتى يعود الاتصال.</small> : null}
+      {loadMessage ? <small>{loadMessage}</small> : null}
       {notice ? <small>{notice}</small> : null}
     </div>
     {upcomingDates.length ? <div className="attendance-schedule-dates" aria-label="مواعيد التحضير حسب الجدول">
