@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/fix-diagnostics-mobile-v37.yml"
+      - "scripts/fix-diagnostics-mobile-v37.py"
 
 permissions:
   contents: write
