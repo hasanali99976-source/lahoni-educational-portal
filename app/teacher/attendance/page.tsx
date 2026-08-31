@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
@@ -44,6 +44,8 @@ type RangeRow = {
 type TimetableLesson = { className?: string };
 
 const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
+const ATTENDANCE_START_DATE = "2026-08-23";
+const ATTENDANCE_START_LABEL = "الأحد 23/8/2026";
 const STATUS_LABELS: Record<AttendanceStatus, string> = {
   present: "حاضر",
   absent: "غائب",
@@ -55,6 +57,10 @@ const STATUS_LABELS: Record<AttendanceStatus, string> = {
 function toDateInput(date: Date) {
   const offset = date.getTimezoneOffset();
   return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+
+function clampAttendanceDate(value: string) {
+  return value && value < ATTENDANCE_START_DATE ? ATTENDANCE_START_DATE : value;
 }
 
 function formatHijri(value: string) {
@@ -176,12 +182,14 @@ export default function AttendancePage() {
   const [officialClasses, setOfficialClasses] = useState<string[]>([]);
   const [timetableClasses, setTimetableClasses] = useState<string[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
-  const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
-  const [reportFrom, setReportFrom] = useState(startOfCurrentWeek());
-  const [reportTo, setReportTo] = useState(toDateInput(new Date()));
+  const [selectedDate, setSelectedDate] = useState(clampAttendanceDate(toDateInput(new Date())));
+  const [reportFrom, setReportFrom] = useState(clampAttendanceDate(startOfCurrentWeek()));
+  const [reportTo, setReportTo] = useState(clampAttendanceDate(toDateInput(new Date())));
   const [records, setRecords] = useState<Record<string, AttendanceStatus>>({});
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [hasSavedRecord, setHasSavedRecord] = useState(false);
   const [reporting, setReporting] = useState(false);
   const loadSequence = useRef(0);
 
@@ -345,6 +353,12 @@ export default function AttendancePage() {
     async function load() {
       if (!selectedClass || !attendancePath) {
         setRecords({});
+        setHasSavedRecord(false);
+        return;
+      }
+      if (selectedDate < ATTENDANCE_START_DATE) {
+        setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));
+        setHasSavedRecord(false);
         return;
       }
       const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
@@ -352,6 +366,7 @@ export default function AttendancePage() {
       if (local) {
         if (sequence === loadSequence.current) {
           setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), local[studentCode(student)] || "present"])));
+          setHasSavedRecord(true);
         }
         return;
       }
@@ -360,10 +375,12 @@ export default function AttendancePage() {
         const saved = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;
         if (sequence === loadSequence.current) {
           setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));
+          setHasSavedRecord(snapshot.exists());
         }
       } catch {
         if (sequence === loadSequence.current) {
           setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));
+          setHasSavedRecord(false);
         }
       }
     }
@@ -382,7 +399,7 @@ export default function AttendancePage() {
   }, [classStudents, records]);
 
   function persistLocal(nextRecords: Record<string, AttendanceStatus>) {
-    if (!selectedClass || !teacherId) return;
+    if (!selectedClass || !teacherId || selectedDate < ATTENDANCE_START_DATE) return;
     const payload: AttendanceDocument = {
       class: selectedClass,
       date: selectedDate,
@@ -397,9 +414,25 @@ export default function AttendancePage() {
     const index = readAttendanceIndex(teacherId, subjectKey);
     index[`${safeId(selectedClass)}_${selectedDate}`] = payload;
     localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));
+    setHasSavedRecord(true);
+  }
+
+  function clearLocalAttendance() {
+    if (!selectedClass || !teacherId) return;
+    const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
+    localStorage.removeItem(key);
+    localStorage.removeItem(`${key}:details`);
+    localStorage.removeItem(legacyAttendanceKey(teacherId, subjectKey, selectedClass, selectedDate));
+    const index = readAttendanceIndex(teacherId, subjectKey);
+    delete index[`${safeId(selectedClass)}_${selectedDate}`];
+    localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));
   }
 
   function setStudentStatus(student: UnifiedStudent, status: AttendanceStatus) {
+    if (selectedDate < ATTENDANCE_START_DATE) {
+      setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن التسجيل قبل هذا التاريخ.`);
+      return;
+    }
     const code = studentCode(student);
     const next = { ...records, [code]: status };
     setRecords(next);
@@ -410,11 +443,12 @@ export default function AttendancePage() {
   function moveDay(amount: number) {
     const date = new Date(`${selectedDate}T12:00:00`);
     date.setDate(date.getDate() + amount);
-    setSelectedDate(toDateInput(date));
+    setSelectedDate(clampAttendanceDate(toDateInput(date)));
   }
 
   async function saveAttendance() {
     if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");
+    if (selectedDate < ATTENDANCE_START_DATE) return setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن الحفظ قبل هذا التاريخ.`);
     persistLocal(records);
     setMessage("تم حفظ التحضير بنجاح");
     setSaving(true);
@@ -439,6 +473,26 @@ export default function AttendancePage() {
       setMessage("تم حفظ التحضير بنجاح على الجهاز، وستتم المزامنة عند توفر الاتصال");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function deleteAttendance() {
+    if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");
+    if (selectedDate < ATTENDANCE_START_DATE) return setMessage(`لا توجد تحاضير معتمدة قبل ${ATTENDANCE_START_LABEL}.`);
+    if (!hasSavedRecord) return setMessage("لا يوجد تحضير محفوظ لهذا الفصل في التاريخ المحدد");
+    const approved = window.confirm(`هل تريد حذف تحضير ${selectedClass} بتاريخ ${selectedDate} نهائيًا؟`);
+    if (!approved) return;
+    setDeleting(true);
+    try {
+      await withTimeout(deleteDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`)), 5000);
+      clearLocalAttendance();
+      setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));
+      setHasSavedRecord(false);
+      setMessage("تم حذف التحضير من الجهاز والسحابة بنجاح");
+    } catch {
+      setMessage("تعذر حذف التحضير من السحابة؛ تحقق من الاتصال ثم أعد المحاولة حتى لا يعود السجل لاحقًا");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -507,6 +561,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
 
   async function buildRangeRows(): Promise<{ rows: RangeRow[]; days: string[] }> {
     if (!selectedClass || !attendancePath || !reportFrom || !reportTo) throw new Error("اختر الفصل والفترة");
+    if (reportFrom < ATTENDANCE_START_DATE) throw new Error(`تبدأ التقارير من ${ATTENDANCE_START_LABEL}`);
     if (reportFrom > reportTo) throw new Error("تاريخ البداية يجب أن يكون قبل تاريخ النهاية");
     const localDocuments = Object.values(readAttendanceIndex(teacherId, subjectKey));
     let serverDocuments: AttendanceDocument[] = [];
@@ -522,7 +577,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
       merged.set(`${item.class}|${item.date}`, item);
     });
     const documents = [...merged.values()]
-      .filter(item => item.class === selectedClass && !!item.date && item.date! >= reportFrom && item.date! <= reportTo)
+      .filter(item => item.class === selectedClass && !!item.date && item.date! >= ATTENDANCE_START_DATE && item.date! >= reportFrom && item.date! <= reportTo)
       .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
     const days = [...new Set(documents.map(item => item.date || "").filter(Boolean))];
     const rows = classStudents.map((student, index) => {
@@ -598,23 +653,24 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
         <div className="attendance-head-copy">
           <span className="attendance-eyebrow">بوابة تحضير الطلاب</span>
           <h1>التحضير اليومي — {subject}</h1>
-          <p>سجّل حالة كل طالب بلمسة واحدة. كل تغيير يُحفظ مباشرة على الجهاز ثم يُزامن سحابيًا عند الحفظ.</p>
+          <p>سجّل حالة كل طالب بلمسة واحدة. يبدأ احتساب التحضير رسميًا من {ATTENDANCE_START_LABEL}، وكل تغيير يُحفظ مباشرة ثم يُزامن سحابيًا.</p>
           <div className="attendance-hero-badges"><span>حفظ فوري</span><span>مرتبط بالجدول</span><span>تقارير جاهزة</span></div>
         </div>
         <div className="hijri-card">
           <small>اليوم الدراسي</small>
           <strong>{formatHijri(selectedDate)}</strong>
-          <div className="attendance-day-nav"><button type="button" onClick={() => moveDay(-1)} aria-label="اليوم السابق">السابق</button><button type="button" className="today" onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button><button type="button" onClick={() => moveDay(1)} aria-label="اليوم التالي">التالي</button></div>
+          <div className="attendance-day-nav"><button type="button" onClick={() => moveDay(-1)} aria-label="اليوم السابق">السابق</button><button type="button" className="today" onClick={() => setSelectedDate(clampAttendanceDate(toDateInput(new Date())))}>اليوم</button><button type="button" onClick={() => moveDay(1)} aria-label="اليوم التالي">التالي</button></div>
         </div>
       </header>
 
       <section className="attendance-setup-panel">
         <div className="attendance-primary-controls">
           <label><span>الفصل</span><select data-attendance-class-select="true" value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select></label>
-          <label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/></label>
+          <label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" min={ATTENDANCE_START_DATE} value={selectedDate} onChange={event => setSelectedDate(clampAttendanceDate(event.target.value))}/><small className="attendance-start-note">البداية المعتمدة: {ATTENDANCE_START_LABEL}</small></label>
         </div>
         <div className="attendance-main-actions">
-          <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
+          <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
+          <button type="button" className="attendance-delete" onClick={() => void deleteAttendance()} disabled={!selectedClass || !hasSavedRecord || deleting || saving}>{deleting ? "جارٍ الحذف..." : "حذف التحضير"}</button>
           <button type="button" className="attendance-pdf" onClick={printAdminReport} disabled={!selectedClass || !classStudents.length}>معاينة التقرير PDF</button>
           <button type="button" className="attendance-excel" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تحميل Excel</button>
         </div>
@@ -652,7 +708,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
 
       <details className="attendance-range-report">
         <summary><div><span>التقارير المتقدمة</span><strong>تقرير أسبوعي أو فترة محددة</strong></div><small>اضغط للفتح</small></summary>
-        <div className="attendance-range-content"><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب لكل طالب خلال الفترة.</p><div className="attendance-range-controls"><label><span>من تاريخ</span><input type="date" value={reportFrom} onChange={event => setReportFrom(event.target.value)}/></label><label><span>إلى تاريخ</span><input type="date" value={reportTo} onChange={event => setReportTo(event.target.value)}/></label><button type="button" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تحميل تقرير الفترة Excel"}</button></div></div>
+        <div className="attendance-range-content"><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب لكل طالب خلال الفترة.</p><div className="attendance-range-controls"><label><span>من تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportFrom} onChange={event => setReportFrom(clampAttendanceDate(event.target.value))}/></label><label><span>إلى تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportTo} onChange={event => setReportTo(clampAttendanceDate(event.target.value))}/></label><button type="button" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تحميل تقرير الفترة Excel"}</button></div></div>
       </details>
 
       {message ? <p className="attendance-message" role="status">{message}</p> : null}

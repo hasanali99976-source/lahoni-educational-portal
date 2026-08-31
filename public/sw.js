@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v52-attendance-command-center";
+const CACHE_NAME = "ostadh-lahooni-v56-attendance-delete-start";
 const STATIC_FILES = [
   "/",
   "/student",
