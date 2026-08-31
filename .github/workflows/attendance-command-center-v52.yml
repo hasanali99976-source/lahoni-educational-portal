@@ -1,0 +1,59 @@
+name: Attendance command center v52
+
+on:
+  push:
+    paths:
+      - ".github/workflows/attendance-command-center-v52.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Redesign attendance portal only
+        run: python3 scripts/redesign-attendance-v52.py
+
+      - name: Verify scoped redesign
+        run: |
+          grep -q "بوابة تحضير الطلاب" app/teacher/attendance/page.tsx
+          grep -q "attendance-command-center" app/teacher/attendance/page.tsx
+          grep -q "تحضير يومي موثّق" app/teacher/attendance/page.tsx
+          grep -q "ostadh-lahooni-v52-attendance-command-center" public/sw.js
+          grep -q "52-attendance-command-center" app/pwa-register.tsx
+          grep -q "attendance-range-report" app/teacher/attendance/attendance.css
+          ! git diff -- app/api lib firestore.rules android-app | grep -q .
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified attendance redesign
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/attendance/page.tsx app/teacher/attendance/attendance.css app/pwa-register.tsx public/sw.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "إعادة تصميم بوابة تحضير الطلاب والطباعة دون تغيير الربط"
+            git push
+          fi
