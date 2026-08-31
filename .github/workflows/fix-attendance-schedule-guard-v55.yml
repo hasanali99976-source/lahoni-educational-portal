@@ -1,0 +1,203 @@
+name: Fix attendance schedule guard v55
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-attendance-schedule-guard-v55.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Restore timetable guard for redesigned controls
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          page_path = Path('app/teacher/attendance/page.tsx')
+          guard_path = Path('app/teacher/attendance/attendance-schedule-guard.tsx')
+          pwa_path = Path('app/pwa-register.tsx')
+
+          page = page_path.read_text(encoding='utf-8')
+          guard = guard_path.read_text(encoding='utf-8')
+          pwa = pwa_path.read_text(encoding='utf-8')
+
+          # Stable hooks so the timetable guard does not depend on visual CSS structure.
+          if 'data-attendance-class-select="true"' not in page:
+              old = '<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}>'
+              new = '<select data-attendance-class-select="true" value={selectedClass} onChange={event => setSelectedClass(event.target.value)}>'
+              if old not in page:
+                  raise SystemExit('Class select marker was not found')
+              page = page.replace(old, new, 1)
+
+          if 'data-attendance-date-input="true"' not in page:
+              old = '<input type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/>'
+              new = '<input data-attendance-date-input="true" type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/>'
+              if old not in page:
+                  raise SystemExit('Attendance date input marker was not found')
+              page = page.replace(old, new, 1)
+
+          old_controls = '''function dailyControls() {
+            const page = document.querySelector<HTMLElement>(".attendance-page");
+            const controls = page?.querySelector<HTMLElement>(".attendance-controls");
+            return {
+              controls,
+              classSelect: controls?.querySelector<HTMLSelectElement>("select") || null,
+              dateInput: controls?.querySelector<HTMLInputElement>('input[type="date"]') || null,
+            };
+          }'''
+          new_controls = '''function dailyControls() {
+            const page = document.querySelector<HTMLElement>(".attendance-page");
+            const controls =
+              page?.querySelector<HTMLElement>(".attendance-primary-controls")
+              || page?.querySelector<HTMLElement>(".attendance-controls")
+              || page?.querySelector<HTMLElement>(".attendance-setup-panel")
+              || null;
+            return {
+              controls,
+              classSelect:
+                page?.querySelector<HTMLSelectElement>('[data-attendance-class-select="true"]')
+                || controls?.querySelector<HTMLSelectElement>("select")
+                || null,
+              dateInput:
+                page?.querySelector<HTMLInputElement>('[data-attendance-date-input="true"]')
+                || controls?.querySelector<HTMLInputElement>('input[type="date"]')
+                || null,
+            };
+          }'''
+          if old_controls in guard:
+              guard = guard.replace(old_controls, new_controls, 1)
+          elif 'data-attendance-class-select' not in guard:
+              raise SystemExit('Old dailyControls function was not found')
+
+          # Keep the timetable lock active even when cloud history verification times out.
+          guard = guard.replace(
+              'const locked = guardEnabled && !isScheduled && !selectedIsSaved && !remoteUnavailable;',
+              'const locked = guardEnabled && !isScheduled && !selectedIsSaved;',
+          )
+          guard = guard.replace(
+              '// نفشل بشكل مفتوح حتى لا يُحجب أي تحضير قديم عند تعطل الاتصال.',
+              '// يبقى القفل حسب الجدول، ويُفتح السجل فقط إذا ثبت أنه تحضير سابق محفوظ.',
+          )
+
+          # Match the redesigned previous/next button labels and their aria labels.
+          old_nav = '''      const text = button.textContent?.replace(/\\s+/g, " ").trim() || "";
+                const controls = dailyControls();
+                const className = controls.classSelect?.value || selectedClass;
+                const value = controls.dateInput?.value || selectedDate;
+                const days = classDays.get(normalizeClass(className));
+                if (button.closest(".hijri-card") && ["اليوم السابق", "اليوم", "اليوم التالي"].includes(text) && days?.size) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  const direction: 1 | -1 = text === "اليوم السابق" ? -1 : 1;
+                  const base = text === "اليوم" ? dateInput(new Date()) : value;
+                  const next = text === "اليوم"
+                    ? (periodsForDate(className, base).length ? base : findScheduled(className, base, 1, true) || findScheduled(className, base, -1, true))
+                    : findScheduled(className, base, direction, false);'''
+          new_nav = '''      const text = button.textContent?.replace(/\\s+/g, " ").trim() || "";
+                const action = button.getAttribute("aria-label") || text;
+                const controls = dailyControls();
+                const className = controls.classSelect?.value || selectedClass;
+                const value = controls.dateInput?.value || selectedDate;
+                const days = classDays.get(normalizeClass(className));
+                if (button.closest(".hijri-card") && ["اليوم السابق", "السابق", "اليوم", "اليوم التالي", "التالي"].includes(action) && days?.size) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  const direction: 1 | -1 = ["اليوم السابق", "السابق"].includes(action) ? -1 : 1;
+                  const base = action === "اليوم" ? dateInput(new Date()) : value;
+                  const next = action === "اليوم"
+                    ? (periodsForDate(className, base).length ? base : findScheduled(className, base, 1, true) || findScheduled(className, base, -1, true))
+                    : findScheduled(className, base, direction, false);'''
+          if old_nav in guard:
+              guard = guard.replace(old_nav, new_nav, 1)
+          elif 'const action = button.getAttribute("aria-label") || text;' not in guard:
+              raise SystemExit('Schedule navigation block was not found')
+
+          guard = guard.replace(
+              'const saveButton = [...page.querySelectorAll<HTMLButtonElement>(".attendance-controls button")]',
+              'const saveButton = [...page.querySelectorAll<HTMLButtonElement>(".attendance-main-actions button, .attendance-controls button")]',
+          )
+
+          guard = guard.replace(
+              'if (latestLocal) setLoadMessage("تم عرض الحصص المحفوظة على الجهاز حتى اكتمال المزامنة السحابية.");',
+              'if (latestLocal) setLoadMessage("تم تحميل الجدول وربطه بالتحضير، مع دمج آخر نسخة محفوظة على الجهاز.");',
+          )
+          guard = guard.replace(
+              'setLoadMessage("تم عرض الحصص المحفوظة على الجهاز؛ المزامنة السحابية متوقفة مؤقتًا.");',
+              'setLoadMessage("تعذر التحديث السحابي؛ تم استخدام آخر جدول محفوظ على الجهاز وسيبقى القفل حسبه.");',
+          )
+          guard = guard.replace(
+              '<strong>تعذر التحقق من السجل السحابي؛ لم يُفرض القفل حفاظًا على التحاضير السابقة.</strong>',
+              '<strong>تعذر التحقق من تحضير سابق سحابي؛ بقي القفل مفعّلًا حسب الجدول.</strong>',
+          )
+          guard = guard.replace(
+              '{loadMessage ? <small>{loadMessage} — لم يتم فرض القفل حتى يعود الاتصال.</small> : null}',
+              '{loadMessage ? <small>{loadMessage}</small> : null}',
+          )
+
+          # Force installed/PWA versions to refresh the corrected guard.
+          pwa = pwa.replace('ostadh-lahooni-v52-attendance-command-center', 'ostadh-lahooni-v55-attendance-schedule-guard')
+          pwa = pwa.replace('/sw.js?v=52-attendance-command-center', '/sw.js?v=55-attendance-schedule-guard')
+
+          required_page = [
+              'data-attendance-class-select="true"',
+              'data-attendance-date-input="true"',
+          ]
+          required_guard = [
+              '.attendance-primary-controls',
+              'data-attendance-class-select',
+              'const locked = guardEnabled && !isScheduled && !selectedIsSaved;',
+              '.attendance-main-actions button, .attendance-controls button',
+              'بقي القفل مفعّلًا حسب الجدول',
+          ]
+          missing = [item for item in required_page if item not in page]
+          missing += [item for item in required_guard if item not in guard]
+          if missing:
+              raise SystemExit(f'Missing schedule guard fixes: {missing}')
+          if 'لم يتم فرض القفل حتى يعود الاتصال' in guard:
+              raise SystemExit('Old no-lock message is still present')
+
+          page_path.write_text(page, encoding='utf-8')
+          guard_path.write_text(guard, encoding='utf-8')
+          pwa_path.write_text(pwa, encoding='utf-8')
+          PY
+
+      - name: Verify scoped fix
+        run: |
+          grep -n 'data-attendance-class-select' app/teacher/attendance/page.tsx
+          grep -n 'attendance-primary-controls' app/teacher/attendance/attendance-schedule-guard.tsx
+          grep -n 'const locked = guardEnabled' app/teacher/attendance/attendance-schedule-guard.tsx
+          grep -n 'بقي القفل مفعّلًا حسب الجدول' app/teacher/attendance/attendance-schedule-guard.tsx
+          ! grep -q 'لم يتم فرض القفل حتى يعود الاتصال' app/teacher/attendance/attendance-schedule-guard.tsx
+          git diff -- app/teacher/attendance/page.tsx app/teacher/attendance/attendance-schedule-guard.tsx app/pwa-register.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified fix
+        run: |
+          rm -f .github/workflows/fix-attendance-schedule-guard-v55.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx app/teacher/attendance/attendance-schedule-guard.tsx app/pwa-register.tsx .github/workflows/fix-attendance-schedule-guard-v55.yml
+          git commit -m 'إصلاح قفل التحضير حسب جدول المعلم في التصميم الجديد'
+          git push
