@@ -3,7 +3,7 @@ import re
 
 
 def replace_once(text: str, pattern: str, replacement: str, label: str) -> str:
-    updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+    updated, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.S)
     if count != 1:
         raise SystemExit(f"Could not update {label}")
     return updated
