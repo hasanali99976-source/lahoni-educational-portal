@@ -88,6 +88,7 @@ function readPendingTimetable(key: string): PendingTimetable | null {
 function writePendingTimetable(key: string, value: PendingTimetable) {
   if (!key) throw new Error("تعذر تحديد مساحة حفظ الجدول.");
   window.localStorage.setItem(key, JSON.stringify(value));
+  window.dispatchEvent(new CustomEvent("lahooni:timetable-updated", { detail: { storageKey: key } }));
 }
 
 function removePendingTimetable(key: string) {

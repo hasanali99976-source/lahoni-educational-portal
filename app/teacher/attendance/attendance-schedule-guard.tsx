@@ -7,6 +7,7 @@ import "./attendance-schedule-guard.css";
 
 type TimetableLesson = { className?: string; notes?: string; subject?: string };
 type TimetableResponse = { ok?: boolean; lessons?: Record<string, TimetableLesson>; message?: string };
+type LocalTimetable = { lessons: Record<string, TimetableLesson>; classNames: string[]; updatedAt?: string };
 type ExistingResponse = { ok?: boolean; exists?: boolean; unavailable?: boolean; message?: string };
 type ScheduledDate = { date: string; weekday: number; periods: number[] };
 
@@ -51,6 +52,32 @@ function arabicNumber(value: number) {
   return new Intl.NumberFormat("ar-SA-u-nu-arab").format(value);
 }
 
+function readLocalTimetable(storageKey: string): LocalTimetable | null {
+  if (!storageKey || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LocalTimetable>;
+    if (!parsed || !parsed.lessons || typeof parsed.lessons !== "object" || !Array.isArray(parsed.classNames)) return null;
+    return {
+      lessons: parsed.lessons as Record<string, TimetableLesson>,
+      classNames: [...new Set(parsed.classNames.map(normalizeClass).filter(Boolean))],
+      updatedAt: String(parsed.updatedAt || ""),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function mergeTimetable(remote: Record<string, TimetableLesson>, local: LocalTimetable | null) {
+  if (!local) return remote;
+  const ownedClasses = new Set(local.classNames);
+  const retained = Object.fromEntries(
+    Object.entries(remote).filter(([, lesson]) => !ownedClasses.has(normalizeClass(lesson.className))),
+  ) as Record<string, TimetableLesson>;
+  return { ...retained, ...local.lessons };
+}
+
 function shortDate(value: string) {
   return new Intl.DateTimeFormat("ar-SA-u-nu-arab", {
     day: "numeric",
@@ -82,6 +109,8 @@ export default function AttendanceScheduleGuard() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
   const subjectKey = session?.subjectKey || "history";
+  const workspaceKey = session?.workspaceKey || subjectKey;
+  const storageKey = teacherId ? `ostadh-lahooni:timetable:${teacherId}:${workspaceKey}:${session?.activeGrade || "all"}` : "";
   const [lessons, setLessons] = useState<Record<string, TimetableLesson>>({});
   const [loaded, setLoaded] = useState(false);
   const [loadMessage, setLoadMessage] = useState("");
@@ -97,8 +126,18 @@ export default function AttendanceScheduleGuard() {
     if (!teacherId || !subjectKey) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 9000);
+    const localAtStart = readLocalTimetable(storageKey);
     setLoaded(false);
     setLoadMessage("");
+    if (localAtStart) setLessons(localAtStart.lessons);
+
+    const refreshLocal = () => {
+      const latest = readLocalTimetable(storageKey);
+      if (latest) setLessons(current => mergeTimetable(current, latest));
+    };
+    window.addEventListener("storage", refreshLocal);
+    window.addEventListener("lahooni:timetable-updated", refreshLocal);
+
     fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectKey)}`, {
       cache: "no-store",
       credentials: "same-origin",
@@ -109,10 +148,21 @@ export default function AttendanceScheduleGuard() {
         if (!response.ok) throw new Error(data.message || "تعذر تحميل الجدول");
         return data;
       })
-      .then(data => setLessons(data.lessons && typeof data.lessons === "object" ? data.lessons : {}))
+      .then(data => {
+        const remote = data.lessons && typeof data.lessons === "object" ? data.lessons : {};
+        const latestLocal = readLocalTimetable(storageKey);
+        setLessons(mergeTimetable(remote, latestLocal));
+        if (latestLocal) setLoadMessage("تم عرض الحصص المحفوظة على الجهاز حتى اكتمال المزامنة السحابية.");
+      })
       .catch(error => {
-        setLessons({});
-        setLoadMessage(error instanceof Error ? error.message : "تعذر تحميل الجدول");
+        const latestLocal = readLocalTimetable(storageKey);
+        if (latestLocal) {
+          setLessons(latestLocal.lessons);
+          setLoadMessage("تم عرض الحصص المحفوظة على الجهاز؛ المزامنة السحابية متوقفة مؤقتًا.");
+        } else {
+          setLessons({});
+          setLoadMessage(error instanceof Error ? error.message : "تعذر تحميل الجدول");
+        }
       })
       .finally(() => {
         window.clearTimeout(timer);
@@ -121,8 +171,10 @@ export default function AttendanceScheduleGuard() {
     return () => {
       controller.abort();
       window.clearTimeout(timer);
+      window.removeEventListener("storage", refreshLocal);
+      window.removeEventListener("lahooni:timetable-updated", refreshLocal);
     };
-  }, [teacherId, subjectKey]);
+  }, [teacherId, subjectKey, storageKey]);
 
   const classDays = useMemo(() => {
     const result = new Map<string, Map<number, number[]>>();

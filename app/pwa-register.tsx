@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v43-timetable-local-save";
-const RELOAD_KEY = "ostadh-lahooni-v43-timetable-local-save";
+const CURRENT_CACHE = "ostadh-lahooni-v44-attendance-local-timetable";
+const RELOAD_KEY = "ostadh-lahooni-v44-attendance-local-timetable";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        const registration = await navigator.serviceWorker.register("/sw.js?v=43-timetable-local-save", { scope: "/", updateViaCache: "none" });
+        const registration = await navigator.serviceWorker.register("/sw.js?v=44-attendance-local-timetable", { scope: "/", updateViaCache: "none" });
         await registration.update();
         if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
       } catch {

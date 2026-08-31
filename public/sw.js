@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v43-timetable-local-save";
+const CACHE_NAME = "ostadh-lahooni-v44-attendance-local-timetable";
 const STATIC_FILES = [
   "/",
   "/student",
