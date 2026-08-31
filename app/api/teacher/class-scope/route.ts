@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
-import { gradeNumber } from "../../../../lib/school-roster";
+import { classId, gradeNumber, normalizeArabic, sectionNumber } from "../../../../lib/school-roster";
 import {
   SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
+  assignmentAllowsClassExact,
   assignmentScopeSignature,
   normalizeClassIds,
   subjectClassOwnerId,
@@ -44,7 +45,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const subjectId = String(body?.subjectId || "").split("--")[0].trim();
     const activeGrade = parseGrade(body?.grade);
-    const selectedClassIds = normalizeClassIds(body?.selectedClassIds);
+    const requestedClassIds = normalizeClassIds(body?.selectedClassIds);
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
     const relevant = activeGrade
@@ -55,12 +56,31 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ ok: false, message: "المادة أو المرحلة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
+    const exactAssignmentClassIds = new Set<string>();
+    let hasAllSectionsAssignment = false;
+    relevant.forEach(assignment => {
+      const normalizedSection = normalizeArabic(assignment.section);
+      if (!normalizedSection || ["الكل", "كل", "جميع الفصول"].includes(normalizedSection)) {
+        hasAllSectionsAssignment = true;
+        return;
+      }
+      const assignedGrade = gradeNumber(assignment.grade);
+      const assignedSection = sectionNumber(assignment.section);
+      if (assignedGrade && assignedSection) exactAssignmentClassIds.add(classId(assignedGrade, assignedSection));
+    });
+    const selectedClassIds = exactAssignmentClassIds.size > 0 && !hasAllSectionsAssignment
+      ? [...exactAssignmentClassIds]
+      : requestedClassIds;
+
     const allowedGrades = new Set<Grade>(
       relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
     );
     const invalid = selectedClassIds.filter(item => {
-      const { grade } = classParts(item);
-      return !grade || !allowedGrades.has(grade) || (activeGrade !== null && grade !== activeGrade);
+      const { grade, section } = classParts(item);
+      return !grade
+        || !allowedGrades.has(grade)
+        || (activeGrade !== null && grade !== activeGrade)
+        || !relevant.some(assignment => assignmentAllowsClassExact(assignment, grade, section));
     });
     if (invalid.length) {
       return NextResponse.json({ ok: false, message: "لا يمكن إضافة فصل خارج المرحلة المسندة لك." }, { status: 400 });
@@ -88,7 +108,7 @@ export async function PATCH(request: Request) {
         if (!snapshot.exists) return;
         const data = snapshot.data() as Record<string, unknown>;
         const previousTeacherId = String(data.teacherId || "");
-        if (previousTeacherId && previousTeacherId !== session.userId) {
+        if (previousTeacherId && previousTeacherId !== session.userId && !exactAssignmentClassIds.has(selectedClassIds[index])) {
           unavailableClassIds.push(selectedClassIds[index]);
         }
       });
@@ -134,6 +154,7 @@ export async function PATCH(request: Request) {
       preservedOtherGrades: true,
       preservedData: true,
       persistedInDatabase: true,
+      exactAssignmentEnforced: exactAssignmentClassIds.size > 0 && !hasAllSectionsAssignment,
     });
   } catch (error) {
     if (error instanceof ClassScopeConflict) {

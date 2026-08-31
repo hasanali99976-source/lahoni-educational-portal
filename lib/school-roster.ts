@@ -173,9 +173,13 @@ export function subjectAssignments(assignments: AssignmentLike[] | undefined, su
   return (Array.isArray(assignments) ? assignments : []).filter(item => clean(item.subjectId) === clean(subjectId));
 }
 
-export function assignmentMatchesClass(assignment: AssignmentLike, grade: number, _section: string) {
+export function assignmentMatchesClass(assignment: AssignmentLike, grade: number, section: string) {
   const assignedGrade = gradeNumber(assignment.grade);
-  return Boolean(assignedGrade && assignedGrade === grade);
+  if (!assignedGrade || assignedGrade !== grade) return false;
+  const normalizedSection = normalizeArabic(assignment.section);
+  if (!normalizedSection || ["الكل", "كل", "جميع الفصول"].includes(normalizedSection)) return true;
+  const assignedSection = sectionNumber(assignment.section);
+  return Boolean(assignedSection && westernDigits(assignedSection) === westernDigits(section));
 }
 
 export function studentMatchesAssignments(student: Pick<SchoolStudent, "grade" | "section">, assignments: AssignmentLike[] | undefined, subjectId: string) {
