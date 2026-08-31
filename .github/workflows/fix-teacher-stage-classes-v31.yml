@@ -1,0 +1,54 @@
+name: Fix teacher stage classes v31
+
+on:
+  push:
+    branches:
+      - fix-teacher-stage-classes-v31
+    paths:
+      - scripts/fix-teacher-stage-classes-v31.py
+      - .github/workflows/fix-teacher-stage-classes-v31.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix-teacher-stage-classes-v31
+          fetch-depth: 0
+
+      - name: Apply fix
+        run: python3 scripts/fix-teacher-stage-classes-v31.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Remove temporary repair files
+        run: |
+          rm -f scripts/fix-teacher-stage-classes-v31.py
+          rm -f .github/workflows/fix-teacher-stage-classes-v31.yml
+
+      - name: Commit verified fix
+        run: |
+          git config user.name "ChatGPT Fix Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "إظهار جميع فصول المرحلة وربط طلاب الإدارة باختيار المعلم"
+          git push origin HEAD:fix-teacher-stage-classes-v31
