@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -16,6 +18,8 @@ import android.os.Looper;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -26,9 +30,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
 public class MainActivity extends Activity {
     private static final String HOME_URL = "https://tahdheeb-history.vercel.app/";
-    private static final String APP_VERSION = "1.5.0";
+    private static final String APP_VERSION = "1.6.0";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
@@ -50,10 +58,10 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setBuiltInZoomControls(false);
+        settings.setLoadWithOverviewMode(false);
+        settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
-        settings.setSupportZoom(false);
+        settings.setSupportZoom(true);
         settings.setTextZoom(100);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(false);
@@ -61,9 +69,11 @@ public class MainActivity extends Activity {
         settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/" + APP_VERSION);
 
         webView.clearCache(true);
-        webView.setHorizontalScrollBarEnabled(false);
+        webView.setHorizontalScrollBarEnabled(true);
         webView.setVerticalScrollBarEnabled(true);
+        webView.setScrollbarFadingEnabled(true);
         webView.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        webView.requestFocusFromTouch();
         webView.addJavascriptInterface(new NativeBridge(), "OstadhApp");
 
         CookieManager.getInstance().setAcceptCookie(true);
@@ -89,7 +99,7 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 String bridgeScript = "(function(){" +
                     "window.__OSTADH_ANDROID__=true;" +
-                    "var cacheKey='ostadh-clean-1.5.0';" +
+                    "var cacheKey='ostadh-clean-1.6.0';" +
                     "if(!sessionStorage.getItem(cacheKey)){sessionStorage.setItem(cacheKey,'1');var jobs=[];" +
                     "if('serviceWorker' in navigator){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}" +
                     "if(window.caches){jobs.push(caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}));}" +
@@ -105,7 +115,7 @@ public class MainActivity extends Activity {
                     "if(button.dataset.nativeShare==='true'||text.indexOf('مشاركة')>-1||text.indexOf('إرسال')>-1){if(!h||h.indexOf('wa.me/')<0){e.preventDefault();window.ostadhNativeShare(document.title,text,location.href);return;}}" +
                     "if(button.dataset.copyLink==='true'||text.indexOf('نسخ الرابط')>-1){e.preventDefault();window.ostadhNativeCopy(h||location.href);return;}" +
                     "if(h.indexOf('wa.me/')>-1||h.indexOf('whatsapp:')===0||h.indexOf('mailto:')===0||h.indexOf('tel:')===0||h.indexOf('sms:')===0){e.preventDefault();OstadhApp.openUrl(h);return;}" +
-                    "if(button.hasAttribute('download')&&h){e.preventDefault();OstadhApp.openUrl(h);return;}" +
+                    "if(button.hasAttribute('download')&&h&&h.indexOf('blob:')!==0){e.preventDefault();OstadhApp.openUrl(h);return;}" +
                     "},true);})();";
                 view.evaluateJavascript(bridgeScript, null);
             }
@@ -169,8 +179,55 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void saveBase64ToDownloads(String fileName, String mimeType, String base64Data) {
+        new Thread(() -> {
+            try {
+                String rawName = fileName == null || fileName.trim().isEmpty() ? "ostadh-lahooni-" + System.currentTimeMillis() : fileName.trim();
+                String safeName = rawName.replace("/", "-").replace("\\", "-").replace(":", "-").replace("*", "-").replace("?", "-").replace("\"", "-").replace("<", "-").replace(">", "-").replace("|", "-");
+                String type = mimeType == null || mimeType.trim().isEmpty() ? "application/octet-stream" : mimeType.trim();
+                int separator = type.indexOf(';');
+                if (separator > 0) type = type.substring(0, separator);
+                if (!safeName.contains(".")) {
+                    if (type.contains("pdf")) safeName += ".pdf";
+                    else if (type.contains("csv")) safeName += ".csv";
+                    else if (type.contains("spreadsheet") || type.contains("excel")) safeName += ".xlsx";
+                }
+                final String outputName = safeName;
+                final String outputType = type;
+                byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Downloads.DISPLAY_NAME, outputName);
+                    values.put(MediaStore.Downloads.MIME_TYPE, outputType);
+                    values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/OstadhLahooni");
+                    Uri target = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (target == null) throw new IllegalStateException("download_target_failed");
+                    try (OutputStream output = getContentResolver().openOutputStream(target)) {
+                        if (output == null) throw new IllegalStateException("download_stream_failed");
+                        output.write(bytes);
+                        output.flush();
+                    }
+                } else {
+                    File directory = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                    if (directory == null) throw new IllegalStateException("download_directory_failed");
+                    if (!directory.exists()) directory.mkdirs();
+                    try (OutputStream output = new FileOutputStream(new File(directory, outputName))) {
+                        output.write(bytes);
+                        output.flush();
+                    }
+                }
+
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "تم حفظ الملف في التنزيلات", Toast.LENGTH_LONG).show());
+            } catch (Exception error) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "تعذر حفظ الملف: " + error.getClass().getSimpleName(), Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
     private class NativeBridge {
         @JavascriptInterface public void printPage(String title) { printCurrentPage(title); }
+        @JavascriptInterface public void saveBase64(String fileName, String mimeType, String base64Data) { saveBase64ToDownloads(fileName, mimeType, base64Data); }
         @JavascriptInterface public void openUrl(String url) { runOnUiThread(() -> openExternal(Uri.parse(url))); }
         @JavascriptInterface public void shareText(String title, String text, String url) {
             runOnUiThread(() -> { Intent share = new Intent(Intent.ACTION_SEND); share.setType("text/plain"); String body = (text == null ? "" : text) + ((url == null || url.isEmpty()) ? "" : "\n" + url); share.putExtra(Intent.EXTRA_SUBJECT, title == null ? "أستاذ لحوني" : title); share.putExtra(Intent.EXTRA_TEXT, body); startActivity(Intent.createChooser(share, "مشاركة عبر")); });
