@@ -280,20 +280,29 @@ student = replace_once(
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
 ''',
-    '''    void refresh(true);
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh();
-    }, 30_000);
+    '''    let refreshTimer: number | null = null;
+    const scheduleRefresh = () => {
+      if (!active) return;
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(async () => {
+        refreshTimer = null;
+        if (document.visibilityState === "visible") await refresh();
+        scheduleRefresh();
+      }, 30_000);
+    };
+
+    void refresh(true);
+    scheduleRefresh();
     window.addEventListener("focus", refreshWhenVisible);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
       active = false;
-      window.clearInterval(interval);
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
 ''',
-    'student periodic refresh',
+    'student lightweight refresh',
 )
 STUDENT.write_text(student, encoding='utf-8')
 
