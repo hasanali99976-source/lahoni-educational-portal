@@ -119,3 +119,19 @@
 @media(display-mode:standalone) and (max-width:720px){
   .student-clean-head,.admin2-head,.school-roster-head{margin-top:calc(4px + env(safe-area-inset-top,0px))!important}
 }
+
+
+/* v57 fixed mobile navigation icon boxes */
+@media(max-width:720px){
+  .mobile-app-nav{grid-auto-columns:minmax(58px,1fr)!important;gap:5px!important}
+  .mobile-app-nav a{min-width:58px!important;max-width:none!important;overflow:hidden!important;isolation:isolate}
+  .mobile-app-nav .mobile-nav-icon{display:grid!important;place-items:center!important;width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;min-height:26px!important;max-height:26px!important;margin:0 auto!important;overflow:hidden!important;line-height:1!important}
+  .mobile-app-nav .mobile-nav-svg{display:block!important;width:22px!important;height:22px!important;min-width:22px!important;max-width:22px!important;min-height:22px!important;max-height:22px!important;overflow:visible!important}
+  .mobile-app-nav a b{display:block!important;width:100%!important;line-height:1.15!important;text-align:center!important}
+}
+@media(max-width:390px){
+  .mobile-app-nav{grid-auto-columns:56px!important}
+  .mobile-app-nav a{min-width:56px!important}
+  .mobile-app-nav .mobile-nav-icon{width:24px!important;height:24px!important;min-width:24px!important;max-width:24px!important;min-height:24px!important;max-height:24px!important}
+  .mobile-app-nav .mobile-nav-svg{width:20px!important;height:20px!important;min-width:20px!important;max-width:20px!important;min-height:20px!important;max-height:20px!important}
+}

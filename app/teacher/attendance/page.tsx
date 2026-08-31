@@ -46,6 +46,7 @@ type TimetableLesson = { className?: string };
 const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
 const ATTENDANCE_START_DATE = "2026-08-23";
 const ATTENDANCE_START_LABEL = "الأحد 23/8/2026";
+const TIMETABLE_DAY_INDEX = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4 } as const;
 const STATUS_LABELS: Record<AttendanceStatus, string> = {
   present: "حاضر",
   absent: "غائب",
@@ -118,6 +119,10 @@ function attendanceIndexKey(teacherId: string, subjectKey: string) {
   return `lahooni-attendance-index:${teacherId}:${subjectKey}`;
 }
 
+function attendanceDeletedKey(teacherId: string, subjectKey: string, className: string, date: string) {
+  return `lahooni-attendance-deleted:${teacherId}:${subjectKey}:${safeId(className)}:${date}`;
+}
+
 function readRecords(key: string) {
   if (typeof window === "undefined" || !key) return null;
   try {
@@ -181,6 +186,7 @@ export default function AttendancePage() {
   const [officialStudents, setOfficialStudents] = useState<UnifiedStudent[]>([]);
   const [officialClasses, setOfficialClasses] = useState<string[]>([]);
   const [timetableClasses, setTimetableClasses] = useState<string[]>([]);
+  const [timetableLessons, setTimetableLessons] = useState<Record<string, TimetableLesson>>({});
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(clampAttendanceDate(toDateInput(new Date())));
   const [reportFrom, setReportFrom] = useState(clampAttendanceDate(startOfCurrentWeek()));
@@ -192,6 +198,7 @@ export default function AttendancePage() {
   const [hasSavedRecord, setHasSavedRecord] = useState(false);
   const [reporting, setReporting] = useState(false);
   const loadSequence = useRef(0);
+  const autoFillKeyRef = useRef("");
 
   const attendancePath = useMemo(
     () => (teacherId ? tenantCollection(teacherId, subjectKey, "attendance") : ""),
@@ -289,12 +296,17 @@ export default function AttendancePage() {
     })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("timetable_load_failed")))
       .then(data => {
-        const lessons = data.lessons && typeof data.lessons === "object"
-          ? Object.values(data.lessons as Record<string, TimetableLesson>)
-          : [];
+        const lessonMap = data.lessons && typeof data.lessons === "object"
+          ? data.lessons as Record<string, TimetableLesson>
+          : {};
+        const lessons = Object.values(lessonMap);
+        setTimetableLessons(lessonMap);
         setTimetableClasses([...new Set(lessons.map(lesson => normalizeClass(lesson.className)).filter(Boolean))]);
       })
-      .catch(() => setTimetableClasses([]));
+      .catch(() => {
+        setTimetableLessons({});
+        setTimetableClasses([]);
+      });
     return () => controller.abort();
   }, [ready, subjectKey]);
 
@@ -334,6 +346,114 @@ export default function AttendancePage() {
     const source = officialSource.length ? officialSource : fallbackSource;
     return [...new Set(source)].sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
   }, [officialClasses, officialStudentClasses, assignedClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
+
+  useEffect(() => {
+    if (!ready || !teacherId || !attendancePath || !students.length || !Object.keys(timetableLessons).length) return;
+    const today = toDateInput(new Date());
+    const runKey = `${teacherId}:${subjectKey}:${today}:${students.length}:${Object.keys(timetableLessons).length}`;
+    if (autoFillKeyRef.current === runKey) return;
+    autoFillKeyRef.current = runKey;
+    let active = true;
+
+    async function autoSaveMissedScheduledDays() {
+      const end = new Date(`${today}T12:00:00`);
+      end.setDate(end.getDate() - 1);
+      const endDate = toDateInput(end);
+      if (endDate < ATTENDANCE_START_DATE) return;
+
+      const rosterByClass = new Map<string, UnifiedStudent[]>();
+      students.forEach(student => {
+        const className = normalizeClass(student.class) || clean(student.class);
+        if (!className) return;
+        rosterByClass.set(className, [...(rosterByClass.get(className) || []), student]);
+      });
+
+      const scheduleByDay = new Map<number, Set<string>>();
+      Object.entries(timetableLessons).forEach(([cell, lesson]) => {
+        const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/);
+        const className = normalizeClass(lesson.className) || clean(lesson.className);
+        if (!match || !className) return;
+        const weekday = TIMETABLE_DAY_INDEX[match[1] as keyof typeof TIMETABLE_DAY_INDEX];
+        const classes = scheduleByDay.get(weekday) || new Set<string>();
+        classes.add(className);
+        scheduleByDay.set(weekday, classes);
+      });
+      if (!scheduleByDay.size) return;
+
+      const existing = new Set<string>();
+      const localIndex = readAttendanceIndex(teacherId, subjectKey);
+      Object.values(localIndex).forEach(item => {
+        const className = normalizeClass(item.class) || clean(item.class);
+        if (className && item.date) existing.add(`${className}|${item.date}`);
+      });
+      try {
+        const snapshot = await withTimeout(getDocs(collection(db, attendancePath)), 6500);
+        snapshot.docs.forEach(item => {
+          const data = item.data() as AttendanceDocument;
+          const className = normalizeClass(data.class) || clean(data.class);
+          if (className && data.date) existing.add(`${className}|${data.date}`);
+        });
+      } catch {
+        // النسخة المحلية تكفي لإكمال الأيام غير المسجلة عند ضعف الاتصال.
+      }
+
+      const pending: { className: string; date: string; records: Record<string, AttendanceStatus> }[] = [];
+      const cursor = new Date(`${ATTENDANCE_START_DATE}T12:00:00`);
+      const last = new Date(`${endDate}T12:00:00`);
+      while (cursor <= last) {
+        const date = toDateInput(cursor);
+        const classes = scheduleByDay.get(cursor.getDay());
+        classes?.forEach(className => {
+          const canonical = normalizeClass(className) || className;
+          const roster = rosterByClass.get(canonical) || [];
+          if (!roster.length || existing.has(`${canonical}|${date}`)) return;
+          if (localStorage.getItem(attendanceDeletedKey(teacherId, subjectKey, canonical, date))) return;
+          pending.push({
+            className: canonical,
+            date,
+            records: Object.fromEntries(roster.map(student => [studentCode(student), "present" as AttendanceStatus])),
+          });
+          existing.add(`${canonical}|${date}`);
+        });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      if (!pending.length) return;
+
+      const nextIndex = readAttendanceIndex(teacherId, subjectKey);
+      let saved = 0;
+      for (const item of pending) {
+        if (!active) return;
+        const payload = {
+          class: item.className,
+          date: item.date,
+          hijriDate: formatHijri(item.date),
+          records: item.records,
+          teacherId,
+          teacherName,
+          subjectKey,
+          subject,
+          autoSaved: true,
+          autoSavedReason: "missed_scheduled_day",
+          updatedAt: new Date().toISOString(),
+        };
+        try {
+          await withTimeout(setDoc(doc(db, attendancePath, `${safeId(item.className)}_${item.date}`), payload, { merge: true }), 5000);
+        } catch {
+          // يحفظ محليًا ويُعاد دمجه عند توفر الاتصال.
+        }
+        const key = attendanceKey(teacherId, subjectKey, item.className, item.date);
+        localStorage.setItem(key, JSON.stringify(item.records));
+        localStorage.setItem(`${key}:details`, JSON.stringify(payload));
+        nextIndex[`${safeId(item.className)}_${item.date}`] = payload;
+        saved += 1;
+      }
+      localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(nextIndex));
+      if (active && saved) setMessage(`تم الحفظ التلقائي لـ ${saved} تحضير فائت حسب جدول المعلم، والحالة الافتراضية لجميع الطلاب: حاضر.`);
+    }
+
+    void autoSaveMissedScheduledDays();
+    return () => { active = false; };
+  }, [ready, teacherId, teacherName, subjectKey, subject, attendancePath, students, timetableLessons]);
 
   const classStudents = useMemo(
     () => students.filter(student => (normalizeClass(student.class) || clean(student.class)) === selectedClass),
@@ -414,6 +534,7 @@ export default function AttendancePage() {
     const index = readAttendanceIndex(teacherId, subjectKey);
     index[`${safeId(selectedClass)}_${selectedDate}`] = payload;
     localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));
+    localStorage.removeItem(attendanceDeletedKey(teacherId, subjectKey, selectedClass, selectedDate));
     setHasSavedRecord(true);
   }
 
@@ -426,6 +547,7 @@ export default function AttendancePage() {
     const index = readAttendanceIndex(teacherId, subjectKey);
     delete index[`${safeId(selectedClass)}_${selectedDate}`];
     localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));
+    localStorage.setItem(attendanceDeletedKey(teacherId, subjectKey, selectedClass, selectedDate), "1");
   }
 
   function setStudentStatus(student: UnifiedStudent, status: AttendanceStatus) {
@@ -654,7 +776,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
           <span className="attendance-eyebrow">بوابة تحضير الطلاب</span>
           <h1>التحضير اليومي — {subject}</h1>
           <p>سجّل حالة كل طالب بلمسة واحدة. يبدأ احتساب التحضير رسميًا من {ATTENDANCE_START_LABEL}، وكل تغيير يُحفظ مباشرة ثم يُزامن سحابيًا.</p>
-          <div className="attendance-hero-badges"><span>حفظ فوري</span><span>مرتبط بالجدول</span><span>تقارير جاهزة</span></div>
+          <div className="attendance-hero-badges"><span>حفظ فوري</span><span>مرتبط بالجدول</span><span>تعويض تلقائي للأيام الفائتة</span><span>تقارير جاهزة</span></div>
         </div>
         <div className="hijri-card">
           <small>اليوم الدراسي</small>
