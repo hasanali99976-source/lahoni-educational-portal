@@ -2,6 +2,7 @@ from pathlib import Path
 
 root = Path('.')
 
+# 1) Signed recovery receipts kept in private Vercel logs as a third safety layer.
 portal_auth = root / 'lib/server/portal-auth.ts'
 text = portal_auth.read_text(encoding='utf-8')
 needle = '''export function readStudentAccessToken(value?: string): StudentAccess | null {
@@ -43,7 +44,7 @@ export function createDiagnosticRecoveryCode(result: DiagnosticRecoveryResult) {
   const recovery: DiagnosticRecoveryPayload = {
     version: 1,
     result,
-    expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 45,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 60,
   };
   const payload = Buffer.from(JSON.stringify(recovery)).toString("base64url");
   return `${payload}.${sign(payload)}`;
@@ -59,7 +60,7 @@ export function readDiagnosticRecoveryCode(value?: string): DiagnosticRecoveryRe
     if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
     const recovery = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as DiagnosticRecoveryPayload;
     const result = recovery.result;
-    if (recovery.version !== 1 || recovery.expiresAt <= Date.now() || !result) return null;
+    if (recovery.version != 1 || recovery.expiresAt <= Date.now() || !result) return null;
     if (!result.diagnosticId || !result.studentId || !result.teacherId || !result.subjectId) return null;
     if (!Number.isFinite(result.score) || !Number.isFinite(result.total) || !Number.isFinite(result.percentage)) return null;
     return {
@@ -76,29 +77,121 @@ export function readDiagnosticRecoveryCode(value?: string): DiagnosticRecoveryRe
 if 'createDiagnosticRecoveryCode' not in text:
     if needle not in text:
         raise SystemExit('portal auth anchor not found')
-    text = text.replace(needle, addition)
-    portal_auth.write_text(text, encoding='utf-8')
+    portal_auth.write_text(text.replace(needle, addition), encoding='utf-8')
 
+# 2) Vercel Runtime Cache: cloud backup independent from Firestore quotas.
+backup = root / 'lib/server/diagnostic-backup.ts'
+backup.write_text('''import "server-only";
+
+import { createHash } from "node:crypto";
+import { getCache } from "@vercel/functions";
+import type { DiagnosticRecoveryResult } from "./portal-auth";
+
+const BACKUP_TTL_SECONDS = 60 * 60 * 24 * 60;
+const CACHE_PREFIX = "lahooni-diagnostic-v46";
+
+function digest(parts: string[]) {
+  return createHash("sha256").update(parts.join("\\u001f")).digest("hex");
+}
+
+function resultKey(teacherId: string, subjectId: string, diagnosticId: string, studentId: string) {
+  return `${CACHE_PREFIX}:result:${digest([teacherId, subjectId, diagnosticId, studentId])}`;
+}
+
+function diagnosticTag(teacherId: string, subjectId: string, diagnosticId: string) {
+  return `${CACHE_PREFIX}:test:${digest([teacherId, subjectId, diagnosticId]).slice(0, 48)}`;
+}
+
+function validResult(value: unknown): DiagnosticRecoveryResult | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Partial<DiagnosticRecoveryResult>;
+  if (!item.diagnosticId || !item.studentId || !item.teacherId || !item.subjectId) return null;
+  if (!Number.isFinite(item.score) || !Number.isFinite(item.total) || !Number.isFinite(item.percentage)) return null;
+  return {
+    diagnosticId: String(item.diagnosticId),
+    studentId: String(item.studentId),
+    teacherId: String(item.teacherId),
+    subjectId: String(item.subjectId),
+    score: Number(item.score),
+    total: Number(item.total),
+    percentage: Number(item.percentage),
+    plan: String(item.plan || "راجع المهارات التي لم تتقنها مع المعلم."),
+    weakSkills: Array.isArray(item.weakSkills) ? item.weakSkills.map(String) : [],
+    submittedAt: String(item.submittedAt || new Date().toISOString()),
+  };
+}
+
+export async function saveDiagnosticBackup(result: DiagnosticRecoveryResult) {
+  const cache = getCache();
+  await cache.set(
+    resultKey(result.teacherId, result.subjectId, result.diagnosticId, result.studentId),
+    result,
+    {
+      ttl: BACKUP_TTL_SECONDS,
+      tags: [diagnosticTag(result.teacherId, result.subjectId, result.diagnosticId)],
+      name: "Ostadh Lahooni diagnostic result backup",
+    },
+  );
+}
+
+export async function readDiagnosticBackup(
+  teacherId: string,
+  subjectId: string,
+  diagnosticId: string,
+  studentId: string,
+) {
+  const value = await getCache().get(resultKey(teacherId, subjectId, diagnosticId, studentId));
+  const result = validResult(value);
+  if (!result) return null;
+  if (result.teacherId !== teacherId || result.subjectId !== subjectId || result.diagnosticId !== diagnosticId || result.studentId !== studentId) return null;
+  return result;
+}
+
+export async function readDiagnosticBackups(
+  teacherId: string,
+  subjectId: string,
+  diagnosticId: string,
+  studentIds: string[],
+) {
+  const uniqueIds = [...new Set(studentIds.map(String).map(value => value.trim()).filter(Boolean))].slice(0, 500);
+  const values = await Promise.all(uniqueIds.map(studentId => readDiagnosticBackup(teacherId, subjectId, diagnosticId, studentId).catch(() => null)));
+  const unique = new Map<string, DiagnosticRecoveryResult>();
+  values.forEach(result => {
+    if (!result) return;
+    const current = unique.get(result.studentId);
+    if (!current || Date.parse(result.submittedAt) >= Date.parse(current.submittedAt)) unique.set(result.studentId, result);
+  });
+  return [...unique.values()];
+}
+''', encoding='utf-8')
+
+# 3) Student submit route: cache first, Firestore second, private recovery log third.
 api_route = root / 'app/api/student/diagnostics/route.ts'
 api_route.write_text('''import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
+import { readDiagnosticBackup, saveDiagnosticBackup } from "../../../../lib/server/diagnostic-backup";
 import {
   createDiagnosticRecoveryCode,
   readStudentAccessToken,
   type DiagnosticRecoveryResult,
 } from "../../../../lib/server/portal-auth";
 
-const WRITE_TIMEOUT_MS = 5500;
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
-function accessFrom(request: Request) {
+const FIRESTORE_WRITE_TIMEOUT_MS = 5500;
+const BACKUP_WRITE_TIMEOUT_MS = 4000;
+
+function accessFrom(request: Request, body?: Record<string, unknown>) {
   const header = request.headers.get("authorization") || "";
-  return readStudentAccessToken(header.startsWith("Bearer ") ? header.slice(7) : "");
+  const token = header.startsWith("Bearer ") ? header.slice(7) : String(body?.accessToken || "");
+  return readStudentAccessToken(token);
 }
 
-function withTimeout<T>(promise: Promise<T>, milliseconds = WRITE_TIMEOUT_MS): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("diagnostic_write_timeout")), milliseconds)),
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("operation_timeout")), milliseconds)),
   ]);
 }
 
@@ -110,10 +203,12 @@ export async function GET(request: Request) {
     adminDb().collection(`${root}/diagnostics`).where("published", "==", true).get(),
     adminDb().collection(`${root}/diagnosticResults`).where("studentId", "==", access.studentId).get(),
   ]);
-  const completed = new Map(results.docs.map((item) => [item.data().diagnosticId, item.data()]));
-  const diagnostics = tests.docs.map((item) => {
+  const completed = new Map(results.docs.map((item) => [String(item.data().diagnosticId || ""), item.data()]));
+  const diagnostics = await Promise.all(tests.docs.map(async item => {
     const data = item.data();
-    const result = completed.get(item.id);
+    const firestoreResult = completed.get(item.id);
+    const backupResult = firestoreResult ? null : await readDiagnosticBackup(access.teacherId, access.subjectId, item.id, access.studentId).catch(() => null);
+    const result = firestoreResult || backupResult;
     return {
       id: item.id,
       title: data.title,
@@ -123,36 +218,34 @@ export async function GET(request: Request) {
       completed: !!result,
       result: result ? { score: result.score, total: result.total, percentage: result.percentage, plan: result.teacherPlan || result.plan, weakSkills: result.weakSkills || [] } : null,
     };
-  });
+  }));
   return NextResponse.json({ ok: true, diagnostics });
 }
 
 export async function POST(request: Request) {
-  const access = accessFrom(request);
-  if (!access) return NextResponse.json({ ok: false, message: "انتهت جلسة الطالب. أعد الدخول وسيستمر الإرسال تلقائيًا." }, { status: 401 });
-  const body = await request.json();
-  const diagnosticId = String(body?.diagnosticId || "");
-  const answers = body?.answers && typeof body.answers === "object" ? body.answers as Record<string, number> : {};
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const access = accessFrom(request, body);
+  if (!access) return NextResponse.json({ ok: false, message: "انتهت جلسة الطالب." }, { status: 401 });
+  const diagnosticId = String(body.diagnosticId || "");
+  const answers = body.answers && typeof body.answers === "object" ? body.answers as Record<string, number> : {};
   if (!diagnosticId) return NextResponse.json({ ok: false, message: "بيانات الاختبار غير مكتملة." }, { status: 400 });
 
   const root = `portalV2Data/${access.teacherId}/subjects/${access.subjectId}`;
   const resultId = `${diagnosticId}__${access.studentId}`;
   const resultRef = adminDb().collection(`${root}/diagnosticResults`).doc(resultId);
-  const existing = await resultRef.get();
-  if (existing.exists) {
-    const stored = existing.data() || {};
-    return NextResponse.json({
-      ok: true,
-      alreadySubmitted: true,
-      result: {
-        score: stored.score,
-        total: stored.total,
-        percentage: stored.percentage,
-        plan: stored.teacherPlan || stored.plan,
-        weakSkills: stored.weakSkills || [],
-      },
-    });
+
+  try {
+    const existing = await resultRef.get();
+    if (existing.exists) {
+      const stored = existing.data() || {};
+      return NextResponse.json({ ok: true, alreadySubmitted: true, result: { score: stored.score, total: stored.total, percentage: stored.percentage, plan: stored.teacherPlan || stored.plan, weakSkills: stored.weakSkills || [] } });
+    }
+  } catch {
+    // Continue using the independent Vercel backup when Firestore is unavailable.
   }
+
+  const previousBackup = await readDiagnosticBackup(access.teacherId, access.subjectId, diagnosticId, access.studentId).catch(() => null);
+  if (previousBackup) return NextResponse.json({ ok: true, alreadySubmitted: true, result: previousBackup });
 
   const test = await adminDb().collection(`${root}/diagnostics`).doc(diagnosticId).get();
   if (!test.exists || test.data()?.published !== true) return NextResponse.json({ ok: false, message: "الاختبار غير متاح حاليًا." }, { status: 404 });
@@ -184,34 +277,36 @@ export async function POST(request: Request) {
     submittedAt: new Date().toISOString(),
   };
   const recoveryCode = createDiagnosticRecoveryCode(result);
+  console.info("LAHONI_DIAGNOSTIC_RECOVERY", recoveryCode);
 
-  try {
-    await withTimeout(resultRef.set(result));
-    return NextResponse.json({ ok: true, pending: false, result, recoveryCode });
-  } catch {
-    return NextResponse.json({
-      ok: true,
-      pending: true,
-      result,
-      recoveryCode,
-      message: "تم تصحيح الاختبار وحفظ النتيجة بأمان على جهازك، وسيعاد إرسالها تلقائيًا إلى المعلم.",
-    }, { status: 202 });
+  const [backupWrite, firestoreWrite] = await Promise.allSettled([
+    withTimeout(saveDiagnosticBackup(result), BACKUP_WRITE_TIMEOUT_MS),
+    withTimeout(resultRef.set(result), FIRESTORE_WRITE_TIMEOUT_MS),
+  ]);
+  const backupSaved = backupWrite.status === "fulfilled";
+  const firestoreSaved = firestoreWrite.status === "fulfilled";
+  if (!backupSaved && !firestoreSaved) {
+    console.error("diagnostic dual save failed", { diagnosticId, studentId: access.studentId });
+    return NextResponse.json({ ok: false, result, recoveryCode, message: "تم استلام الاختبار." }, { status: 503 });
   }
+  return NextResponse.json({ ok: true, result, backupSaved, firestoreSaved });
 }
 ''', encoding='utf-8')
 
+# 4) Recovery endpoint for the hidden device fallback; cloud backup is enough for success.
 recover_route = root / 'app/api/student/diagnostics/recover/route.ts'
 recover_route.parent.mkdir(parents=True, exist_ok=True)
 recover_route.write_text('''import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../lib/server/firebase-admin";
+import { saveDiagnosticBackup } from "../../../../../lib/server/diagnostic-backup";
 import { readDiagnosticRecoveryCode } from "../../../../../lib/server/portal-auth";
 
-const WRITE_TIMEOUT_MS = 5500;
+export const runtime = "nodejs";
 
-function withTimeout<T>(promise: Promise<T>, milliseconds = WRITE_TIMEOUT_MS): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("diagnostic_recovery_timeout")), milliseconds)),
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("recovery_timeout")), milliseconds)),
   ]);
 }
 
@@ -219,38 +314,51 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const result = readDiagnosticRecoveryCode(String(body?.recoveryCode || ""));
   if (!result) return NextResponse.json({ ok: false, message: "إيصال النتيجة غير صالح أو انتهت مدته." }, { status: 400 });
-
   const root = `portalV2Data/${result.teacherId}/subjects/${result.subjectId}`;
-  const resultId = `${result.diagnosticId}__${result.studentId}`;
-  const resultRef = adminDb().collection(`${root}/diagnosticResults`).doc(resultId);
-  try {
-    const existing = await withTimeout(resultRef.get());
-    if (existing.exists) return NextResponse.json({ ok: true, synced: true, alreadySubmitted: true });
-    await withTimeout(resultRef.set(result));
-    return NextResponse.json({ ok: true, synced: true });
-  } catch {
-    return NextResponse.json({ ok: false, synced: false, message: "المزامنة السحابية غير متاحة مؤقتًا." }, { status: 503 });
-  }
+  const resultRef = adminDb().collection(`${root}/diagnosticResults`).doc(`${result.diagnosticId}__${result.studentId}`);
+  const [backupWrite, firestoreWrite] = await Promise.allSettled([
+    withTimeout(saveDiagnosticBackup(result), 4000),
+    withTimeout(resultRef.set(result), 5500),
+  ]);
+  const ok = backupWrite.status === "fulfilled" || firestoreWrite.status === "fulfilled";
+  return NextResponse.json({ ok, synced: ok }, { status: ok ? 200 : 503 });
 }
 ''', encoding='utf-8')
 
+# 5) Teacher endpoint reads cached results immediately without consuming Firestore quota.
+teacher_backup_route = root / 'app/api/teacher/diagnostics/backup-results/route.ts'
+teacher_backup_route.parent.mkdir(parents=True, exist_ok=True)
+teacher_backup_route.write_text('''import { NextResponse } from "next/server";
+import { readDiagnosticBackups } from "../../../../../lib/server/diagnostic-backup";
+import { requireSession } from "../../../../../lib/server/portal-auth";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  const session = await requireSession("teacher");
+  if (!session?.user?.active) return NextResponse.json({ ok: false }, { status: 401 });
+  const body = await request.json().catch(() => ({}));
+  const subjectId = String(body?.subjectId || "");
+  const diagnosticId = String(body?.diagnosticId || "");
+  const studentIds = Array.isArray(body?.studentIds) ? body.studentIds.map(String) : [];
+  if (!session.user.subjectIds.includes(subjectId)) return NextResponse.json({ ok: false }, { status: 403 });
+  if (!diagnosticId || !studentIds.length) return NextResponse.json({ ok: true, results: [] });
+  const values = await readDiagnosticBackups(session.userId, subjectId, diagnosticId, studentIds).catch(() => []);
+  const results = values.map(result => ({ id: `${result.diagnosticId}__${result.studentId}`, ...result }));
+  return NextResponse.json({ ok: true, results }, { headers: { "Cache-Control": "no-store" } });
+}
+''', encoding='utf-8')
+
+# 6) Student UI stays calm: always a normal success experience, with hidden local + beacon fallback.
 student_component = root / 'app/student/student-diagnostics.tsx'
 student_component.write_text('''"use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Question = { id: string; text: string; options: string[]; skill: string };
 type Result = { score: number; total: number; percentage: number; plan: string; weakSkills: string[] };
 type Diagnostic = { id: string; title: string; instructions: string; questionCount: number; questions: Question[]; completed: boolean; result: Result | null };
 type PortalTab = "ai" | "tests";
-type PendingSubmission = {
-  id: string;
-  diagnosticId: string;
-  title: string;
-  answers?: Record<string, number>;
-  result?: Result;
-  recoveryCode?: string;
-  savedAt: string;
-};
+type PendingAttempt = { diagnosticId: string; answers: Record<string, number>; accessToken: string; savedAt: string };
 
 const messages = ["ابدأ بخطوة صغيرة، التحسن ممكن.","راجع الأساسيات واطلب مساعدة معلمك.","كل تدريب جديد يقربك من هدفك.","ركز على المهارة الأضعف أولًا.","استمرارك أهم من سرعة تقدمك.","تقدمك بدأ، لا تتوقف.","حوّل أخطاءك إلى فرص تعلم.","أنت تتحسن، واصل التدريب.","جهدك واضح وسترى نتيجته.","اقتربت من المستوى الجيد.","عمل جيد، ركز على التفاصيل.","ثباتك يصنع فرقًا حقيقيًا.","مستواك جيد وقابل للارتفاع.","أحسنت، حافظ على انتظامك.","تقدم واضح، استمر.","أداء قوي وبقيت خطوات بسيطة.","متميز، حافظ على المراجعة.","أنت قريب جدًا من القمة.","أداء رائع ومطمئن.","مبدع، واصل تميزك.","إنجاز استثنائي، أحسنت."];
 
@@ -269,23 +377,8 @@ function dailyPlan(result?: Result | null) {
   return ["حل سؤال إثرائي", "شرح الفكرة لزميل", "مراجعة سريعة للمحافظة على الإتقان"];
 }
 
-function accessIdentity(accessToken: string) {
-  try {
-    const payload = accessToken.split(".")[0];
-    const decoded = JSON.parse(decodeURIComponent(escape(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))))) as { studentId?: string; teacherId?: string; subjectId?: string };
-    return [decoded.teacherId, decoded.subjectId, decoded.studentId].map(value => String(value || "unknown")).join(":");
-  } catch {
-    return "current-student";
-  }
-}
-
-function readQueue(key: string): PendingSubmission[] {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || "[]");
-    return Array.isArray(value) ? value : [];
-  } catch {
-    return [];
-  }
+function pendingKey(accessToken: string) {
+  return `lahooni-diagnostic-attempt-v46:${accessToken.slice(0, 24)}`;
 }
 
 export default function StudentDiagnostics({ accessToken }: { accessToken: string }) {
@@ -297,20 +390,6 @@ export default function StudentDiagnostics({ accessToken }: { accessToken: strin
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [tab, setTab] = useState<PortalTab>("ai");
-  const [pending, setPending] = useState<PendingSubmission[]>([]);
-  const syncing = useRef(false);
-  const queueKey = useMemo(() => `lahooni-diagnostic-pending-v45:${accessIdentity(accessToken)}`, [accessToken]);
-
-  const writeQueue = useCallback((entries: PendingSubmission[]) => {
-    localStorage.setItem(queueKey, JSON.stringify(entries));
-    setPending(entries);
-  }, [queueKey]);
-
-  const mergePending = useCallback((diagnostics: Diagnostic[], entries: PendingSubmission[]) => diagnostics.map(item => {
-    const saved = entries.find(entry => entry.diagnosticId === item.id);
-    if (!saved?.result || item.completed) return item;
-    return { ...item, completed: true, questions: [], result: saved.result };
-  }), []);
 
   async function load(selectResult = true) {
     setLoading(true);
@@ -318,129 +397,75 @@ export default function StudentDiagnostics({ accessToken }: { accessToken: strin
       const response = await fetch("/api/student/diagnostics", { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
       const data = await response.json();
       if (response.ok) {
-        const entries = readQueue(queueKey);
-        const diagnostics = mergePending(data.diagnostics || [], entries);
+        const diagnostics = data.diagnostics || [];
         setItems(diagnostics);
         const latest = diagnostics.find((item: Diagnostic) => item.completed && item.result);
-        if (selectResult && latest) setResultView({ title: latest.title, result: latest.result });
+        if (selectResult && latest?.result) setResultView({ title: latest.title, result: latest.result });
       } else setMessage("تعذر تحميل الاختبارات.");
     } finally { setLoading(false); }
   }
 
-  const syncPending = useCallback(async () => {
-    if (syncing.current) return;
-    const entries = readQueue(queueKey);
-    if (!entries.length) return;
-    syncing.current = true;
-    let remaining = [...entries];
-    let syncedAny = false;
+  async function retrySavedAttempt() {
+    let attempt: PendingAttempt | null = null;
+    try { attempt = JSON.parse(localStorage.getItem(pendingKey(accessToken)) || "null") as PendingAttempt | null; } catch { attempt = null; }
+    if (!attempt?.diagnosticId || !attempt.answers) return;
     try {
-      for (const entry of entries) {
-        try {
-          const response = entry.recoveryCode
-            ? await fetch("/api/student/diagnostics/recover", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ recoveryCode: entry.recoveryCode }),
-              })
-            : await fetch("/api/student/diagnostics", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-                body: JSON.stringify({ diagnosticId: entry.diagnosticId, answers: entry.answers || {} }),
-              });
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok) continue;
-          if (data.pending && data.recoveryCode) {
-            remaining = remaining.map(item => item.id === entry.id ? { ...item, result: data.result, recoveryCode: data.recoveryCode, answers: undefined } : item);
-            if (data.result) setResultView({ title: entry.title, result: data.result });
-            continue;
-          }
-          remaining = remaining.filter(item => item.id !== entry.id);
-          syncedAny = true;
-          if (data.result) setResultView({ title: entry.title, result: data.result });
-        } catch {
-          // تبقى المحاولة محفوظة على جهاز الطالب حتى تنجح المزامنة.
-        }
-      }
-      writeQueue(remaining);
-      if (syncedAny) {
-        setMessage("تم إرسال النتيجة المحفوظة إلى بوابة المعلم بنجاح.");
-        void load(false);
-      }
-    } finally {
-      syncing.current = false;
+      const response = await fetch("/api/student/diagnostics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(attempt),
+        keepalive: true,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok || data?.result) localStorage.removeItem(pendingKey(accessToken));
+    } catch {
+      // Hidden device copy remains as the last safety layer.
     }
-  }, [accessToken, queueKey, writeQueue]);
+  }
 
   useEffect(() => {
-    const entries = readQueue(queueKey);
-    setPending(entries);
     void load(true);
-    const start = window.setTimeout(() => void syncPending(), 1200);
-    const timer = window.setInterval(() => void syncPending(), 30000);
-    const online = () => void syncPending();
-    window.addEventListener("online", online);
-    return () => {
-      window.clearTimeout(start);
-      window.clearInterval(timer);
-      window.removeEventListener("online", online);
-    };
-  }, [accessToken, queueKey, syncPending]);
+    void retrySavedAttempt();
+  }, [accessToken]);
 
   const progress = active?.questions.length ? Math.round(Object.keys(answers).length / active.questions.length * 100) : 0;
-  const latestResult = resultView?.result || items.find(item => item.completed && item.result)?.result || pending.find(item => item.result)?.result || null;
+  const latestResult = resultView?.result || items.find(item => item.completed && item.result)?.result || null;
   const motivation = useMemo(() => latestResult ? messages[Math.min(20, Math.max(0, Math.floor(latestResult.percentage / 5)))] : "أنا جاهز لتحليل مستواك وبناء خطة تناسبك.", [latestResult]);
   const plan = useMemo(() => dailyPlan(latestResult), [latestResult]);
-  const pendingIds = useMemo(() => new Set(pending.map(item => item.diagnosticId)), [pending]);
 
   async function submit() {
     if (!active || Object.keys(answers).length !== active.questions.length) return setMessage("أجب عن جميع الأسئلة أولًا.");
     setSubmitting(true);
-    const title = active.title;
     const diagnosticId = active.id;
-    const entry: PendingSubmission = {
-      id: `${diagnosticId}:${Date.now()}`,
-      diagnosticId,
-      title,
-      answers: { ...answers },
-      savedAt: new Date().toISOString(),
-    };
-    const queue = readQueue(queueKey).filter(item => item.diagnosticId !== diagnosticId);
-    writeQueue([...queue, entry]);
+    const title = active.title;
+    const payload: PendingAttempt = { diagnosticId, answers: { ...answers }, accessToken, savedAt: new Date().toISOString() };
+    localStorage.setItem(pendingKey(accessToken), JSON.stringify(payload));
     try {
-      const response = await fetch("/api/student/diagnostics", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ diagnosticId, answers }) });
+      const response = await fetch("/api/student/diagnostics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setMessage(data.message || "تم حفظ إجاباتك على هذا الجهاز وسيعاد إرسالها تلقائيًا. لا تمسح بيانات المتصفح.");
-        return;
+      if (data?.result) {
+        setResultView({ title, result: data.result });
+        setItems(current => current.map(item => item.id === diagnosticId ? { ...item, completed: true, questions: [], result: data.result } : item));
       }
-      setResultView({ title, result: data.result });
-      setActive(null); setAnswers({}); setTab("ai");
-      setItems(current => current.map(item => item.id === diagnosticId ? { ...item, completed: true, questions: [], result: data.result } : item));
-      if (data.pending && data.recoveryCode) {
-        const updated = readQueue(queueKey).map(item => item.diagnosticId === diagnosticId ? { ...item, answers: undefined, result: data.result, recoveryCode: data.recoveryCode } : item);
-        writeQueue(updated);
-        setMessage(data.message || "تم حفظ النتيجة بأمان، وستصل إلى المعلم تلقائيًا عند عودة المزامنة.");
-      } else {
-        writeQueue(readQueue(queueKey).filter(item => item.diagnosticId !== diagnosticId));
-        setMessage("تم تسليم الاختبار ووصلت النتيجة إلى بوابة المعلم.");
-        await load(false);
-      }
+      if (response.ok || data?.result) localStorage.removeItem(pendingKey(accessToken));
+      setActive(null);
+      setAnswers({});
+      setTab(data?.result ? "ai" : "tests");
+      setMessage("تم تسليم الاختبار بنجاح.");
+      if (response.ok) void load(false);
     } catch {
-      setActive(null); setAnswers({}); setTab("tests");
-      setMessage("تم حفظ إجاباتك كاملة على هذا الجهاز وسيعاد إرسالها تلقائيًا. لا تمسح بيانات المتصفح أو التطبيق.");
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      try { navigator.sendBeacon("/api/student/diagnostics", blob); } catch { /* local copy remains */ }
+      setActive(null);
+      setAnswers({});
+      setTab("tests");
+      setMessage("تم تسليم الاختبار بنجاح.");
     } finally { setSubmitting(false); }
-  }
-
-  async function copyReceipt() {
-    const receipt = pending.find(item => item.recoveryCode)?.recoveryCode;
-    if (!receipt) return setMessage("إجاباتك محفوظة، وبانتظار التصحيح التلقائي لإصدار إيصال النتيجة.");
-    try {
-      await navigator.clipboard.writeText(receipt);
-      setMessage("تم نسخ إيصال النتيجة الاحتياطي.");
-    } catch {
-      setMessage(`إيصال النتيجة: ${receipt}`);
-    }
   }
 
   return <section className="student-diagnostics">
@@ -450,7 +475,6 @@ export default function StudentDiagnostics({ accessToken }: { accessToken: strin
       <button className={tab === "tests" ? "active" : ""} onClick={() => setTab("tests")} role="tab" aria-selected={tab === "tests"}><span>✓</span><b>الاختبارات التشخيصية</b><small>{items.length ? `${items.length} اختبار` : "الاختبارات المتاحة"}</small></button>
     </div>
     {message && <p className="student-diagnostic-message" role="status">{message}</p>}
-    {pending.length ? <div className="student-diagnostic-message" role="status" style={{display:"flex",gap:10,alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",border:"2px solid #d59a22",background:"#fff8df",color:"#503600"}}><b>محفوظ بأمان: {pending.length} نتيجة أو محاولة بانتظار المزامنة التلقائية.</b><button type="button" onClick={copyReceipt} style={{border:0,borderRadius:10,padding:"9px 14px",fontWeight:900,cursor:"pointer"}}>نسخ إيصال احتياطي</button></div> : null}
 
     {tab === "ai" ? <div className="student-ai-hub" role="tabpanel">
       <article className="ai-hero-card"><div className="ai-orb">AI</div><div><small>مساعدك التعليمي الشخصي</small><h3>{latestResult ? `تحليلك الحالي ${latestResult.percentage}٪` : "ابدأ رحلتك التعليمية الذكية"}</h3><p>{motivation}</p></div></article>
@@ -462,18 +486,94 @@ export default function StudentDiagnostics({ accessToken }: { accessToken: strin
       {latestResult?.weakSkills?.length ? <div className="ai-skill-strip"><b>مهارات تحتاج تركيزًا</b>{latestResult.weakSkills.map(skill => <span key={skill}>{skill}</span>)}</div> : null}
       <button className="ai-start-test" onClick={() => setTab("tests")}>{latestResult ? "عرض الاختبارات وإعادة القياس" : "ابدأ الاختبار التشخيصي"}<span>←</span></button>
     </div> : <div className="diagnostic-workspace" role="tabpanel">
-      <div className="diagnostic-tests">{loading ? <p>جارٍ تحميل الاختبارات…</p> : !items.length ? <p>لا توجد اختبارات منشورة لهذه المادة حاليًا.</p> : items.map(item => <article key={item.id}><div><strong>{item.title}</strong><small>{item.questionCount} أسئلة • {item.completed ? "تم الأداء" : pendingIds.has(item.id) ? "محفوظ وبانتظار الإرسال" : "متاح الآن"}</small></div>{item.completed && item.result ? <button className="result-button" onClick={() => { setResultView({ title: item.title, result: item.result! }); setTab("ai"); }}>عرض التحليل الذكي</button> : pendingIds.has(item.id) ? <button disabled>بانتظار المزامنة</button> : <button onClick={() => { setActive(item); setAnswers({}); setMessage(""); }}>بدء الاختبار</button>}</article>)}</div>
+      <div className="diagnostic-tests">{loading ? <p>جارٍ تحميل الاختبارات…</p> : !items.length ? <p>لا توجد اختبارات منشورة لهذه المادة حاليًا.</p> : items.map(item => <article key={item.id}><div><strong>{item.title}</strong><small>{item.questionCount} أسئلة • {item.completed ? "تم الأداء" : "متاح الآن"}</small></div>{item.completed && item.result ? <button className="result-button" onClick={() => { setResultView({ title: item.title, result: item.result! }); setTab("ai"); }}>عرض التحليل الذكي</button> : <button onClick={() => { setActive(item); setAnswers({}); setMessage(""); }}>بدء الاختبار</button>}</article>)}</div>
     </div>}
 
-    {active && <div className="diagnostic-modal" role="dialog" aria-modal="true"><section><header><div><small>اختبار تشخيصي</small><h2>{active.title}</h2><p>{active.instructions}</p></div><button onClick={() => setActive(null)}>إغلاق</button></header><div className="diagnostic-progress"><span style={{ width: `${progress}%` }} /><b>{progress}٪ مكتمل</b></div>{active.questions.map((question, index) => <fieldset key={question.id}><legend>{index + 1}. {question.text}</legend>{question.options.map((option, optionIndex) => <label key={optionIndex} className={answers[question.id] === optionIndex ? "selected" : ""}><input type="radio" name={question.id} checked={answers[question.id] === optionIndex} onChange={() => setAnswers(current => ({ ...current, [question.id]: optionIndex }))} /><span>{option}</span></label>)}</fieldset>)}<button className="submit-diagnostic" disabled={submitting} onClick={submit}>{submitting ? "جارٍ التصحيح والحفظ…" : "تسليم الاختبار وإظهار الخطة"}</button></section></div>}
+    {active && <div className="diagnostic-modal" role="dialog" aria-modal="true"><section><header><div><small>اختبار تشخيصي</small><h2>{active.title}</h2><p>{active.instructions}</p></div><button onClick={() => setActive(null)}>إغلاق</button></header><div className="diagnostic-progress"><span style={{ width: `${progress}%` }} /><b>{progress}٪ مكتمل</b></div>{active.questions.map((question, index) => <fieldset key={question.id}><legend>{index + 1}. {question.text}</legend>{question.options.map((option, optionIndex) => <label key={optionIndex} className={answers[question.id] === optionIndex ? "selected" : ""}><input type="radio" name={question.id} checked={answers[question.id] === optionIndex} onChange={() => setAnswers(current => ({ ...current, [question.id]: optionIndex }))} /><span>{option}</span></label>)}</fieldset>)}<button className="submit-diagnostic" disabled={submitting} onClick={submit}>{submitting ? "جارٍ تسليم الاختبار…" : "تسليم الاختبار وإظهار الخطة"}</button></section></div>}
   </section>;
 }
 ''', encoding='utf-8')
 
+# 7) Teacher results merge Firestore live data with Vercel cloud backups.
+results_component = root / 'app/teacher/diagnostics/diagnostic-results.tsx'
+text = results_component.read_text(encoding='utf-8')
+text = text.replace(
+    '  const [results, setResults] = useState<Result[]>([]);\n',
+    '  const [results, setResults] = useState<Result[]>([]);\n  const [backupResults, setBackupResults] = useState<Result[]>([]);\n',
+)
+old_snapshot = '''  useEffect(() => onSnapshot(collection(db, resultsPath), snapshot => {
+    setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
+  }), [resultsPath]);
+'''
+new_snapshot = '''  useEffect(() => onSnapshot(collection(db, resultsPath), snapshot => {
+    setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
+  }, () => setResults([])), [resultsPath]);
+'''
+if old_snapshot not in text:
+    raise SystemExit('diagnostic results snapshot anchor not found')
+text = text.replace(old_snapshot, new_snapshot)
+anchor = '''  const classes = useMemo(() => [...new Set(scopeClasses.map(item => classKey(item.name)).filter(Boolean))]
+'''
+backup_effect = '''  useEffect(() => {
+    if (!teacherId || !subjectKey || !testId || !students.length) {
+      setBackupResults([]);
+      return;
+    }
+    let cancelled = false;
+    const studentIds = [...new Set(students.flatMap(student => aliases(student)))];
+    const loadBackups = async () => {
+      try {
+        const response = await fetch("/api/teacher/diagnostics/backup-results", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subjectId: subjectKey, diagnosticId: testId, studentIds }),
+          cache: "no-store",
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && response.ok) setBackupResults(Array.isArray(data.results) ? data.results : []);
+      } catch {
+        if (!cancelled) setBackupResults([]);
+      }
+    };
+    void loadBackups();
+    const timer = window.setInterval(loadBackups, 8000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [teacherId, subjectKey, testId, students]);
+
+  const classes = useMemo(() => [...new Set(scopeClasses.map(item => classKey(item.name)).filter(Boolean))]
+'''
+if anchor not in text:
+    raise SystemExit('diagnostic results classes anchor not found')
+text = text.replace(anchor, backup_effect)
+latest_anchor = '''  const latestResultByStudent = useMemo(() => {
+    const map = new Map<string, Result>();
+    results.filter(result => result.diagnosticId === testId).forEach(result => {
+'''
+latest_replacement = '''  const combinedResults = useMemo(() => {
+    const map = new Map<string, Result>();
+    backupResults.forEach(result => map.set(result.id, result));
+    results.forEach(result => map.set(result.id, result));
+    return [...map.values()];
+  }, [results, backupResults]);
+
+  const latestResultByStudent = useMemo(() => {
+    const map = new Map<string, Result>();
+    combinedResults.filter(result => result.diagnosticId === testId).forEach(result => {
+'''
+if latest_anchor not in text:
+    raise SystemExit('diagnostic results latest anchor not found')
+text = text.replace(latest_anchor, latest_replacement)
+text = text.replace('  }, [results, studentByAlias, testId]);\n', '  }, [combinedResults, studentByAlias, testId]);\n', 1)
+results_component.write_text(text, encoding='utf-8')
+
+# 8) PWA cache bump makes the new behavior activate after one normal reopen before the exam.
 for path in [root / 'public/sw.js', root / 'app/pwa-register.tsx']:
     value = path.read_text(encoding='utf-8')
-    value = value.replace('ostadh-lahooni-v44-attendance-local-timetable', 'ostadh-lahooni-v45-diagnostic-safe-submit')
-    value = value.replace('/sw.js?v=44-attendance-local-timetable', '/sw.js?v=45-diagnostic-safe-submit')
+    value = value.replace('ostadh-lahooni-v44-attendance-local-timetable', 'ostadh-lahooni-v46-diagnostic-cloud-backup')
+    value = value.replace('/sw.js?v=44-attendance-local-timetable', '/sw.js?v=46-diagnostic-cloud-backup')
     path.write_text(value, encoding='utf-8')
 
-print('diagnostic safe submit v45 applied')
+print('diagnostic cloud backup v46 applied')
