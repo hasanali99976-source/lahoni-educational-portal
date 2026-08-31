@@ -15,11 +15,11 @@ export async function GET(request: Request, context: { params: Promise<{ code: s
   const target = new URL("/student", origin);
   target.searchParams.set("code", code);
   target.searchParams.set("entry", "qr");
-  target.searchParams.set("v", "46");
+  target.searchParams.set("v", "47");
 
   const response = NextResponse.redirect(target, 307);
   response.cookies.set(QR_LOCK_COOKIE, "1", {
-    httpOnly: true,
+    httpOnly: false,
     secure: true,
     sameSite: "lax",
     path: "/",
