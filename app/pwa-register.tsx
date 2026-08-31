@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v39-diagnostic-preview-all-classes";
-const RELOAD_KEY = "ostadh-lahooni-v39-diagnostic-preview-all-classes";
+const CURRENT_CACHE = "ostadh-lahooni-v40-diagnostic-print";
+const RELOAD_KEY = "ostadh-lahooni-v40-diagnostic-print";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        const registration = await navigator.serviceWorker.register("/sw.js?v=39-diagnostic-preview-all-classes", { scope: "/", updateViaCache: "none" });
+        const registration = await navigator.serviceWorker.register("/sw.js?v=40-diagnostic-print", { scope: "/", updateViaCache: "none" });
         await registration.update();
         if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
       } catch {
