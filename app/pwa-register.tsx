@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v31-stage-class-roster";
-const RELOAD_KEY = "ostadh-lahooni-v31-stage-class-roster";
+const CURRENT_CACHE = "ostadh-lahooni-v32-admin-roster-lock";
+const RELOAD_KEY = "ostadh-lahooni-v32-admin-roster-lock";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        const registration = await navigator.serviceWorker.register("/sw.js?v=31-stage-class-roster", { scope: "/", updateViaCache: "none" });
+        const registration = await navigator.serviceWorker.register("/sw.js?v=32-admin-roster-lock", { scope: "/", updateViaCache: "none" });
         await registration.update();
         if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
       } catch {

@@ -113,10 +113,7 @@ export async function POST(request: Request) {
     ]);
 
     const existingByTeacherSubject = new Map(existingStudents.map(item => [`${item.teacherId}:${item.subjectId}`, item]));
-    const fallbackStudent = existingStudents
-      .map(item => normalizeStudentRecord(item.data, item.studentId))
-      .find((item): item is SchoolStudent => !!item);
-    const student = centralStudent || fallbackStudent;
+    const student = centralStudent;
     if (!student) {
       return NextResponse.json({ ok: false, message: "كود الطالب غير صحيح، أو لم تُربط له مادة بعد." }, { status: 401 });
     }

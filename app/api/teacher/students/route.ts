@@ -140,7 +140,7 @@ export async function GET(request: Request) {
     const legacyRows = allLegacyRows
       .map(item => {
         const official = centralByCode.get(item.student.code);
-        if (!official) return grades.has(item.student.grade as Grade) ? item : null;
+        if (!official) return null;
         if (!grades.has(official.grade as Grade)) return null;
         return {
           ...item,
@@ -243,6 +243,21 @@ export async function GET(request: Request) {
     const legacyIdentities = new Set(selectedLegacyRows.map(item => studentIdentity(item.student)));
     const now = new Date().toISOString();
 
+    allLegacyRows
+      .filter(item => !centralByCode.has(item.student.code))
+      .forEach(item => {
+        repairs.push({
+          path: `${subjectPath}/${item.id}`,
+          data: {
+            active: false,
+            rosterActive: false,
+            archived: true,
+            archivedAt: now,
+            updatedAt: now,
+            archiveReason: "removed_from_admin_roster",
+          },
+        });
+      });
 
     selectedLegacyRows.forEach(item => {
       const canonical = canonicalClassName(item.student.grade, item.student.section);
