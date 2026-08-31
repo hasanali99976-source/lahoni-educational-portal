@@ -45,6 +45,39 @@ function classOf(student: Student) {
   return String(student.className || student.class || "").trim();
 }
 
+const CLASS_NUMBER_BY_LETTER: Record<string, string> = {
+  "أ": "١", "ا": "١", "A": "١", "a": "١",
+  "ب": "٢", "B": "٢", "b": "٢",
+  "ج": "٣", "C": "٣", "c": "٣",
+  "د": "٤", "D": "٤", "d": "٤",
+  "هـ": "٥", "ه": "٥", "E": "٥", "e": "٥",
+  "و": "٦", "F": "٦", "f": "٦",
+  "ز": "٧", "G": "٧", "g": "٧",
+};
+
+function toArabicDigits(value: string) {
+  return value.replace(/[0-9]/g, digit => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
+}
+
+function classDisplay(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "فصل غير محدد";
+  const cleaned = raw.replace(/^الفصل\s*/i, "").replace(/^فصل\s*/i, "").trim();
+  const compact = cleaned.replace(/[\s()]/g, "");
+  const mapped = CLASS_NUMBER_BY_LETTER[compact];
+  if (mapped) return `الفصل ${mapped}`;
+  if (/^[0-9٠-٩]+$/.test(compact)) return `الفصل ${toArabicDigits(compact)}`;
+  const trailingLetter = cleaned.match(/(?:^|[\s\-\/])([أابجدهوزA-Ga-g])$/)?.[1];
+  if (trailingLetter && CLASS_NUMBER_BY_LETTER[trailingLetter]) return `الفصل ${CLASS_NUMBER_BY_LETTER[trailingLetter]}`;
+  return raw.startsWith("فصل") || raw.startsWith("الفصل") ? toArabicDigits(raw) : `الفصل ${toArabicDigits(raw)}`;
+}
+
+function classOrder(value: string) {
+  const displayed = classDisplay(value);
+  const digits = displayed.match(/[٠-٩0-9]+/)?.[0] || "999";
+  return Number(digits.replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))) || 999;
+}
+
 function aliases(student: Student) {
   return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(value => String(value || "").trim()).filter(Boolean))];
 }
@@ -125,7 +158,7 @@ export default function DiagnosticResults({
   }, [resultsPath, studentsPath]);
 
   const classes = useMemo(() => [...new Set(students.map(classOf).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+    .sort((a, b) => classOrder(a) - classOrder(b) || a.localeCompare(b, "ar", { numeric: true })), [students]);
 
   useEffect(() => {
     if (diagnostics.length && !diagnostics.some(item => item.id === testId)) setTestId(diagnostics[0].id);
@@ -178,7 +211,7 @@ export default function DiagnosticResults({
   const smartSummary = !rosterRows.length
     ? "اختر فصلًا يحتوي طلابًا لعرض المتابعة."
     : !completedCount
-      ? `لم يبدأ طلاب ${className} هذا الاختبار حتى الآن. يمكن متابعة ${pendingCount} طالبًا وتشجيعهم على الدخول.`
+      ? `لم يبدأ طلاب ${classDisplay(className)} هذا الاختبار حتى الآن. يمكن متابعة ${pendingCount} طالبًا وتشجيعهم على الدخول.`
       : pendingCount
         ? `أكمل ${completedCount} من أصل ${rosterRows.length} طالبًا الاختبار، والمتوسط الحالي ${average}٪. ما زال ${pendingCount} طالبًا لم يؤدوا الاختبار.`
         : `أكمل جميع طلاب الفصل الاختبار، ومتوسط الفصل ${average}٪. يمكن الآن توليد الخطط الفردية واعتمادها.`;
@@ -214,7 +247,7 @@ export default function DiagnosticResults({
           subjectName,
           diagnosticId: testId,
           diagnosticTitle,
-          className,
+          className: classDisplay(className),
           students: rows.map(({ student, result }) => ({
             resultId: result.id,
             studentName: student.name || "الطالب",
@@ -254,7 +287,7 @@ export default function DiagnosticResults({
         const result = row.result;
         return [
           row.student.name || row.student.id,
-          classOf(row.student),
+          classDisplay(classOf(row.student)),
           diagnosticTitle,
           result ? "عمل الاختبار" : "لم يعمل الاختبار",
           result ? `${result.score}/${result.total}` : "—",
@@ -285,7 +318,7 @@ export default function DiagnosticResults({
       const plan = result ? (result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, row.student.name || "الطالب", subjectName)) : "—";
       return `<tr class="${result ? "done" : "pending"}"><td>${index + 1}</td><td>${escapeHtml(row.student.name || row.student.id)}</td><td>${escapeHtml(status)}</td><td>${result ? `${result.score}/${result.total}` : "—"}</td><td>${result ? `${percentOf(result)}%` : "—"}</td><td>${result ? escapeHtml(resultLevel(result)) : "بانتظار الاختبار"}</td><td>${escapeHtml(result?.weakSkills?.join("، ") || "—")}</td><td>${escapeHtml(plan)}</td></tr>`;
     }).join("");
-    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>متابعة الاختبار التشخيصي</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172b3a;margin:0}.toolbar{display:flex;justify-content:center;gap:8px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:9px 16px;font-weight:800;cursor:pointer}.page{padding:5mm}.portal{text-align:center;color:#173f61;font-weight:900;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:8px}.meta,.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #263746}.meta span,.stats span{padding:6px;border-left:1px solid #263746;font-size:11px}.stats{border-top:0}.stats span{font-weight:800}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #52677a;padding:5px;font-size:8px;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf1f6}.pending{background:#fff7e8}.done{background:#f5fff9}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:9%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:17%}th:nth-child(8){width:36%}.footer{margin-top:8px;display:flex;justify-content:space-between;border-top:1px solid #8a9aa8;padding-top:5px;font-size:9px}@media print{.toolbar{display:none}.page{padding:0}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><main class="page"><div class="portal">${PORTAL_NAME}</div><h1>متابعة أداء الاختبار التشخيصي والخطط العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(className)}</span><span><b>الاختبار:</b> ${escapeHtml(diagnosticTitle)}</span><span><b>عدد الطلاب:</b> ${rosterRows.length}</span></div><div class="stats"><span>عمل الاختبار: ${completedCount}</span><span>لم يعمل: ${pendingCount}</span><span>نسبة الإنجاز: ${rosterRows.length ? Math.round((completedCount / rosterRows.length) * 100) : 0}%</span><span>المتوسط: ${average}%</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الحالة</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المهارات الضعيفة</th><th>الخطة المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></main></body></html>`);
+    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>متابعة الاختبار التشخيصي</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172b3a;margin:0}.toolbar{display:flex;justify-content:center;gap:8px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:9px 16px;font-weight:800;cursor:pointer}.page{padding:5mm}.portal{text-align:center;color:#173f61;font-weight:900;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:8px}.meta,.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #263746}.meta span,.stats span{padding:6px;border-left:1px solid #263746;font-size:11px}.stats{border-top:0}.stats span{font-weight:800}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #52677a;padding:5px;font-size:8px;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf1f6}.pending{background:#fff7e8}.done{background:#f5fff9}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:9%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:17%}th:nth-child(8){width:36%}.footer{margin-top:8px;display:flex;justify-content:space-between;border-top:1px solid #8a9aa8;padding-top:5px;font-size:9px}@media print{.toolbar{display:none}.page{padding:0}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><main class="page"><div class="portal">${PORTAL_NAME}</div><h1>متابعة أداء الاختبار التشخيصي والخطط العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(classDisplay(className))}</span><span><b>الاختبار:</b> ${escapeHtml(diagnosticTitle)}</span><span><b>عدد الطلاب:</b> ${rosterRows.length}</span></div><div class="stats"><span>عمل الاختبار: ${completedCount}</span><span>لم يعمل: ${pendingCount}</span><span>نسبة الإنجاز: ${rosterRows.length ? Math.round((completedCount / rosterRows.length) * 100) : 0}%</span><span>المتوسط: ${average}%</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الحالة</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المهارات الضعيفة</th><th>الخطة المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></main></body></html>`);
     popup.document.close();
   }
 
@@ -296,11 +329,32 @@ export default function DiagnosticResults({
     </header>
 
     <div className="diag-primary-selectors">
-      <label><span>١</span><div>اختر الفصل<small>تظهر قائمة طلاب الفصل كاملة</small></div><select value={className} onChange={event => { setClassName(event.target.value); setStatusFilter("all"); setSearchName(""); }}>{classes.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
+      <label><span>١</span><div>اختر الفصل<small>تظهر قائمة طلاب الفصل كاملة</small></div><select value={className} onChange={event => { setClassName(event.target.value); setStatusFilter("all"); setSearchName(""); }}>{classes.map(item => <option key={item} value={item}>{classDisplay(item)}</option>)}</select></label>
       <label><span>٢</span><div>اختر الاختبار<small>الاختبارات الحالية محفوظة كما هي</small></div><select value={testId} onChange={event => { setTestId(event.target.value); setStatusFilter("all"); }}>{diagnostics.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
     </div>
 
     {!diagnosticsLoaded ? <p className="diag-empty">جارٍ تحميل الاختبارات الحالية…</p> : !diagnostics.length ? <p className="diag-empty">لا توجد اختبارات تشخيصية منشأة حتى الآن.</p> : null}
+
+    <div className="diag-list-tools diag-list-tools-first">
+      <label>البحث عن طالب<input value={searchName} onChange={event => setSearchName(event.target.value)} placeholder="اكتب اسم الطالب" /></label>
+      <label>حالة الاختبار<select value={statusFilter} onChange={event => setStatusFilter(event.target.value as StatusFilter)}><option value="all">جميع الطلاب</option><option value="completed">عملوا الاختبار</option><option value="pending">لم يعملوا الاختبار</option></select></label>
+      <button onClick={() => { setSearchName(""); setStatusFilter("all"); }}>إظهار الجميع</button>
+    </div>
+
+    <div className="diagnostic-roster">
+      {visibleRows.map((row, index) => {
+        const result = row.result;
+        const code = row.student.code || row.student.accessCode || row.student.studentCode || row.student.id;
+        return <article key={row.student.id} className={result ? "completed" : "not-completed"}>
+          <div className="diag-student-identity"><b>{index + 1}</b><div><strong>{row.student.name || "طالب دون اسم"}</strong><small>{classDisplay(classOf(row.student))} • {code}</small></div></div>
+          <div className="diag-status-cell"><span className={result ? "status-done" : "status-pending"}>{result ? "✓ عمل الاختبار" : "○ لم يعمل الاختبار"}</span>{result ? <small>{formatDate(result.submittedAt)}</small> : <small>بانتظار دخول الطالب</small>}</div>
+          <div className="diag-score-cell">{result ? <><strong>{result.score} / {result.total}</strong><span>{percentOf(result)}٪ • {resultLevel(result)}</span></> : <><strong>—</strong><span>لا توجد نتيجة</span></>}</div>
+          <div className="diag-skills-cell"><small>المهارات الضعيفة</small><span>{result?.weakSkills?.length ? result.weakSkills.join("، ") : result ? "لا توجد مهارات ضعيفة مسجلة" : "تظهر بعد أداء الاختبار"}</span></div>
+          <div className="diag-row-actions">{result ? <button onClick={() => openPlan(result)}>{result.teacherPlan ? "عرض الخطة المعتمدة" : result.aiPlan ? "عرض الخطة الذكية" : "اقتراح الخطة العلاجية"}</button> : <button disabled>لم يؤد الاختبار</button>}</div>
+        </article>;
+      })}
+      {!visibleRows.length ? <p className="diag-empty">لا توجد أسماء مطابقة للبحث أو الحالة المحددة.</p> : null}
+    </div>
 
     <div className="diag-stats">
       <article><strong>{rosterRows.length}</strong><span>طلاب الفصل</span></article>
@@ -316,27 +370,6 @@ export default function DiagnosticResults({
     </section>
 
     {message ? <p className="diag-message">{message}</p> : null}
-
-    <div className="diag-list-tools">
-      <label>بحث عن طالب<input value={searchName} onChange={event => setSearchName(event.target.value)} placeholder="اكتب اسم الطالب" /></label>
-      <label>حالة الاختبار<select value={statusFilter} onChange={event => setStatusFilter(event.target.value as StatusFilter)}><option value="all">جميع الطلاب</option><option value="completed">عملوا الاختبار</option><option value="pending">لم يعملوا الاختبار</option></select></label>
-      <button onClick={() => { setSearchName(""); setStatusFilter("all"); }}>إظهار الجميع</button>
-    </div>
-
-    <div className="diagnostic-roster">
-      {visibleRows.map((row, index) => {
-        const result = row.result;
-        const code = row.student.code || row.student.accessCode || row.student.studentCode || row.student.id;
-        return <article key={row.student.id} className={result ? "completed" : "not-completed"}>
-          <div className="diag-student-identity"><b>{index + 1}</b><div><strong>{row.student.name || "طالب دون اسم"}</strong><small>{classOf(row.student)} • {code}</small></div></div>
-          <div className="diag-status-cell"><span className={result ? "status-done" : "status-pending"}>{result ? "✓ عمل الاختبار" : "○ لم يعمل الاختبار"}</span>{result ? <small>{formatDate(result.submittedAt)}</small> : <small>بانتظار دخول الطالب</small>}</div>
-          <div className="diag-score-cell">{result ? <><strong>{result.score} / {result.total}</strong><span>{percentOf(result)}٪ • {resultLevel(result)}</span></> : <><strong>—</strong><span>لا توجد نتيجة</span></>}</div>
-          <div className="diag-skills-cell"><small>المهارات الضعيفة</small><span>{result?.weakSkills?.length ? result.weakSkills.join("، ") : result ? "لا توجد مهارات ضعيفة مسجلة" : "تظهر بعد أداء الاختبار"}</span></div>
-          <div className="diag-row-actions">{result ? <button onClick={() => openPlan(result)}>{result.teacherPlan ? "عرض الخطة المعتمدة" : result.aiPlan ? "عرض الخطة الذكية" : "اقتراح الخطة العلاجية"}</button> : <button disabled>لم يؤد الاختبار</button>}</div>
-        </article>;
-      })}
-      {!visibleRows.length ? <p className="diag-empty">لا توجد أسماء مطابقة للبحث أو الحالة المحددة.</p> : null}
-    </div>
 
     {editing ? <div className="diag-modal" role="dialog" aria-modal="true">
       <section><header><div><small>الخطة العلاجية أو الإثرائية</small><h3>{studentByAlias.get(String(editing.studentId || "").trim())?.name || "الطالب"}</h3><p>{diagnosticTitle} • {percentOf(editing)}٪</p></div><button onClick={() => setEditing(null)} aria-label="إغلاق">×</button></header><textarea rows={8} value={planText} onChange={event => setPlanText(event.target.value)} /><div><button onClick={() => setEditing(null)}>إلغاء</button><button className="primary" onClick={() => void savePlan()}>اعتماد وحفظ الخطة</button></div></section>
