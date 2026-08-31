@@ -13,7 +13,6 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 import {
-  SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
   normalizeClassIds,
   teacherClassScopeId,
@@ -60,10 +59,9 @@ export async function GET(request: Request) {
     const database = adminDb();
     const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId, grade));
-    const [classSnapshot, studentSnapshot, ownerSnapshot, scopeSnapshot] = await Promise.all([
+    const [classSnapshot, studentSnapshot, scopeSnapshot] = await Promise.all([
       database.collection(SCHOOL_CLASSES_COLLECTION).get(),
       database.collection(SCHOOL_STUDENTS_COLLECTION).get(),
-      database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("subjectId", "==", subjectId).get(),
       scopeRef.get(),
     ]);
 
@@ -79,30 +77,13 @@ export async function GET(request: Request) {
       classMap.set(classId(student.grade, student.section), classFromStudent(student));
     });
 
-    const ownerByClass = new Map<string, string>();
-    ownerSnapshot.docs.forEach(document => {
-      const data = document.data() as Record<string, unknown>;
-      const ownedClassId = String(data.classId || "");
-      const ownerTeacherId = String(data.teacherId || "");
-      if (ownedClassId && ownerTeacherId) ownerByClass.set(ownedClassId, ownerTeacherId);
-    });
-
-    const allClasses = [...classMap.values()]
+    const availableClasses = [...classMap.values()]
       .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => Number(a.section) - Number(b.section));
-    const availableClasses = allClasses.filter(item => {
-      const owner = ownerByClass.get(item.id);
-      return !owner || owner === session.userId;
-    });
     const availableIds = new Set(availableClasses.map(item => item.id));
-    const ownedByTeacher = allClasses
-      .filter(item => ownerByClass.get(item.id) === session.userId)
-      .map(item => item.id);
-    const storedSelection = scopeSnapshot.exists
+    const selectedClassIds = scopeSnapshot.exists
       ? normalizeClassIds(scopeSnapshot.data()?.selectedClassIds).filter(item => availableIds.has(item))
       : [];
-    const selectedClassIds = [...new Set([...ownedByTeacher, ...storedSelection])]
-      .filter(item => availableIds.has(item));
 
     return NextResponse.json({
       ok: true,
@@ -110,13 +91,14 @@ export async function GET(request: Request) {
       grade,
       availableClasses,
       selectedClassIds,
-      hiddenOwnedByOtherTeachers: Math.max(0, allClasses.length - availableClasses.length),
-      totalClasses: allClasses.length,
+      hiddenOwnedByOtherTeachers: 0,
+      totalClasses: availableClasses.length,
       manualClassSelection: true,
+      officialAdminRoster: true,
       persistedInDatabase: scopeSnapshot.exists,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("teacher class options failed", error);
-    return NextResponse.json({ ok: false, message: "تعذر تحميل الفصول المتبقية الآن." }, { status: 500 });
+    return NextResponse.json({ ok: false, message: "تعذر تحميل فصول المرحلة الآن." }, { status: 500 });
   }
 }

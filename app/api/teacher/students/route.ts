@@ -16,12 +16,10 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 import {
-  SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
   assignmentScopeSignature,
   defaultSelectedClassIds,
   normalizeClassIds,
-  subjectClassOwnerId,
   teacherClassScopeId,
 } from "../../../../lib/teacher-class-scope";
 
@@ -118,13 +116,12 @@ export async function GET(request: Request) {
     const legacySubjectScopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId));
 
-    const [legacySnapshot, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentSnapshot, centralClassSnapshot, ownerSnapshot] = await Promise.all([
+    const [legacySnapshot, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentSnapshot, centralClassSnapshot] = await Promise.all([
       database.collection(subjectPath).get(),
       scopeRef.get(),
       requestedGrade ? legacySubjectScopeRef.get() : Promise.resolve({ exists: false, data: () => undefined }),
       database.collection(SCHOOL_STUDENTS_COLLECTION).get(),
       database.collection(SCHOOL_CLASSES_COLLECTION).get(),
-      database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("subjectId", "==", subjectId).get(),
     ]);
 
     const allLegacyRows = legacySnapshot.docs
@@ -176,77 +173,26 @@ export async function GET(request: Request) {
       .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
 
-    const rawOwnerRows = ownerSnapshot.docs.map(item => {
-      const data = item.data() as Record<string, unknown>;
-      return {
-        documentId: item.id,
-        ownedClassId: String(data.classId || ""),
-        teacherId: String(data.teacherId || ""),
-      };
-    }).filter(item => !!item.ownedClassId && !!item.teacherId);
-
-    const ownerTeacherIds = [...new Set(rawOwnerRows.map(item => item.teacherId).filter(id => id !== session.userId))];
-    const ownerTeacherRecords = new Map<string, Record<string, unknown>>();
-    await Promise.all(ownerTeacherIds.map(async teacherId => {
-      const snapshot = await database.collection("portalV2Users").doc(teacherId).get();
-      if (snapshot.exists) ownerTeacherRecords.set(teacherId, snapshot.data() as Record<string, unknown>);
-    }));
-
-    const ownerByClass = new Map<string, string>();
-    const invalidOwnerDocumentIds = new Set<string>();
-    rawOwnerRows.forEach(row => {
-      if (row.teacherId === session.userId) {
-        ownerByClass.set(row.ownedClassId, row.teacherId);
-        return;
-      }
-
-      const schoolClass = availableMap.get(row.ownedClassId);
-      const ownerUser = ownerTeacherRecords.get(row.teacherId);
-      const ownerAssignments = ownerUser
-        ? normalizeAssignments(ownerUser.assignments, ownerUser.subjectIds)
-        : [];
-      const ownerStillAssigned = Boolean(
-        ownerUser
-        && ownerUser.active !== false
-        && schoolClass
-        && ownerAssignments.some(assignment =>
-          assignment.subjectId === subjectId
-          && gradeNumber(assignment.grade) === schoolClass.grade,
-        ),
-      );
-
-      if (!ownerStillAssigned) {
-        invalidOwnerDocumentIds.add(row.documentId);
-        return;
-      }
-
-      ownerByClass.set(row.ownedClassId, row.teacherId);
-    });
-
-    const classIsClaimable = (id: string) => {
-      const owner = ownerByClass.get(id);
-      return !owner || owner === session.userId;
-    };
 
     const currentSignature = assignmentScopeSignature(assignments, subjectId, requestedGrade);
     const scopeData = scopeSnapshot.exists ? scopeSnapshot.data() as Record<string, unknown> : null;
     const storedSignature = String(scopeData?.assignmentSignature || "");
     const storedSelection = normalizeClassIds(scopeData?.selectedClassIds)
-      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade) && classIsClaimable(id));
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
     const savedScopeValid = scopeData?.customized === true && storedSignature === currentSignature;
 
     const legacyScopeData = legacySubjectScopeSnapshot.exists
       ? legacySubjectScopeSnapshot.data() as Record<string, unknown>
       : null;
     const legacySelection = normalizeClassIds(legacyScopeData?.selectedClassIds)
-      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade) && classIsClaimable(id));
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
     const canMigrateLegacySelection = !scopeSnapshot.exists
       && requestedGrade !== null
       && legacyScopeData?.customized === true
       && legacySelection.length > 0;
 
     const scopeCustomized = savedScopeValid || canMigrateLegacySelection;
-    const claimableClasses = allStageClasses.filter(item => classIsClaimable(item.id));
+    const claimableClasses = allStageClasses;
     const defaultSelection = defaultSelectedClassIds(relevant, subjectId, claimableClasses, requestedGrade);
     const baseSelection = savedScopeValid
       ? storedSelection
@@ -254,7 +200,7 @@ export async function GET(request: Request) {
         ? legacySelection
         : defaultSelection;
     const selectedClassIds = [...new Set(baseSelection)]
-      .filter(id => availableMap.has(id) && classIsClaimable(id));
+      .filter(id => availableMap.has(id) && grades.has(classGradeFromId(id) as Grade));
     const selected = new Set(selectedClassIds);
     const availableClasses = scopeCustomized
       ? allStageClasses.filter(item => selected.has(item.id))
@@ -353,23 +299,6 @@ export async function GET(request: Request) {
       });
     });
 
-    if (scopeCustomized) {
-      selectedClassIds.forEach(selectedClassId => {
-        if (ownerByClass.get(selectedClassId)) return;
-        repairs.push({
-          path: `${SUBJECT_CLASS_OWNERS_COLLECTION}/${subjectClassOwnerId(subjectId, selectedClassId)}`,
-          data: {
-            teacherId: session.userId,
-            subjectId,
-            classId: selectedClassId,
-            grade: classGradeFromId(selectedClassId),
-            active: true,
-            updatedAt: now,
-          },
-        });
-      });
-    }
-
     if (canMigrateLegacySelection) {
       repairs.push({
         path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId, requestedGrade)}`,
@@ -406,17 +335,6 @@ export async function GET(request: Request) {
       console.warn("teacher roster repair deferred", repairError);
     }
 
-    try {
-      if (invalidOwnerDocumentIds.size) {
-        const cleanupBatch = database.batch();
-        invalidOwnerDocumentIds.forEach(documentId => {
-          cleanupBatch.delete(database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(documentId));
-        });
-        await cleanupBatch.commit();
-      }
-    } catch (cleanupError) {
-      console.warn("stale class owner cleanup deferred", cleanupError);
-    }
 
     const classes = allStageClasses.filter(item => selected.has(item.id));
     return NextResponse.json({
@@ -431,7 +349,7 @@ export async function GET(request: Request) {
       assignedGrades: [...grades],
       activeGrade: requestedGrade,
       reservedForTeacher: selectedClassIds.length,
-      hiddenOwnedByOtherTeachers: Math.max(0, allStageClasses.length - claimableClasses.length),
+      hiddenOwnedByOtherTeachers: 0,
       recoveredLegacy: selectedLegacyRows.length,
       preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
       centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
@@ -441,7 +359,8 @@ export async function GET(request: Request) {
       centralStudentCodes: centralByCode.size,
       deduplicatedStudentCodes: students.length,
       manualClassSelection: true,
-      staleOwnersIgnored: invalidOwnerDocumentIds.size,
+      staleOwnersIgnored: 0,
+      officialAdminRoster: true,
       preservedTeacherData: true,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {

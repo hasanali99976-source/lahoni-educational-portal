@@ -57,7 +57,6 @@ export default function StudentsPage() {
   const [loadingOptions,setLoadingOptions] = useState(false);
   const [savingScope,setSavingScope] = useState(false);
   const [managing,setManaging] = useState(false);
-  const [hiddenForOthers,setHiddenForOthers] = useState(0);
   const [qrStudent,setQrStudent] = useState<Student|null>(null);
 
   async function load(showMessage = false) {
@@ -89,9 +88,8 @@ export default function StudentsPage() {
       const data = await fetchClassOptions(subjectId, activeGrade);
       setAvailableClasses(Array.isArray(data.availableClasses) ? data.availableClasses : []);
       setSelectedClassIds(Array.isArray(data.selectedClassIds) ? data.selectedClassIds : []);
-      setHiddenForOthers(Number(data.hiddenOwnedByOtherTeachers) || 0);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر تحميل الفصول المتبقية");
+      setMessage(error instanceof Error ? error.message : "تعذر تحميل فصول المرحلة");
     } finally {
       setLoadingOptions(false);
     }
@@ -136,7 +134,7 @@ export default function StudentsPage() {
     } catch (error) {
       const typed = error as Error & { status?: number };
       if (typed.status === 409) {
-        setMessage("سبق معلم آخر وحفظ أحد هذه الفصول. تم تحديث القائمة لتظهر لك الفصول المتبقية فقط.");
+        setMessage("تعذر اعتماد أحد الفصول. تم تحديث القائمة من سجل الإدارة.");
         await Promise.all([loadClassOptions(), load(true)]);
       } else {
         setMessage(typed.message || "تعذر حفظ الفصول");
@@ -159,7 +157,7 @@ export default function StudentsPage() {
   return <main className="teacher-central-roster" dir="rtl"><section className="teacher-central-card">
     <header className="teacher-central-head"><div><small>القائمة الرسمية</small><h1>طلاب {session?.subject || "المادة"} — {session?.activeGradeLabel || "المرحلة المسندة"}</h1><p>تظهر جميع فصول المرحلة المتاحة، واختر الفصول التي تدرّسها لتظهر في التحضير والدرجات وبقية صفحات المعلم.</p></div><div><button type="button" onClick={()=>void toggleManager()}>{managing?"إغلاق إدارة الفصول":"إدارة فصولي"}</button><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"جارٍ التحديث...":"تحديث القائمة"}</button><button type="button" onClick={exportExcel}>تصدير Excel</button></div></header>
     {message && <p className="teacher-central-message">{message}</p>}
-    {managing&&<section className="teacher-class-manager"><div><h2>فصول {session?.activeGradeLabel || "المرحلة الحالية"}</h2><p>حدد فصلًا واحدًا أو عدة فصول ثم احفظ. ستصبح هذه القائمة هي المرجع في التحضير والدرجات والتقارير.{hiddenForOthers ? ` يوجد ${hiddenForOthers} فصل محفوظ لمعلم آخر ومخفي عنك.` : ""}</p></div><div className="teacher-class-options">{loadingOptions?<p>جارٍ تحميل الفصول المتبقية…</p>:availableClasses.map(item=><label key={item.id} className={selectedClassIds.includes(item.id)?"selected":""}><input type="checkbox" checked={selectedClassIds.includes(item.id)} onChange={()=>toggleClass(item.id)}/><strong>{item.name}</strong><span>{selectedClassIds.includes(item.id)?"محفوظ لك أو محدد للحفظ":"متاح للحجز"}</span></label>)}{!loadingOptions&&!availableClasses.length&&<p>لا توجد فصول متاحة لهذه المرحلة؛ جميعها محفوظة لمعلمي المادة.</p>}</div><div className="teacher-class-actions"><button type="button" onClick={()=>void saveClassScope()} disabled={savingScope||loadingOptions}>{savingScope?"جارٍ الحفظ...":"حفظ فصول المرحلة"}</button><small>الحفظ مركزي ودائم حتى بعد تسجيل الخروج أو تغيير الجهاز.</small></div></section>}
+    {managing&&<section className="teacher-class-manager"><div><h2>فصول {session?.activeGradeLabel || "المرحلة الحالية"}</h2><p>حدد فصلًا واحدًا أو عدة فصول ثم احفظ. ستصبح هذه القائمة هي المرجع في التحضير والدرجات والتقارير.</p></div><div className="teacher-class-options">{loadingOptions?<p>جارٍ تحميل فصول المرحلة…</p>:availableClasses.map(item=><label key={item.id} className={selectedClassIds.includes(item.id)?"selected":""}><input type="checkbox" checked={selectedClassIds.includes(item.id)} onChange={()=>toggleClass(item.id)}/><strong>{item.name}</strong><span>{selectedClassIds.includes(item.id)?"محفوظ لك أو محدد للحفظ":"متاح للاختيار"}</span></label>)}{!loadingOptions&&!availableClasses.length&&<p>لا توجد فصول مسجلة لهذه المرحلة في بوابة الإدارة.</p>}</div><div className="teacher-class-actions"><button type="button" onClick={()=>void saveClassScope()} disabled={savingScope||loadingOptions}>{savingScope?"جارٍ الحفظ...":"حفظ فصول المرحلة"}</button><small>الحفظ مركزي ودائم حتى بعد تسجيل الخروج أو تغيير الجهاز.</small></div></section>}
     <div className="teacher-central-classes">{classes.map(item=><button type="button" key={item.id} className={selectedClass===item.id?"active":""} onClick={()=>setSelectedClass(item.id)}><strong>{item.name}</strong><span>{students.filter(student=>student.grade===item.grade&&student.section===item.section).length} طالب</span></button>)}{!classes.length&&!loading&&<p>لا توجد فصول محفوظة لك في هذه المرحلة. افتح «إدارة فصولي» واختر الفصول التي تدرّسها.</p>}</div>
     <div className="teacher-central-search"><label>بحث<input value={search} onChange={event=>setSearch(event.target.value)} placeholder="اسم الطالب أو الكود" /></label><strong>{activeClass?.name || "اختر الفصل"}</strong></div>
     <div className="teacher-central-list">{visible.map((student,index)=><article key={student.id}><b>{index+1}</b><div><strong>{student.name}</strong><small>{student.className}</small></div><code>{student.code}</code><button type="button" onClick={()=>setQrStudent(student)}>رمز الطالب</button></article>)}{!visible.length&&!loading&&<p className="teacher-central-empty">لا يوجد طلاب في هذا الفصل.</p>}</div>
