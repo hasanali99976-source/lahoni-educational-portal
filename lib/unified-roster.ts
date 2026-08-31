@@ -92,16 +92,8 @@ export function classMatchesAssignments(className: string, assignments: Assignme
   const relevant = subjectAssignments(assignments, subjectKey).filter((assignment) => !!clean(assignment.grade));
   if (!relevant.length) return false;
   const classGrade = gradeNumber(className);
-  const classSection = rosterSectionNumber("", className);
-  if (!classGrade || !classSection) return false;
-
-  return relevant.some((assignment) => {
-    if (gradeNumber(clean(assignment.grade)) !== classGrade) return false;
-    const normalizedSection = normalizeArabic(assignment.section);
-    if (!normalizedSection || ["الكل", "كل", "جميع الفصول"].includes(normalizedSection)) return true;
-    const assignedSection = rosterSectionNumber(assignment.section);
-    return Boolean(assignedSection && westernDigits(assignedSection) === westernDigits(classSection));
-  });
+  if (!classGrade) return false;
+  return relevant.some((assignment) => gradeNumber(clean(assignment.grade)) === classGrade);
 }
 
 export function assignmentClassNames(assignments: AssignmentLike[] | undefined, subjectKey: string) {

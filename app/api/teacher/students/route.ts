@@ -9,10 +9,8 @@ import {
   canonicalClassName,
   classId,
   gradeNumber,
-  normalizeArabic,
   normalizeClassRecord,
   normalizeStudentRecord,
-  sectionNumber,
   studentIdentity,
   type SchoolClass,
   type SchoolStudent,
@@ -20,7 +18,6 @@ import {
 import {
   SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
-  assignmentAllowsClassExact,
   assignmentScopeSignature,
   defaultSelectedClassIds,
   normalizeClassIds,
@@ -174,25 +171,6 @@ export async function GET(request: Request) {
     centralAllRows.forEach(student => availableMap.set(classId(student.grade, student.section), classFromStudent(student)));
     legacyRows.forEach(item => availableMap.set(classId(item.student.grade, item.student.section), classFromStudent(item.student)));
 
-    const exactAssignmentClassIds = new Set<string>();
-    relevant.forEach(assignment => {
-      const normalizedSection = normalizeArabic(assignment.section);
-      if (!normalizedSection || ["الكل", "كل", "جميع الفصول"].includes(normalizedSection)) return;
-      const assignedGrade = gradeNumber(assignment.grade);
-      const assignedSection = sectionNumber(assignment.section);
-      if (!assignedGrade || !assignedSection || (requestedGrade && assignedGrade !== requestedGrade)) return;
-      const assignedClassId = classId(assignedGrade, assignedSection);
-      exactAssignmentClassIds.add(assignedClassId);
-      if (!availableMap.has(assignedClassId)) {
-        availableMap.set(assignedClassId, {
-          id: assignedClassId,
-          grade: assignedGrade,
-          section: assignedSection,
-          name: canonicalClassName(assignedGrade, assignedSection),
-          active: true,
-        });
-      }
-    });
 
     const allStageClasses = [...availableMap.values()]
       .filter(item => /^\d+-\d+$/.test(item.id))
@@ -233,7 +211,7 @@ export async function GET(request: Request) {
         && schoolClass
         && ownerAssignments.some(assignment =>
           assignment.subjectId === subjectId
-          && assignmentAllowsClassExact(assignment, schoolClass.grade, schoolClass.section),
+          && gradeNumber(assignment.grade) === schoolClass.grade,
         ),
       );
 
@@ -242,12 +220,10 @@ export async function GET(request: Request) {
         return;
       }
 
-      if (exactAssignmentClassIds.has(row.ownedClassId)) return;
       ownerByClass.set(row.ownedClassId, row.teacherId);
     });
 
     const classIsClaimable = (id: string) => {
-      if (exactAssignmentClassIds.has(id)) return true;
       const owner = ownerByClass.get(id);
       return !owner || owner === session.userId;
     };
@@ -277,7 +253,7 @@ export async function GET(request: Request) {
       : canMigrateLegacySelection
         ? legacySelection
         : defaultSelection;
-    const selectedClassIds = [...new Set([...baseSelection, ...exactAssignmentClassIds])]
+    const selectedClassIds = [...new Set(baseSelection)]
       .filter(id => availableMap.has(id) && classIsClaimable(id));
     const selected = new Set(selectedClassIds);
     const availableClasses = scopeCustomized
@@ -321,20 +297,6 @@ export async function GET(request: Request) {
     const legacyIdentities = new Set(selectedLegacyRows.map(item => studentIdentity(item.student)));
     const now = new Date().toISOString();
 
-    exactAssignmentClassIds.forEach(selectedClassId => {
-      repairs.push({
-        path: `${SUBJECT_CLASS_OWNERS_COLLECTION}/${subjectClassOwnerId(subjectId, selectedClassId)}`,
-        data: {
-          teacherId: session.userId,
-          subjectId,
-          classId: selectedClassId,
-          grade: classGradeFromId(selectedClassId),
-          active: true,
-          assignmentOwned: true,
-          updatedAt: now,
-        },
-      });
-    });
 
     selectedLegacyRows.forEach(item => {
       const canonical = canonicalClassName(item.student.grade, item.student.section);
@@ -393,7 +355,6 @@ export async function GET(request: Request) {
 
     if (scopeCustomized) {
       selectedClassIds.forEach(selectedClassId => {
-        if (exactAssignmentClassIds.has(selectedClassId)) return;
         if (ownerByClass.get(selectedClassId)) return;
         repairs.push({
           path: `${SUBJECT_CLASS_OWNERS_COLLECTION}/${subjectClassOwnerId(subjectId, selectedClassId)}`,
@@ -479,7 +440,7 @@ export async function GET(request: Request) {
       classReadCount: centralClassSnapshot.docs.length,
       centralStudentCodes: centralByCode.size,
       deduplicatedStudentCodes: students.length,
-      exactAssignedClasses: exactAssignmentClassIds.size,
+      manualClassSelection: true,
       staleOwnersIgnored: invalidOwnerDocumentIds.size,
       preservedTeacherData: true,
     }, { headers: { "Cache-Control": "no-store" } });

@@ -29,10 +29,10 @@ export function normalizeClassIds(value: unknown) {
 }
 
 export function assignmentScopeSignature(assignments: TeacherAssignment[], subjectId: string, grade?: number | null) {
-  return assignments
+  return [...new Set(assignments
     .filter(item => item.subjectId === subjectId)
     .filter(item => !grade || gradeNumber(item.grade) === grade)
-    .map(item => `${gradeNumber(item.grade) || 0}:${sectionNumber(item.section) || normalizeArabic(item.section)}`)
+    .map(item => `${gradeNumber(item.grade) || 0}`))]
     .sort()
     .join("|");
 }

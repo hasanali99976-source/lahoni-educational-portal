@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v29-exact-class-assignment";
+const CACHE_NAME = "ostadh-lahooni-v30-manual-class-selection";
 const STATIC_FILES = [
   "/",
   "/student",
