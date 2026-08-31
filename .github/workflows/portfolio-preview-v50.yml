@@ -1,0 +1,45 @@
+name: Portfolio achievement preview v50
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/portfolio-preview-v50.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-portfolio-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Build visible achievement portfolio preview
+        run: python3 scripts/portfolio-preview-v50.py
+      - name: Verify preview and print flow
+        run: |
+          grep -q 'previewOpen' app/teacher/portfolio/page.tsx
+          grep -q 'portfolio-preview-toolbar' app/teacher/portfolio/page.tsx
+          grep -q 'print-cover-seal' app/teacher/portfolio/page.tsx
+          grep -q 'requestAnimationFrame' app/teacher/portfolio/page.tsx
+          grep -q 'portfolio-preview-open' app/teacher/portfolio/portfolio.css
+          grep -q 'ostadh-lahooni-v50-portfolio-achievement-preview' public/sw.js
+          ! grep -q 'portfolio-print-document print-only" aria-hidden="true"' app/teacher/portfolio/page.tsx
+          git diff --check
+      - run: npm ci
+      - run: npm run audit:runtime
+      - run: npm run build
+      - name: Commit verified portfolio preview
+        run: |
+          rm -f scripts/portfolio-preview-v50.py .github/workflows/portfolio-preview-v50.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'إطلاق معاينة ملف الإنجاز المرئية وإصلاح الصفحة البيضاء'
+          git push
