@@ -222,7 +222,7 @@ export default function DiagnosticResults({
 
   useEffect(() => {
     if (!classes.length) { setClassName(""); return; }
-    if (!classes.includes(className)) setClassName(classes[0]);
+    if (className !== "all" && !classes.includes(className)) setClassName("all");
   }, [classes, className]);
 
   const studentByAlias = useMemo(() => {
@@ -242,10 +242,13 @@ export default function DiagnosticResults({
     return map;
   }, [results, studentByAlias, testId]);
 
-  const rosterRows = useMemo<RosterRow[]>(() => students
-    .filter(student => classOf(student) === className)
-    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "ar"))
-    .map(student => ({ student, result: latestResultByStudent.get(student.id) })), [students, className, latestResultByStudent]);
+  const allRosterRows = useMemo<RosterRow[]>(() => students
+    .sort((a, b) => classOrder(classOf(a)) - classOrder(classOf(b)) || String(a.name || "").localeCompare(String(b.name || ""), "ar"))
+    .map(student => ({ student, result: latestResultByStudent.get(student.id) })), [students, latestResultByStudent]);
+
+  const rosterRows = useMemo<RosterRow[]>(() => className === "all"
+    ? allRosterRows
+    : allRosterRows.filter(row => classOf(row.student) === className), [allRosterRows, className]);
 
   const completedRows = useMemo(() => rosterRows.filter(row => row.result), [rosterRows]);
   const completedCount = completedRows.length;
@@ -265,10 +268,11 @@ export default function DiagnosticResults({
   }, [rosterRows, statusFilter, searchName]);
 
   const diagnosticTitle = diagnostics.find(item => item.id === testId)?.title || "الاختبار التشخيصي";
+  const selectedClassLabel = className === "all" ? "جميع الفصول" : classDisplay(className);
   const smartSummary = !rosterRows.length
     ? "اختر فصلًا يحتوي طلابًا لعرض المتابعة."
     : !completedCount
-      ? `لم يبدأ طلاب ${classDisplay(className)} هذا الاختبار حتى الآن. يمكن متابعة ${pendingCount} طالبًا وتشجيعهم على الدخول.`
+      ? `لم يبدأ طلاب ${selectedClassLabel} هذا الاختبار حتى الآن. يمكن متابعة ${pendingCount} طالبًا وتشجيعهم على الدخول.`
       : pendingCount
         ? `أكمل ${completedCount} من أصل ${rosterRows.length} طالبًا الاختبار، والمتوسط الحالي ${average}٪. ما زال ${pendingCount} طالبًا لم يؤدوا الاختبار.`
         : `أكمل جميع طلاب الفصل الاختبار، ومتوسط الفصل ${average}٪. يمكن الآن توليد الخطط الفردية واعتمادها.`;
@@ -292,7 +296,7 @@ export default function DiagnosticResults({
 
   async function generateAiPlans() {
     const rows = completedRows.filter((row): row is { student: Student; result: Result } => Boolean(row.result));
-    if (!testId || !className || !rows.length || aiLoading) return;
+    if (!testId || !className || className === "all" || !rows.length || aiLoading) return;
     setAiLoading(true);
     setMessage("جارٍ تحليل نتائج الفصل واقتراح الخطط بالذكاء الاصطناعي…");
     try {
@@ -364,29 +368,48 @@ export default function DiagnosticResults({
     URL.revokeObjectURL(url);
   }
 
-  function printClassReport() {
-    if (!className || !testId) return window.alert("اختر الفصل والاختبار أولًا.");
-    if (!visibleRows.length) return window.alert("لا توجد أسماء مطابقة للعرض الحالي.");
-    const popup = window.open("", "_blank", "width=1400,height=900");
-    if (!popup) return;
-    const rowsHtml = visibleRows.map((row, index) => {
+  function rowsForClass(key: string) {
+    return allRosterRows.filter(row => classOf(row.student) === key);
+  }
+
+  function reportPage(key: string, rows: RosterRow[], index: number) {
+    const completed = rows.filter(row => row.result);
+    const completedTotal = completed.length;
+    const pendingTotal = Math.max(0, rows.length - completedTotal);
+    const classAverage = completedTotal
+      ? Math.round(completed.reduce((sum, row) => sum + percentOf(row.result as Result), 0) / completedTotal)
+      : 0;
+    const rowsHtml = rows.map((row, rowIndex) => {
       const result = row.result;
       const status = result ? "عمل الاختبار" : "لم يعمل الاختبار";
       const plan = result ? (result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, row.student.name || "الطالب", subjectName)) : "—";
-      return `<tr class="${result ? "done" : "pending"}"><td>${index + 1}</td><td>${escapeHtml(row.student.name || row.student.id)}</td><td>${escapeHtml(status)}</td><td>${result ? `${result.score}/${result.total}` : "—"}</td><td>${result ? `${percentOf(result)}%` : "—"}</td><td>${result ? escapeHtml(resultLevel(result)) : "بانتظار الاختبار"}</td><td>${escapeHtml(result?.weakSkills?.join("، ") || "—")}</td><td>${escapeHtml(plan)}</td></tr>`;
+      return `<tr class="${result ? "done" : "pending"}"><td>${rowIndex + 1}</td><td>${escapeHtml(row.student.name || row.student.id)}</td><td>${escapeHtml(status)}</td><td>${result ? `${result.score}/${result.total}` : "—"}</td><td>${result ? `${percentOf(result)}%` : "—"}</td><td>${result ? escapeHtml(resultLevel(result)) : "بانتظار الاختبار"}</td><td>${escapeHtml(result?.weakSkills?.join("، ") || "—")}</td><td>${escapeHtml(plan)}</td></tr>`;
     }).join("");
-    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>متابعة الاختبار التشخيصي</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172b3a;margin:0}.toolbar{display:flex;justify-content:center;gap:8px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:9px 16px;font-weight:800;cursor:pointer}.page{padding:5mm}.portal{text-align:center;color:#173f61;font-weight:900;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:8px}.meta,.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #263746}.meta span,.stats span{padding:6px;border-left:1px solid #263746;font-size:11px}.stats{border-top:0}.stats span{font-weight:800}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #52677a;padding:5px;font-size:8px;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf1f6}.pending{background:#fff7e8}.done{background:#f5fff9}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:9%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:17%}th:nth-child(8){width:36%}.footer{margin-top:8px;display:flex;justify-content:space-between;border-top:1px solid #8a9aa8;padding-top:5px;font-size:9px}@media print{.toolbar{display:none}.page{padding:0}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><main class="page"><div class="portal">${PORTAL_NAME}</div><h1>متابعة أداء الاختبار التشخيصي والخطط العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(classDisplay(className))}</span><span><b>الاختبار:</b> ${escapeHtml(diagnosticTitle)}</span><span><b>عدد الطلاب:</b> ${rosterRows.length}</span></div><div class="stats"><span>عمل الاختبار: ${completedCount}</span><span>لم يعمل: ${pendingCount}</span><span>نسبة الإنجاز: ${rosterRows.length ? Math.round((completedCount / rosterRows.length) * 100) : 0}%</span><span>المتوسط: ${average}%</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الحالة</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المهارات الضعيفة</th><th>الخطة المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></main></body></html>`);
+    return `<main class="page${index ? " page-break" : ""}"><div class="portal">${PORTAL_NAME}</div><h1>متابعة أداء الاختبار التشخيصي والخطط العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(classDisplay(key))}</span><span><b>الاختبار:</b> ${escapeHtml(diagnosticTitle)}</span><span><b>عدد الطلاب:</b> ${rows.length}</span></div><div class="stats"><span>عمل الاختبار: ${completedTotal}</span><span>لم يعمل: ${pendingTotal}</span><span>نسبة الإنجاز: ${rows.length ? Math.round((completedTotal / rows.length) * 100) : 0}%</span><span>المتوسط: ${classAverage}%</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الحالة</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المهارات الضعيفة</th><th>الخطة المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></main>`;
+  }
+
+  function printClassReport() {
+    if (!className || !testId) return window.alert("اختر الفصول والاختبار أولًا.");
+    const reportClasses = className === "all" ? classes : [className];
+    const pages = reportClasses
+      .map(key => ({ key, rows: rowsForClass(key) }))
+      .filter(item => item.rows.length)
+      .map((item, index) => reportPage(item.key, item.rows, index));
+    if (!pages.length) return window.alert("لا توجد أسماء في الفصول المحددة.");
+    const popup = window.open("", "_blank", "width=1400,height=900");
+    if (!popup) return;
+    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>متابعة الاختبار التشخيصي — ${escapeHtml(className === "all" ? "جميع الفصول" : classDisplay(className))}</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172b3a;margin:0}.toolbar{position:sticky;top:0;z-index:5;display:flex;justify-content:center;gap:8px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:9px 16px;font-weight:800;cursor:pointer}.page{padding:5mm;min-height:190mm}.page-break{break-before:page;page-break-before:always}.portal{text-align:center;color:#173f61;font-weight:900;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:8px}.meta,.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #263746}.meta span,.stats span{padding:6px;border-left:1px solid #263746;font-size:11px}.stats{border-top:0}.stats span{font-weight:800}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #52677a;padding:4px;font-size:7.5px;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf1f6}.pending{background:#fff7e8}.done{background:#f5fff9}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:9%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:17%}th:nth-child(8){width:36%}.footer{margin-top:8px;display:flex;justify-content:space-between;border-top:1px solid #8a9aa8;padding-top:5px;font-size:9px}@media print{.toolbar{display:none}.page{padding:0}.page-break{break-before:page;page-break-before:always}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>${pages.join("")}</body></html>`);
     popup.document.close();
   }
 
   return <section className="diag-results" dir="rtl">
     <header className="diag-results-head">
       <div><small>متابعة الفصل كاملة</small><h2>من عمل الاختبار ومن لم يعمله؟</h2><p>اختر الفصل والاختبار، وستظهر أسماء جميع الطلاب وحالة كل طالب وخطته المقترحة.</p></div>
-      <div className="diag-head-actions"><button onClick={printClassReport} disabled={!className || !testId || !visibleRows.length}>تقرير الفصل PDF</button><button className="secondary" onClick={downloadCsv} disabled={!visibleRows.length}>تحميل Excel</button></div>
+      <div className="diag-head-actions"><button onClick={printClassReport} disabled={!className || !testId || !students.length}>{className === "all" ? "تقرير جميع الفصول PDF" : "تقرير الفصل PDF"}</button><button className="secondary" onClick={downloadCsv} disabled={!visibleRows.length}>تحميل Excel</button></div>
     </header>
 
     <div className="diag-primary-selectors">
-      <label><span>١</span><div>اختر الفصل<small>تظهر قائمة طلاب الفصل كاملة</small></div><select value={className} onChange={event => { setClassName(event.target.value); setStatusFilter("all"); setSearchName(""); }}>{classes.map(item => <option key={item} value={item}>{classDisplay(item)}</option>)}</select></label>
+      <label><span>١</span><div>اختر الفصل<small>اختر فصلًا أو جميع الفصول للتقرير الكامل</small></div><select value={className} onChange={event => { setClassName(event.target.value); setStatusFilter("all"); setSearchName(""); }}><option value="all">جميع الفصول</option>{classes.map(item => <option key={item} value={item}>{classDisplay(item)}</option>)}</select></label>
       <label><span>٢</span><div>اختر الاختبار<small>الاختبارات الحالية محفوظة كما هي</small></div><select value={testId} onChange={event => { setTestId(event.target.value); setStatusFilter("all"); }}>{diagnostics.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
     </div>
 
@@ -415,7 +438,7 @@ export default function DiagnosticResults({
     </div>
 
     <div className="diag-stats">
-      <article><strong>{rosterRows.length}</strong><span>طلاب الفصل</span></article>
+      <article><strong>{rosterRows.length}</strong><span>طلاب النطاق</span></article>
       <article className="done"><strong>{completedCount}</strong><span>عملوا الاختبار</span></article>
       <article className="pending"><strong>{pendingCount}</strong><span>لم يعملوا الاختبار</span></article>
       <article><strong>{average}٪</strong><span>متوسط من اختبروا</span></article>
@@ -424,7 +447,7 @@ export default function DiagnosticResults({
     <section className="diag-ai-summary">
       <div className="diag-ai-icon">AI</div>
       <div><small>اقتراح الذكاء الاصطناعي للفصل</small><strong>{smartSummary}</strong><p>الخطط الذكية تُحفظ كاقتراح مستقل، ولا تستبدل خطة المعلم المعتمدة.</p></div>
-      <button onClick={() => void generateAiPlans()} disabled={aiLoading || !completedCount}>{aiLoading ? "جارٍ تحليل النتائج…" : "اقتراح الخطط بالذكاء الاصطناعي"}</button>
+      <button onClick={() => void generateAiPlans()} disabled={aiLoading || !completedCount || className === "all"}>{aiLoading ? "جارٍ تحليل النتائج…" : className === "all" ? "اختر فصلًا لإنشاء الخطط" : "اقتراح الخطط بالذكاء الاصطناعي"}</button>
     </section>
 
     {message ? <p className="diag-message">{message}</p> : null}
