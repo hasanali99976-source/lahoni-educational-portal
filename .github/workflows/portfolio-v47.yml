@@ -1,0 +1,44 @@
+name: Smart portfolio v47
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/portfolio-v47.yml
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply smart portfolio redesign
+        run: node scripts/upgrade-portfolio-v47.mjs
+      - name: Verify portfolio source
+        run: |
+          grep -q "أضف الإنجاز فقط" app/teacher/portfolio/page.tsx
+          grep -q 'data-native-print="true"' app/teacher/portfolio/page.tsx
+          grep -q "portfolio-print-document" app/teacher/portfolio/page.tsx
+          grep -q "@page" app/teacher/portfolio/portfolio.css
+          grep -q "ostadh-lahooni-v47-smart-portfolio" public/sw.js
+          grep -q '"/teacher/portfolio"' public/sw.js
+          git diff --check
+      - run: npm ci
+      - run: npm run audit:runtime
+      - run: npm run build
+      - name: Commit verified redesign
+        run: |
+          rm -f scripts/upgrade-portfolio-v47.mjs scripts/.portfolio-v47-page.gz.b64 scripts/.portfolio-v47-css.gz.b64 scripts/.portfolio-v47-sw.gz.b64 .github/workflows/portfolio-v47.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/portfolio/page.tsx app/teacher/portfolio/portfolio.css public/sw.js scripts/upgrade-portfolio-v47.mjs scripts/.portfolio-v47-page.gz.b64 scripts/.portfolio-v47-css.gz.b64 scripts/.portfolio-v47-sw.gz.b64 .github/workflows/portfolio-v47.yml
+          git commit -m "إعادة بناء ملف إنجاز المعلم الذكي"
+          git push origin main
