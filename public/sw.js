@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v47-smart-portfolio";
+const CACHE_NAME = "ostadh-lahooni-v48-portfolio-print";
 const STATIC_FILES = [
   "/",
   "/student",

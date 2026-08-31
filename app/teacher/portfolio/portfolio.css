@@ -240,3 +240,72 @@
   .print-share-link{position:relative;max-width:165mm;margin-top:8mm;color:#fff3c5;font-size:8pt;word-break:break-all}
   .portfolio-print-final>footer{position:absolute;right:16mm;left:16mm;bottom:14mm;padding-top:4mm;border-top:1px solid rgba(255,255,255,.18);color:#cae4e6;font-size:8pt}
 }
+
+/* v48: keep the dedicated portfolio A4 document above legacy global print rules */
+@media print{
+  .print-header,.print-footer{display:none!important}
+  .portfolio-page .portfolio-print-document .print-page{
+    position:relative!important;
+    display:block!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    max-width:210mm!important;
+    min-height:297mm!important;
+    margin:0!important;
+    padding:15mm 16mm 14mm!important;
+    overflow:hidden!important;
+    break-after:page!important;
+    page-break-after:always!important;
+  }
+  .portfolio-page .portfolio-print-document .print-page:last-child{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
+  .portfolio-page .portfolio-print-cover,
+  .portfolio-page .portfolio-print-final{
+    position:relative!important;
+    display:flex!important;
+    color:#fff!important;
+  }
+  .portfolio-page .portfolio-print-cover h1,
+  .portfolio-page .portfolio-print-cover h2,
+  .portfolio-page .portfolio-print-cover h3,
+  .portfolio-page .portfolio-print-cover p,
+  .portfolio-page .portfolio-print-cover span,
+  .portfolio-page .portfolio-print-cover strong,
+  .portfolio-page .portfolio-print-cover small,
+  .portfolio-page .portfolio-print-cover dt,
+  .portfolio-page .portfolio-print-cover dd,
+  .portfolio-page .portfolio-print-cover footer,
+  .portfolio-page .portfolio-print-final h1,
+  .portfolio-page .portfolio-print-final h2,
+  .portfolio-page .portfolio-print-final h3,
+  .portfolio-page .portfolio-print-final p,
+  .portfolio-page .portfolio-print-final span,
+  .portfolio-page .portfolio-print-final strong,
+  .portfolio-page .portfolio-print-final small,
+  .portfolio-page .portfolio-print-final footer{
+    color:#fff!important;
+  }
+  .portfolio-page .portfolio-print-cover .print-cover-brand small,
+  .portfolio-page .portfolio-print-cover>footer,
+  .portfolio-page .portfolio-print-final>p,
+  .portfolio-page .portfolio-print-final>footer{color:#d6ecef!important}
+  .portfolio-page .portfolio-print-final>span,
+  .portfolio-page .portfolio-print-final .print-share-link{color:#ffe3a0!important}
+  .portfolio-page .print-section-header>span,
+  .portfolio-page .print-achievement-number{color:#fff!important}
+  .portfolio-page .print-section-header h2,
+  .portfolio-page .portfolio-print-achievement>header h2{color:#10364d!important}
+  .portfolio-page .print-section-header small,
+  .portfolio-page .portfolio-print-achievement>header time{color:#607b88!important}
+  .portfolio-page .print-stat-grid strong{color:#0b6174!important}
+  .portfolio-page .print-stat-grid span{color:#577482!important}
+  .portfolio-page .print-narrative h3,
+  .portfolio-page .portfolio-print-reflection article h3,
+  .portfolio-page .print-achievement-content h3{color:#0d6573!important}
+  .portfolio-page .print-achievement-content p,
+  .portfolio-page .print-narrative p,
+  .portfolio-page .portfolio-print-reflection article p{color:#142f40!important}
+  .portfolio-page .print-achievement-image{height:auto!important;max-height:105mm!important}
+}
