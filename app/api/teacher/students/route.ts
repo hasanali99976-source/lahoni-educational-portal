@@ -130,14 +130,39 @@ export async function GET(request: Request) {
       database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("subjectId", "==", subjectId).get(),
     ]);
 
-    const legacyRows = legacySnapshot.docs
+    const allLegacyRows = legacySnapshot.docs
       .map(item => ({ id: item.id, raw: item.data() as Record<string, unknown> }))
       .map(item => ({ ...item, student: normalizeLegacy(item.raw, item.id) }))
-      .filter((item): item is LegacyRow => !!item.student && grades.has(item.student.grade as Grade));
+      .filter((item): item is LegacyRow => !!item.student);
 
-    const centralAllRows = centralStudentSnapshot.docs
+    const centralRosterRows = centralStudentSnapshot.docs
       .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
-      .filter((item): item is SchoolStudent => !!item && item.active !== false && grades.has(item.grade as Grade));
+      .filter((item): item is SchoolStudent => !!item && item.active !== false);
+    const centralByCode = new Map(centralRosterRows.map(student => [student.code, student]));
+    const centralAllRows = centralRosterRows.filter(item => grades.has(item.grade as Grade));
+
+    // A moved student may still have an older teacher-subject document. Resolve every
+    // legacy row through the current central record by code before filtering the grade.
+    const legacyRows = allLegacyRows
+      .map(item => {
+        const official = centralByCode.get(item.student.code);
+        if (!official) return grades.has(item.student.grade as Grade) ? item : null;
+        if (!grades.has(official.grade as Grade)) return null;
+        return {
+          ...item,
+          student: {
+            ...item.student,
+            ...official,
+            id: official.code,
+            code: official.code,
+            grade: official.grade,
+            section: official.section,
+            className: canonicalClassName(official.grade, official.section),
+            active: true,
+          } as SchoolStudent,
+        };
+      })
+      .filter((item): item is LegacyRow => !!item);
 
     const availableMap = new Map<string, SchoolClass>();
     centralClassSnapshot.docs.forEach(item => {
@@ -262,16 +287,33 @@ export async function GET(request: Request) {
     const selectedLegacyRows = legacyRows.filter(item => selected.has(classId(item.student.grade, item.student.section)));
     const centralRows = centralAllRows.filter(item => selected.has(classId(item.grade, item.section)));
 
-    const byIdentity = new Map<string, SchoolStudent>();
-    selectedLegacyRows.forEach(item => byIdentity.set(studentIdentity(item.student), { ...item.student, active: true }));
+    const byCode = new Map<string, SchoolStudent>();
+    selectedLegacyRows.forEach(item => {
+      byCode.set(item.student.code, { ...item.student, active: true });
+    });
     centralRows.forEach(item => {
-      const identity = studentIdentity(item);
-      const previous = byIdentity.get(identity);
-      byIdentity.set(identity, { ...item, ...previous, code: previous?.code || item.code, active: true });
+      const previous = byCode.get(item.code);
+      byCode.set(item.code, {
+        ...previous,
+        ...item,
+        id: item.code,
+        code: item.code,
+        grade: item.grade,
+        section: item.section,
+        className: canonicalClassName(item.grade, item.section),
+        active: true,
+      });
     });
 
-    const students = [...byIdentity.values()]
-      .map(item => ({ ...item, className: canonicalClassName(item.grade, item.section), active: true, officialRoster: true }))
+    const students = [...byCode.values()]
+      .map(item => ({
+        ...item,
+        id: item.code,
+        code: item.code,
+        className: canonicalClassName(item.grade, item.section),
+        active: true,
+        officialRoster: true,
+      }))
       .sort((a, b) => a.className.localeCompare(b.className, "ar", { numeric: true }) || a.name.localeCompare(b.name, "ar"));
 
     const repairs: Repair[] = [];
@@ -435,6 +477,8 @@ export async function GET(request: Request) {
       repairPending: repairs.length,
       centralReadCount: centralStudentSnapshot.docs.length,
       classReadCount: centralClassSnapshot.docs.length,
+      centralStudentCodes: centralByCode.size,
+      deduplicatedStudentCodes: students.length,
       exactAssignedClasses: exactAssignmentClassIds.size,
       staleOwnersIgnored: invalidOwnerDocumentIds.size,
       preservedTeacherData: true,

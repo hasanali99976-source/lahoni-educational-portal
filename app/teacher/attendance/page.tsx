@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import { canonicalClassName, gradeNumber as rosterGradeNumber, sectionNumber as rosterSectionNumber } from "../../../lib/school-roster";
 import {
   assignmentClassNames,
   classMatchesAssignments,
@@ -138,14 +139,26 @@ function withTimeout<T>(promise: Promise<T>, milliseconds: number) {
   ]);
 }
 
+function canonicalClassFromParts(gradeValue: unknown, sectionValue: unknown, classValue: unknown) {
+  const rawClassName = clean(classValue);
+  const grade = rosterGradeNumber(gradeValue || rawClassName);
+  const section = rosterSectionNumber(sectionValue, rawClassName);
+  return grade && section
+    ? canonicalClassName(grade, section)
+    : normalizeClass(rawClassName) || rawClassName;
+}
+
 function classNamesFromPayload(value: unknown) {
   if (!Array.isArray(value)) return [] as string[];
   return value.map(item => {
     if (typeof item === "string") return normalizeClass(item) || clean(item);
     if (!item || typeof item !== "object") return "";
     const row = item as Record<string, unknown>;
-    const rawClassName = clean(row.name || row.className || row.class || row.id);
-    return normalizeClass(rawClassName) || rawClassName;
+    return canonicalClassFromParts(
+      row.grade,
+      row.section,
+      row.name || row.className || row.class || row.id,
+    );
   }).filter(Boolean);
 }
 
@@ -216,8 +229,11 @@ export default function AttendancePage() {
         if (!active) return;
         const list = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
           const code = String(student.code || student.accessCode || student.studentCode || student.id || "").trim().toUpperCase();
-          const rawClassName = clean(student.className || student.class);
-          const className = normalizeClass(rawClassName) || rawClassName;
+          const className = canonicalClassFromParts(
+            student.grade,
+            student.section,
+            student.className || student.class,
+          );
           return {
             ...student,
             id: code,
