@@ -74,8 +74,15 @@ function errorResponse(error: unknown, action: "تحميل" | "حفظ") {
   const message = error instanceof Error ? error.message : "";
   if (message === "timetable_timeout") {
     return NextResponse.json(
-      { ok: false, message: `انتهت مهلة ${action} الجدول. تحقق من الاتصال ثم أعد المحاولة.` },
+      { ok: false, message: `انتهت مهلة ${action} الجدول. تم الاحتفاظ بالتعديل على الجهاز.` },
       { status: 504 },
+    );
+  }
+  const code = error && typeof error === "object" && "code" in error ? String((error as { code?: unknown }).code || "") : "";
+  if (code === "resource-exhausted" || message.includes("RESOURCE_EXHAUSTED") || message.toLowerCase().includes("quota exceeded")) {
+    return NextResponse.json(
+      { ok: false, message: "خدمة الحفظ السحابي مزدحمة مؤقتًا. تم الاحتفاظ بالتعديل على الجهاز." },
+      { status: 429 },
     );
   }
   console.error(`timetable_${action === "حفظ" ? "save" : "load"}_failed`, error);

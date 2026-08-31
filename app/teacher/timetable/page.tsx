@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { normalizeClass } from "../../../lib/unified-roster";
@@ -9,6 +9,7 @@ import "./timetable.css";
 type Lesson = { subject: string; className: string; notes: string };
 type Schedule = Record<string, Lesson>;
 type TimetableResponse = { ok?: boolean; lessons?: unknown; message?: string };
+type PendingTimetable = { lessons: Schedule; classNames: string[]; updatedAt: string };
 
 const days = [
   { key: "sunday", label: "الأحد" },
@@ -21,7 +22,7 @@ const periods = Array.from({ length: 7 }, (_, index) => index + 1);
 const emptyLesson = (): Lesson => ({ subject: "", className: "", notes: "" });
 const ar = new Intl.NumberFormat("ar-SA-u-nu-arab");
 const keyFor = (day: string, period: number) => `${day}-${period}`;
-const REQUEST_TIMEOUT_MS = 10000;
+const REQUEST_TIMEOUT_MS = 6000;
 
 function cleanSchedule(value: unknown, subjectLabel: string) {
   if (!value || typeof value !== "object") return {} as Schedule;
@@ -67,6 +68,41 @@ async function requestTimetable(url: string, init: RequestInit = {}) {
   }
 }
 
+function readPendingTimetable(key: string): PendingTimetable | null {
+  if (!key) return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PendingTimetable>;
+    if (!parsed || !parsed.lessons || typeof parsed.lessons !== "object" || !Array.isArray(parsed.classNames)) return null;
+    return {
+      lessons: parsed.lessons as Schedule,
+      classNames: [...new Set(parsed.classNames.map(normalizeClass).filter(Boolean))],
+      updatedAt: String(parsed.updatedAt || ""),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePendingTimetable(key: string, value: PendingTimetable) {
+  if (!key) throw new Error("تعذر تحديد مساحة حفظ الجدول.");
+  window.localStorage.setItem(key, JSON.stringify(value));
+}
+
+function removePendingTimetable(key: string) {
+  if (!key) return;
+  try { window.localStorage.removeItem(key); } catch { /* لا يمنع نجاح الحفظ في الخادم */ }
+}
+
+function mergePendingTimetable(serverLessons: Schedule, pending: PendingTimetable) {
+  const ownedClasses = new Set(pending.classNames);
+  const retained = Object.fromEntries(
+    Object.entries(serverLessons).filter(([, lesson]) => !ownedClasses.has(lesson.className)),
+  ) as Schedule;
+  return { ...retained, ...pending.lessons };
+}
+
 export default function TimetablePage() {
   const session = useTeacherClient();
   const [classes, setClasses] = useState<string[]>([]);
@@ -75,8 +111,12 @@ export default function TimetablePage() {
   const [draft, setDraft] = useState<Lesson>(emptyLesson());
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const syncQueue = useRef<Promise<void>>(Promise.resolve());
+  const syncVersion = useRef(0);
   const teacherId = session?.teacherId || "";
   const subjectKey = session?.subjectKey || "history";
+  const workspaceKey = session?.workspaceKey || subjectKey;
+  const storageKey = teacherId ? `ostadh-lahooni:timetable:${teacherId}:${workspaceKey}:${session?.activeGrade || "all"}` : "";
   const subject = getSubjectConfig(subjectKey as never);
 
   useEffect(() => {
@@ -105,15 +145,22 @@ export default function TimetablePage() {
   useEffect(() => {
     if (!teacherId || !subjectKey) return;
     let mounted = true;
+    const initialPending = readPendingTimetable(storageKey);
+    if (initialPending) setSchedule(initialPending.lessons);
     requestTimetable(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectKey)}`)
       .then(data => {
-        if (mounted) setSchedule(cleanSchedule(data.lessons, subject.label));
+        if (!mounted) return;
+        const serverLessons = cleanSchedule(data.lessons, subject.label);
+        const latestPending = readPendingTimetable(storageKey);
+        setSchedule(latestPending ? mergePendingTimetable(serverLessons, latestPending) : serverLessons);
+        if (latestPending) setMessage("يوجد تعديل محفوظ على هذا الجهاز وسيُزامن تلقائيًا عند توفر الخدمة.");
       })
       .catch(error => {
-        if (mounted) setMessage(error instanceof Error ? error.message : "تعذر تحميل الجدول");
+        if (!mounted) return;
+        if (!initialPending) setMessage(error instanceof Error ? error.message : "تعذر تحميل الجدول");
       });
     return () => { mounted = false; };
-  }, [teacherId, subjectKey, subject.label]);
+  }, [teacherId, subjectKey, subject.label, storageKey]);
 
   const visibleSchedule = useMemo(() => {
     const allowed = new Set(classes);
@@ -156,16 +203,35 @@ export default function TimetablePage() {
 
     try {
       setSaving(true);
-      setMessage("جارٍ حفظ التعديلات...");
-      const data = await requestTimetable("/api/teacher/timetable", {
-        method: "PATCH",
-        body: JSON.stringify({ subjectId: subjectKey, classNames: classes, lessons: nextVisible }),
-      });
-      setSchedule(cleanSchedule(data.lessons, subject.label));
-      setMessage(success);
+      const localLessons = cleanSchedule(nextVisible, subject.label);
+      const pending: PendingTimetable = {
+        lessons: localLessons,
+        classNames: classes,
+        updatedAt: new Date().toISOString(),
+      };
+      writePendingTimetable(storageKey, pending);
+      setSchedule(current => mergePendingTimetable(current, pending));
+      setMessage(`${success}. جارٍ المزامنة في الخلفية...`);
+
+      const version = ++syncVersion.current;
+      const payload = JSON.stringify({ subjectId: subjectKey, classNames: classes, lessons: localLessons });
+      syncQueue.current = syncQueue.current
+        .catch(() => undefined)
+        .then(async () => {
+          try {
+            const data = await requestTimetable("/api/teacher/timetable", { method: "PATCH", body: payload });
+            if (version !== syncVersion.current) return;
+            removePendingTimetable(storageKey);
+            setSchedule(cleanSchedule(data.lessons, subject.label));
+            setMessage(success);
+          } catch {
+            if (version !== syncVersion.current) return;
+            setMessage("تم حفظ الجدول على هذا الجهاز. المزامنة مع الخادم متوقفة مؤقتًا بسبب ضغط الخدمة، ولن تفقد حصصك.");
+          }
+        });
       return true;
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر حفظ الجدول. لم يتم فقد الحصص السابقة.");
+    } catch {
+      setMessage("تعذر حفظ الجدول على الجهاز. أعد فتح التطبيق ثم حاول مرة أخرى.");
       return false;
     } finally {
       setSaving(false);

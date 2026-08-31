@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v42-teacher-session-isolation";
+const CACHE_NAME = "ostadh-lahooni-v43-timetable-local-save";
 const STATIC_FILES = [
   "/",
   "/student",
