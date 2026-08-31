@@ -25,7 +25,9 @@ jobs:
           cache: npm
 
       - name: Apply source fix
-        run: python3 scripts/fix-critical-thinking-class-scope-v29.py
+        run: |
+          python3 scripts/fix-critical-thinking-class-scope-v29.py
+          python3 scripts/fix-critical-thinking-class-scope-v29-ts.py
 
       - name: Verify source
         run: |
@@ -44,6 +46,7 @@ jobs:
       - name: Commit verified fix
         run: |
           rm -f scripts/fix-critical-thinking-class-scope-v29.py
+          rm -f scripts/fix-critical-thinking-class-scope-v29-ts.py
           rm -f .github/workflows/fix-critical-thinking-class-scope-v29.yml
           git config user.name "hasan taweel"
           git config user.email "hasan.ali99976@gmail.com"
