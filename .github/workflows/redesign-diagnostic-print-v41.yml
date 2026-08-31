@@ -1,0 +1,59 @@
+name: Redesign diagnostic print v41
+
+on:
+  push:
+    paths:
+      - ".github/workflows/redesign-diagnostic-print-v41.yml"
+      - "scripts/redesign-diagnostic-print-v41.py"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply print redesign
+        run: python3 scripts/redesign-diagnostic-print-v41.py
+
+      - name: Verify complete print layout
+        shell: bash
+        run: |
+          grep -q 'طباعة نسخة الطالب' app/teacher/diagnostics/page.tsx
+          grep -q 'طباعة نسخة المعلم بالإجابات' app/teacher/diagnostics/page.tsx
+          grep -q 'اسم الطالب' app/teacher/diagnostics/page.tsx
+          grep -q 'الفصل:' app/teacher/diagnostics/page.tsx
+          grep -q 'التاريخ:' app/teacher/diagnostics/page.tsx
+          grep -q 'المادة:' app/teacher/diagnostics/page.tsx
+          grep -q 'عدد الأسئلة:' app/teacher/diagnostics/page.tsx
+          grep -q 'بوابة أستاذ لحوني التعليمية' app/teacher/diagnostics/page.tsx
+          grep -q 'ostadh-lahooni-v41-complete-diagnostic-print' app/pwa-register.tsx
+          grep -q 'ostadh-lahooni-v41-complete-diagnostic-print' public/sw.js
+          git diff --check
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run audit:runtime
+          npm run build
+
+      - name: Commit and publish
+        shell: bash
+        run: |
+          rm -f .github/workflows/redesign-diagnostic-print-v41.yml
+          rm -f scripts/redesign-diagnostic-print-v41.py
+          git config user.name "ChatGPT Upgrade Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "إعادة تصميم طباعة الاختبار وضمان اكتماله"
+          git push origin main
