@@ -291,6 +291,7 @@ export default function PortfolioPage() {
   const [loadingFile, setLoadingFile] = useState(false);
   const [message, setMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const addPanelRef = useRef<HTMLElement | null>(null);
   const teacherId = session?.teacherId;
   const subjectKey = session?.subjectKey || "history";
@@ -511,7 +512,19 @@ export default function PortfolioPage() {
     await persist(form, "تم حفظ إعدادات ملف الإنجاز");
   }
 
-  function printPortfolio() {
+  function openPortfolioPreview() {
+    if (!achievements.length) {
+      setMessage("أضف إنجازًا واحدًا على الأقل، ثم افتح ملف الإنجاز.");
+      return;
+    }
+    setMessage("");
+    setPreviewOpen(true);
+    window.setTimeout(() => {
+      document.querySelector<HTMLElement>(".portfolio-preview-toolbar")?.focus();
+    }, 120);
+  }
+
+  async function printPortfolio() {
     if (!achievements.length) {
       setMessage("أضف إنجازًا واحدًا على الأقل، ثم أخرج ملف الإنجاز.");
       return;
@@ -524,55 +537,67 @@ export default function PortfolioPage() {
     };
     const previousTitle = document.title;
     const printTitle = `ملف إنجاز ${session?.teacherName || "المعلم"}`;
-    const restorePage = () => {
-      window.setTimeout(() => {
-        document.documentElement.classList.remove("portfolio-print-active");
-        document.title = previousTitle;
-      }, 1200);
+    const restoreTitle = () => {
+      document.documentElement.classList.remove("portfolio-print-active");
+      document.title = previousTitle;
     };
 
     document.title = printTitle;
     document.documentElement.classList.add("portfolio-print-active");
-    setMessage("جارٍ فتح ملف الإنجاز للطباعة أو الحفظ PDF...");
+    setMessage("جارٍ تجهيز صفحات الإنجاز وإرسالها إلى شاشة الإخراج...");
+
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
+    const images = Array.from(document.querySelectorAll<HTMLImageElement>(".portfolio-print-document img"));
+    await Promise.all(images.map((image) => {
+      if (image.complete) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        const finish = () => resolve();
+        image.addEventListener("load", finish, { once: true });
+        image.addEventListener("error", finish, { once: true });
+        window.setTimeout(finish, 1800);
+      });
+    }));
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
 
     try {
       if (nativeWindow.OstadhApp?.printPage) {
         nativeWindow.OstadhApp.printPage(printTitle);
-        setMessage("تم إرسال ملف الإنجاز إلى شاشة الطباعة.");
-        restorePage();
+        setMessage("فُتحت شاشة الإخراج. اختر الطابعة أو الحفظ بصيغة PDF.");
+        window.setTimeout(restoreTitle, 20000);
         return;
       }
 
       if (typeof nativeWindow.ostadhNativePrint === "function") {
         const opened = nativeWindow.ostadhNativePrint(printTitle);
         if (opened !== false) {
-          setMessage("تم إرسال ملف الإنجاز إلى شاشة الطباعة.");
-          restorePage();
+          setMessage("فُتحت شاشة الإخراج. اختر الطابعة أو الحفظ بصيغة PDF.");
+          window.setTimeout(restoreTitle, 20000);
           return;
         }
       }
 
+      window.addEventListener("afterprint", restoreTitle, { once: true });
       window.focus();
       window.print();
-      setMessage("تم فتح شاشة الطباعة. اختر الطابعة أو حفظ بصيغة PDF.");
+      setMessage("فُتحت شاشة الإخراج. اختر الطابعة أو الحفظ بصيغة PDF.");
+      window.setTimeout(restoreTitle, 20000);
     } catch {
       if (/OstadhLahooniAndroid/i.test(navigator.userAgent) || nativeWindow.__OSTADH_ANDROID__) {
         try {
           window.location.assign(`ostadh://print?title=${encodeURIComponent(printTitle)}`);
-          setMessage("تم إرسال أمر الطباعة إلى التطبيق.");
+          setMessage("تم إرسال ملف الإنجاز إلى التطبيق.");
         } catch {
-          setMessage("تعذر فتح الطباعة داخل التطبيق. أغلق التطبيق وافتحه ثم جرّب مرة أخرى.");
+          setMessage("تعذر فتح شاشة الإخراج داخل التطبيق. أبقِ المعاينة مفتوحة ثم أعد المحاولة.");
         }
       } else {
-        setMessage("تعذر فتح نافذة الطباعة. افتح البوابة في Chrome ثم أعد المحاولة.");
+        setMessage("تعذر فتح شاشة الإخراج. افتح البوابة في Chrome ثم أعد المحاولة.");
       }
-    } finally {
-      restorePage();
+      window.setTimeout(restoreTitle, 20000);
     }
   }
 
   return (
-    <main className="portfolio-page" dir="rtl">
+    <main className={`portfolio-page${previewOpen ? " portfolio-preview-open" : ""}`} dir="rtl">
       <section className="portfolio-hero no-print">
         <div className="portfolio-hero-copy">
           <span className="portfolio-kicker">مشروع ملف الإنجاز الذكي</span>
@@ -665,10 +690,10 @@ export default function PortfolioPage() {
           <button
             type="button"
             className="print-portfolio-button"
-            onClick={printPortfolio}
-            aria-label="إخراج ملف الإنجاز للطباعة أو الحفظ بصيغة PDF"
+            onClick={openPortfolioPreview}
+            aria-label="معاينة ملف الإنجاز قبل إخراجه"
           >
-            إخراج ملف الإنجاز PDF
+            معاينة ملف الإنجاز وإخراجه
           </button>
         </div>
       </section>
@@ -737,16 +762,32 @@ export default function PortfolioPage() {
         <button type="button" className="save-settings" onClick={saveSettings} disabled={saving}>حفظ الإعدادات</button>
       </details>
 
-      <section className="portfolio-print-document print-only" aria-hidden="true">
+      <section id="portfolio-print-preview" className="portfolio-print-document print-only" aria-hidden={!previewOpen}>
+        <div className="portfolio-preview-toolbar no-print" tabIndex={-1}>
+          <div>
+            <span>معاينة ملف الإنجاز</span>
+            <strong>{arabicNumber(achievements.length + 4)} صفحات احترافية جاهزة</strong>
+          </div>
+          <div>
+            <button type="button" className="preview-back" onClick={() => setPreviewOpen(false)}>العودة والتعديل</button>
+            <button type="button" className="preview-print" onClick={printPortfolio}>إخراج النسخة النهائية PDF</button>
+          </div>
+        </div>
         <section className="portfolio-print-cover print-page">
           <div className="print-cover-brand">
             <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني" />
             <div><span>بوابة أستاذ لحوني التعليمية</span><small>مشروع ملف الإنجاز الذكي للمعلم</small></div>
           </div>
           <div className="print-cover-center">
-            <span>ملف إنجاز مهني إلكتروني</span>
+            <div className="print-cover-seal">
+              <span>سجل مهني</span>
+              <strong>إنجاز</strong>
+              <small>{arabicNumber(achievements.length)} أثر موثق</small>
+            </div>
+            <span className="print-cover-eyebrow">إنجازات تصنع أثرًا</span>
             <h1>ملف الإنجاز المهني للمعلم</h1>
-            <p>توثيق الممارسات والمبادرات والشواهد والأثر التعليمي</p>
+            <p>قصة مهنية موثقة تجمع المبادرات والممارسات والشواهد والأثر التعليمي في مشروع واحد متكامل.</p>
+            <div className="print-cover-badges"><b>ابتكار</b><b>أثر</b><b>تطوير</b><b>توثيق</b></div>
           </div>
           <dl>
             <div><dt>اسم المعلم</dt><dd>{session?.teacherName || "—"}</dd></div>
@@ -765,6 +806,11 @@ export default function PortfolioPage() {
             <article><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجال مهني</span></article>
             <article><strong>{arabicNumber(summary.months)}</strong><span>أشهر موثقة</span></article>
           </div>
+          <div className="print-impact-banner">
+            <span>بصمة الإنجاز</span>
+            <strong>{achievements.length ? `مسار مهني يبرز قوته في ${summary.topCategory}` : "مسار مهني قيد البناء"}</strong>
+            <small>كل إنجاز موثق يتحول تلقائيًا إلى صفحة أثر داخل هذا الملف.</small>
+          </div>
           <article className="print-narrative"><h3>النبذة المهنية</h3><p>{generated.professionalSummary}</p></article>
           <article className="print-narrative"><h3>الأهداف المهنية والتعليمية</h3><p>{generated.goals}</p></article>
           <article className="print-narrative"><h3>ملخص المبادرات والإنجازات</h3><p>{generated.initiatives}</p></article>
@@ -780,6 +826,12 @@ export default function PortfolioPage() {
           <div className="print-category-map">
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => <span key={category}>{category}<b>{arabicNumber(count)}</b></span>)}
           </div>
+          <div className="print-category-bars">
+            {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => {
+              const width = Math.max(18, Math.round((count / Math.max(1, achievements.length)) * 100));
+              return <div key={category}><span>{category}</span><i><b style={{ width: `${width}%` }} /></i><strong>{arabicNumber(count)}</strong></div>;
+            })}
+          </div>
         </section>
 
         {achievements.map((item, index) => (
@@ -787,8 +839,10 @@ export default function PortfolioPage() {
             <header>
               <div className="print-achievement-number">{arabicNumber(index + 1)}</div>
               <div><span>{item.category}</span><h2>{item.title}</h2><time>{formatDate(item.date)}</time></div>
+              <div className="print-achievement-stamp"><span>أثر</span><strong>موثّق</strong></div>
             </header>
             {item.fileData.startsWith("data:image/") && <img className="print-achievement-image" src={item.fileData} alt={item.title} />}
+            <div className="print-achievement-tags">{(item.tags || []).map((tag) => <span key={tag}>{tag}</span>)}</div>
             <div className="print-achievement-content">
               <article><h3>وصف الإنجاز</h3><p>{item.description}</p></article>
               <article><h3>الهدف</h3><p>{item.objective}</p></article>
@@ -822,8 +876,8 @@ export default function PortfolioPage() {
         <section className="portfolio-print-final print-page">
           <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار البوابة" />
           <span>اعتماد ملف الإنجاز</span>
-          <h2>ملف مهني موثق ومنظم إلكترونيًا</h2>
-          <p>يضم هذا الملف الإنجازات والشواهد التي أضافها المعلم، وقد جرى تصنيفها وصياغتها وترتيبها في صورة ملف إنجاز متكامل.</p>
+          <h2>إنجازات تصنع أثرًا مستدامًا</h2>
+          <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
           <div className="print-signatures">
             <div><small>اسم المعلم</small><strong>{form.signatureName || session?.teacherName || "—"}</strong><span>التوقيع: ____________________</span></div>
             <div><small>المادة</small><strong>{subject.label}</strong><span>التاريخ: ____________________</span></div>
