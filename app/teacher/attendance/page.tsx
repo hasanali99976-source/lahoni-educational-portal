@@ -41,7 +41,6 @@ type RangeRow = {
   escapedDates: string[];
   attendanceRate: number;
 };
-type TimetableLesson = { className?: string };
 
 const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
 const STATUS_LABELS: Record<AttendanceStatus, string> = {
@@ -174,7 +173,6 @@ export default function AttendancePage() {
   const [localStudents, setLocalStudents] = useState<UnifiedStudent[]>([]);
   const [officialStudents, setOfficialStudents] = useState<UnifiedStudent[]>([]);
   const [officialClasses, setOfficialClasses] = useState<string[]>([]);
-  const [timetableClasses, setTimetableClasses] = useState<string[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
   const [reportFrom, setReportFrom] = useState(startOfCurrentWeek());
@@ -270,24 +268,6 @@ export default function AttendancePage() {
     };
   }, [ready, teacherId, subjectKey, session?.activeGrade]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const controller = new AbortController();
-    fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectKey)}`, {
-      cache: "no-store",
-      credentials: "same-origin",
-      signal: controller.signal,
-    })
-      .then(response => response.ok ? response.json() : Promise.reject(new Error("timetable_load_failed")))
-      .then(data => {
-        const lessons = data.lessons && typeof data.lessons === "object"
-          ? Object.values(data.lessons as Record<string, TimetableLesson>)
-          : [];
-        setTimetableClasses([...new Set(lessons.map(lesson => normalizeClass(lesson.className)).filter(Boolean))]);
-      })
-      .catch(() => setTimetableClasses([]));
-    return () => controller.abort();
-  }, [ready, subjectKey]);
 
   // القائمة الرسمية التي يعرضها الخادم هي المرجع نفسه المستخدم في صفحة الدرجات.
   // لا نعيد فلترتها في المتصفح حتى لا يسقط فصل صحيح بسبب صيغة تكليف قديمة.
@@ -319,12 +299,11 @@ export default function AttendancePage() {
     const officialSource = [...officialClasses, ...officialStudentClasses].filter(Boolean);
     const fallbackSource = [
       ...assignedClasses,
-      ...timetableClasses,
       ...students.map(student => normalizeClass(student.class) || clean(student.class)),
     ].filter(Boolean).filter(classAllowed);
     const source = officialSource.length ? officialSource : fallbackSource;
     return [...new Set(source)].sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
-  }, [officialClasses, officialStudentClasses, assignedClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);
+  }, [officialClasses, officialStudentClasses, assignedClasses, students, assignmentScoped, assignments, subjectKey]);
 
   const classStudents = useMemo(
     () => students.filter(student => (normalizeClass(student.class) || clean(student.class)) === selectedClass),
@@ -453,7 +432,7 @@ export default function AttendancePage() {
 
   function exportExcel() {
     const rows = reportRows();
-    if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
+    if (!selectedClass || !rows.length) return setMessage("الفصل متاح، لكن لا توجد له أسماء طلاب مسجلة بعد.");
     const details = rows.map(row => ({
       "م": row.number,
       "اسم الطالب": row.name,
@@ -470,7 +449,7 @@ export default function AttendancePage() {
 
   function printAdminReport() {
     const rows = reportRows();
-    if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
+    if (!selectedClass || !rows.length) return setMessage("الفصل متاح، لكن لا توجد له أسماء طلاب مسجلة بعد.");
     const popup = window.open("", "_blank", "width=1280,height=920");
     if (!popup) return setMessage("اسمح بالنوافذ المنبثقة لفتح التقرير");
     const logoUrl = `${window.location.origin}/icons/ostadh-lahooni-192.jpg`;
@@ -561,7 +540,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
     try {
       setReporting(true);
       const { rows, days } = await buildRangeRows();
-      if (!classStudents.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
+      if (!classStudents.length) return setMessage("الفصل متاح، لكن لا توجد له أسماء طلاب مسجلة بعد.");
       if (!days.length) return setMessage("لا توجد سجلات حضور محفوظة في الفترة المحددة");
       const details = rows.map(row => ({
         "م": row.number,
@@ -598,7 +577,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
           <span className="attendance-eyebrow">بوابة تحضير الطلاب</span>
           <h1>التحضير اليومي — {subject}</h1>
           <p>سجّل حالة كل طالب بلمسة واحدة. كل تغيير يُحفظ مباشرة على الجهاز ثم يُزامن سحابيًا عند الحفظ.</p>
-          <div className="attendance-hero-badges"><span>حفظ فوري</span><span>مرتبط بالجدول</span><span>تقارير جاهزة</span></div>
+          <div className="attendance-hero-badges"><span>حفظ فوري</span><span>مستقل عن الجدول</span><span>تقارير جاهزة</span></div>
         </div>
         <div className="hijri-card">
           <small>اليوم الدراسي</small>
@@ -645,7 +624,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
             </article>;
           })}
           {!selectedClass ? <div className="attendance-empty"><strong>ابدأ باختيار الفصل</strong><p>ستظهر قائمة الطلاب مباشرة مع حالات التحضير.</p></div> : null}
-          {selectedClass && !classStudents.length ? <div className="attendance-empty"><strong>لا توجد أسماء مسجلة لهذا الفصل</strong><p>الفصل مرتبط بالجدول أو الإسناد، لكنه لا يحتوي طلابًا حتى الآن.</p></div> : null}
+          {selectedClass && !classStudents.length ? <div className="attendance-empty"><strong>لا توجد أسماء مسجلة لهذا الفصل</strong><p>الفصل موجود ضمن الإسناد أو قائمة الطلاب، لكنه لا يحتوي طلابًا حتى الآن.</p></div> : null}
         </div>
       </section>
 
