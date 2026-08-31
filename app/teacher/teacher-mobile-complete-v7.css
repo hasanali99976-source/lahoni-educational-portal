@@ -1,19 +1,17 @@
 @media(max-width:760px){
-  .teacher-app-shell,.teacher-main,.teacher-page-content{width:100%!important;max-width:100%!important;min-width:0!important}
-  .teacher-app-shell{overflow:visible!important}
-  .teacher-main{overflow:visible!important;padding:68px 8px calc(98px + env(safe-area-inset-bottom,0px))!important}
-  .teacher-page-content{overflow:visible!important}
+  .teacher-app-shell,.teacher-main,.teacher-page-content{width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important}
+  .teacher-main{padding:68px 8px calc(98px + env(safe-area-inset-bottom,0px))!important}
   .teacher-page-content>*{max-width:100%!important;min-width:0!important}
   .teacher-page-content :is(section,article,form,header,footer,div,label,nav){min-width:0}
-  .teacher-page-content :is(input,select,textarea){width:100%!important;min-width:0!important;max-width:100%!important}
+  .teacher-page-content :is(input,select,textarea){max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
   .teacher-page-content textarea{resize:vertical}
   .teacher-page-content :is(.form-grid,.attendance-controls,.follow-filters,.report-selectors,.builder-actions,.portfolio-actions,.gradebook-actions){display:grid!important;grid-template-columns:1fr!important;align-items:stretch!important;width:100%!important}
   .teacher-page-content :is(.form-grid,.attendance-controls,.follow-filters,.report-selectors,.builder-actions,.portfolio-actions,.gradebook-actions)>*{width:100%!important;min-width:0!important}
+  .teacher-page-content :is(.form-grid,.attendance-controls,.follow-filters,.report-selectors,.builder-actions,.portfolio-actions,.gradebook-actions) label>:is(input,select,textarea){width:100%!important}
+  .teacher-page-content input[type="checkbox"],.teacher-page-content input[type="radio"]{width:auto!important;min-height:auto!important}
   .teacher-page-content :is(.table-wrap,.student-table-scroll,.follow-table-wrap,.report-table-wrap,.unit-table-scroll,.gradebook-scroll){display:block!important;width:100%!important;max-width:calc(100dvw - 16px)!important;overflow-x:auto!important;overflow-y:visible!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-inline:contain;touch-action:pan-x pan-y}
   .teacher-page-content table{max-width:none!important}
-  .teacher-page-content :is(.gradebook-table,.follow-table-wrap table){max-width:100%!important}
-  .teacher-welcome-strip{width:100%!important;max-width:100%!important;overflow:visible!important}
-  .teacher-ai-quick{max-width:100%!important}
+  .teacher-welcome-strip,.teacher-mobile-header{width:100%!important;max-width:100%!important}
   .attendance-list article{align-items:stretch!important;flex-direction:column!important}
   .student-info{width:100%!important}
   .status-buttons{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important}
@@ -24,17 +22,26 @@
   .class-grid{grid-template-columns:1fr!important}
   .class-actions{display:grid!important;grid-template-columns:1fr 1fr!important}
   .class-actions>*{width:100%!important}
+  .teacher-central-roster{padding:0!important}
+  .teacher-central-card{border-radius:16px!important}
+  .teacher-central-head{padding:15px!important}
+  .teacher-central-head>div:last-child{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+  .teacher-central-head button{width:100%!important}
+  .teacher-central-classes{grid-template-columns:1fr!important;padding:12px!important}
+  .teacher-central-search{padding:0 12px 12px!important}
+  .teacher-central-search input{width:100%!important}
+  .teacher-central-list article{grid-template-columns:38px minmax(0,1fr)!important;padding:12px!important}
+  .teacher-central-list article code,.teacher-central-list article button{grid-column:2!important;width:100%!important;max-width:100%!important}
+  .teacher-class-options{grid-template-columns:1fr!important}
+  .teacher-class-options label{grid-template-columns:24px minmax(0,1fr)!important}
+  .teacher-class-options input{width:19px!important;min-height:19px!important}
+  .teacher-sidebar{max-width:min(92dvw,340px)!important;height:100dvh!important;overflow-y:auto!important}
   .diag-modal{overflow-y:auto!important;align-items:flex-start!important;padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px))!important}
   .diag-modal>section{width:100%!important;max-width:720px!important;max-height:calc(100dvh - 16px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;overflow:auto!important;border-radius:18px!important}
-  .teacher-sidebar{max-width:min(92dvw,340px)!important;height:100dvh!important;overflow-y:auto!important}
-  .teacher-tabs{overscroll-behavior:contain}
-  .teacher-mobile-header{width:100%!important;max-width:100%!important}
 }
-@media(max-width:390px){
+@media(max-width:430px){
   .teacher-main{padding-inline:6px!important}
-  .smart-stats{grid-template-columns:1fr!important}
-  .status-buttons{grid-template-columns:1fr!important}
-  .class-actions{grid-template-columns:1fr!important}
+  .smart-stats,.status-buttons,.class-actions{grid-template-columns:1fr!important}
 }
 @media(orientation:landscape) and (max-height:520px){
   .teacher-main{padding-top:56px!important}

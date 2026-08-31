@@ -7,7 +7,7 @@ import { useTeacherClient } from "../../../lib/teacher-client";
 import "./follow-up.css";
 
 type UnitRecord = { attendance?: number; participation?: number; homework?: number; unitExam?: number; total?: number };
-type Student = { id: string; name?: string; class?: string; nationalId?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord> };
+type Student = { id: string; name?: string; class?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord> };
 type RankedStudent = Student & { total: number; missing: number };
 const unitKeys = ["unit1", "unit2", "unit3", "unit4", "unit5"];
 const counselorPhone = "966598353651";

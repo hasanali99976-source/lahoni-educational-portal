@@ -5,3 +5,18 @@
 .diag-list-tools-first{margin-top:0;border:1px solid #dce7ef;background:linear-gradient(135deg,#f8fbfd,#f1f6fa)}
 .diagnostic-roster{margin-top:-8px}
 @media(max-width:760px){.diag-list-tools-first{position:relative;z-index:1}.diagnostic-roster{margin-top:-5px}}
+
+/* v37-mobile-no-overlap */
+@media(max-width:760px){
+  .diag-results{overflow:visible!important}
+  .diag-head-actions{grid-template-columns:1fr!important}
+  .diag-head-actions button{width:100%!important}
+  .diag-primary-selectors label{grid-template-columns:38px minmax(0,1fr)!important;overflow:visible!important}
+  .diag-primary-selectors select{grid-column:1/-1!important;width:100%!important;min-width:0!important}
+  .diag-list-tools{grid-template-columns:1fr!important}
+  .diag-list-tools input,.diag-list-tools select{width:100%!important;min-width:0!important}
+  .diagnostic-roster article{grid-template-columns:1fr!important}
+  .diag-student-identity,.diag-status-cell,.diag-score-cell,.diag-skills-cell,.diag-row-actions{grid-column:1!important;width:100%!important;min-width:0!important}
+  .diag-status-cell>span{width:100%!important;text-align:center!important}
+  .diag-modal textarea{width:100%!important;box-sizing:border-box!important}
+}

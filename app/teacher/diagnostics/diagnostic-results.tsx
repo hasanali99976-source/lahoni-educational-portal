@@ -41,41 +41,72 @@ function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char] || char));
 }
 
-function classOf(student: Student) {
+function rawClassOf(student: Student) {
   return String(student.className || student.class || "").trim();
 }
 
 const CLASS_NUMBER_BY_LETTER: Record<string, string> = {
-  "أ": "١", "ا": "١", "A": "١", "a": "١",
-  "ب": "٢", "B": "٢", "b": "٢",
-  "ج": "٣", "C": "٣", "c": "٣",
-  "د": "٤", "D": "٤", "d": "٤",
-  "هـ": "٥", "ه": "٥", "E": "٥", "e": "٥",
-  "و": "٦", "F": "٦", "f": "٦",
-  "ز": "٧", "G": "٧", "g": "٧",
+  "أ": "1", "ا": "1", "A": "1", "a": "1",
+  "ب": "2", "B": "2", "b": "2",
+  "ج": "3", "C": "3", "c": "3",
+  "د": "4", "D": "4", "d": "4",
+  "هـ": "5", "ه": "5", "E": "5", "e": "5",
+  "و": "6", "F": "6", "f": "6",
+  "ز": "7", "G": "7", "g": "7",
+  "ح": "8", "H": "8", "h": "8",
+  "ط": "9", "I": "9", "i": "9",
+  "ي": "10", "J": "10", "j": "10",
 };
+
+const CLASS_NUMBER_BY_WORD: Record<string, string> = {
+  "الأول": "1", "الاول": "1", "أول": "1", "اول": "1", "الأولى": "1", "الاولى": "1",
+  "الثاني": "2", "الثانية": "2",
+  "الثالث": "3", "الثالثة": "3",
+  "الرابع": "4", "الرابعة": "4",
+  "الخامس": "5", "الخامسة": "5",
+  "السادس": "6", "السادسة": "6",
+  "السابع": "7", "السابعة": "7",
+  "الثامن": "8", "الثامنة": "8",
+  "التاسع": "9", "التاسعة": "9",
+  "العاشر": "10", "العاشرة": "10",
+};
+
+function toWesternDigits(value: string) {
+  return value.replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
 
 function toArabicDigits(value: string) {
   return value.replace(/[0-9]/g, digit => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
 }
 
-function classDisplay(value: string) {
+function classKey(value: string) {
   const raw = String(value || "").trim();
-  if (!raw) return "فصل غير محدد";
-  const cleaned = raw.replace(/^الفصل\s*/i, "").replace(/^فصل\s*/i, "").trim();
-  const compact = cleaned.replace(/[\s()]/g, "");
-  const mapped = CLASS_NUMBER_BY_LETTER[compact];
-  if (mapped) return `الفصل ${mapped}`;
-  if (/^[0-9٠-٩]+$/.test(compact)) return `الفصل ${toArabicDigits(compact)}`;
-  const trailingLetter = cleaned.match(/(?:^|[\s\-\/])([أابجدهوزA-Ga-g])$/)?.[1];
-  if (trailingLetter && CLASS_NUMBER_BY_LETTER[trailingLetter]) return `الفصل ${CLASS_NUMBER_BY_LETTER[trailingLetter]}`;
-  return raw.startsWith("فصل") || raw.startsWith("الفصل") ? toArabicDigits(raw) : `الفصل ${toArabicDigits(raw)}`;
+  if (!raw) return "";
+  const cleaned = raw.replace(/(?:الفصل|فصل)/gi, " ").replace(/\s+/g, " ").trim();
+  const compact = cleaned.replace(/[\s()_\-\/\\]/g, "");
+  if (CLASS_NUMBER_BY_LETTER[compact]) return CLASS_NUMBER_BY_LETTER[compact];
+  if (CLASS_NUMBER_BY_WORD[compact]) return CLASS_NUMBER_BY_WORD[compact];
+  const trailingLetter = cleaned.match(/([أابجدهوزحطيA-Ja-j])\s*$/)?.[1];
+  if (trailingLetter && CLASS_NUMBER_BY_LETTER[trailingLetter]) return CLASS_NUMBER_BY_LETTER[trailingLetter];
+  const trailingNumber = toWesternDigits(cleaned).match(/(\d+)\s*$/)?.[1];
+  if (trailingNumber) return String(Number(trailingNumber));
+  const word = Object.keys(CLASS_NUMBER_BY_WORD).find(item => cleaned.includes(item));
+  if (word) return CLASS_NUMBER_BY_WORD[word];
+  return "";
+}
+
+function classOf(student: Student) {
+  return classKey(rawClassOf(student));
+}
+
+function classDisplay(value: string) {
+  const key = classKey(value);
+  return /^\d+$/.test(key) ? `الفصل ${toArabicDigits(key)}` : "فصل غير محدد";
 }
 
 function classOrder(value: string) {
-  const displayed = classDisplay(value);
-  const digits = displayed.match(/[٠-٩0-9]+/)?.[0] || "999";
-  return Number(digits.replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))) || 999;
+  const key = classKey(value);
+  return /^\d+$/.test(key) ? Number(key) : 999;
 }
 
 function aliases(student: Student) {
