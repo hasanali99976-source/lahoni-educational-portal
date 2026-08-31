@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v46-diagnostic-cloud-backup";
+const CACHE_NAME = "ostadh-lahooni-v47-smart-portfolio";
 const STATIC_FILES = [
   "/",
   "/student",
@@ -7,6 +7,7 @@ const STATIC_FILES = [
   "/teacher/timetable",
   "/teacher/grades",
   "/teacher/diagnostics",
+  "/teacher/portfolio",
   "/admin",
   "/admin/students",
   "/manifest.webmanifest",
@@ -48,15 +49,17 @@ self.addEventListener("fetch", event => {
           ? "/teacher/grades"
           : url.pathname.startsWith("/teacher/diagnostics")
             ? "/teacher/diagnostics"
-            : url.pathname.startsWith("/teacher")
-              ? "/teacher"
-              : url.pathname.startsWith("/admin/students")
-                ? "/admin/students"
-                : url.pathname.startsWith("/admin")
-                  ? "/admin"
-                  : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
-                    ? "/student"
-                    : "/";
+            : url.pathname.startsWith("/teacher/portfolio")
+              ? "/teacher/portfolio"
+              : url.pathname.startsWith("/teacher")
+                ? "/teacher"
+                : url.pathname.startsWith("/admin/students")
+                  ? "/admin/students"
+                  : url.pathname.startsWith("/admin")
+                    ? "/admin"
+                    : url.pathname.startsWith("/student") || url.pathname.startsWith("/parent") || url.pathname.startsWith("/family")
+                      ? "/student"
+                      : "/";
     event.respondWith(fetch(request, { cache: "no-store" }).catch(async () =>
       (await caches.match(request))
       || (await caches.match(url.pathname))
