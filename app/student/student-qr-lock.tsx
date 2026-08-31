@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 
 const QR_SESSION_KEY = "lahooni-student-qr-lock";
+const QR_COOKIE_NAME = "lahooni_student_qr_lock";
 const QR_ENTRIES = new Set(["qr", "iphone-qr", "qr-locked"]);
 const STUDENT_CODE_PATTERN = /^TH[123]\d{3}$/;
+const QR_STYLE_ID = "lahooni-student-qr-lock-style";
 
 function normalizeStudentCode(value: string) {
   return value
@@ -14,11 +16,21 @@ function normalizeStudentCode(value: string) {
     .toUpperCase();
 }
 
+function hasQrCookie() {
+  return document.cookie
+    .split(";")
+    .map(item => item.trim())
+    .some(item => item === `${QR_COOKIE_NAME}=1`);
+}
+
 export default function StudentQrLock() {
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const queryCode = normalizeStudentCode(query.get("code") || "");
-    const enteredByQr = QR_ENTRIES.has(query.get("entry") || "") || STUDENT_CODE_PATTERN.test(queryCode);
+    const enteredByQr =
+      QR_ENTRIES.has(query.get("entry") || "")
+      || STUDENT_CODE_PATTERN.test(queryCode)
+      || hasQrCookie();
 
     try {
       if (enteredByQr) window.sessionStorage.setItem(QR_SESSION_KEY, "1");
@@ -31,6 +43,23 @@ export default function StudentQrLock() {
     if (!locked) return;
 
     document.documentElement.classList.add("student-qr-session");
+    document.body.dataset.studentEntry = "qr";
+
+    if (!document.getElementById(QR_STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = QR_STYLE_ID;
+      style.textContent = `
+        html.student-qr-session .portal-back,
+        html.student-qr-session a[href="/"],
+        html.student-qr-session a[href^="/?"],
+        body[data-student-entry="qr"] .portal-back {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
     const isBlockedPortalUrl = (href: string) => {
       try {
@@ -51,17 +80,9 @@ export default function StudentQrLock() {
       document.querySelectorAll<HTMLAnchorElement>("a[href]").forEach(link => {
         const href = link.getAttribute("href") || "";
         if (!isBlockedPortalUrl(href)) return;
-        link.hidden = true;
-        link.style.setProperty("display", "none", "important");
-        link.style.setProperty("visibility", "hidden", "important");
-        link.style.setProperty("pointer-events", "none", "important");
-        link.setAttribute("aria-hidden", "true");
-        link.setAttribute("tabindex", "-1");
+        link.remove();
       });
-      document.querySelectorAll<HTMLElement>(".portal-back").forEach(item => {
-        item.hidden = true;
-        item.style.setProperty("display", "none", "important");
-      });
+      document.querySelectorAll<HTMLElement>(".portal-back").forEach(item => item.remove());
     };
 
     const blockPortalNavigation = (event: MouseEvent) => {
@@ -79,6 +100,7 @@ export default function StudentQrLock() {
     document.addEventListener("click", blockPortalNavigation, true);
     window.addEventListener("popstate", returnToStudent);
     window.addEventListener("pageshow", returnToStudent);
+    window.setTimeout(applyLockedUi, 0);
     window.setTimeout(applyLockedUi, 50);
     window.setTimeout(applyLockedUi, 500);
 
@@ -88,6 +110,8 @@ export default function StudentQrLock() {
       window.removeEventListener("popstate", returnToStudent);
       window.removeEventListener("pageshow", returnToStudent);
       document.documentElement.classList.remove("student-qr-session");
+      delete document.body.dataset.studentEntry;
+      document.getElementById(QR_STYLE_ID)?.remove();
     };
   }, []);
 
