@@ -8,6 +8,8 @@ type AttendanceEntry = { status: AttendanceStatus; updatedAt: string };
 type TimetableLesson = { className?: unknown };
 
 const ATTENDANCE_START_DATE = "2026-08-23";
+const SCHOOL_DAY_END_HOUR = 15;
+const SCHOOL_WEEKDAYS = [0, 1, 2, 3, 4] as const;
 const DAY_INDEX: Record<string, number> = {
   sunday: 0,
   monday: 1,
@@ -25,6 +27,15 @@ function riyadhDateInput(date: Date) {
   }).formatToParts(date);
   const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
   return `${values.year}-${values.month}-${values.day}`;
+}
+
+function riyadhHour(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Riyadh",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  return Number(parts.find(part => part.type === "hour")?.value || 0);
 }
 
 function dateObject(value: string) {
@@ -74,7 +85,7 @@ export async function GET(request: Request) {
     if (!existing || updatedAt >= existing.updatedAt) explicitByDate.set(date, { status, updatedAt });
   }
 
-  const scheduledWeekdays = new Set<number>();
+  const timetableWeekdays = new Set<number>();
   const lessons = timetable.exists && timetable.data()?.lessons && typeof timetable.data()?.lessons === "object"
     ? timetable.data()!.lessons as Record<string, TimetableLesson>
     : {};
@@ -82,8 +93,15 @@ export async function GET(request: Request) {
     const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/);
     if (!match || !studentClass) return;
     if (normalizeClass(lesson?.className) !== studentClass) return;
-    scheduledWeekdays.add(DAY_INDEX[match[1]]);
+    timetableWeekdays.add(DAY_INDEX[match[1]]);
   });
+
+  const expectedWeekdays = timetableWeekdays.size
+    ? timetableWeekdays
+    : new Set<number>(SCHOOL_WEEKDAYS);
+  const attendanceSource = timetableWeekdays.size
+    ? "timetable_with_manual_overrides"
+    : "school_days_default_with_manual_overrides";
 
   const counts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0 };
   let latestDate = "";
@@ -95,21 +113,20 @@ export async function GET(request: Request) {
     if (date > latestDate) latestDate = date;
   });
 
-  if (scheduledWeekdays.size) {
-    const today = riyadhDateInput(new Date());
-    const lastCompletedDay = shiftDate(today, -1);
-    const cursor = dateObject(ATTENDANCE_START_DATE);
-    const end = dateObject(lastCompletedDay);
-    while (cursor <= end) {
-      const date = cursor.toISOString().slice(0, 10);
-      if (scheduledWeekdays.has(cursor.getUTCDay()) && !explicitByDate.has(date)) {
-        counts.present += 1;
-        counts.total += 1;
-        automaticPresent += 1;
-        if (date > latestDate) latestDate = date;
-      }
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
+  const now = new Date();
+  const today = riyadhDateInput(now);
+  const lastCompletedDay = riyadhHour(now) >= SCHOOL_DAY_END_HOUR ? today : shiftDate(today, -1);
+  const cursor = dateObject(ATTENDANCE_START_DATE);
+  const end = dateObject(lastCompletedDay);
+  while (cursor <= end) {
+    const date = cursor.toISOString().slice(0, 10);
+    if (expectedWeekdays.has(cursor.getUTCDay()) && !explicitByDate.has(date)) {
+      counts.present += 1;
+      counts.total += 1;
+      automaticPresent += 1;
+      if (date > latestDate) latestDate = date;
     }
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 
   const disciplineRate = counts.total
@@ -122,9 +139,16 @@ export async function GET(request: Request) {
       ...studentData,
       absences: counts.absent,
       late: counts.late,
-      attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate },
+      attendanceSummary: {
+        ...counts,
+        automaticPresent,
+        disciplineRate,
+        latestDate,
+        attendanceSource,
+      },
     },
-    attendanceSource: scheduledWeekdays.size ? "timetable_with_manual_overrides" : "saved_records_only",
+    attendanceSource,
+    expectedWeekdays: [...expectedWeekdays],
     updatedAt: new Date().toISOString(),
   }, { headers: { "Cache-Control": "no-store, max-age=0" } });
 }
