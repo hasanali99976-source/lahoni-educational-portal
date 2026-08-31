@@ -189,3 +189,68 @@
   .mobile-app-nav{grid-template-rows:repeat(2,53px)!important;gap:5px!important;padding:6px!important}
   .mobile-app-nav a{min-height:53px!important;max-height:53px!important}
 }
+
+
+/* v59 single-row scrollable mobile tabs */
+@media(max-width:720px){
+  body{padding-bottom:calc(82px + var(--mobile-safe-bottom, env(safe-area-inset-bottom,0px)))!important}
+  .teacher-main{padding-bottom:calc(102px + env(safe-area-inset-bottom,0px))!important}
+  .mobile-app-nav{
+    display:grid!important;
+    grid-auto-flow:column!important;
+    grid-auto-columns:72px!important;
+    grid-template-columns:none!important;
+    grid-template-rows:60px!important;
+    gap:6px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    max-width:calc(100dvw - 16px)!important;
+    padding:7px!important;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none!important;
+    overscroll-behavior-inline:contain;
+  }
+  .mobile-app-nav::-webkit-scrollbar{display:none!important}
+  .mobile-app-nav a{
+    width:72px!important;
+    min-width:72px!important;
+    max-width:72px!important;
+    min-height:60px!important;
+    max-height:60px!important;
+    display:grid!important;
+    grid-template-rows:27px 15px!important;
+    place-items:center!important;
+    align-content:center!important;
+    gap:3px!important;
+    padding:5px 4px!important;
+    overflow:hidden!important;
+    scroll-snap-align:center;
+  }
+  .mobile-app-nav .mobile-nav-icon{
+    width:26px!important;height:26px!important;
+    min-width:26px!important;max-width:26px!important;
+    min-height:26px!important;max-height:26px!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  .mobile-app-nav .mobile-nav-svg{
+    width:21px!important;height:21px!important;
+    min-width:21px!important;max-width:21px!important;
+    min-height:21px!important;max-height:21px!important;
+  }
+  .mobile-app-nav a b{
+    width:66px!important;
+    height:15px!important;
+    line-height:15px!important;
+    font-size:9px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+    text-align:center!important;
+  }
+}
+@media(max-width:390px){
+  .mobile-app-nav{grid-auto-columns:68px!important;grid-template-rows:57px!important}
+  .mobile-app-nav a{width:68px!important;min-width:68px!important;max-width:68px!important;min-height:57px!important;max-height:57px!important}
+  .mobile-app-nav a b{width:62px!important}
+}

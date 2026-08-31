@@ -60,8 +60,19 @@ function toDateInput(date: Date) {
   return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
 }
 
+function attendanceToday() {
+  return toDateInput(new Date());
+}
+
+function isFutureAttendanceDate(value: string) {
+  return Boolean(value && value > attendanceToday());
+}
+
 function clampAttendanceDate(value: string) {
-  return value && value < ATTENDANCE_START_DATE ? ATTENDANCE_START_DATE : value;
+  const today = attendanceToday();
+  if (!value) return today;
+  if (value < ATTENDANCE_START_DATE) return ATTENDANCE_START_DATE;
+  return value > today ? today : value;
 }
 
 function formatHijri(value: string) {
@@ -519,7 +530,7 @@ export default function AttendancePage() {
   }, [classStudents, records]);
 
   function persistLocal(nextRecords: Record<string, AttendanceStatus>) {
-    if (!selectedClass || !teacherId || selectedDate < ATTENDANCE_START_DATE) return;
+    if (!selectedClass || !teacherId || selectedDate < ATTENDANCE_START_DATE || isFutureAttendanceDate(selectedDate)) return;
     const payload: AttendanceDocument = {
       class: selectedClass,
       date: selectedDate,
@@ -555,6 +566,10 @@ export default function AttendancePage() {
       setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن التسجيل قبل هذا التاريخ.`);
       return;
     }
+    if (isFutureAttendanceDate(selectedDate)) {
+      setMessage("لا يفتح تحضير اليوم إلا عند الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
+      return;
+    }
     const code = studentCode(student);
     const next = { ...records, [code]: status };
     setRecords(next);
@@ -571,6 +586,7 @@ export default function AttendancePage() {
   async function saveAttendance() {
     if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");
     if (selectedDate < ATTENDANCE_START_DATE) return setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن الحفظ قبل هذا التاريخ.`);
+    if (isFutureAttendanceDate(selectedDate)) return setMessage("لا يفتح تحضير اليوم إلا عند الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
     persistLocal(records);
     setMessage("تم حفظ التحضير بنجاح");
     setSaving(true);

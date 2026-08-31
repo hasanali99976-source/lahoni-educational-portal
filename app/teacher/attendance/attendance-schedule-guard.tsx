@@ -266,7 +266,9 @@ export default function AttendanceScheduleGuard() {
   }, [teacherId, subjectKey, guardEnabled, isScheduled, localSaved, normalizedClass, selectedDate]);
 
   const selectedIsSaved = localSaved || remoteSaved;
-  const locked = guardEnabled && !isScheduled && !selectedIsSaved;
+  const today = dateInput(new Date());
+  const futureDateLocked = Boolean(selectedDate && selectedDate > today);
+  const locked = futureDateLocked || (guardEnabled && !isScheduled && !selectedIsSaved);
 
   const periodsForDate = useCallback((className: string, value: string) => {
     const canonical = normalizeClass(className);
@@ -297,6 +299,11 @@ export default function AttendanceScheduleGuard() {
 
   const setAllowedDate = useCallback((value: string, text = "") => {
     if (!value) return;
+    const today = dateInput(new Date());
+    if (value > today) {
+      setNotice("يفتح تحضير هذا اليوم عند الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
+      return;
+    }
     programmatic.current = true;
     putDateOnPage(value);
     setSelectedDate(value);
@@ -308,7 +315,11 @@ export default function AttendanceScheduleGuard() {
     const sync = () => {
       const controls = dailyControls();
       if (controls.classSelect) setSelectedClass(controls.classSelect.value);
-      if (controls.dateInput?.value) setSelectedDate(controls.dateInput.value);
+      if (controls.dateInput) {
+        controls.dateInput.max = dateInput(new Date());
+        if (controls.dateInput.value > controls.dateInput.max) putDateOnPage(controls.dateInput.max);
+        if (controls.dateInput.value) setSelectedDate(controls.dateInput.value);
+      }
     };
     sync();
     const observer = new MutationObserver(sync);
@@ -324,6 +335,11 @@ export default function AttendanceScheduleGuard() {
       }
       if (target === controls.dateInput && controls.dateInput) {
         const value = controls.dateInput.value;
+        const today = dateInput(new Date());
+        if (value > today) {
+          setAllowedDate(today, "لا يفتح تحضير اليوم قبل الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
+          return;
+        }
         setSelectedDate(value);
         if (programmatic.current) return;
         const className = controls.classSelect?.value || "";
