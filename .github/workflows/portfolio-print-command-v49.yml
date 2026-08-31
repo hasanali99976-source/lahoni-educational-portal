@@ -1,0 +1,152 @@
+name: Portfolio print command v49
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/portfolio-print-command-v49.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-print-command:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Patch portfolio print command
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          page_path = Path('app/teacher/portfolio/page.tsx')
+          page = page_path.read_text()
+
+          anchor = '''  async function saveSettings() {
+            await persist(form, "تم حفظ إعدادات ملف الإنجاز");
+          }
+'''
+          replacement = '''  async function saveSettings() {
+            await persist(form, "تم حفظ إعدادات ملف الإنجاز");
+          }
+
+          function printPortfolio() {
+            if (!achievements.length) {
+              setMessage("أضف إنجازًا واحدًا على الأقل، ثم أخرج ملف الإنجاز.");
+              return;
+            }
+
+            const nativeWindow = window as typeof window & {
+              OstadhApp?: { printPage?: (title: string) => void };
+              ostadhNativePrint?: (title?: string) => boolean;
+              __OSTADH_ANDROID__?: boolean;
+            };
+            const previousTitle = document.title;
+            const printTitle = `ملف إنجاز ${session?.teacherName || "المعلم"}`;
+            const restorePage = () => {
+              window.setTimeout(() => {
+                document.documentElement.classList.remove("portfolio-print-active");
+                document.title = previousTitle;
+              }, 1200);
+            };
+
+            document.title = printTitle;
+            document.documentElement.classList.add("portfolio-print-active");
+            setMessage("جارٍ فتح ملف الإنجاز للطباعة أو الحفظ PDF...");
+
+            try {
+              if (nativeWindow.OstadhApp?.printPage) {
+                nativeWindow.OstadhApp.printPage(printTitle);
+                setMessage("تم إرسال ملف الإنجاز إلى شاشة الطباعة.");
+                restorePage();
+                return;
+              }
+
+              if (typeof nativeWindow.ostadhNativePrint === "function") {
+                const opened = nativeWindow.ostadhNativePrint(printTitle);
+                if (opened !== false) {
+                  setMessage("تم إرسال ملف الإنجاز إلى شاشة الطباعة.");
+                  restorePage();
+                  return;
+                }
+              }
+
+              window.focus();
+              window.print();
+              setMessage("تم فتح شاشة الطباعة. اختر الطابعة أو حفظ بصيغة PDF.");
+            } catch {
+              if (/OstadhLahooniAndroid/i.test(navigator.userAgent) || nativeWindow.__OSTADH_ANDROID__) {
+                try {
+                  window.location.assign(`ostadh://print?title=${encodeURIComponent(printTitle)}`);
+                  setMessage("تم إرسال أمر الطباعة إلى التطبيق.");
+                } catch {
+                  setMessage("تعذر فتح الطباعة داخل التطبيق. أغلق التطبيق وافتحه ثم جرّب مرة أخرى.");
+                }
+              } else {
+                setMessage("تعذر فتح نافذة الطباعة. افتح البوابة في Chrome ثم أعد المحاولة.");
+              }
+            } finally {
+              restorePage();
+            }
+          }
+'''
+          if anchor not in page:
+              raise SystemExit('save settings anchor not found')
+          page = page.replace(anchor, replacement, 1)
+
+          old_button = '''          <button
+            type="button"
+            className="print-portfolio-button"
+            data-native-print="true"
+            disabled={!achievements.length}
+            onClick={() => window.print()}
+          >
+            طباعة ملف الإنجاز كاملًا
+          </button>'''
+          new_button = '''          <button
+            type="button"
+            className="print-portfolio-button"
+            onClick={printPortfolio}
+            aria-label="إخراج ملف الإنجاز للطباعة أو الحفظ بصيغة PDF"
+          >
+            إخراج ملف الإنجاز PDF
+          </button>'''
+          if old_button not in page:
+              raise SystemExit('print button anchor not found')
+          page = page.replace(old_button, new_button, 1)
+          page_path.write_text(page)
+
+          sw_path = Path('public/sw.js')
+          sw = sw_path.read_text()
+          import re
+          sw, count = re.subn(r'const CACHE_NAME = "[^"]+";', 'const CACHE_NAME = "ostadh-lahooni-v49-portfolio-print-command";', sw, count=1)
+          if count != 1:
+              raise SystemExit('service worker cache name not found')
+          sw_path.write_text(sw)
+          PY
+      - name: Verify print paths
+        run: |
+          grep -F 'function printPortfolio()' app/teacher/portfolio/page.tsx
+          grep -F 'nativeWindow.OstadhApp.printPage(printTitle)' app/teacher/portfolio/page.tsx
+          grep -F 'window.print();' app/teacher/portfolio/page.tsx
+          grep -F 'إخراج ملف الإنجاز PDF' app/teacher/portfolio/page.tsx
+          ! grep -F 'data-native-print="true"' app/teacher/portfolio/page.tsx
+          grep -F 'ostadh-lahooni-v49-portfolio-print-command' public/sw.js
+          git diff --check
+      - run: npm ci
+      - run: npm run audit:runtime
+      - run: npm run build
+      - name: Commit verified fix
+        run: |
+          rm -f .github/workflows/portfolio-print-command-v49.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/portfolio/page.tsx public/sw.js .github/workflows/portfolio-print-command-v49.yml
+          git commit -m 'إصلاح تشغيل طباعة ملف الإنجاز داخل التطبيق والمتصفح'
+          git push origin main
