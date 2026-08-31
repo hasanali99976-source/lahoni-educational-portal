@@ -1,0 +1,207 @@
+name: Fix attendance delete and start date v56
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-attendance-delete-start-v56.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Add delete command and enforce start date
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          page_path = Path('app/teacher/attendance/page.tsx')
+          page = page_path.read_text(encoding='utf-8')
+
+          def replace_once(old: str, new: str, label: str):
+              global page
+              if old not in page:
+                  raise SystemExit(f'missing pattern: {label}')
+              page = page.replace(old, new, 1)
+
+          replace_once(
+              'import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";',
+              'import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from "firebase/firestore";',
+              'firestore delete import',
+          )
+
+          replace_once(
+              'const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";\n',
+              'const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";\nconst ATTENDANCE_START_DATE = "2026-08-23";\nconst ATTENDANCE_START_LABEL = "الأحد 23/8/2026";\n',
+              'start constants',
+          )
+
+          replace_once(
+              'function toDateInput(date: Date) {\n  const offset = date.getTimezoneOffset();\n  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);\n}\n',
+              'function toDateInput(date: Date) {\n  const offset = date.getTimezoneOffset();\n  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);\n}\n\nfunction clampAttendanceDate(value: string) {\n  return value && value < ATTENDANCE_START_DATE ? ATTENDANCE_START_DATE : value;\n}\n',
+              'date clamp helper',
+          )
+
+          replace_once(
+              '  const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));\n  const [reportFrom, setReportFrom] = useState(startOfCurrentWeek());\n  const [reportTo, setReportTo] = useState(toDateInput(new Date()));\n  const [records, setRecords] = useState<Record<string, AttendanceStatus>>({});\n  const [message, setMessage] = useState("");\n  const [saving, setSaving] = useState(false);\n  const [reporting, setReporting] = useState(false);',
+              '  const [selectedDate, setSelectedDate] = useState(clampAttendanceDate(toDateInput(new Date())));\n  const [reportFrom, setReportFrom] = useState(clampAttendanceDate(startOfCurrentWeek()));\n  const [reportTo, setReportTo] = useState(clampAttendanceDate(toDateInput(new Date())));\n  const [records, setRecords] = useState<Record<string, AttendanceStatus>>({});\n  const [message, setMessage] = useState("");\n  const [saving, setSaving] = useState(false);\n  const [deleting, setDeleting] = useState(false);\n  const [hasSavedRecord, setHasSavedRecord] = useState(false);\n  const [reporting, setReporting] = useState(false);',
+              'attendance states',
+          )
+
+          replace_once(
+              '      if (!selectedClass || !attendancePath) {\n        setRecords({});\n        return;\n      }\n      const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);',
+              '      if (!selectedClass || !attendancePath) {\n        setRecords({});\n        setHasSavedRecord(false);\n        return;\n      }\n      if (selectedDate < ATTENDANCE_START_DATE) {\n        setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));\n        setHasSavedRecord(false);\n        return;\n      }\n      const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);',
+              'load preconditions',
+          )
+
+          replace_once(
+              '      if (local) {\n        if (sequence === loadSequence.current) {\n          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), local[studentCode(student)] || "present"])));\n        }\n        return;\n      }',
+              '      if (local) {\n        if (sequence === loadSequence.current) {\n          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), local[studentCode(student)] || "present"])));\n          setHasSavedRecord(true);\n        }\n        return;\n      }',
+              'local saved state',
+          )
+
+          replace_once(
+              '        const saved = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;\n        if (sequence === loadSequence.current) {\n          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));\n        }\n      } catch {\n        if (sequence === loadSequence.current) {\n          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));\n        }',
+              '        const saved = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;\n        if (sequence === loadSequence.current) {\n          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));\n          setHasSavedRecord(snapshot.exists());\n        }\n      } catch {\n        if (sequence === loadSequence.current) {\n          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));\n          setHasSavedRecord(false);\n        }',
+              'cloud saved state',
+          )
+
+          replace_once(
+              '  function persistLocal(nextRecords: Record<string, AttendanceStatus>) {\n    if (!selectedClass || !teacherId) return;',
+              '  function persistLocal(nextRecords: Record<string, AttendanceStatus>) {\n    if (!selectedClass || !teacherId || selectedDate < ATTENDANCE_START_DATE) return;',
+              'persist date guard',
+          )
+
+          replace_once(
+              '    localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));\n  }\n\n  function setStudentStatus',
+              '    localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));\n    setHasSavedRecord(true);\n  }\n\n  function clearLocalAttendance() {\n    if (!selectedClass || !teacherId) return;\n    const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);\n    localStorage.removeItem(key);\n    localStorage.removeItem(`${key}:details`);\n    localStorage.removeItem(legacyAttendanceKey(teacherId, subjectKey, selectedClass, selectedDate));\n    const index = readAttendanceIndex(teacherId, subjectKey);\n    delete index[`${safeId(selectedClass)}_${selectedDate}`];\n    localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));\n  }\n\n  function setStudentStatus',
+              'local delete helper',
+          )
+
+          replace_once(
+              '  function setStudentStatus(student: UnifiedStudent, status: AttendanceStatus) {\n    const code = studentCode(student);',
+              '  function setStudentStatus(student: UnifiedStudent, status: AttendanceStatus) {\n    if (selectedDate < ATTENDANCE_START_DATE) {\n      setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن التسجيل قبل هذا التاريخ.`);\n      return;\n    }\n    const code = studentCode(student);',
+              'status date guard',
+          )
+
+          replace_once(
+              '    setSelectedDate(toDateInput(date));\n  }\n\n  async function saveAttendance() {\n    if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");',
+              '    setSelectedDate(clampAttendanceDate(toDateInput(date)));\n  }\n\n  async function saveAttendance() {\n    if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");\n    if (selectedDate < ATTENDANCE_START_DATE) return setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن الحفظ قبل هذا التاريخ.`);',
+              'save date guard',
+          )
+
+          replace_once(
+              '    } finally {\n      setSaving(false);\n    }\n  }\n\n  function reportRows()',
+              '    } finally {\n      setSaving(false);\n    }\n  }\n\n  async function deleteAttendance() {\n    if (!selectedClass || !attendancePath) return setMessage("اختر الفصل أولًا");\n    if (selectedDate < ATTENDANCE_START_DATE) return setMessage(`لا توجد تحاضير معتمدة قبل ${ATTENDANCE_START_LABEL}.`);\n    if (!hasSavedRecord) return setMessage("لا يوجد تحضير محفوظ لهذا الفصل في التاريخ المحدد");\n    const approved = window.confirm(`هل تريد حذف تحضير ${selectedClass} بتاريخ ${selectedDate} نهائيًا؟`);\n    if (!approved) return;\n    setDeleting(true);\n    try {\n      await withTimeout(deleteDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`)), 5000);\n      clearLocalAttendance();\n      setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));\n      setHasSavedRecord(false);\n      setMessage("تم حذف التحضير من الجهاز والسحابة بنجاح");\n    } catch {\n      setMessage("تعذر حذف التحضير من السحابة؛ تحقق من الاتصال ثم أعد المحاولة حتى لا يعود السجل لاحقًا");\n    } finally {\n      setDeleting(false);\n    }\n  }\n\n  function reportRows()',
+              'delete attendance function',
+          )
+
+          replace_once(
+              '    if (!selectedClass || !attendancePath || !reportFrom || !reportTo) throw new Error("اختر الفصل والفترة");\n    if (reportFrom > reportTo) throw new Error("تاريخ البداية يجب أن يكون قبل تاريخ النهاية");',
+              '    if (!selectedClass || !attendancePath || !reportFrom || !reportTo) throw new Error("اختر الفصل والفترة");\n    if (reportFrom < ATTENDANCE_START_DATE) throw new Error(`تبدأ التقارير من ${ATTENDANCE_START_LABEL}`);\n    if (reportFrom > reportTo) throw new Error("تاريخ البداية يجب أن يكون قبل تاريخ النهاية");',
+              'range date guard',
+          )
+
+          replace_once(
+              '.filter(item => item.class === selectedClass && !!item.date && item.date! >= reportFrom && item.date! <= reportTo)',
+              '.filter(item => item.class === selectedClass && !!item.date && item.date! >= ATTENDANCE_START_DATE && item.date! >= reportFrom && item.date! <= reportTo)',
+              'exclude old records',
+          )
+
+          replace_once(
+              '<p>سجّل حالة كل طالب بلمسة واحدة. كل تغيير يُحفظ مباشرة على الجهاز ثم يُزامن سحابيًا عند الحفظ.</p>',
+              '<p>سجّل حالة كل طالب بلمسة واحدة. يبدأ احتساب التحضير رسميًا من {ATTENDANCE_START_LABEL}، وكل تغيير يُحفظ مباشرة ثم يُزامن سحابيًا.</p>',
+              'hero start date note',
+          )
+
+          replace_once(
+              '<button type="button" className="today" onClick={() => setSelectedDate(toDateInput(new Date()))}>اليوم</button>',
+              '<button type="button" className="today" onClick={() => setSelectedDate(clampAttendanceDate(toDateInput(new Date())))}>اليوم</button>',
+              'today clamp',
+          )
+
+          replace_once(
+              '<label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/></label>',
+              '<label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" min={ATTENDANCE_START_DATE} value={selectedDate} onChange={event => setSelectedDate(clampAttendanceDate(event.target.value))}/><small className="attendance-start-note">البداية المعتمدة: {ATTENDANCE_START_LABEL}</small></label>',
+              'date input minimum',
+          )
+
+          replace_once(
+              '<button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>\n          <button type="button" className="attendance-pdf"',
+              '<button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>\n          <button type="button" className="attendance-delete" onClick={() => void deleteAttendance()} disabled={!selectedClass || !hasSavedRecord || deleting || saving}>{deleting ? "جارٍ الحذف..." : "حذف التحضير"}</button>\n          <button type="button" className="attendance-pdf"',
+              'delete button',
+          )
+
+          replace_once(
+              '<label><span>من تاريخ</span><input type="date" value={reportFrom} onChange={event => setReportFrom(event.target.value)}/></label><label><span>إلى تاريخ</span><input type="date" value={reportTo} onChange={event => setReportTo(event.target.value)}/></label>',
+              '<label><span>من تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportFrom} onChange={event => setReportFrom(clampAttendanceDate(event.target.value))}/></label><label><span>إلى تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportTo} onChange={event => setReportTo(clampAttendanceDate(event.target.value))}/></label>',
+              'report inputs minimum',
+          )
+
+          page_path.write_text(page, encoding='utf-8')
+
+          css_path = Path('app/teacher/attendance/attendance.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* v56 attendance delete and official start date */'
+          if marker not in css:
+              css += '''\n\n/* v56 attendance delete and official start date */\n.attendance-command-center .attendance-delete{background:#fff0f1;color:#a12435;border:1px solid #f1c5cb!important}\n.attendance-command-center .attendance-delete:hover{background:#ffe4e7;box-shadow:0 8px 18px rgba(161,36,53,.12)}\n.attendance-command-center .attendance-start-note{display:block;margin-top:2px;color:#8a650e;font-size:.68rem;font-weight:800}\n@media(max-width:760px){.attendance-command-center .attendance-main-actions .attendance-delete{grid-column:auto}}\n'''
+          css_path.write_text(css, encoding='utf-8')
+
+          pwa_path = Path('app/pwa-register.tsx')
+          pwa = pwa_path.read_text(encoding='utf-8')
+          pwa = pwa.replace('ostadh-lahooni-v55-attendance-schedule-guard', 'ostadh-lahooni-v56-attendance-delete-start')
+          pwa = pwa.replace('/sw.js?v=55-attendance-schedule-guard', '/sw.js?v=56-attendance-delete-start')
+          pwa_path.write_text(pwa, encoding='utf-8')
+
+          sw_path = Path('public/sw.js')
+          sw = sw_path.read_text(encoding='utf-8')
+          import re
+          sw = re.sub(r'const CACHE_NAME = "[^"]+";', 'const CACHE_NAME = "ostadh-lahooni-v56-attendance-delete-start";', sw, count=1)
+          sw_path.write_text(sw, encoding='utf-8')
+          PY
+
+      - name: Verify scoped changes
+        shell: bash
+        run: |
+          grep -q 'const ATTENDANCE_START_DATE = "2026-08-23"' app/teacher/attendance/page.tsx
+          grep -q 'deleteDoc' app/teacher/attendance/page.tsx
+          grep -q 'حذف التحضير' app/teacher/attendance/page.tsx
+          grep -q 'item.date! >= ATTENDANCE_START_DATE' app/teacher/attendance/page.tsx
+          grep -q 'min={ATTENDANCE_START_DATE}' app/teacher/attendance/page.tsx
+          grep -q 'v56-attendance-delete-start' app/pwa-register.tsx
+          grep -q 'v56-attendance-delete-start' public/sw.js
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/attendance/page.tsx app/teacher/attendance/attendance.css app/pwa-register.tsx public/sw.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "إضافة حذف التحضير وتثبيت بدايته من 23 أغسطس 2026"
+            git push origin main
+          fi
