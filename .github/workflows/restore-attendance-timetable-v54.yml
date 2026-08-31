@@ -1,0 +1,106 @@
+name: Restore attendance timetable link v54
+
+on:
+  workflow_run:
+    workflows: ["Detach attendance from timetable v53"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore-and-verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Restore timetable link in attendance only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('app/teacher/attendance/page.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          if 'type TimetableLesson = { className?: string };' not in text:
+              marker = 'type RangeRow = {\n'
+              start = text.find(marker)
+              if start == -1:
+                  raise SystemExit('RangeRow was not found')
+              end = text.find('};\n', start)
+              if end == -1:
+                  raise SystemExit('RangeRow end was not found')
+              end += len('};\n')
+              text = text[:end] + 'type TimetableLesson = { className?: string };\n' + text[end:]
+
+          state_marker = '  const [officialClasses, setOfficialClasses] = useState<string[]>([]);\n'
+          if 'const [timetableClasses, setTimetableClasses]' not in text:
+              if state_marker not in text:
+                  raise SystemExit('officialClasses state was not found')
+              text = text.replace(state_marker, state_marker + '  const [timetableClasses, setTimetableClasses] = useState<string[]>([]);\n', 1)
+
+          if '/api/teacher/timetable' not in text:
+              insert_before = '  // القائمة الرسمية التي يعرضها الخادم هي المرجع نفسه المستخدم في صفحة الدرجات.\n'
+              effect = '''  useEffect(() => {\n    if (!ready) return;\n    const controller = new AbortController();\n    fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectKey)}`, {\n      cache: "no-store",\n      credentials: "same-origin",\n      signal: controller.signal,\n    })\n      .then(response => response.ok ? response.json() : Promise.reject(new Error("timetable_load_failed")))\n      .then(data => {\n        const lessons = data.lessons && typeof data.lessons === "object"\n          ? Object.values(data.lessons as Record<string, TimetableLesson>)\n          : [];\n        setTimetableClasses([...new Set(lessons.map(lesson => normalizeClass(lesson.className)).filter(Boolean))]);\n      })\n      .catch(() => setTimetableClasses([]));\n    return () => controller.abort();\n  }, [ready, subjectKey]);\n\n'''
+              if insert_before not in text:
+                  raise SystemExit('attendance insertion marker was not found')
+              text = text.replace(insert_before, effect + insert_before, 1)
+
+          fallback_marker = '    const fallbackSource = [\n      ...assignedClasses,\n'
+          if '      ...timetableClasses,\n' not in text:
+              if fallback_marker not in text:
+                  raise SystemExit('fallbackSource marker was not found')
+              text = text.replace(fallback_marker, fallback_marker + '      ...timetableClasses,\n', 1)
+
+          text = text.replace(
+              '  }, [officialClasses, officialStudentClasses, assignedClasses, students, assignmentScoped, assignments, subjectKey]);',
+              '  }, [officialClasses, officialStudentClasses, assignedClasses, timetableClasses, students, assignmentScoped, assignments, subjectKey]);',
+          )
+          text = text.replace('<span>مستقل عن الجدول</span>', '<span>مرتبط بالجدول</span>')
+          text = text.replace('الفصل موجود ضمن الإسناد أو قائمة الطلاب، لكنه لا يحتوي طلابًا حتى الآن.', 'الفصل مرتبط بالجدول أو الإسناد، لكنه لا يحتوي طلابًا حتى الآن.')
+          text = text.replace('الفصل متاح، لكن لا توجد له أسماء طلاب مسجلة بعد.', 'الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.')
+
+          required = ['/api/teacher/timetable', 'timetableClasses', 'TimetableLesson', 'مرتبط بالجدول']
+          missing = [item for item in required if item not in text]
+          if missing:
+              raise SystemExit(f'Missing restored timetable link: {missing}')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Verify timetable link
+        run: |
+          grep -n '/api/teacher/timetable' app/teacher/attendance/page.tsx
+          grep -n 'timetableClasses' app/teacher/attendance/page.tsx
+          grep -n 'مرتبط بالجدول' app/teacher/attendance/page.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit restored link
+        run: |
+          rm -f .github/workflows/restore-attendance-timetable-v54.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx .github/workflows/restore-attendance-timetable-v54.yml
+          if git diff --cached --quiet; then
+            echo 'Attendance timetable link is already present.'
+            exit 0
+          fi
+          git commit -m 'تثبيت ربط بوابة تحضير الطلاب بجدول المعلم'
+          git push
