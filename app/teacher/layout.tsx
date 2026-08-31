@@ -60,7 +60,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === "/teacher";
-  const [ready, setReady] = useState(isLoginPage);
+  const [ready, setReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [teacherId, setTeacherId] = useState<string>();
   const [teacherName, setTeacherName] = useState("المعلم");
@@ -87,24 +87,50 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     setAssignments(Array.isArray(session.assignments) ? session.assignments : []);
   }
 
+  function clearSessionState() {
+    setTeacherId(undefined);
+    setTeacherName("المعلم");
+    setSubjectKey("history");
+    setWorkspaceKey("history");
+    setActiveGrade(null);
+    setActiveGradeLabel("");
+    setSubjectName("التاريخ");
+    setSubjects([]);
+    setAssignments([]);
+    setMenuOpen(false);
+  }
+
   async function logout() {
+    setReady(false);
+    clearSessionState();
     try { await Promise.all([fetch("/api/teacher-logout", { method: "POST", cache: "no-store" }), signOut(auth)]); }
-    finally { router.replace("/teacher"); router.refresh(); }
+    finally { window.location.replace("/teacher"); }
   }
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   useEffect(() => {
-    if (isLoginPage) { setReady(true); return; }
+    if (isLoginPage) {
+      setReady(false);
+      clearSessionState();
+      return;
+    }
+    setReady(false);
+    clearSessionState();
     let active = true;
-    fetch("/api/teacher-session", { cache: "no-store" })
+    fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
       .then((session: TeacherSession) => {
         if (!active) return;
+        if (!session.teacherId) throw new Error("missing_teacher_identity");
         applySession(session);
         setReady(true);
       })
-      .catch(() => active && router.replace("/teacher"));
+      .catch(() => {
+        if (!active) return;
+        clearSessionState();
+        window.location.replace("/teacher");
+      });
     return () => { active = false; };
   }, [isLoginPage, router]);
 
@@ -154,7 +180,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     },
   };
 
-  return <TeacherClientContext.Provider value={contextValue}>
+  return <TeacherClientContext.Provider key={teacherId} value={contextValue}>
     <div className={`teacher-app-shell ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
       <button className="teacher-menu-button" type="button" aria-label="فتح أقسام بوابة المعلم" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span/><span/><span/><b>كل الأوامر</b></button>
       {menuOpen ? <button className="teacher-menu-backdrop" type="button" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/> : null}
