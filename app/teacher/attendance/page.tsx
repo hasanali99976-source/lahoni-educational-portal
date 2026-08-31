@@ -210,11 +210,16 @@ export default function AttendancePage() {
   const [reporting, setReporting] = useState(false);
   const loadSequence = useRef(0);
   const autoFillKeyRef = useRef("");
+  const cloudSyncTimerRef = useRef<number | null>(null);
 
   const attendancePath = useMemo(
     () => (teacherId ? tenantCollection(teacherId, subjectKey, "attendance") : ""),
     [teacherId, subjectKey],
   );
+
+  useEffect(() => () => {
+    if (cloudSyncTimerRef.current !== null) window.clearTimeout(cloudSyncTimerRef.current);
+  }, []);
   const assignmentScoped = useMemo(
     () => hasDetailedAssignments(assignments, subjectKey),
     [assignments, subjectKey],
@@ -549,6 +554,41 @@ export default function AttendancePage() {
     setHasSavedRecord(true);
   }
 
+  function queueCloudAttendanceSync(nextRecords: Record<string, AttendanceStatus>) {
+    const className = selectedClass;
+    const date = selectedDate;
+    const path = attendancePath;
+    if (!className || !path || date < ATTENDANCE_START_DATE || isFutureAttendanceDate(date)) return;
+    if (cloudSyncTimerRef.current !== null) window.clearTimeout(cloudSyncTimerRef.current);
+    cloudSyncTimerRef.current = window.setTimeout(async () => {
+      cloudSyncTimerRef.current = null;
+      try {
+        await withTimeout(setDoc(
+          doc(db, path, `${safeId(className)}_${date}`),
+          {
+            class: className,
+            date,
+            hijriDate: formatHijri(date),
+            records: nextRecords,
+            teacherId,
+            teacherName,
+            subjectKey,
+            subject,
+            autoSaved: false,
+            autoSavedReason: null,
+            manualEdited: true,
+            manualEditedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true },
+        ), 5000);
+        setMessage("تم تحديث حالة الطالب في بوابة الطالب");
+      } catch {
+        setMessage("تم حفظ التعديل على الجهاز، وستتم مزامنته عند الضغط على حفظ التحضير أو عودة الاتصال");
+      }
+    }, 450);
+  }
+
   function clearLocalAttendance() {
     if (!selectedClass || !teacherId) return;
     const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
@@ -574,7 +614,8 @@ export default function AttendancePage() {
     const next = { ...records, [code]: status };
     setRecords(next);
     persistLocal(next);
-    setMessage("تم الحفظ مباشرة");
+    queueCloudAttendanceSync(next);
+    setMessage("تم الحفظ مباشرة وجارٍ تحديث بوابة الطالب");
   }
 
   function moveDay(amount: number) {
@@ -588,6 +629,10 @@ export default function AttendancePage() {
     if (selectedDate < ATTENDANCE_START_DATE) return setMessage(`يبدأ التحضير من ${ATTENDANCE_START_LABEL} ولا يمكن الحفظ قبل هذا التاريخ.`);
     if (isFutureAttendanceDate(selectedDate)) return setMessage("لا يفتح تحضير اليوم إلا عند الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
     persistLocal(records);
+    if (cloudSyncTimerRef.current !== null) {
+      window.clearTimeout(cloudSyncTimerRef.current);
+      cloudSyncTimerRef.current = null;
+    }
     setMessage("تم حفظ التحضير بنجاح");
     setSaving(true);
     try {
@@ -602,6 +647,10 @@ export default function AttendancePage() {
           teacherName,
           subjectKey,
           subject,
+          autoSaved: false,
+          autoSavedReason: null,
+          manualEdited: true,
+          manualEditedAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
         { merge: true },

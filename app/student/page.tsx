@@ -102,7 +102,7 @@ export default function StudentPage() {
     let lastRefresh = 0;
 
     const refresh = async (force = false) => {
-      if (inFlight || (!force && Date.now() - lastRefresh < 60_000)) return;
+      if (inFlight || (!force && Date.now() - lastRefresh < 25_000)) return;
       inFlight = true;
       try {
         const response = await fetch("/api/student/profile", {
@@ -125,11 +125,24 @@ export default function StudentPage() {
       if (document.visibilityState === "visible") void refresh();
     };
 
+    let refreshTimer: number | null = null;
+    const scheduleRefresh = () => {
+      if (!active) return;
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(async () => {
+        refreshTimer = null;
+        if (document.visibilityState === "visible") await refresh();
+        scheduleRefresh();
+      }, 30_000);
+    };
+
     void refresh(true);
+    scheduleRefresh();
     window.addEventListener("focus", refreshWhenVisible);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
       active = false;
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };

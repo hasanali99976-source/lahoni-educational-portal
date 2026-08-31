@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v59-midnight-lock-tabs";
-const RELOAD_KEY = "ostadh-lahooni-v59-midnight-lock-tabs";
+const CURRENT_CACHE = "ostadh-lahooni-v60-all-subject-attendance";
+const RELOAD_KEY = "ostadh-lahooni-v60-all-subject-attendance";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        const registration = await navigator.serviceWorker.register("/sw.js?v=59-midnight-lock-tabs", { scope: "/", updateViaCache: "none" });
+        const registration = await navigator.serviceWorker.register("/sw.js?v=60-all-subject-attendance", { scope: "/", updateViaCache: "none" });
         await registration.update();
         if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
       } catch {
