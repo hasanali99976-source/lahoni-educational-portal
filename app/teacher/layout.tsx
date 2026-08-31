@@ -156,7 +156,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
   return <TeacherClientContext.Provider value={contextValue}>
     <div className={`teacher-app-shell ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
-      <button className="teacher-menu-button" type="button" aria-label="فتح أقسام بوابة المعلم" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span/><span/><span/><b>القائمة</b></button>
+      <button className="teacher-menu-button" type="button" aria-label="فتح أقسام بوابة المعلم" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span/><span/><span/><b>كل الأوامر</b></button>
       {menuOpen ? <button className="teacher-menu-backdrop" type="button" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/> : null}
       <aside className="teacher-sidebar">
         <div className="teacher-shell-brand"><Image className="teacher-portal-logo" src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={52} height={52} priority/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>{teacherName}</small></div><button className="teacher-menu-close" type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق القائمة">×</button></div>
@@ -170,13 +170,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">مساحة {subjectConfig.label}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</span><h2>أهلًا أستاذ {teacherName}</h2><p>أدواتك التعليمية مرتبة في قائمة واحدة واضحة.</p></div><Link className="teacher-ai-quick" href="/teacher/ai"><span>AI</span><div><b>المساعد التعليمي الذكي</b><small>تحليل النتائج والخطط العلاجية</small></div></Link></section>
         <div className="teacher-page-content">{children}</div>
       </main>
-    <nav className="teacher-mobile-command-bar" aria-label="الأوامر السريعة للمعلم">
-      {tabs.filter(tab => ["dashboard", "students", "attendance", "grades", "diagnostics"].includes(tab.key)).map(tab => {
-        const active = pathname.startsWith(tab.href);
-        return <Link key={`mobile-${tab.href}`} href={tab.href} className={active ? "active" : ""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>;
-      })}
-      <button type="button" onClick={() => setMenuOpen(true)} aria-label="عرض جميع أوامر بوابة المعلم"><i><b/><b/><b/><b/></i><span>كل الأوامر</span></button>
-    </nav>
   </div>
 </TeacherClientContext.Provider>;
 }

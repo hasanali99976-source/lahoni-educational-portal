@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v33-diagnostics-mobile";
+const CACHE_NAME = "ostadh-lahooni-v34-diagnostics-mobile-nav";
 const STATIC_FILES = [
   "/",
   "/student",

@@ -1,9 +1,8 @@
-.teacher-mobile-command-bar{display:none}
 @media(max-width:760px){
   html,body{max-width:100%;overflow-x:hidden}
-  .teacher-menu-button{display:none!important}
-  .teacher-main{padding:12px 9px calc(92px + env(safe-area-inset-bottom))!important}
+  .teacher-main{padding:68px 9px calc(92px + env(safe-area-inset-bottom))!important}
   .teacher-page-content{width:100%;max-width:100%;overflow:hidden}
+  .teacher-menu-button{display:flex!important;min-height:47px!important;padding-inline:13px!important}
   .teacher-mobile-header{margin-top:0!important}
   .teacher-welcome-strip{margin-bottom:9px!important;padding:13px!important}
   .teacher-welcome-strip p{display:none}
@@ -17,13 +16,6 @@
   .answer-option{grid-template-columns:28px minmax(0,1fr)!important}
   .diagnostic-list article{align-items:stretch!important;gap:10px!important}
   .diagnostic-list article button{width:100%!important}
-  .teacher-mobile-command-bar{position:fixed;z-index:170;right:0;left:0;bottom:0;display:grid;grid-template-columns:repeat(6,1fr);padding:6px 5px calc(6px + env(safe-area-inset-bottom));border-top:1px solid #d7e3ec;background:#fffffffa;backdrop-filter:blur(16px);box-shadow:0 -8px 28px #102a431c}
-  .teacher-mobile-command-bar a,.teacher-mobile-command-bar button{min-width:0;min-height:56px;border:0;border-radius:12px;background:transparent;color:#60798b;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px 1px;font-family:inherit;font-weight:900}
-  .teacher-mobile-command-bar a.active{background:#e9f3ff;color:var(--teacher-accent,#1677c8)}
-  .teacher-mobile-command-bar svg{width:20px;height:20px}
-  .teacher-mobile-command-bar span{font-size:9px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-  .teacher-mobile-command-bar button i{display:grid;grid-template-columns:repeat(2,5px);gap:3px;margin-bottom:3px}.teacher-mobile-command-bar button i b{width:5px;height:5px;border-radius:2px;background:currentColor}
-  .teacher-sidebar{z-index:230!important}
-  .teacher-menu-backdrop{z-index:220!important}
+  .teacher-sidebar{z-index:260!important}
+  .teacher-menu-backdrop{z-index:250!important}
 }
-@media(max-width:390px){.teacher-mobile-command-bar span{font-size:8px}.teacher-mobile-command-bar a,.teacher-mobile-command-bar button{min-height:53px}.teacher-mobile-command-bar svg{width:18px;height:18px}}
