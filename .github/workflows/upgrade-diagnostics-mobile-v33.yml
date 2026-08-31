@@ -1,0 +1,594 @@
+name: Upgrade diagnostics and mobile UX v33
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/upgrade-diagnostics-mobile-v33.yml
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build class-based diagnostic follow-up
+        run: |
+          cat > app/teacher/diagnostics/diagnostic-results.tsx <<'EOF'
+          "use client";
+
+          import { useEffect, useMemo, useState } from "react";
+          import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+          import { db } from "../../../lib/firebase";
+          import { tenantCollection } from "../../../lib/teacher-tenant";
+          import type { SubjectKey } from "../../../lib/subject-config";
+          import "./diagnostic-results.css";
+
+          type Diagnostic = { id: string; title: string };
+          type Student = {
+            id: string;
+            name?: string;
+            class?: string;
+            className?: string;
+            code?: string;
+            accessCode?: string;
+            studentCode?: string;
+            active?: boolean;
+            rosterActive?: boolean;
+          };
+          type Result = {
+            id: string;
+            diagnosticId: string;
+            studentId: string;
+            score: number;
+            total: number;
+            percentage: number;
+            plan?: string;
+            aiPlan?: string;
+            teacherPlan?: string;
+            weakSkills?: string[];
+            submittedAt?: string;
+          };
+          type StatusFilter = "all" | "completed" | "pending";
+          type RosterRow = { student: Student; result?: Result };
+
+          const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
+
+          function escapeHtml(value: string) {
+            return value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char] || char));
+          }
+
+          function classOf(student: Student) {
+            return String(student.className || student.class || "").trim();
+          }
+
+          function aliases(student: Student) {
+            return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(value => String(value || "").trim()).filter(Boolean))];
+          }
+
+          function percentOf(result: Result) {
+            const value = Number(result.percentage);
+            if (Number.isFinite(value)) return Math.max(0, Math.min(100, Math.round(value)));
+            const total = Number(result.total) || 0;
+            return total ? Math.round((Number(result.score || 0) / total) * 100) : 0;
+          }
+
+          function resultLevel(result: Result) {
+            const percentage = percentOf(result);
+            if (percentage >= 80) return "متقن";
+            if (percentage >= 50) return "يحتاج تحسين";
+            return "يحتاج خطة علاجية";
+          }
+
+          function fallbackPlan(result: Result, studentName: string, subjectName: string) {
+            const skills = result.weakSkills?.length ? result.weakSkills.join("، ") : "المهارات الأساسية";
+            const percentage = percentOf(result);
+            if (percentage >= 80) return `خطة إثرائية للطالب ${studentName}: نشاط إثرائي في ${subjectName}، وتكليف تطبيقي قصير، ثم مشاركة الخبرة مع زملائه.`;
+            if (percentage >= 50) return `خطة تحسين للطالب ${studentName}: مراجعة ${skills}، حل تدريبات متدرجة، وتصحيح الأخطاء، ثم قياس قصير للتأكد من التحسن.`;
+            return `خطة علاجية للطالب ${studentName}: شرح مبسط لمهارات ${skills}، تدريب موجه مع المعلم، واجب علاجي، ثم إعادة قياس قصيرة.`;
+          }
+
+          function dateValue(value?: string) {
+            const parsed = Date.parse(String(value || ""));
+            return Number.isFinite(parsed) ? parsed : 0;
+          }
+
+          function formatDate(value?: string) {
+            if (!value) return "—";
+            try { return new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
+            catch { return "—"; }
+          }
+
+          function csvCell(value: unknown) {
+            return `"${String(value ?? "").replace(/"/g, '""')}"`;
+          }
+
+          export default function DiagnosticResults({
+            teacherId,
+            subjectKey,
+            subjectName,
+            diagnostics,
+            diagnosticsLoaded,
+          }: {
+            teacherId: string;
+            subjectKey: SubjectKey;
+            subjectName: string;
+            diagnostics: Diagnostic[];
+            diagnosticsLoaded: boolean;
+          }) {
+            const [results, setResults] = useState<Result[]>([]);
+            const [students, setStudents] = useState<Student[]>([]);
+            const [testId, setTestId] = useState("");
+            const [className, setClassName] = useState("");
+            const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+            const [searchName, setSearchName] = useState("");
+            const [editing, setEditing] = useState<Result | null>(null);
+            const [planText, setPlanText] = useState("");
+            const [aiLoading, setAiLoading] = useState(false);
+            const [message, setMessage] = useState("");
+            const resultsPath = tenantCollection(teacherId, subjectKey, "diagnosticResults");
+            const studentsPath = tenantCollection(teacherId, subjectKey, "students");
+
+            useEffect(() => {
+              const stopResults = onSnapshot(collection(db, resultsPath), snapshot => {
+                setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
+              });
+              const stopStudents = onSnapshot(collection(db, studentsPath), snapshot => {
+                setStudents(snapshot.docs
+                  .map(item => ({ id: item.id, ...(item.data() as Omit<Student, "id">) }))
+                  .filter(student => student.active !== false && student.rosterActive !== false));
+              });
+              return () => { stopResults(); stopStudents(); };
+            }, [resultsPath, studentsPath]);
+
+            const classes = useMemo(() => [...new Set(students.map(classOf).filter(Boolean))]
+              .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+
+            useEffect(() => {
+              if (diagnostics.length && !diagnostics.some(item => item.id === testId)) setTestId(diagnostics[0].id);
+            }, [diagnostics, testId]);
+
+            useEffect(() => {
+              if (classes.length && !classes.includes(className)) setClassName(classes[0]);
+            }, [classes, className]);
+
+            const studentByAlias = useMemo(() => {
+              const map = new Map<string, Student>();
+              students.forEach(student => aliases(student).forEach(alias => map.set(alias, student)));
+              return map;
+            }, [students]);
+
+            const latestResultByStudent = useMemo(() => {
+              const map = new Map<string, Result>();
+              results.filter(result => result.diagnosticId === testId).forEach(result => {
+                const student = studentByAlias.get(String(result.studentId || "").trim());
+                if (!student) return;
+                const current = map.get(student.id);
+                if (!current || dateValue(result.submittedAt) >= dateValue(current.submittedAt)) map.set(student.id, result);
+              });
+              return map;
+            }, [results, studentByAlias, testId]);
+
+            const rosterRows = useMemo<RosterRow[]>(() => students
+              .filter(student => classOf(student) === className)
+              .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "ar"))
+              .map(student => ({ student, result: latestResultByStudent.get(student.id) })), [students, className, latestResultByStudent]);
+
+            const completedRows = useMemo(() => rosterRows.filter(row => row.result), [rosterRows]);
+            const completedCount = completedRows.length;
+            const pendingCount = Math.max(0, rosterRows.length - completedCount);
+            const average = completedCount
+              ? Math.round(completedRows.reduce((sum, row) => sum + percentOf(row.result as Result), 0) / completedCount)
+              : 0;
+
+            const visibleRows = useMemo(() => {
+              const search = searchName.trim().toLocaleLowerCase("ar");
+              return rosterRows.filter(row => {
+                const completed = Boolean(row.result);
+                const statusMatches = statusFilter === "all" || (statusFilter === "completed" ? completed : !completed);
+                const nameMatches = !search || String(row.student.name || "").toLocaleLowerCase("ar").includes(search);
+                return statusMatches && nameMatches;
+              });
+            }, [rosterRows, statusFilter, searchName]);
+
+            const diagnosticTitle = diagnostics.find(item => item.id === testId)?.title || "الاختبار التشخيصي";
+            const smartSummary = !rosterRows.length
+              ? "اختر فصلًا يحتوي طلابًا لعرض المتابعة."
+              : !completedCount
+                ? `لم يبدأ طلاب ${className} هذا الاختبار حتى الآن. يمكن متابعة ${pendingCount} طالبًا وتشجيعهم على الدخول.`
+                : pendingCount
+                  ? `أكمل ${completedCount} من أصل ${rosterRows.length} طالبًا الاختبار، والمتوسط الحالي ${average}٪. ما زال ${pendingCount} طالبًا لم يؤدوا الاختبار.`
+                  : `أكمل جميع طلاب الفصل الاختبار، ومتوسط الفصل ${average}٪. يمكن الآن توليد الخطط الفردية واعتمادها.`;
+
+            function openPlan(result: Result) {
+              const student = studentByAlias.get(String(result.studentId || "").trim());
+              setEditing(result);
+              setPlanText(result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, student?.name || "الطالب", subjectName));
+            }
+
+            async function savePlan() {
+              if (!editing || !planText.trim()) return;
+              await updateDoc(doc(db, resultsPath, editing.id), {
+                teacherPlan: planText.trim(),
+                updatedAt: new Date().toISOString(),
+              });
+              setMessage("تم اعتماد خطة الطالب وحفظها.");
+              setEditing(null);
+              setPlanText("");
+            }
+
+            async function generateAiPlans() {
+              const rows = completedRows.filter((row): row is { student: Student; result: Result } => Boolean(row.result));
+              if (!testId || !className || !rows.length || aiLoading) return;
+              setAiLoading(true);
+              setMessage("جارٍ تحليل نتائج الفصل واقتراح الخطط بالذكاء الاصطناعي…");
+              try {
+                const response = await fetch("/api/teacher/diagnostics/remedial-plans", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    subjectId: subjectKey,
+                    subjectName,
+                    diagnosticId: testId,
+                    diagnosticTitle,
+                    className,
+                    students: rows.map(({ student, result }) => ({
+                      resultId: result.id,
+                      studentName: student.name || "الطالب",
+                      percentage: percentOf(result),
+                      score: Number(result.score || 0),
+                      total: Number(result.total || 0),
+                      weakSkills: result.weakSkills || [],
+                    })),
+                  }),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "تعذر إنشاء الخطط الذكية.");
+                const plans = Array.isArray(data.plans) ? data.plans : [];
+                await Promise.all(plans.map((item: { resultId?: string; plan?: string }) => {
+                  const resultId = String(item.resultId || "");
+                  const plan = String(item.plan || "").trim();
+                  if (!resultId || !plan) return Promise.resolve();
+                  return updateDoc(doc(db, resultsPath, resultId), {
+                    aiPlan: plan,
+                    aiPlanUpdatedAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  });
+                }));
+                setMessage(`تم إنشاء ${plans.length} خطة ذكية لطلاب الفصل دون تغيير الخطط المعتمدة سابقًا.`);
+              } catch (error) {
+                setMessage(error instanceof Error ? error.message : "تعذر إنشاء الخطط الذكية الآن.");
+              } finally {
+                setAiLoading(false);
+              }
+            }
+
+            function downloadCsv() {
+              if (!visibleRows.length) return;
+              const rows = [
+                ["الطالب", "الفصل", "الاختبار", "الحالة", "الدرجة", "النسبة", "المهارات الضعيفة", "الخطة المقترحة", "وقت التسليم"],
+                ...visibleRows.map(row => {
+                  const result = row.result;
+                  return [
+                    row.student.name || row.student.id,
+                    classOf(row.student),
+                    diagnosticTitle,
+                    result ? "عمل الاختبار" : "لم يعمل الاختبار",
+                    result ? `${result.score}/${result.total}` : "—",
+                    result ? `${percentOf(result)}%` : "—",
+                    result?.weakSkills?.join(" - ") || "",
+                    result ? (result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, row.student.name || "الطالب", subjectName)) : "",
+                    result ? formatDate(result.submittedAt) : "",
+                  ];
+                }),
+              ];
+              const csv = "\uFEFF" + rows.map(row => row.map(csvCell).join(",")).join("\n");
+              const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+              const anchor = document.createElement("a");
+              anchor.href = url;
+              anchor.download = `متابعة-${diagnosticTitle}-${className}.csv`;
+              anchor.click();
+              URL.revokeObjectURL(url);
+            }
+
+            function printClassReport() {
+              if (!className || !testId) return window.alert("اختر الفصل والاختبار أولًا.");
+              if (!visibleRows.length) return window.alert("لا توجد أسماء مطابقة للعرض الحالي.");
+              const popup = window.open("", "_blank", "width=1400,height=900");
+              if (!popup) return;
+              const rowsHtml = visibleRows.map((row, index) => {
+                const result = row.result;
+                const status = result ? "عمل الاختبار" : "لم يعمل الاختبار";
+                const plan = result ? (result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, row.student.name || "الطالب", subjectName)) : "—";
+                return `<tr class="${result ? "done" : "pending"}"><td>${index + 1}</td><td>${escapeHtml(row.student.name || row.student.id)}</td><td>${escapeHtml(status)}</td><td>${result ? `${result.score}/${result.total}` : "—"}</td><td>${result ? `${percentOf(result)}%` : "—"}</td><td>${result ? escapeHtml(resultLevel(result)) : "بانتظار الاختبار"}</td><td>${escapeHtml(result?.weakSkills?.join("، ") || "—")}</td><td>${escapeHtml(plan)}</td></tr>`;
+              }).join("");
+              popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>متابعة الاختبار التشخيصي</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172b3a;margin:0}.toolbar{display:flex;justify-content:center;gap:8px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:9px 16px;font-weight:800;cursor:pointer}.page{padding:5mm}.portal{text-align:center;color:#173f61;font-weight:900;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:8px}.meta,.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #263746}.meta span,.stats span{padding:6px;border-left:1px solid #263746;font-size:11px}.stats{border-top:0}.stats span{font-weight:800}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #52677a;padding:5px;font-size:8px;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf1f6}.pending{background:#fff7e8}.done{background:#f5fff9}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:9%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:17%}th:nth-child(8){width:36%}.footer{margin-top:8px;display:flex;justify-content:space-between;border-top:1px solid #8a9aa8;padding-top:5px;font-size:9px}@media print{.toolbar{display:none}.page{padding:0}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div><main class="page"><div class="portal">${PORTAL_NAME}</div><h1>متابعة أداء الاختبار التشخيصي والخطط العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(className)}</span><span><b>الاختبار:</b> ${escapeHtml(diagnosticTitle)}</span><span><b>عدد الطلاب:</b> ${rosterRows.length}</span></div><div class="stats"><span>عمل الاختبار: ${completedCount}</span><span>لم يعمل: ${pendingCount}</span><span>نسبة الإنجاز: ${rosterRows.length ? Math.round((completedCount / rosterRows.length) * 100) : 0}%</span><span>المتوسط: ${average}%</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الحالة</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المهارات الضعيفة</th><th>الخطة المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></main></body></html>`);
+              popup.document.close();
+            }
+
+            return <section className="diag-results" dir="rtl">
+              <header className="diag-results-head">
+                <div><small>متابعة الفصل كاملة</small><h2>من عمل الاختبار ومن لم يعمله؟</h2><p>اختر الفصل والاختبار، وستظهر أسماء جميع الطلاب وحالة كل طالب وخطته المقترحة.</p></div>
+                <div className="diag-head-actions"><button onClick={printClassReport} disabled={!className || !testId || !visibleRows.length}>تقرير الفصل PDF</button><button className="secondary" onClick={downloadCsv} disabled={!visibleRows.length}>تحميل Excel</button></div>
+              </header>
+
+              <div className="diag-primary-selectors">
+                <label><span>١</span><div>اختر الفصل<small>تظهر قائمة طلاب الفصل كاملة</small></div><select value={className} onChange={event => { setClassName(event.target.value); setStatusFilter("all"); setSearchName(""); }}>{classes.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
+                <label><span>٢</span><div>اختر الاختبار<small>الاختبارات الحالية محفوظة كما هي</small></div><select value={testId} onChange={event => { setTestId(event.target.value); setStatusFilter("all"); }}>{diagnostics.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
+              </div>
+
+              {!diagnosticsLoaded ? <p className="diag-empty">جارٍ تحميل الاختبارات الحالية…</p> : !diagnostics.length ? <p className="diag-empty">لا توجد اختبارات تشخيصية منشأة حتى الآن.</p> : null}
+
+              <div className="diag-stats">
+                <article><strong>{rosterRows.length}</strong><span>طلاب الفصل</span></article>
+                <article className="done"><strong>{completedCount}</strong><span>عملوا الاختبار</span></article>
+                <article className="pending"><strong>{pendingCount}</strong><span>لم يعملوا الاختبار</span></article>
+                <article><strong>{average}٪</strong><span>متوسط من اختبروا</span></article>
+              </div>
+
+              <section className="diag-ai-summary">
+                <div className="diag-ai-icon">AI</div>
+                <div><small>اقتراح الذكاء الاصطناعي للفصل</small><strong>{smartSummary}</strong><p>الخطط الذكية تُحفظ كاقتراح مستقل، ولا تستبدل خطة المعلم المعتمدة.</p></div>
+                <button onClick={() => void generateAiPlans()} disabled={aiLoading || !completedCount}>{aiLoading ? "جارٍ تحليل النتائج…" : "اقتراح الخطط بالذكاء الاصطناعي"}</button>
+              </section>
+
+              {message ? <p className="diag-message">{message}</p> : null}
+
+              <div className="diag-list-tools">
+                <label>بحث عن طالب<input value={searchName} onChange={event => setSearchName(event.target.value)} placeholder="اكتب اسم الطالب" /></label>
+                <label>حالة الاختبار<select value={statusFilter} onChange={event => setStatusFilter(event.target.value as StatusFilter)}><option value="all">جميع الطلاب</option><option value="completed">عملوا الاختبار</option><option value="pending">لم يعملوا الاختبار</option></select></label>
+                <button onClick={() => { setSearchName(""); setStatusFilter("all"); }}>إظهار الجميع</button>
+              </div>
+
+              <div className="diagnostic-roster">
+                {visibleRows.map((row, index) => {
+                  const result = row.result;
+                  const code = row.student.code || row.student.accessCode || row.student.studentCode || row.student.id;
+                  return <article key={row.student.id} className={result ? "completed" : "not-completed"}>
+                    <div className="diag-student-identity"><b>{index + 1}</b><div><strong>{row.student.name || "طالب دون اسم"}</strong><small>{classOf(row.student)} • {code}</small></div></div>
+                    <div className="diag-status-cell"><span className={result ? "status-done" : "status-pending"}>{result ? "✓ عمل الاختبار" : "○ لم يعمل الاختبار"}</span>{result ? <small>{formatDate(result.submittedAt)}</small> : <small>بانتظار دخول الطالب</small>}</div>
+                    <div className="diag-score-cell">{result ? <><strong>{result.score} / {result.total}</strong><span>{percentOf(result)}٪ • {resultLevel(result)}</span></> : <><strong>—</strong><span>لا توجد نتيجة</span></>}</div>
+                    <div className="diag-skills-cell"><small>المهارات الضعيفة</small><span>{result?.weakSkills?.length ? result.weakSkills.join("، ") : result ? "لا توجد مهارات ضعيفة مسجلة" : "تظهر بعد أداء الاختبار"}</span></div>
+                    <div className="diag-row-actions">{result ? <button onClick={() => openPlan(result)}>{result.teacherPlan ? "عرض الخطة المعتمدة" : result.aiPlan ? "عرض الخطة الذكية" : "اقتراح الخطة العلاجية"}</button> : <button disabled>لم يؤد الاختبار</button>}</div>
+                  </article>;
+                })}
+                {!visibleRows.length ? <p className="diag-empty">لا توجد أسماء مطابقة للبحث أو الحالة المحددة.</p> : null}
+              </div>
+
+              {editing ? <div className="diag-modal" role="dialog" aria-modal="true">
+                <section><header><div><small>الخطة العلاجية أو الإثرائية</small><h3>{studentByAlias.get(String(editing.studentId || "").trim())?.name || "الطالب"}</h3><p>{diagnosticTitle} • {percentOf(editing)}٪</p></div><button onClick={() => setEditing(null)} aria-label="إغلاق">×</button></header><textarea rows={8} value={planText} onChange={event => setPlanText(event.target.value)} /><div><button onClick={() => setEditing(null)}>إلغاء</button><button className="primary" onClick={() => void savePlan()}>اعتماد وحفظ الخطة</button></div></section>
+              </div> : null}
+            </section>;
+          }
+          EOF
+
+          cat > app/teacher/diagnostics/diagnostic-results.css <<'EOF'
+          .diag-results{display:grid;gap:18px;margin:22px 0;padding:22px;border-radius:26px;background:#fff;border:1px solid #dbe6ee;box-shadow:0 18px 46px #173b5b14}.diag-results-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-end}.diag-results h2,.diag-results p{margin:4px 0}.diag-results small{font-weight:800;color:#60798b}.diag-results-head>div:first-child>small{font-weight:900;color:var(--teacher-accent,#1768c5)}.diag-head-actions{display:flex;gap:8px;flex-wrap:wrap}.diag-results button{border:0;border-radius:12px;padding:11px 14px;background:var(--teacher-accent,#1768c5);color:#fff;font:inherit;font-weight:900;cursor:pointer}.diag-results button.secondary{background:#edf4f8;color:#274b66}.diag-results button:disabled{opacity:.48;cursor:not-allowed}.diag-primary-selectors{display:grid;grid-template-columns:1fr 1fr;gap:13px}.diag-primary-selectors label{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(170px,.8fr);align-items:center;gap:11px;padding:15px;border:1px solid #d8e5ee;border-radius:18px;background:linear-gradient(135deg,#f8fbfd,#eef6fb);font-weight:900}.diag-primary-selectors label>span{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:var(--teacher-accent,#1768c5);color:#fff;font-size:19px}.diag-primary-selectors label>div{display:grid}.diag-primary-selectors label small{font-size:10px}.diag-primary-selectors select{width:100%;min-height:48px;border:1px solid #c8d7e2;border-radius:12px;background:#fff;padding:0 10px;font:inherit;font-weight:900;color:#173d59}.diag-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.diag-stats article{padding:16px;border-radius:18px;background:var(--subject-soft,#eef5fa);border:1px solid #dbe6ee}.diag-stats article.done{background:#eaf9f2;border-color:#c8eadb}.diag-stats article.pending{background:#fff6e7;border-color:#f0dfbd}.diag-stats strong{display:block;font-size:28px;color:var(--subject-deep,#173d59)}.diag-stats span{font-size:12px;color:#60798b}.diag-ai-summary{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:14px;padding:17px;border-radius:20px;background:linear-gradient(125deg,#112f4b,#176b8f);color:#fff;box-shadow:0 13px 30px #123b6324}.diag-ai-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(135deg,#55d5be,#69a9ff);font-size:19px;font-weight:1000}.diag-ai-summary>div:nth-child(2){display:grid;gap:3px}.diag-ai-summary small,.diag-ai-summary p{color:#d9eaf3}.diag-ai-summary strong{font-size:15px;line-height:1.7}.diag-ai-summary p{font-size:11px}.diag-ai-summary button{background:#fff;color:#174565;min-width:220px}.diag-message{padding:12px 14px;border-radius:13px;background:#e9f8f4;color:#116b5c;font-weight:900}.diag-list-tools{display:grid;grid-template-columns:2fr 1fr auto;gap:11px;padding:13px;border-radius:17px;background:#f5f8fb}.diag-list-tools label{display:grid;gap:6px;font-size:12px;font-weight:900}.diag-list-tools input,.diag-list-tools select{min-height:45px;border:1px solid #cad8e2;border-radius:12px;background:#fff;padding:0 11px;font:inherit}.diag-list-tools button{align-self:end;background:#fff;color:#274b66;border:1px solid #cbd8e2}.diagnostic-roster{display:grid;gap:10px}.diagnostic-roster article{display:grid;grid-template-columns:minmax(180px,1.35fr) minmax(140px,.85fr) minmax(110px,.65fr) minmax(190px,1.2fr) auto;align-items:center;gap:12px;padding:14px;border:1px solid #dbe6ee;border-radius:17px;background:#fff;box-shadow:0 7px 20px #17384a0a}.diagnostic-roster article.completed{border-right:5px solid #20a279}.diagnostic-roster article.not-completed{border-right:5px solid #e6a528;background:#fffdf8}.diag-student-identity{display:flex;align-items:center;gap:10px;min-width:0}.diag-student-identity>b{width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px;background:#edf4f8;color:#35566f}.diag-student-identity>div{display:grid;min-width:0}.diag-student-identity strong{white-space:normal}.diag-student-identity small{font-size:10px}.diag-status-cell,.diag-score-cell,.diag-skills-cell{display:grid;gap:4px}.diag-status-cell>span{width:max-content;max-width:100%;padding:6px 9px;border-radius:99px;font-size:11px;font-weight:900}.status-done{background:#dcf5ea;color:#08765c}.status-pending{background:#fff0d2;color:#9a6410}.diag-score-cell strong{font-size:18px;color:#173d59}.diag-score-cell span,.diag-skills-cell span{font-size:11px;color:#587286;line-height:1.6}.diag-skills-cell span{white-space:normal}.diag-row-actions button{min-width:145px}.diag-empty{padding:24px;text-align:center;border-radius:16px;background:#f7fafc;color:#60798b}.diag-modal{position:fixed;inset:0;z-index:260;display:grid;place-items:center;padding:18px;background:#0922388a;backdrop-filter:blur(6px)}.diag-modal>section{width:min(720px,100%);padding:22px;border-radius:24px;background:#fff;box-shadow:0 25px 70px #04142150}.diag-modal header{display:flex;justify-content:space-between;gap:16px}.diag-modal header h3{margin:3px 0}.diag-modal header>button{width:40px;height:40px;padding:0;border-radius:50%;background:#edf2f5;color:#173d59;font-size:22px}.diag-modal textarea{width:100%;margin-top:15px;border:1px solid #ccd9e2;border-radius:14px;padding:14px;font:inherit;line-height:1.8}.diag-modal>section>div{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}.diag-modal>section>div button:first-child{background:#eef3f6;color:#173d59}.diag-modal .primary{background:var(--teacher-accent,#1768c5)}
+          @media(max-width:1100px){.diag-primary-selectors{grid-template-columns:1fr}.diagnostic-roster article{grid-template-columns:minmax(180px,1.2fr) minmax(135px,.8fr) minmax(100px,.6fr) minmax(180px,1fr)}.diag-row-actions{grid-column:1/-1}.diag-row-actions button{width:100%}}
+          @media(max-width:760px){.diag-results{padding:13px;border-radius:18px;margin:10px 0;gap:13px}.diag-results-head{align-items:stretch;flex-direction:column}.diag-head-actions{display:grid;grid-template-columns:1fr 1fr}.diag-head-actions button{padding-inline:7px}.diag-primary-selectors{gap:9px}.diag-primary-selectors label{grid-template-columns:38px minmax(0,1fr);padding:12px;gap:9px}.diag-primary-selectors label>span{width:38px;height:38px}.diag-primary-selectors select{grid-column:1/-1;min-height:50px}.diag-stats{grid-template-columns:1fr 1fr;gap:8px}.diag-stats article{padding:12px}.diag-stats strong{font-size:23px}.diag-ai-summary{grid-template-columns:46px minmax(0,1fr);padding:13px;gap:10px}.diag-ai-icon{width:44px;height:44px;border-radius:13px;font-size:15px}.diag-ai-summary strong{font-size:13px}.diag-ai-summary button{grid-column:1/-1;width:100%;min-width:0;min-height:49px}.diag-list-tools{grid-template-columns:1fr;padding:10px}.diag-list-tools button{width:100%;min-height:47px}.diagnostic-roster article{grid-template-columns:1fr 1fr;align-items:start;padding:13px;gap:11px}.diag-student-identity{grid-column:1/-1;padding-bottom:9px;border-bottom:1px solid #edf2f5}.diag-status-cell,.diag-score-cell{min-width:0}.diag-skills-cell{grid-column:1/-1;padding:9px;border-radius:11px;background:#f6f9fb}.diag-row-actions{grid-column:1/-1}.diag-row-actions button{width:100%;min-height:49px}.diag-modal{padding:9px;align-items:end}.diag-modal>section{border-radius:22px 22px 0 0;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}.diag-modal>section>div{flex-direction:column}.diag-modal>section>div button{width:100%;min-height:49px}}
+          EOF
+
+          mkdir -p app/api/teacher/diagnostics/remedial-plans
+          cat > app/api/teacher/diagnostics/remedial-plans/route.ts <<'EOF'
+          import { NextResponse } from "next/server";
+          import { findUserById, requireSession } from "../../../../../../lib/server/portal-auth";
+          import { getSubjectConfig } from "../../../../../../lib/subject-config";
+
+          export const runtime = "nodejs";
+          export const maxDuration = 60;
+
+          type StudentInput = {
+            resultId: string;
+            studentName: string;
+            percentage: number;
+            score: number;
+            total: number;
+            weakSkills: string[];
+          };
+
+          function validStudents(value: unknown): StudentInput[] {
+            if (!Array.isArray(value)) return [];
+            return value.slice(0, 60).flatMap(item => {
+              if (!item || typeof item !== "object") return [];
+              const row = item as Record<string, unknown>;
+              const resultId = String(row.resultId || "").trim();
+              const studentName = String(row.studentName || "الطالب").trim().slice(0, 150);
+              const percentage = Math.max(0, Math.min(100, Math.round(Number(row.percentage) || 0)));
+              const score = Number(row.score) || 0;
+              const total = Number(row.total) || 0;
+              const weakSkills = Array.isArray(row.weakSkills) ? row.weakSkills.map(String).map(skill => skill.trim()).filter(Boolean).slice(0, 12) : [];
+              return resultId ? [{ resultId, studentName, percentage, score, total, weakSkills }] : [];
+            });
+          }
+
+          function validPlans(value: unknown, allowedIds: Set<string>) {
+            if (!value || typeof value !== "object" || !Array.isArray((value as { plans?: unknown }).plans)) return [];
+            const seen = new Set<string>();
+            return (value as { plans: unknown[] }).plans.flatMap(item => {
+              if (!item || typeof item !== "object") return [];
+              const planItem = item as Record<string, unknown>;
+              const resultId = String(planItem.resultId || "").trim();
+              const plan = String(planItem.plan || "").trim();
+              if (!allowedIds.has(resultId) || seen.has(resultId) || plan.length < 20) return [];
+              seen.add(resultId);
+              return [{ resultId, plan: plan.slice(0, 1400) }];
+            });
+          }
+
+          export async function POST(request: Request) {
+            const session = await requireSession("teacher");
+            if (!session) return NextResponse.json({ ok: false, message: "انتهت جلسة المعلم، سجّل الدخول مجددًا." }, { status: 401 });
+            const user = await findUserById(session.userId);
+            if (!user?.active) return NextResponse.json({ ok: false, message: "الحساب غير متاح." }, { status: 403 });
+
+            try {
+              const body = await request.json();
+              const subjectId = String(body?.subjectId || "");
+              if (!user.subjectIds.includes(subjectId)) return NextResponse.json({ ok: false, message: "هذه المادة غير مخصصة لك." }, { status: 403 });
+              const students = validStudents(body?.students);
+              if (!students.length) return NextResponse.json({ ok: false, message: "لا توجد نتائج طلاب قابلة للتحليل." }, { status: 400 });
+              const subjectName = String(body?.subjectName || getSubjectConfig(subjectId).label).slice(0, 120);
+              const diagnosticTitle = String(body?.diagnosticTitle || "اختبار تشخيصي").slice(0, 200);
+              const className = String(body?.className || "الفصل").slice(0, 80);
+              const token = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
+              if (!token) return NextResponse.json({ ok: false, message: "ميزة الخطط الذكية تحتاج تفعيل AI Gateway في إعدادات البوابة." }, { status: 503 });
+
+              const studentLines = students.map(student => JSON.stringify(student)).join("\n");
+              const prompt = `أنت خبير تربوي سعودي. أنشئ خطة فردية دقيقة لكل طالب بناءً على نتيجة الاختبار التشخيصي.
+          المادة: ${subjectName}
+          الفصل: ${className}
+          الاختبار: ${diagnosticTitle}
+          التعليمات:
+          - أقل من 50٪: خطة علاجية مبسطة من 4 خطوات تشمل شرحًا وتدريبًا وواجبًا وإعادة قياس.
+          - من 50٪ إلى 79٪: خطة تحسين مركزة من 3 أو 4 خطوات.
+          - 80٪ فأعلى: خطة إثرائية مختصرة.
+          - اذكر المهارات الضعيفة المسجلة، ولا تخترع مهارات غير موجودة.
+          - اكتب بالعربية الواضحة وبصيغة مناسبة لعرضها للمعلم وولي الأمر.
+          - أعد resultId نفسه لكل طالب.
+          بيانات الطلاب، كل سطر JSON:
+          ${studentLines}`;
+
+              const gateway = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: process.env.REMEDIAL_AI_MODEL || process.env.DIAGNOSTIC_AI_MODEL || "openai/gpt-5.6-sol",
+                  messages: [{ role: "user", content: prompt }],
+                  response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                      name: "student_remedial_plans",
+                      strict: true,
+                      schema: {
+                        type: "object",
+                        additionalProperties: false,
+                        properties: {
+                          plans: {
+                            type: "array",
+                            minItems: students.length,
+                            maxItems: students.length,
+                            items: {
+                              type: "object",
+                              additionalProperties: false,
+                              properties: { resultId: { type: "string" }, plan: { type: "string" } },
+                              required: ["resultId", "plan"],
+                            },
+                          },
+                        },
+                        required: ["plans"],
+                      },
+                    },
+                  },
+                }),
+                signal: AbortSignal.timeout(50_000),
+              });
+              const responseData = await gateway.json().catch(() => null) as { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } } | null;
+              if (!gateway.ok) throw new Error(responseData?.error?.message || "ai_generation_failed");
+              const raw = responseData?.choices?.[0]?.message?.content;
+              const allowedIds = new Set(students.map(student => student.resultId));
+              const plans = validPlans(raw ? JSON.parse(raw) : null, allowedIds);
+              if (plans.length !== students.length) throw new Error("invalid_ai_plans");
+              return NextResponse.json({ ok: true, plans });
+            } catch (error) {
+              const code = error instanceof Error ? error.message : "ai_generation_failed";
+              console.error("remedial plans generation failed", code);
+              return NextResponse.json({ ok: false, message: code === "invalid_ai_plans" ? "لم تكتمل الخطط الذكية، حاول مرة أخرى." : "تعذر إنشاء الخطط الذكية الآن. حاول مرة أخرى." }, { status: 400 });
+            }
+          }
+          EOF
+
+      - name: Improve teacher mobile and app navigation
+        run: |
+          cat > app/teacher/teacher-mobile-ux-v6.css <<'EOF'
+          .teacher-mobile-command-bar{display:none}
+          @media(max-width:760px){
+            html,body{max-width:100%;overflow-x:hidden}
+            .teacher-menu-button{display:none!important}
+            .teacher-main{padding:12px 9px calc(92px + env(safe-area-inset-bottom))!important}
+            .teacher-page-content{width:100%;max-width:100%;overflow:hidden}
+            .teacher-mobile-header{margin-top:0!important}
+            .teacher-welcome-strip{margin-bottom:9px!important;padding:13px!important}
+            .teacher-welcome-strip p{display:none}
+            .teacher-ai-quick{min-width:48px!important;padding:7px!important}
+            .teacher-page-content .card,.teacher-page-content section.card,.teacher-page-content .panel,.attendance-card,.gradebook-card,.smart-panel,.follow-card,.diagnostic-builder,.diagnostic-list,.portfolio-toolbar,.portfolio-cover,.portfolio-fields,.evidence-section,.portfolio-final-page{padding:14px!important;border-radius:17px!important}
+            .teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea{font-size:16px!important;min-height:48px!important}
+            .teacher-page-content button,.teacher-page-content .btn{min-height:47px}
+            .builder-actions,.portfolio-actions,.gradebook-actions,.attendance-controls,.report-selectors{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+            .builder-actions button,.portfolio-actions button,.portfolio-actions a,.gradebook-actions button,.gradebook-actions a,.attendance-controls>button,.report-selectors button{width:100%!important}
+            .questions-editor article{padding:12px!important}
+            .answer-option{grid-template-columns:28px minmax(0,1fr)!important}
+            .diagnostic-list article{align-items:stretch!important;gap:10px!important}
+            .diagnostic-list article button{width:100%!important}
+            .teacher-mobile-command-bar{position:fixed;z-index:170;right:0;left:0;bottom:0;display:grid;grid-template-columns:repeat(6,1fr);padding:6px 5px calc(6px + env(safe-area-inset-bottom));border-top:1px solid #d7e3ec;background:#fffffffa;backdrop-filter:blur(16px);box-shadow:0 -8px 28px #102a431c}
+            .teacher-mobile-command-bar a,.teacher-mobile-command-bar button{min-width:0;min-height:56px;border:0;border-radius:12px;background:transparent;color:#60798b;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px 1px;font-family:inherit;font-weight:900}
+            .teacher-mobile-command-bar a.active{background:#e9f3ff;color:var(--teacher-accent,#1677c8)}
+            .teacher-mobile-command-bar svg{width:20px;height:20px}
+            .teacher-mobile-command-bar span{font-size:9px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+            .teacher-mobile-command-bar button i{display:grid;grid-template-columns:repeat(2,5px);gap:3px;margin-bottom:3px}.teacher-mobile-command-bar button i b{width:5px;height:5px;border-radius:2px;background:currentColor}
+            .teacher-sidebar{z-index:230!important}
+            .teacher-menu-backdrop{z-index:220!important}
+          }
+          @media(max-width:390px){.teacher-mobile-command-bar span{font-size:8px}.teacher-mobile-command-bar a,.teacher-mobile-command-bar button{min-height:53px}.teacher-mobile-command-bar svg{width:18px;height:18px}}
+          EOF
+
+          python - <<'PY'
+          from pathlib import Path
+
+          layout = Path("app/teacher/layout.tsx")
+          text = layout.read_text(encoding="utf-8")
+          old_import = 'import "./mobile-card-tables.css";'
+          new_import = 'import "./mobile-card-tables.css";\nimport "./teacher-mobile-ux-v6.css";'
+          if old_import not in text:
+              raise SystemExit("layout css import marker missing")
+          text = text.replace(old_import, new_import, 1)
+
+          old_tail = '''      </main>
+              </div>
+            </TeacherClientContext.Provider>;'''
+          new_tail = '''      </main>
+              <nav className="teacher-mobile-command-bar" aria-label="الأوامر السريعة للمعلم">
+                {tabs.filter(tab => ["dashboard", "students", "attendance", "grades", "diagnostics"].includes(tab.key)).map(tab => {
+                  const active = pathname.startsWith(tab.href);
+                  return <Link key={`mobile-${tab.href}`} href={tab.href} className={active ? "active" : ""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>;
+                })}
+                <button type="button" onClick={() => setMenuOpen(true)} aria-label="عرض جميع أوامر بوابة المعلم"><i><b/><b/><b/><b/></i><span>كل الأوامر</span></button>
+              </nav>
+            </div>
+          </TeacherClientContext.Provider>;'''
+          if old_tail not in text:
+              raise SystemExit("layout tail marker missing")
+          layout.write_text(text.replace(old_tail, new_tail, 1), encoding="utf-8")
+
+          pwa = Path("app/pwa-register.tsx")
+          pwa_text = pwa.read_text(encoding="utf-8").replace("ostadh-lahooni-v32-admin-roster-lock", "ostadh-lahooni-v33-diagnostics-mobile").replace("/sw.js?v=32-admin-roster-lock", "/sw.js?v=33-diagnostics-mobile")
+          pwa.write_text(pwa_text, encoding="utf-8")
+
+          sw = Path("public/sw.js")
+          sw_text = sw.read_text(encoding="utf-8").replace("ostadh-lahooni-v32-admin-roster-lock", "ostadh-lahooni-v33-diagnostics-mobile")
+          sw.write_text(sw_text, encoding="utf-8")
+          PY
+
+      - name: Verify production build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified upgrade
+        run: |
+          rm .github/workflows/upgrade-diagnostics-mobile-v33.yml
+          git config user.name "ChatGPT Upgrade Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/teacher/diagnostics/diagnostic-results.tsx app/teacher/diagnostics/diagnostic-results.css app/api/teacher/diagnostics/remedial-plans/route.ts app/teacher/layout.tsx app/teacher/teacher-mobile-ux-v6.css app/pwa-register.tsx public/sw.js .github/workflows/upgrade-diagnostics-mobile-v33.yml
+          git commit -m "تطوير متابعة الاختبارات التشخيصية وتحسين بوابة المعلم للجوال"
+          git push origin main
