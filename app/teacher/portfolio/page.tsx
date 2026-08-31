@@ -292,6 +292,7 @@ export default function PortfolioPage() {
   const [message, setMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const addPanelRef = useRef<HTMLElement | null>(null);
   const teacherId = session?.teacherId;
   const subjectKey = session?.subjectKey || "history";
@@ -529,70 +530,108 @@ export default function PortfolioPage() {
       setMessage("أضف إنجازًا واحدًا على الأقل، ثم أخرج ملف الإنجاز.");
       return;
     }
+    if (exportingPdf) return;
+
+    const pages = Array.from(document.querySelectorAll<HTMLElement>("#portfolio-print-preview .print-page"));
+    if (!pages.length) {
+      setMessage("تعذر العثور على صفحات ملف الإنجاز. أغلق المعاينة وافتحها مرة أخرى.");
+      return;
+    }
 
     const nativeWindow = window as typeof window & {
-      OstadhApp?: { printPage?: (title: string) => void };
+      OstadhApp?: {
+        saveBase64?: (fileName: string, mimeType: string, base64Data: string) => void;
+        printPage?: (title: string) => void;
+      };
       ostadhNativePrint?: (title?: string) => boolean;
       __OSTADH_ANDROID__?: boolean;
     };
-    const previousTitle = document.title;
-    const printTitle = `ملف إنجاز ${session?.teacherName || "المعلم"}`;
-    const restoreTitle = () => {
-      document.documentElement.classList.remove("portfolio-print-active");
-      document.title = previousTitle;
-    };
+    const teacherName = session?.teacherName || "المعلم";
+    const safeTeacherName = teacherName.replace(/[\\/:*?"<>|]+/g, "-").trim() || "المعلم";
+    const fileName = `ملف-إنجاز-${safeTeacherName}.pdf`;
+    const root = document.documentElement;
 
-    document.title = printTitle;
-    document.documentElement.classList.add("portfolio-print-active");
-    setMessage("جارٍ تجهيز صفحات الإنجاز وإرسالها إلى شاشة الإخراج...");
-
-    await new Promise<void>((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
-    const images = Array.from(document.querySelectorAll<HTMLImageElement>(".portfolio-print-document img"));
-    await Promise.all(images.map((image) => {
-      if (image.complete) return Promise.resolve();
-      return new Promise<void>((resolve) => {
-        const finish = () => resolve();
-        image.addEventListener("load", finish, { once: true });
-        image.addEventListener("error", finish, { once: true });
-        window.setTimeout(finish, 1800);
-      });
-    }));
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
+    setExportingPdf(true);
+    root.classList.add("portfolio-pdf-exporting");
+    setMessage("جارٍ إنشاء ملف PDF الحقيقي من صفحات الإنجاز...");
 
     try {
-      if (nativeWindow.OstadhApp?.printPage) {
-        nativeWindow.OstadhApp.printPage(printTitle);
-        setMessage("فُتحت شاشة الإخراج. اختر الطابعة أو الحفظ بصيغة PDF.");
-        window.setTimeout(restoreTitle, 20000);
-        return;
+      if ("fonts" in document) {
+        await Promise.race([
+          document.fonts.ready,
+          new Promise<void>((resolve) => window.setTimeout(resolve, 2500)),
+        ]);
+      }
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
+
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+        putOnlyUsedFonts: true,
+      });
+      const renderScale = Math.min(1.55, Math.max(1.2, window.devicePixelRatio || 1.25));
+
+      for (let index = 0; index < pages.length; index += 1) {
+        const pageElement = pages[index];
+        setMessage(`جارٍ إنشاء ملف PDF — الصفحة ${arabicNumber(index + 1)} من ${arabicNumber(pages.length)}`);
+        if (index > 0) pdf.addPage("a4", "portrait");
+
+        const canvas = await html2canvas(pageElement, {
+          backgroundColor: "#ffffff",
+          scale: renderScale,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          width: pageElement.scrollWidth,
+          height: pageElement.scrollHeight,
+          windowWidth: Math.max(document.documentElement.clientWidth, pageElement.scrollWidth),
+          windowHeight: Math.max(document.documentElement.clientHeight, pageElement.scrollHeight),
+        });
+        const imageData = canvas.toDataURL("image/jpeg", 0.82);
+        pdf.addImage(imageData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
+        canvas.width = 1;
+        canvas.height = 1;
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 25));
       }
 
-      if (typeof nativeWindow.ostadhNativePrint === "function") {
-        const opened = nativeWindow.ostadhNativePrint(printTitle);
-        if (opened !== false) {
-          setMessage("فُتحت شاشة الإخراج. اختر الطابعة أو الحفظ بصيغة PDF.");
-          window.setTimeout(restoreTitle, 20000);
-          return;
-        }
-      }
-
-      window.addEventListener("afterprint", restoreTitle, { once: true });
-      window.focus();
-      window.print();
-      setMessage("فُتحت شاشة الإخراج. اختر الطابعة أو الحفظ بصيغة PDF.");
-      window.setTimeout(restoreTitle, 20000);
-    } catch {
-      if (/OstadhLahooniAndroid/i.test(navigator.userAgent) || nativeWindow.__OSTADH_ANDROID__) {
-        try {
-          window.location.assign(`ostadh://print?title=${encodeURIComponent(printTitle)}`);
-          setMessage("تم إرسال ملف الإنجاز إلى التطبيق.");
-        } catch {
-          setMessage("تعذر فتح شاشة الإخراج داخل التطبيق. أبقِ المعاينة مفتوحة ثم أعد المحاولة.");
-        }
+      if (nativeWindow.OstadhApp?.saveBase64) {
+        setMessage("اكتمل إنشاء الملف، جارٍ حفظه في مجلد التنزيلات...");
+        const dataUri = pdf.output("datauristring");
+        const base64Data = dataUri.includes(",") ? dataUri.slice(dataUri.indexOf(",") + 1) : "";
+        if (!base64Data) throw new Error("pdf_base64_empty");
+        nativeWindow.OstadhApp.saveBase64(fileName, "application/pdf", base64Data);
+        setMessage(`تم إنشاء ${fileName} وحفظه في مجلد التنزيلات.`);
       } else {
-        setMessage("تعذر فتح شاشة الإخراج. افتح البوابة في Chrome ثم أعد المحاولة.");
+        pdf.save(fileName);
+        setMessage(`تم إنشاء ${fileName} وبدأ تنزيله.`);
       }
-      window.setTimeout(restoreTitle, 20000);
+    } catch (error) {
+      console.error("portfolio_pdf_export_failed", error);
+      try {
+        const title = `ملف إنجاز ${teacherName}`;
+        if (nativeWindow.OstadhApp?.printPage) {
+          nativeWindow.OstadhApp.printPage(title);
+          setMessage("تعذر التنزيل المباشر، فُتحت شاشة الطباعة البديلة. اختر الحفظ بصيغة PDF.");
+        } else if (typeof nativeWindow.ostadhNativePrint === "function" && nativeWindow.ostadhNativePrint(title) !== false) {
+          setMessage("تعذر التنزيل المباشر، فُتحت شاشة الطباعة البديلة. اختر الحفظ بصيغة PDF.");
+        } else {
+          window.print();
+          setMessage("تعذر التنزيل المباشر، فُتحت شاشة الطباعة البديلة. اختر الحفظ بصيغة PDF.");
+        }
+      } catch {
+        setMessage("تعذر إنشاء ملف PDF على هذا الجهاز. أعد فتح المعاينة ثم جرّب مرة أخرى.");
+      }
+    } finally {
+      root.classList.remove("portfolio-pdf-exporting");
+      setExportingPdf(false);
     }
   }
 
@@ -770,7 +809,9 @@ export default function PortfolioPage() {
           </div>
           <div>
             <button type="button" className="preview-back" onClick={() => setPreviewOpen(false)}>العودة والتعديل</button>
-            <button type="button" className="preview-print" onClick={printPortfolio}>إخراج النسخة النهائية PDF</button>
+            <button type="button" className="preview-print" onClick={printPortfolio} disabled={exportingPdf}>
+              {exportingPdf ? "جارٍ إنشاء ملف PDF..." : "تنزيل ملف PDF النهائي"}
+            </button>
           </div>
         </div>
         <section className="portfolio-print-cover print-page">
