@@ -1,0 +1,59 @@
+name: Fix attendance autosave and icons v57
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-attendance-autosave-v57.yml'
+      - '.github/scripts/fix_attendance_autosave_v57.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply attendance autosave and icon fix
+        run: python3 .github/scripts/fix_attendance_autosave_v57.py
+
+      - name: Verify scoped changes
+        run: |
+          grep -q 'autoSaveMissedScheduledDays' app/teacher/attendance/page.tsx
+          grep -q 'missed_scheduled_day' app/teacher/attendance/page.tsx
+          grep -q 'attendanceDeletedKey' app/teacher/attendance/page.tsx
+          grep -q 'v57 attendance actions spacing' app/teacher/attendance/attendance.css
+          grep -q 'v57 fixed mobile navigation icon boxes' app/mobile-app-nav-fix.css
+          grep -q 'ostadh-lahooni-v57-attendance-autosave-icons' public/sw.js
+          grep -q '57-attendance-autosave-icons' app/pwa-register.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx app/teacher/attendance/attendance.css app/mobile-app-nav-fix.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'إصلاح تراكب الأيقونات وحفظ التحضير الفائت تلقائيًا'
+            git push origin main
+          fi
