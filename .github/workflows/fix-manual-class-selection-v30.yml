@@ -1,0 +1,57 @@
+name: Fix manual class selection v30
+
+on:
+  push:
+    branches:
+      - fix-manual-class-selection-v30
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: fix-manual-class-selection-v30
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply source fix
+        run: python3 scripts/fix-manual-class-selection-v30.py
+
+      - name: Verify source
+        run: |
+          grep -q 'manualClassSelection: true' app/api/teacher/class-options/route.ts
+          grep -q 'manualClassSelection: true' app/api/teacher/class-scope/route.ts
+          grep -q 'manualClassSelection: true' app/api/teacher/students/route.ts
+          grep -q 'v30-manual-class-selection' app/pwa-register.tsx
+          grep -q 'v30-manual-class-selection' public/sw.js
+          ! grep -q 'exactAssignmentEnforced' app/api/teacher/class-options/route.ts
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Commit verified fix
+        run: |
+          rm -f scripts/fix-manual-class-selection-v30.py
+          rm -f .github/workflows/fix-manual-class-selection-v30.yml
+          git config user.name "hasan taweel"
+          git config user.email "hasan.ali99976@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "إظهار جميع فصول المرحلة وحفظ اختيار المعلم"
+            git push origin HEAD:fix-manual-class-selection-v30
+          fi
