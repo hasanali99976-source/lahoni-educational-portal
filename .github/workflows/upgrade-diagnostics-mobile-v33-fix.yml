@@ -1,0 +1,87 @@
+name: Fix diagnostics mobile upgrade v33
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/upgrade-diagnostics-mobile-v33-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Reapply upgrade with corrected imports
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path('.github/workflows/upgrade-diagnostics-mobile-v33.yml').read_text(encoding='utf-8').splitlines()
+          wanted = {
+              'Build class-based diagnostic follow-up',
+              'Improve teacher mobile and app navigation',
+          }
+          scripts = []
+          index = 0
+          while index < len(source):
+              stripped = source[index].strip()
+              if stripped.startswith('- name: '):
+                  name = stripped.removeprefix('- name: ').strip()
+                  if name in wanted:
+                      index += 1
+                      while index < len(source) and source[index].strip() != 'run: |':
+                          index += 1
+                      if index >= len(source):
+                          raise SystemExit(f'Missing run block for {name}')
+                      index += 1
+                      block = []
+                      while index < len(source):
+                          line = source[index]
+                          if line.startswith('      - name: '):
+                              break
+                          if line.startswith('          '):
+                              block.append(line[10:])
+                          elif not line.strip():
+                              block.append('')
+                          else:
+                              break
+                          index += 1
+                      scripts.append('\n'.join(block))
+                      continue
+              index += 1
+
+          if len(scripts) != 2:
+              raise SystemExit(f'Expected 2 upgrade scripts, found {len(scripts)}')
+
+          combined = '\n\n'.join(scripts)
+          combined = combined.replace('../../../../../../lib/server/portal-auth', '../../../../../lib/server/portal-auth')
+          combined = combined.replace('../../../../../../lib/subject-config', '../../../../../lib/subject-config')
+          Path('/tmp/apply-diagnostics-mobile-v33.sh').write_text('set -euo pipefail\n' + combined + '\n', encoding='utf-8')
+          PY
+          bash /tmp/apply-diagnostics-mobile-v33.sh
+
+      - name: Verify production build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified upgrade
+        run: |
+          rm -f .github/workflows/upgrade-diagnostics-mobile-v33.yml .github/workflows/upgrade-diagnostics-mobile-v33-fix.yml
+          git config user.name "ChatGPT Upgrade Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/teacher/diagnostics/diagnostic-results.tsx app/teacher/diagnostics/diagnostic-results.css app/api/teacher/diagnostics/remedial-plans/route.ts app/teacher/layout.tsx app/teacher/teacher-mobile-ux-v6.css app/pwa-register.tsx public/sw.js .github/workflows/upgrade-diagnostics-mobile-v33.yml .github/workflows/upgrade-diagnostics-mobile-v33-fix.yml
+          git commit -m "تطوير متابعة الاختبارات التشخيصية وتحسين بوابة المعلم للجوال"
+          git push origin main
