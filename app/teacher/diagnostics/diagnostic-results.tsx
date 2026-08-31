@@ -167,6 +167,7 @@ export default function DiagnosticResults({
   diagnosticsLoaded: boolean;
 }) {
   const [results, setResults] = useState<Result[]>([]);
+  const [backupResults, setBackupResults] = useState<Result[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [scopeClasses, setScopeClasses] = useState<SchoolClass[]>([]);
   const [rosterLoading, setRosterLoading] = useState(false);
@@ -182,7 +183,7 @@ export default function DiagnosticResults({
 
   useEffect(() => onSnapshot(collection(db, resultsPath), snapshot => {
     setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
-  }), [resultsPath]);
+  }, () => setResults([])), [resultsPath]);
 
   useEffect(() => {
     if (!teacherId || !subjectKey || !activeGrade) {
@@ -213,6 +214,35 @@ export default function DiagnosticResults({
     return () => controller.abort();
   }, [teacherId, subjectKey, activeGrade]);
 
+  useEffect(() => {
+    if (!teacherId || !subjectKey || !testId || !students.length) {
+      setBackupResults([]);
+      return;
+    }
+    let cancelled = false;
+    const studentIds = [...new Set(students.flatMap(student => aliases(student)))];
+    const loadBackups = async () => {
+      try {
+        const response = await fetch("/api/teacher/diagnostics/backup-results", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subjectId: subjectKey, diagnosticId: testId, studentIds }),
+          cache: "no-store",
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && response.ok) setBackupResults(Array.isArray(data.results) ? data.results : []);
+      } catch {
+        if (!cancelled) setBackupResults([]);
+      }
+    };
+    void loadBackups();
+    const timer = window.setInterval(loadBackups, 8000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [teacherId, subjectKey, testId, students]);
+
   const classes = useMemo(() => [...new Set(scopeClasses.map(item => classKey(item.name)).filter(Boolean))]
     .sort((a, b) => classOrder(a) - classOrder(b) || a.localeCompare(b, "ar", { numeric: true })), [scopeClasses]);
 
@@ -231,16 +261,23 @@ export default function DiagnosticResults({
     return map;
   }, [students]);
 
+  const combinedResults = useMemo(() => {
+    const map = new Map<string, Result>();
+    backupResults.forEach(result => map.set(result.id, result));
+    results.forEach(result => map.set(result.id, result));
+    return [...map.values()];
+  }, [results, backupResults]);
+
   const latestResultByStudent = useMemo(() => {
     const map = new Map<string, Result>();
-    results.filter(result => result.diagnosticId === testId).forEach(result => {
+    combinedResults.filter(result => result.diagnosticId === testId).forEach(result => {
       const student = studentByAlias.get(String(result.studentId || "").trim());
       if (!student) return;
       const current = map.get(student.id);
       if (!current || dateValue(result.submittedAt) >= dateValue(current.submittedAt)) map.set(student.id, result);
     });
     return map;
-  }, [results, studentByAlias, testId]);
+  }, [combinedResults, studentByAlias, testId]);
 
   const allRosterRows = useMemo<RosterRow[]>(() => students
     .sort((a, b) => classOrder(classOf(a)) - classOrder(classOf(b)) || String(a.name || "").localeCompare(String(b.name || ""), "ar"))

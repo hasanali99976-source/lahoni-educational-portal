@@ -96,6 +96,59 @@ export function readStudentAccessToken(value?: string): StudentAccess | null {
   }
 }
 
+export type DiagnosticRecoveryResult = {
+  diagnosticId: string;
+  studentId: string;
+  teacherId: string;
+  subjectId: string;
+  score: number;
+  total: number;
+  percentage: number;
+  plan: string;
+  weakSkills: string[];
+  submittedAt: string;
+};
+
+type DiagnosticRecoveryPayload = {
+  version: 1;
+  result: DiagnosticRecoveryResult;
+  expiresAt: number;
+};
+
+export function createDiagnosticRecoveryCode(result: DiagnosticRecoveryResult) {
+  const recovery: DiagnosticRecoveryPayload = {
+    version: 1,
+    result,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 60,
+  };
+  const payload = Buffer.from(JSON.stringify(recovery)).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readDiagnosticRecoveryCode(value?: string): DiagnosticRecoveryResult | null {
+  if (!value) return null;
+  try {
+    const [payload, signature] = value.split(".");
+    if (!payload || !signature) return null;
+    const expected = Buffer.from(sign(payload));
+    const received = Buffer.from(signature);
+    if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
+    const recovery = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as DiagnosticRecoveryPayload;
+    const result = recovery.result;
+    if (recovery.version != 1 || recovery.expiresAt <= Date.now() || !result) return null;
+    if (!result.diagnosticId || !result.studentId || !result.teacherId || !result.subjectId) return null;
+    if (!Number.isFinite(result.score) || !Number.isFinite(result.total) || !Number.isFinite(result.percentage)) return null;
+    return {
+      ...result,
+      plan: String(result.plan || "راجع المهارات التي لم تتقنها مع المعلم."),
+      weakSkills: Array.isArray(result.weakSkills) ? result.weakSkills.map(String) : [],
+      submittedAt: String(result.submittedAt || new Date().toISOString()),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function readSessionToken(value?: string): PortalSession | null {
   if (!value) return null;
   try {
