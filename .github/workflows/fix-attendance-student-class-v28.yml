@@ -1,0 +1,45 @@
+name: Fix attendance student class authority
+
+on:
+  push:
+    branches: [fix-attendance-student-class-v28]
+    paths:
+      - ".github/workflows/fix-attendance-student-class-v28.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: fix-attendance-student-class-v28
+          fetch-depth: 0
+
+      - name: Apply source fix
+        run: python3 scripts/fix_attendance_student_class_v28.py
+
+      - name: Verify source
+        run: |
+          grep -q "canonicalClassFromParts" app/teacher/attendance/page.tsx
+          grep -q "centralByCode" app/api/teacher/students/route.ts
+          grep -q "const byCode" app/api/teacher/students/route.ts
+          grep -q "v28-student-class-authority" public/sw.js
+
+      - name: Verify production build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified fix
+        run: |
+          rm -f .github/workflows/fix-attendance-student-class-v28.yml
+          rm -f scripts/fix_attendance_student_class_v28.py
+          git config user.name "hasan taweel"
+          git config user.email "hasan.ali99976@gmail.com"
+          git add app/teacher/attendance/page.tsx app/api/teacher/students/route.ts public/sw.js .github/workflows/fix-attendance-student-class-v28.yml scripts/fix_attendance_student_class_v28.py
+          git commit -m "إصلاح تصنيف الطلاب حسب الصف والفصل الرسمي"
+          git push origin fix-attendance-student-class-v28
