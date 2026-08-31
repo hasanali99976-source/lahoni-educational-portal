@@ -135,3 +135,57 @@
   .mobile-app-nav .mobile-nav-icon{width:24px!important;height:24px!important;min-width:24px!important;max-width:24px!important;min-height:24px!important;max-height:24px!important}
   .mobile-app-nav .mobile-nav-svg{width:20px!important;height:20px!important;min-width:20px!important;max-width:20px!important;min-height:20px!important;max-height:20px!important}
 }
+
+
+/* v58 teacher mobile nav two rows */
+@media(max-width:720px){
+  body{padding-bottom:calc(146px + var(--mobile-safe-bottom, env(safe-area-inset-bottom,0px)))!important}
+  .teacher-main{padding-bottom:calc(164px + env(safe-area-inset-bottom,0px))!important}
+  .mobile-app-nav{
+    grid-auto-flow:row!important;
+    grid-auto-columns:unset!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-rows:repeat(2,56px)!important;
+    gap:6px!important;
+    overflow:visible!important;
+    max-width:calc(100dvw - 16px)!important;
+    padding:7px!important;
+  }
+  .mobile-app-nav a{
+    width:100%!important;
+    min-width:0!important;
+    min-height:56px!important;
+    max-height:56px!important;
+    display:grid!important;
+    grid-template-rows:25px 14px!important;
+    place-items:center!important;
+    align-content:center!important;
+    gap:3px!important;
+    padding:5px 2px!important;
+    overflow:hidden!important;
+  }
+  .mobile-app-nav .mobile-nav-icon{
+    width:24px!important;height:24px!important;
+    min-width:24px!important;max-width:24px!important;
+    min-height:24px!important;max-height:24px!important;
+    margin:0!important;
+  }
+  .mobile-app-nav .mobile-nav-svg{
+    width:20px!important;height:20px!important;
+    min-width:20px!important;max-width:20px!important;
+    min-height:20px!important;max-height:20px!important;
+  }
+  .mobile-app-nav a b{
+    width:100%!important;
+    height:14px!important;
+    line-height:14px!important;
+    font-size:9px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+  }
+}
+@media(max-width:390px){
+  .mobile-app-nav{grid-template-rows:repeat(2,53px)!important;gap:5px!important;padding:6px!important}
+  .mobile-app-nav a{min-height:53px!important;max-height:53px!important}
+}

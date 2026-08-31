@@ -4,6 +4,8 @@ import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
 
+const ATTENDANCE_START_DATE = "2026-08-23";
+
 export async function GET(request: Request) {
   const header = request.headers.get("authorization") || "";
   const access = readStudentAccessToken(header.startsWith("Bearer ") ? header.slice(7) : "");
@@ -19,11 +21,13 @@ export async function GET(request: Request) {
 
   for (const record of attendance.docs) {
     const data = record.data();
+    const date = typeof data.date === "string" ? data.date : "";
+    if (!date || date < ATTENDANCE_START_DATE) continue;
     const status = data?.records?.[access.studentId] as AttendanceStatus | undefined;
     if (!status || !(status in counts)) continue;
     counts[status] += 1;
     counts.total += 1;
-    if (typeof data.date === "string" && data.date > latestDate) latestDate = data.date;
+    if (date > latestDate) latestDate = date;
   }
 
   const disciplineRate = counts.total

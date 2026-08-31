@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v57-attendance-autosave-icons";
+const CACHE_NAME = "ostadh-lahooni-v58-nav-student-attendance";
 const STATIC_FILES = [
   "/",
   "/student",

@@ -255,7 +255,21 @@ export async function POST(request: Request) {
         teacherName: String(candidate.teacherData.name || "المعلم"),
         icon: subject.icon || "📘",
         accessToken,
-        data: item.data,
+        data: {
+          ...item.data,
+          absences: 0,
+          late: 0,
+          attendanceSummary: {
+            present: 0,
+            absent: 0,
+            late: 0,
+            excused: 0,
+            escaped: 0,
+            total: 0,
+            disciplineRate: 100,
+            latestDate: "",
+          },
+        },
       };
     }).sort((a, b) => a.subjectLabel.localeCompare(b.subjectLabel, "ar", { numeric: true }));
 
