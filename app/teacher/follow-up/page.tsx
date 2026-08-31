@@ -7,25 +7,68 @@ import { useTeacherClient } from "../../../lib/teacher-client";
 import "./follow-up.css";
 
 type UnitRecord = { attendance?: number; participation?: number; homework?: number; unitExam?: number; total?: number };
-type Student = { id: string; name?: string; class?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord> };
+type Student = { id: string; storageId?: string; name?: string; class?: string; className?: string; code?: string; accessCode?: string; studentCode?: string; researchScore?: number; teacherNote?: string; units?: Record<string, UnitRecord> };
+type SchoolClass = { id: string; name: string; grade?: number; section?: string };
 type RankedStudent = Student & { total: number; missing: number };
 const unitKeys = ["unit1", "unit2", "unit3", "unit4", "unit5"];
 const counselorPhone = "966598353651";
 function studentTotal(student: Student) { return unitKeys.reduce((sum, key) => { const value = student.units?.[key] || {}; return sum + Number(value.total ?? ((value.attendance || 0) + (value.participation || 0) + (value.homework || 0) + (value.unitExam || 0))); }, 0) + Number(student.researchScore || 0); }
 function missingCount(student: Student) { let count = 0; unitKeys.forEach(key => { const value = student.units?.[key] || {}; if (value.attendance === undefined) count++; if (value.participation === undefined) count++; if (value.homework === undefined) count++; if (value.unitExam === undefined) count++; }); if (student.researchScore === undefined) count++; return count; }
 function level(total: number) { if (total >= 90) return { label: "متقن بتميز", className: "excellent" }; if (total >= 80) return { label: "متقن", className: "mastered" }; if (total >= 60) return { label: "غير متقن", className: "warning" }; return { label: "يحتاج تدخلًا", className: "danger" }; }
+function aliases(student: Student) { return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(value => String(value || "").trim()).filter(Boolean))]; }
 
 export default function FollowUpPage() {
   const session = useTeacherClient();
-  const teacherId = session.teacherId || "", teacherName = session.teacherName || "المعلم", subjectKey = session.subjectKey || "history", subject = session.subject || "المادة";
-  const [students, setStudents] = useState<Student[]>([]), [selectedClass, setSelectedClass] = useState(""), [selectedStudent, setSelectedStudent] = useState(""), [threshold, setThreshold] = useState(80);
+  const teacherId = session.teacherId || "", teacherName = session.teacherName || "المعلم", subjectKey = session.subjectKey || "history", subject = session.subject || "المادة", activeGrade = session.activeGrade || null;
+  const [storedStudents, setStoredStudents] = useState<Student[]>([]), [scopeStudents, setScopeStudents] = useState<Student[]>([]), [scopeClasses, setScopeClasses] = useState<SchoolClass[]>([]), [scopeLoading, setScopeLoading] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(""), [selectedStudent, setSelectedStudent] = useState(""), [threshold, setThreshold] = useState(80);
   const [selectedIds, setSelectedIds] = useState<string[]>([]), [referralOpen, setReferralOpen] = useState(false), [notifyParents, setNotifyParents] = useState(false), [reason, setReason] = useState("انخفاض مستوى التحصيل الدراسي");
   const [noteStudent, setNoteStudent] = useState<Student | null>(null), [note, setNote] = useState(""), [message, setMessage] = useState("");
   const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "students") : "", [teacherId, subjectKey]);
   const referralsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "counselorReferrals") : "", [teacherId, subjectKey]);
 
-  useEffect(() => { if (!studentsPath) return; return onSnapshot(collection(db, studentsPath), snapshot => { const list = snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[]; setStudents(list.sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"))); }, () => setMessage("تعذر تحميل بيانات الطلاب.")); }, [studentsPath]);
-  const classes = useMemo(() => Array.from(new Set(students.map(student => (student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
+  useEffect(() => { if (!studentsPath) return; return onSnapshot(collection(db, studentsPath), snapshot => { const list = snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[]; setStoredStudents(list); }, () => setMessage("تعذر تحميل بيانات الطلاب.")); }, [studentsPath]);
+
+  useEffect(() => {
+    if (!teacherId || !subjectKey || !activeGrade) { setScopeStudents([]); setScopeClasses([]); return; }
+    const controller = new AbortController();
+    const params = new URLSearchParams({ subjectId: subjectKey, grade: String(activeGrade) });
+    setScopeLoading(true);
+    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "تعذر تحميل الفصول المحددة.");
+        setScopeStudents(Array.isArray(data.students) ? data.students : []);
+        setScopeClasses(Array.isArray(data.classes) ? data.classes : []);
+      })
+      .catch(error => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setScopeStudents([]); setScopeClasses([]);
+        setMessage(error instanceof Error ? error.message : "تعذر تحميل الفصول المحددة.");
+      })
+      .finally(() => setScopeLoading(false));
+    return () => controller.abort();
+  }, [teacherId, subjectKey, activeGrade]);
+
+  const students = useMemo(() => {
+    const liveByAlias = new Map<string, Student>();
+    storedStudents.forEach(student => aliases(student).forEach(alias => liveByAlias.set(alias, student)));
+    return scopeStudents.map(rosterStudent => {
+      const live = aliases(rosterStudent).map(alias => liveByAlias.get(alias)).find(Boolean);
+      const officialClass = String(rosterStudent.className || rosterStudent.class || "").trim();
+      return {
+        ...rosterStudent,
+        ...(live || {}),
+        id: rosterStudent.id,
+        storageId: live?.id || rosterStudent.id,
+        code: rosterStudent.code || live?.code,
+        class: officialClass,
+        className: officialClass,
+      };
+    }).sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"));
+  }, [scopeStudents, storedStudents]);
+  const classes = useMemo(() => scopeClasses.map(item => item.name), [scopeClasses]);
+  useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
   const ranked = useMemo<RankedStudent[]>(() => visible.map(student => ({ ...student, total: studentTotal(student), missing: missingCount(student) })).sort((a, b) => b.total - a.total), [visible]);
@@ -40,18 +83,19 @@ export default function FollowUpPage() {
     const now = new Date().toISOString();
     await Promise.all(selectedStudents.map(async student => {
       await setDoc(doc(db, referralsPath, crypto.randomUUID()), { studentId: student.id, studentName: student.name || "", className: student.class || "", percentage: student.total, reason, status: "جديدة", teacherName, subject, createdAt: now });
-      if (notifyParents) await updateDoc(doc(db, studentsPath, student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason}. المستوى الحالي ${student.total}%.`, percentage: student.total, createdAt: now } });
+      if (notifyParents) await updateDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason}. المستوى الحالي ${student.total}%.`, percentage: student.total, createdAt: now } });
     }));
     const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالسبب: ${reason}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"} — ${student.total}%`).join("\n")}\n\nالمعلم: ${teacherName}`;
     window.open(`https://wa.me/${counselorPhone}?text=${encodeURIComponent(text)}`, "_blank");
     setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`); setReferralOpen(false);
   }
-  async function saveNote() { if (!noteStudent) return; await updateDoc(doc(db, studentsPath, noteStudent.id), { teacherNote: note.trim() }); setMessage("تم حفظ ملاحظة الطالب."); setNoteStudent(null); }
+  async function saveNote() { if (!noteStudent) return; await updateDoc(doc(db, studentsPath, noteStudent.storageId || noteStudent.id), { teacherNote: note.trim() }); setMessage("تم حفظ ملاحظة الطالب."); setNoteStudent(null); }
   async function copyList() { await navigator.clipboard.writeText(struggling.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.total}%`).join("\n")); setMessage("تم نسخ قائمة الطلاب المتعثرين."); }
 
   if (!teacherId) return <main className="follow-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
   return <main className="follow-page" dir="rtl">
-    <section className="follow-head"><div><span>متابعة التحصيل — {subject}</span><h1>متابعة أداء الطلاب</h1><p>اعرض جميع الفصول أو فصلًا أو طالبًا، ثم اتخذ إجراءً واضحًا.</p></div><div className="follow-filters"><label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label><label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label><label>معيار الإتقان<select value={threshold} onChange={event => setThreshold(Number(event.target.value))}><option value={80}>٨٠٪</option><option value={75}>٧٥٪</option><option value={70}>٧٠٪</option></select></label></div></section>
+    <section className="follow-head"><div><span>متابعة التحصيل — {subject}</span><h1>متابعة أداء الطلاب</h1><p>تظهر هنا فقط الفصول المحددة من «إدارة فصولي»، ثم يمكنك اختيار فصل أو طالب واتخاذ الإجراء المناسب.</p></div><div className="follow-filters"><label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label><label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label><label>معيار الإتقان<select value={threshold} onChange={event => setThreshold(Number(event.target.value))}><option value={80}>٨٠٪</option><option value={75}>٧٥٪</option><option value={70}>٧٠٪</option></select></label></div></section>
+    {scopeLoading ? <p className="follow-toast" role="status">جارٍ تحميل الفصول المحددة من إدارة الفصول…</p> : !classes.length ? <p className="follow-toast" role="status">لا توجد فصول محددة لهذه المادة. افتح «إدارة الطلاب ← إدارة فصولي» وحدد الفصول أولًا.</p> : null}
     <section className="follow-overview"><article><span>الطلاب المعروضون</span><strong>{ranked.length}</strong></article><article><span>متوسط الأداء</span><strong>{average}%</strong></article><article className="warn"><span>يحتاجون متابعة</span><strong>{struggling.length}</strong></article><article className="alert"><span>ناقصو الرصد</span><strong>{incomplete.length}</strong></article></section>
     <section className="follow-rank-grid"><article className="follow-card leaders-card"><header><div><small>تميز</small><h2>أفضل الطلاب</h2><p>أعلى النتائج في النطاق المختار.</p></div><b className="rank-icon">★</b></header><div className="rank-list">{ranked.slice(0, 5).map((student, index) => <div key={student.id}><i>{index + 1}</i><span><b>{student.name || "—"}</b><small>{student.class || "بدون فصل"}</small></span><strong>{student.total}%</strong></div>)}{!ranked.length && <p>لا توجد بيانات في هذا النطاق.</p>}</div></article>
       <article className="follow-card support-card"><header><div><small>تدخل مبكر</small><h2>الطلاب الأكثر حاجة للدعم</h2><p>الأقل نتيجة أولًا لاتخاذ الإجراء سريعًا.</p></div><b className="rank-icon">!</b></header><div className="rank-list">{struggling.slice(0, 5).map((student, index) => <div key={student.id}><i>{index + 1}</i><span><b>{student.name || "—"}</b><small>{student.class || "بدون فصل"}</small></span><strong>{student.total}%</strong></div>)}{!struggling.length && <p>لا يوجد طلاب تحت معيار الإتقان.</p>}</div></article></section>

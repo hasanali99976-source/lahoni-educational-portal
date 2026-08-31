@@ -19,6 +19,7 @@ type Student = {
   active?: boolean;
   rosterActive?: boolean;
 };
+type SchoolClass = { id: string; name: string; grade?: number; section?: string };
 type Result = {
   id: string;
   diagnosticId: string;
@@ -154,17 +155,21 @@ export default function DiagnosticResults({
   teacherId,
   subjectKey,
   subjectName,
+  activeGrade,
   diagnostics,
   diagnosticsLoaded,
 }: {
   teacherId: string;
   subjectKey: SubjectKey;
   subjectName: string;
+  activeGrade: number | null;
   diagnostics: Diagnostic[];
   diagnosticsLoaded: boolean;
 }) {
   const [results, setResults] = useState<Result[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [scopeClasses, setScopeClasses] = useState<SchoolClass[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
   const [testId, setTestId] = useState("");
   const [className, setClassName] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -174,29 +179,50 @@ export default function DiagnosticResults({
   const [aiLoading, setAiLoading] = useState(false);
   const [message, setMessage] = useState("");
   const resultsPath = tenantCollection(teacherId, subjectKey, "diagnosticResults");
-  const studentsPath = tenantCollection(teacherId, subjectKey, "students");
+
+  useEffect(() => onSnapshot(collection(db, resultsPath), snapshot => {
+    setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
+  }), [resultsPath]);
 
   useEffect(() => {
-    const stopResults = onSnapshot(collection(db, resultsPath), snapshot => {
-      setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
-    });
-    const stopStudents = onSnapshot(collection(db, studentsPath), snapshot => {
-      setStudents(snapshot.docs
-        .map(item => ({ id: item.id, ...(item.data() as Omit<Student, "id">) }))
-        .filter(student => student.active !== false && student.rosterActive !== false));
-    });
-    return () => { stopResults(); stopStudents(); };
-  }, [resultsPath, studentsPath]);
+    if (!teacherId || !subjectKey || !activeGrade) {
+      setStudents([]);
+      setScopeClasses([]);
+      return;
+    }
+    const controller = new AbortController();
+    const params = new URLSearchParams({ subjectId: subjectKey, grade: String(activeGrade) });
+    setRosterLoading(true);
+    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "تعذر تحميل الفصول المحددة.");
+        setStudents((Array.isArray(data.students) ? data.students : []).map((student: Student) => ({
+          ...student,
+          class: student.className || student.class || "",
+        })));
+        setScopeClasses(Array.isArray(data.classes) ? data.classes : []);
+      })
+      .catch(error => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setStudents([]);
+        setScopeClasses([]);
+        setMessage(error instanceof Error ? error.message : "تعذر تحميل الفصول المحددة.");
+      })
+      .finally(() => setRosterLoading(false));
+    return () => controller.abort();
+  }, [teacherId, subjectKey, activeGrade]);
 
-  const classes = useMemo(() => [...new Set(students.map(classOf).filter(Boolean))]
-    .sort((a, b) => classOrder(a) - classOrder(b) || a.localeCompare(b, "ar", { numeric: true })), [students]);
+  const classes = useMemo(() => [...new Set(scopeClasses.map(item => classKey(item.name)).filter(Boolean))]
+    .sort((a, b) => classOrder(a) - classOrder(b) || a.localeCompare(b, "ar", { numeric: true })), [scopeClasses]);
 
   useEffect(() => {
     if (diagnostics.length && !diagnostics.some(item => item.id === testId)) setTestId(diagnostics[0].id);
   }, [diagnostics, testId]);
 
   useEffect(() => {
-    if (classes.length && !classes.includes(className)) setClassName(classes[0]);
+    if (!classes.length) { setClassName(""); return; }
+    if (!classes.includes(className)) setClassName(classes[0]);
   }, [classes, className]);
 
   const studentByAlias = useMemo(() => {
@@ -365,6 +391,7 @@ export default function DiagnosticResults({
     </div>
 
     {!diagnosticsLoaded ? <p className="diag-empty">جارٍ تحميل الاختبارات الحالية…</p> : !diagnostics.length ? <p className="diag-empty">لا توجد اختبارات تشخيصية منشأة حتى الآن.</p> : null}
+    {rosterLoading ? <p className="diag-empty">جارٍ تحميل الفصول المحددة من إدارة الفصول…</p> : !classes.length ? <p className="diag-empty">لا توجد فصول محددة لهذه المادة. افتح «إدارة الطلاب ← إدارة فصولي» وحدد الفصول أولًا.</p> : null}
 
     <div className="diag-list-tools diag-list-tools-first">
       <label>البحث عن طالب<input value={searchName} onChange={event => setSearchName(event.target.value)} placeholder="اكتب اسم الطالب" /></label>
