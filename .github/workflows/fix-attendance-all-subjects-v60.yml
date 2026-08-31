@@ -1,0 +1,62 @@
+name: Fix all subject attendance sync v60
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-attendance-all-subjects-v60.yml'
+      - '.github/scripts/fix_attendance_all_subjects_v60.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply all-subject attendance sync
+        run: python3 .github/scripts/fix_attendance_all_subjects_v60.py
+
+      - name: Verify attendance behavior
+        run: |
+          grep -q 'timetable_with_manual_overrides' app/api/student/profile/route.ts
+          grep -q 'automaticPresent' app/api/student/profile/route.ts
+          grep -q 'queueCloudAttendanceSync' app/teacher/attendance/page.tsx
+          grep -q 'manualEditedAt' app/teacher/attendance/page.tsx
+          grep -q '30_000' app/student/page.tsx
+          grep -q 'ostadh-lahooni-v60-all-subject-attendance' public/sw.js
+          grep -q '60-all-subject-attendance' app/pwa-register.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified attendance sync
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/api/student/profile/route.ts app/teacher/attendance/page.tsx app/student/page.tsx public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'ربط حضور كل المواد تلقائيًا وتحديث بوابة الطالب'
+            git push origin main
+          fi
