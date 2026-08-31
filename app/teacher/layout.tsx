@@ -17,6 +17,7 @@ import "./teacher-v3.css";
 import "./teacher-navigation-v4.css";
 import "./subject-themes-v5.css";
 import "./mobile-card-tables.css";
+import "./teacher-mobile-ux-v6.css";
 
 const tabs = [
   { href: "/teacher/dashboard", key: "dashboard", label: "الرئيسية", note: "ملخص الأداء" },
@@ -169,6 +170,13 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         <section className="teacher-welcome-strip"><div className="teacher-welcome-copy"><span className="teacher-welcome-badge">مساحة {subjectConfig.label}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</span><h2>أهلًا أستاذ {teacherName}</h2><p>أدواتك التعليمية مرتبة في قائمة واحدة واضحة.</p></div><Link className="teacher-ai-quick" href="/teacher/ai"><span>AI</span><div><b>المساعد التعليمي الذكي</b><small>تحليل النتائج والخطط العلاجية</small></div></Link></section>
         <div className="teacher-page-content">{children}</div>
       </main>
-    </div>
-  </TeacherClientContext.Provider>;
+    <nav className="teacher-mobile-command-bar" aria-label="الأوامر السريعة للمعلم">
+      {tabs.filter(tab => ["dashboard", "students", "attendance", "grades", "diagnostics"].includes(tab.key)).map(tab => {
+        const active = pathname.startsWith(tab.href);
+        return <Link key={`mobile-${tab.href}`} href={tab.href} className={active ? "active" : ""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>;
+      })}
+      <button type="button" onClick={() => setMenuOpen(true)} aria-label="عرض جميع أوامر بوابة المعلم"><i><b/><b/><b/><b/></i><span>كل الأوامر</span></button>
+    </nav>
+  </div>
+</TeacherClientContext.Provider>;
 }
