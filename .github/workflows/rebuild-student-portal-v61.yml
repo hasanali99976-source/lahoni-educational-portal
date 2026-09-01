@@ -1,0 +1,69 @@
+name: Rebuild student portal v61
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rebuild-student-portal-v61.yml'
+      - '.github/scripts/rebuild-student-portal-v61.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply student portal redesign
+        run: python3 .github/scripts/rebuild-student-portal-v61.py
+
+      - name: Verify UI-only scope
+        run: |
+          test -f app/student/student-lite-v61.css
+          grep -q 'type StudentTab = "home" | "grades" | "tests" | "more" | "plan" | "ai"' app/student/page.tsx
+          grep -q 'تقرير الطالب PDF' app/student/page.tsx
+          grep -q 'student-print-report' app/student/page.tsx
+          grep -q 'student-lite-v61.css' app/student/layout.tsx
+          grep -q 'repeat(4,minmax(0,1fr))' app/student/student-lite-v61.css
+          grep -q 'ostadh-lahooni-v61-student-lite' public/sw.js
+          git diff --exit-code -- app/api lib firebase.json firestore.rules || true
+          CHANGED="$(git diff --name-only)"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -E '^(app/api/|lib/|firebase\.json|firestore\.rules)'; then
+            echo 'Protected data or API files changed unexpectedly'
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified redesign
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/page.tsx app/student/layout.tsx app/student/student-lite-v61.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'تبسيط بوابة الطالب للجوال وتحسين تقرير الطباعة'
+            git push origin main
+          fi
