@@ -20,6 +20,7 @@ import "./mobile-card-tables.css";
 import "./teacher-mobile-ux-v6.css";
 import "./teacher-daily-v70.css";
 import "./teacher-professional-v71.css";
+import "./attendance-professional-v71.css";
 
 type TeacherTab = {
   href: string;
