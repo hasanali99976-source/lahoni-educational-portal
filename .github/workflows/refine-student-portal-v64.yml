@@ -1,0 +1,69 @@
+name: Refine student portal report and tabs v64
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refine-student-portal-v64.yml'
+      - '.github/scripts/refine_student_portal_v64.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refine-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply student portal refinements
+        run: python3 .github/scripts/refine_student_portal_v64.py
+
+      - name: Verify UI-only scope and requested behavior
+        run: |
+          grep -q 'label: "ملخصي"' app/student/page.tsx
+          grep -q 'label: "حضوري"' app/student/page.tsx
+          grep -q 'label: "مساعدي"' app/student/page.tsx
+          grep -q 'knowledge-print-quick' app/student/page.tsx
+          grep -q 'تقرير التحصيل العلمي والمتابعة' app/student/page.tsx
+          grep -q 'خطة الطالب المقترحة' app/student/page.tsx
+          grep -q 'return null' app/student/student-keyboard-scroll.tsx
+          ! grep -q 'student-scroll-controller' app/student/student-keyboard-scroll.tsx
+          grep -q 'student-refine-v64.css' app/student/layout.tsx
+          grep -q 'body \*{visibility:hidden' app/student/student-refine-v64.css
+          grep -q 'ostadh-lahooni-v64-student-report-tabs' public/sw.js
+          grep -q '64-student-report-tabs' app/pwa-register.tsx
+          ! grep -q 'البوابة الرئيسية' app/student/page.tsx
+          git diff --exit-code -- app/api lib firestore.rules android-app
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified refinements
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/page.tsx app/student/layout.tsx app/student/student-keyboard-scroll.tsx app/student/student-refine-v64.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'تنسيق تبويبات الطالب وإظهار تقرير الطباعة التفصيلي'
+            git push origin main
+          fi
