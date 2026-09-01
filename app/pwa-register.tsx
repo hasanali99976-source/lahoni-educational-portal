@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v73-attendance-realtime";
-const RELOAD_KEY = "ostadh-lahooni-v73-attendance-realtime-reloaded";
+const CURRENT_CACHE = "ostadh-lahooni-v74-attendance-range-pdf";
+const RELOAD_KEY = "ostadh-lahooni-v74-attendance-range-pdf-reloaded";
 
 export default function PwaRegister() {
   useEffect(() => {
