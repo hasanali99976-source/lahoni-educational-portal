@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
@@ -46,6 +46,7 @@ type TimetableLesson = { className?: string };
 const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
 const ATTENDANCE_START_DATE = "2026-08-23";
 const ATTENDANCE_START_LABEL = "الأحد 23/8/2026";
+const SCHOOL_DAY_END_HOUR = 15;
 const TIMETABLE_DAY_INDEX = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4 } as const;
 const STATUS_LABELS: Record<AttendanceStatus, string> = {
   present: "حاضر",
@@ -56,12 +57,27 @@ const STATUS_LABELS: Record<AttendanceStatus, string> = {
 };
 
 function toDateInput(date: Date) {
-  const offset = date.getTimezoneOffset();
-  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Riyadh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function attendanceToday() {
   return toDateInput(new Date());
+}
+
+function riyadhHour(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Riyadh",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  return Number(parts.find(part => part.type === "hour")?.value || 0);
 }
 
 function isFutureAttendanceDate(value: string) {
@@ -208,9 +224,9 @@ export default function AttendancePage() {
   const [deleting, setDeleting] = useState(false);
   const [hasSavedRecord, setHasSavedRecord] = useState(false);
   const [reporting, setReporting] = useState(false);
-  const loadSequence = useRef(0);
   const autoFillKeyRef = useRef("");
   const cloudSyncTimerRef = useRef<number | null>(null);
+  const [clockTick, setClockTick] = useState(0);
 
   const attendancePath = useMemo(
     () => (teacherId ? tenantCollection(teacherId, subjectKey, "attendance") : ""),
@@ -219,6 +235,11 @@ export default function AttendancePage() {
 
   useEffect(() => () => {
     if (cloudSyncTimerRef.current !== null) window.clearTimeout(cloudSyncTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockTick(value => value + 1), 60_000);
+    return () => window.clearInterval(timer);
   }, []);
   const assignmentScoped = useMemo(
     () => hasDetailedAssignments(assignments, subjectKey),
@@ -365,16 +386,24 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (!ready || !teacherId || !attendancePath || !students.length || !Object.keys(timetableLessons).length) return;
-    const today = toDateInput(new Date());
-    const runKey = `${teacherId}:${subjectKey}:${today}:${students.length}:${Object.keys(timetableLessons).length}`;
+    const today = attendanceToday();
+    const lastCompletedDate = riyadhHour() >= SCHOOL_DAY_END_HOUR
+      ? today
+      : toDateInput(new Date(`${today}T12:00:00+03:00`));
+    const completedDate = riyadhHour() >= SCHOOL_DAY_END_HOUR
+      ? lastCompletedDate
+      : (() => {
+          const value = new Date(`${today}T12:00:00+03:00`);
+          value.setDate(value.getDate() - 1);
+          return toDateInput(value);
+        })();
+    const runKey = `${teacherId}:${subjectKey}:${completedDate}:${students.length}:${Object.keys(timetableLessons).length}`;
     if (autoFillKeyRef.current === runKey) return;
     autoFillKeyRef.current = runKey;
     let active = true;
 
     async function autoSaveMissedScheduledDays() {
-      const end = new Date(`${today}T12:00:00`);
-      end.setDate(end.getDate() - 1);
-      const endDate = toDateInput(end);
+      const endDate = completedDate;
       if (endDate < ATTENDANCE_START_DATE) return;
 
       const rosterByClass = new Map<string, UnifiedStudent[]>();
@@ -469,7 +498,7 @@ export default function AttendancePage() {
 
     void autoSaveMissedScheduledDays();
     return () => { active = false; };
-  }, [ready, teacherId, teacherName, subjectKey, subject, attendancePath, students, timetableLessons]);
+  }, [ready, teacherId, teacherName, subjectKey, subject, attendancePath, students, timetableLessons, clockTick]);
 
   const classStudents = useMemo(
     () => students.filter(student => (normalizeClass(student.class) || clean(student.class)) === selectedClass),
@@ -485,42 +514,55 @@ export default function AttendancePage() {
   }, [classes, selectedClass]);
 
   useEffect(() => {
-    const sequence = ++loadSequence.current;
-    async function load() {
-      if (!selectedClass || !attendancePath) {
-        setRecords({});
-        setHasSavedRecord(false);
-        return;
-      }
-      if (selectedDate < ATTENDANCE_START_DATE) {
-        setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));
-        setHasSavedRecord(false);
-        return;
-      }
-      const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
-      const local = readRecords(key) || readRecords(legacyAttendanceKey(teacherId, subjectKey, selectedClass, selectedDate));
-      if (local) {
-        if (sequence === loadSequence.current) {
-          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), local[studentCode(student)] || "present"])));
-          setHasSavedRecord(true);
-        }
-        return;
-      }
-      try {
-        const snapshot = await withTimeout(getDoc(doc(db, attendancePath, `${safeId(selectedClass)}_${selectedDate}`)), 4000);
-        const saved = (snapshot.data()?.records || {}) as Record<string, AttendanceStatus>;
-        if (sequence === loadSequence.current) {
-          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])));
-          setHasSavedRecord(snapshot.exists());
-        }
-      } catch {
-        if (sequence === loadSequence.current) {
-          setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), "present"])));
-          setHasSavedRecord(false);
-        }
-      }
+    if (!selectedClass || !attendancePath) {
+      setRecords({});
+      setHasSavedRecord(false);
+      return;
     }
-    void load();
+    const defaults = Object.fromEntries(classStudents.map(student => [studentCode(student), "present" as AttendanceStatus]));
+    if (selectedDate < ATTENDANCE_START_DATE) {
+      setRecords(defaults);
+      setHasSavedRecord(false);
+      return;
+    }
+
+    const key = attendanceKey(teacherId, subjectKey, selectedClass, selectedDate);
+    const documentId = `${safeId(selectedClass)}_${selectedDate}`;
+    const applyLocalFallback = () => {
+      const local = readRecords(key) || readRecords(legacyAttendanceKey(teacherId, subjectKey, selectedClass, selectedDate));
+      if (local && !localStorage.getItem(attendanceDeletedKey(teacherId, subjectKey, selectedClass, selectedDate))) {
+        setRecords(Object.fromEntries(classStudents.map(student => [studentCode(student), local[studentCode(student)] || "present"])));
+        setHasSavedRecord(true);
+      } else {
+        setRecords(defaults);
+        setHasSavedRecord(false);
+      }
+    };
+    applyLocalFallback();
+
+    const unsubscribe = onSnapshot(
+      doc(db, attendancePath, documentId),
+      snapshot => {
+        if (!snapshot.exists()) {
+          applyLocalFallback();
+          return;
+        }
+        const data = snapshot.data() as AttendanceDocument;
+        const saved = data.records || {};
+        const next = Object.fromEntries(classStudents.map(student => [studentCode(student), saved[studentCode(student)] || saved[student.id] || "present"])) as Record<string, AttendanceStatus>;
+        setRecords(next);
+        setHasSavedRecord(true);
+        localStorage.setItem(key, JSON.stringify(next));
+        localStorage.setItem(`${key}:details`, JSON.stringify(data));
+        const index = readAttendanceIndex(teacherId, subjectKey);
+        index[documentId] = data;
+        localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));
+        localStorage.removeItem(attendanceDeletedKey(teacherId, subjectKey, selectedClass, selectedDate));
+      },
+      () => applyLocalFallback(),
+    );
+
+    return unsubscribe;
   }, [selectedClass, selectedDate, classStudents, attendancePath, teacherId, subjectKey]);
 
   const counts = useMemo(() => {
@@ -552,6 +594,7 @@ export default function AttendancePage() {
     localStorage.setItem(attendanceIndexKey(teacherId, subjectKey), JSON.stringify(index));
     localStorage.removeItem(attendanceDeletedKey(teacherId, subjectKey, selectedClass, selectedDate));
     setHasSavedRecord(true);
+    window.dispatchEvent(new CustomEvent("lahooni:attendance-updated", { detail: payload }));
   }
 
   function queueCloudAttendanceSync(nextRecords: Record<string, AttendanceStatus>) {
@@ -582,7 +625,7 @@ export default function AttendancePage() {
           },
           { merge: true },
         ), 5000);
-        setMessage("تم تحديث حالة الطالب في بوابة الطالب");
+        setMessage("تمت مزامنة التعديل فورًا في التطبيق والويب وبوابة الطالب");
       } catch {
         setMessage("تم حفظ التعديل على الجهاز، وستتم مزامنته عند الضغط على حفظ التحضير أو عودة الاتصال");
       }
@@ -615,7 +658,7 @@ export default function AttendancePage() {
     setRecords(next);
     persistLocal(next);
     queueCloudAttendanceSync(next);
-    setMessage("تم الحفظ مباشرة وجارٍ تحديث بوابة الطالب");
+    setMessage("تم الحفظ مباشرة وجارٍ توحيد التعديل في التطبيق والويب وبوابة الطالب");
   }
 
   function moveDay(amount: number) {
@@ -655,7 +698,7 @@ export default function AttendancePage() {
         },
         { merge: true },
       ), 4000);
-      setMessage("تم حفظ التحضير ومزامنته بنجاح");
+      setMessage("تم حفظ التحضير ومزامنته في التطبيق والويب وبوابة الطالب");
     } catch {
       setMessage("تم حفظ التحضير بنجاح على الجهاز، وستتم المزامنة عند توفر الاتصال");
     } finally {
@@ -841,19 +884,19 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
           <span className="attendance-eyebrow">بوابة تحضير الطلاب</span>
           <h1>التحضير اليومي — {subject}</h1>
           <p>سجّل حالة كل طالب بلمسة واحدة. يبدأ احتساب التحضير رسميًا من {ATTENDANCE_START_LABEL}، وكل تغيير يُحفظ مباشرة ثم يُزامن سحابيًا.</p>
-          <div className="attendance-hero-badges"><span>حفظ فوري</span><span>مرتبط بالجدول</span><span>تعويض تلقائي للأيام الفائتة</span><span>تقارير جاهزة</span></div>
+          <div className="attendance-hero-badges"><span>مزامنة لحظية بين التطبيق والويب</span><span>مرتبط بالجدول</span><span>تحضير تلقائي بعد نهاية اليوم</span><span>تقارير جاهزة</span></div>
         </div>
         <div className="hijri-card">
           <small>اليوم الدراسي</small>
           <strong>{formatHijri(selectedDate)}</strong>
-          <div className="attendance-day-nav"><button type="button" onClick={() => moveDay(-1)} aria-label="اليوم السابق">السابق</button><button type="button" className="today" onClick={() => setSelectedDate(clampAttendanceDate(toDateInput(new Date())))}>اليوم</button><button type="button" onClick={() => moveDay(1)} aria-label="اليوم التالي">التالي</button></div>
+          <div className="attendance-day-nav"><button type="button" onClick={() => moveDay(-1)} aria-label="اليوم السابق">السابق</button><button type="button" className="today" onClick={() => setSelectedDate(attendanceToday())}>اليوم</button><button type="button" onClick={() => moveDay(1)} aria-label="اليوم التالي">التالي</button></div>
         </div>
       </header>
 
       <section className="attendance-setup-panel">
         <div className="attendance-primary-controls">
           <label><span>الفصل</span><select data-attendance-class-select="true" value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select></label>
-          <label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" min={ATTENDANCE_START_DATE} value={selectedDate} onChange={event => setSelectedDate(clampAttendanceDate(event.target.value))}/><small className="attendance-start-note">البداية المعتمدة: {ATTENDANCE_START_LABEL}</small></label>
+          <label><span>تاريخ التحضير</span><input data-attendance-date-input="true" type="date" min={ATTENDANCE_START_DATE} max={attendanceToday()} value={selectedDate} onChange={event => setSelectedDate(clampAttendanceDate(event.target.value))}/><small className="attendance-start-note">البداية المعتمدة: {ATTENDANCE_START_LABEL}</small></label>
         </div>
         <div className="attendance-main-actions">
           <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>

@@ -144,7 +144,7 @@ export default function StudentPage() {
     let lastRefresh = 0;
 
     const refresh = async (force = false) => {
-      if (inFlight || (!force && Date.now() - lastRefresh < 25_000)) return;
+      if (inFlight || (!force && Date.now() - lastRefresh < 7_000)) return;
       inFlight = true;
       try {
         const response = await fetch("/api/student/profile", {
@@ -175,7 +175,7 @@ export default function StudentPage() {
         refreshTimer = null;
         if (document.visibilityState === "visible") await refresh();
         scheduleRefresh();
-      }, 30_000);
+      }, 10_000);
     };
 
     void refresh(true);

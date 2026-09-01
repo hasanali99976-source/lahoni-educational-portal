@@ -30,8 +30,14 @@ const DAY_LABEL: Record<number, string> = {
 };
 
 function dateInput(date: Date) {
-  const offset = date.getTimezoneOffset();
-  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Riyadh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function dateObject(value: string) {
@@ -301,7 +307,7 @@ export default function AttendanceScheduleGuard() {
     if (!value) return;
     const today = dateInput(new Date());
     if (value > today) {
-      setNotice("يفتح تحضير هذا اليوم عند الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
+      setNotice("تحضير الغد مقفول حتى الساعة 12:00 منتصف الليل بتوقيت الرياض.");
       return;
     }
     programmatic.current = true;
@@ -337,7 +343,7 @@ export default function AttendanceScheduleGuard() {
         const value = controls.dateInput.value;
         const today = dateInput(new Date());
         if (value > today) {
-          setAllowedDate(today, "لا يفتح تحضير اليوم قبل الساعة 12:00 منتصف الليل مع بداية اليوم نفسه.");
+          setAllowedDate(today, "تحضير الغد مقفول حتى الساعة 12:00 منتصف الليل بتوقيت الرياض.");
           return;
         }
         setSelectedDate(value);
