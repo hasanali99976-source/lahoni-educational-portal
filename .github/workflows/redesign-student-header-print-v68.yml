@@ -1,0 +1,63 @@
+name: Redesign student header and print v68
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/redesign_student_header_print_v68.py'
+      - '.github/workflows/redesign-student-header-print-v68.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  redesign-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply v68 redesign
+        run: python3 .github/scripts/redesign_student_header_print_v68.py
+
+      - name: Verify student UI only and SVG report
+        run: |
+          grep -q 'knowledge-score-pill' app/student/page.tsx
+          grep -q 'knowledge-compact-actions' app/student/page.tsx
+          grep -q 'print-gauge-svg' app/student/page.tsx
+          grep -q 'print-bars-svg' app/student/page.tsx
+          grep -q 'student-dashboard-v68.css' app/student/layout.tsx
+          grep -q 'ostadh-lahooni-v68-student-dashboard-svg' public/sw.js
+          grep -q '68-student-dashboard-svg' app/pwa-register.tsx
+          git diff --exit-code -- app/api lib firestore.rules android-app
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified v68
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/page.tsx app/student/layout.tsx app/student/student-dashboard-v68.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'ضغط رأس بوابة الطالب وإضافة رسوم SVG وتحليل واضح للطباعة'
+            git push origin main
+          fi
