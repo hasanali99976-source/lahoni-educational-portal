@@ -1,0 +1,62 @@
+name: Adjust student tabs and print clarity v69
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/adjust_student_tabs_print_v69.py'
+      - '.github/workflows/adjust-student-tabs-print-v69.yml'
+      - 'app/student/student-clarity-v69.css'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  adjust-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply v69 clarity tuning
+        run: python3 .github/scripts/adjust_student_tabs_print_v69.py
+
+      - name: Verify UI-only scope
+        run: |
+          grep -q 'student-clarity-v69.css' app/student/layout.tsx
+          grep -q 'min-height:56px' app/student/student-clarity-v69.css
+          grep -q 'font-size:22px' app/student/student-clarity-v69.css
+          grep -q 'ostadh-lahooni-v69-student-tabs-print-clarity' public/sw.js
+          grep -q '69-student-tabs-print-clarity' app/pwa-register.tsx
+          git diff --exit-code -- app/api lib firestore.rules android-app
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified v69
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/layout.tsx app/student/student-clarity-v69.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'تكبير متوازن لتبويبات الطالب وتوضيح أرقام التقرير'
+            git push origin main
+          fi
