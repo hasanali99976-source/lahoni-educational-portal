@@ -36,11 +36,12 @@ import java.io.OutputStream;
 
 public class MainActivity extends Activity {
     private static final String HOME_URL = "https://tahdheeb-history.vercel.app/";
-    private static final String APP_VERSION = "1.6.0";
+    private static final String APP_VERSION = "1.7.0";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
     private ToneGenerator introTone;
+    private long lastRefreshAt = 0L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +100,7 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 String bridgeScript = "(function(){" +
                     "window.__OSTADH_ANDROID__=true;" +
-                    "var cacheKey='ostadh-clean-1.6.0';" +
+                    "var cacheKey='ostadh-clean-1.7.0';" +
                     "if(!sessionStorage.getItem(cacheKey)){sessionStorage.setItem(cacheKey,'1');var jobs=[];" +
                     "if('serviceWorker' in navigator){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}" +
                     "if(window.caches){jobs.push(caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}));}" +
@@ -111,12 +112,13 @@ public class MainActivity extends Activity {
                     "navigator.share=function(data){window.ostadhNativeShare((data&&data.title)||'',(data&&data.text)||'',(data&&data.url)||location.href);return Promise.resolve();};" +
                     "if(navigator.clipboard){var oldWrite=navigator.clipboard.writeText.bind(navigator.clipboard);navigator.clipboard.writeText=function(text){try{window.ostadhNativeCopy(text);return Promise.resolve();}catch(e){return oldWrite(text);}};}" +
                     "document.addEventListener('click',function(e){var button=e.target.closest('button,a');if(!button)return;var text=(button.innerText||button.textContent||'').trim();var h=button.href||'';" +
-                    "if(button.classList.contains('print-sheet-button')||button.dataset.nativePrint==='true'||text.indexOf('طباعة')>-1){e.preventDefault();e.stopImmediatePropagation();window.ostadhNativePrint(document.title||'كشف أستاذ لحوني');return;}" +
+                    "if(button.dataset.webPdf!=='true'&&(button.classList.contains('print-sheet-button')||button.dataset.nativePrint==='true'||text.indexOf('طباعة')>-1)){e.preventDefault();e.stopImmediatePropagation();window.ostadhNativePrint(document.title||'كشف أستاذ لحوني');return;}" +
                     "if(button.dataset.nativeShare==='true'||text.indexOf('مشاركة')>-1||text.indexOf('إرسال')>-1){if(!h||h.indexOf('wa.me/')<0){e.preventDefault();window.ostadhNativeShare(document.title,text,location.href);return;}}" +
                     "if(button.dataset.copyLink==='true'||text.indexOf('نسخ الرابط')>-1){e.preventDefault();window.ostadhNativeCopy(h||location.href);return;}" +
                     "if(h.indexOf('wa.me/')>-1||h.indexOf('whatsapp:')===0||h.indexOf('mailto:')===0||h.indexOf('tel:')===0||h.indexOf('sms:')===0){e.preventDefault();OstadhApp.openUrl(h);return;}" +
                     "if(button.hasAttribute('download')&&h&&h.indexOf('blob:')!==0){e.preventDefault();OstadhApp.openUrl(h);return;}" +
                     "},true);})();";
+                lastRefreshAt = System.currentTimeMillis();
                 view.evaluateJavascript(bridgeScript, null);
             }
         });
@@ -243,6 +245,15 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override protected void onResume() {
+        super.onResume();
+        if (webView == null) return;
+        long now = System.currentTimeMillis();
+        if (lastRefreshAt > 0L && now - lastRefreshAt > 5 * 60 * 1000L) {
+            lastRefreshAt = now;
+            webView.reload();
+        }
+    }
     @Override protected void onSaveInstanceState(Bundle outState) { webView.saveState(outState); super.onSaveInstanceState(outState); }
     @Override protected void onDestroy() { if (introTone != null) { introTone.release(); introTone = null; } if (webView != null) { webView.removeJavascriptInterface("OstadhApp"); webView.destroy(); } super.onDestroy(); }
     @Override public void onBackPressed() { if (webView != null && webView.canGoBack()) webView.goBack(); else super.onBackPressed(); }

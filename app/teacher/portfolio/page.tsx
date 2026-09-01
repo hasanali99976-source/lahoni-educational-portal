@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { getSubjectConfig } from "../../../lib/subject-config";
@@ -36,6 +36,7 @@ type PortfolioForm = {
   signatureName: string;
   publicShareUrl: string;
   evidence: Evidence[];
+  updatedAt?: string;
 };
 
 type AchievementDraft = {
@@ -203,11 +204,23 @@ function smartDetails(title: string, category: string, description: string) {
   };
 }
 
-function mergeEvidence(cloud: Evidence[], local: Evidence[]) {
-  const map = new Map<string, Evidence>();
-  cloud.forEach((item, index) => map.set(item.id, normalizeEvidence(item, index)));
-  local.forEach((item, index) => map.set(item.id, normalizeEvidence(item, index)));
-  return Array.from(map.values());
+function mergeCloudWithDeviceFiles(cloud: Evidence[], local: Evidence[]) {
+  const localFiles = new Map(
+    local
+      .filter((item) => item.id && item.fileData)
+      .map((item) => [item.id, { fileData: item.fileData, fileName: item.fileName }] as const),
+  );
+  return cloud.map((item, index) => {
+    const normalized = normalizeEvidence(item, index);
+    const cachedFile = localFiles.get(normalized.id);
+    return cachedFile
+      ? {
+          ...normalized,
+          fileData: cachedFile.fileData,
+          fileName: normalized.fileName || cachedFile.fileName,
+        }
+      : normalized;
+  });
 }
 
 function formatDate(value: string) {
@@ -301,7 +314,6 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     if (!teacherId || !localKey) return;
-    let cancelled = false;
     let localForm: PortfolioForm | null = null;
     const local = localStorage.getItem(localKey);
     if (local) {
@@ -310,33 +322,33 @@ export default function PortfolioPage() {
         setForm(localForm);
       } catch {}
     }
-    const loadCloud = async () => {
-      try {
-        const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
-        const snap = await getDoc(ref);
-        if (cancelled) return;
+
+    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
         if (snap.exists()) {
           const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
-          const next = localForm
-            ? {
-                ...cloudForm,
-                ...localForm,
-                evidence: mergeEvidence(cloudForm.evidence, localForm.evidence),
-              }
-            : cloudForm;
+          const next: PortfolioForm = {
+            ...cloudForm,
+            evidence: mergeCloudWithDeviceFiles(cloudForm.evidence, localForm?.evidence || []),
+          };
           setForm(next);
           saveLocal(localKey, next);
+          localForm = next;
+        } else if (localForm) {
+          setForm(localForm);
         }
-      } catch {
-        if (!localForm) setMessage("ملف الإنجاز يعمل على هذا الجهاز، وستعود المزامنة عند توفر الخدمة.");
-      } finally {
-        if (!cancelled) setLoaded(true);
-      }
-    };
-    void loadCloud();
-    return () => {
-      cancelled = true;
-    };
+        setLoaded(true);
+      },
+      () => {
+        if (localForm) setForm(localForm);
+        else setMessage("تعذر الاتصال مؤقتًا. سيعود ملف الإنجاز للمزامنة تلقائيًا عند توفر الشبكة.");
+        setLoaded(true);
+      },
+    );
+
+    return unsubscribe;
   }, [teacherId, subjectKey, localKey]);
 
   useEffect(() => {
@@ -399,9 +411,10 @@ export default function PortfolioPage() {
   async function persist(next: PortfolioForm, successMessage: string) {
     if (!teacherId || !localKey) return;
     setSaving(true);
-    const fullCopySaved = saveLocal(localKey, next);
-    setForm(next);
-    const cloudEvidence = next.evidence.slice(0, 40).map((item) => ({
+    const syncedNext: PortfolioForm = { ...next, updatedAt: new Date().toISOString() };
+    const fullCopySaved = saveLocal(localKey, syncedNext);
+    setForm(syncedNext);
+    const cloudEvidence = syncedNext.evidence.slice(0, 40).map((item) => ({
       ...item,
       fileData: "",
     }));
@@ -409,18 +422,17 @@ export default function PortfolioPage() {
       await withTimeout(setDoc(
         doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile"),
         {
-          ...next,
+          ...syncedNext,
           evidence: cloudEvidence,
           teacherId,
           teacherName: session?.teacherName || "",
           subjectKey,
-          updatedAt: new Date().toISOString(),
         },
         { merge: true },
       ));
-      setMessage(`${successMessage} وحُفظت النسخة السحابية.${fullCopySaved ? "" : " لم تُحفظ صورة الشاهد على الجهاز لضيق مساحة المتصفح؛ احتفظ بالرابط الأصلي."}`);
+      setMessage(`${successMessage} وتمت مزامنته فورًا بين الويب والتطبيق.${fullCopySaved ? "" : " لم تُحفظ صورة الشاهد على الجهاز لضيق المساحة؛ احتفظ بالرابط الأصلي."}`);
     } catch {
-      setMessage(`${successMessage}${fullCopySaved ? " وحُفظت على هذا الجهاز" : "، لكن مساحة المتصفح لم تكفِ لحفظ صورة الشاهد"}، وستُزامن البيانات النصية عند توفر الخدمة.`);
+      setMessage(`${successMessage}${fullCopySaved ? " وحُفظ مؤقتًا على هذا الجهاز" : "، لكن مساحة الجهاز لم تكفِ لحفظ صورة الشاهد"}. ستعود المزامنة تلقائيًا عند توفر الشبكة.`);
     } finally {
       setSaving(false);
     }
@@ -643,9 +655,9 @@ export default function PortfolioPage() {
           <h1>أضف الإنجاز فقط… والبوابة تبني الملف كاملًا</h1>
           <p>غلاف، فهرس، تصنيف، صياغة مهنية، أثر، شواهد، تأمل وخطة تطوير؛ كلها تتكوّن تلقائيًا من إنجازاتك.</p>
           <div className="portfolio-status-row">
-            <span>حفظ تلقائي على الجهاز</span>
+            <span>مزامنة فورية بين التطبيق والويب</span>
             <span>ترتيب ذكي للإنجازات</span>
-            <span>نسخة A4 كاملة</span>
+            <span>كل صفحة على ورقة A4 واحدة</span>
           </div>
         </div>
         <div className="portfolio-hero-score">
@@ -809,7 +821,7 @@ export default function PortfolioPage() {
           </div>
           <div>
             <button type="button" className="preview-back" onClick={() => setPreviewOpen(false)}>العودة والتعديل</button>
-            <button type="button" className="preview-print" onClick={printPortfolio} disabled={exportingPdf}>
+            <button type="button" className="preview-print" data-web-pdf="true" onClick={printPortfolio} disabled={exportingPdf}>
               {exportingPdf ? "جارٍ إنشاء ملف PDF..." : "تنزيل ملف PDF النهائي"}
             </button>
           </div>
