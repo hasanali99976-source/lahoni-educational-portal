@@ -237,10 +237,17 @@ export default function StudentPage() {
   }
 
   return <main className={`student-clean student-theme-${selected.subjectKey} student-portal-v2`} data-subject={selected.subjectKey} dir="rtl">
-    <header className="student-clean-head student-identity-head">
-      <div><span>{selected.icon} {selected.subjectLabel}</span><h1>{selected.data.name || "الطالب"}</h1><p><b>{classLabel}</b> • {selected.teacherName}</p></div>
-      <div className="student-head-actions">
-        <button type="button" data-student-action="subjects" className="ghost" onClick={showStudentSubjects}>تغيير المادة</button>
+    <header className="student-clean-head student-identity-head student-premium-head">
+      <div className="student-identity-copy">
+        <small className="student-portal-kicker">بوابة أستاذ لحوني التعليمية</small>
+        <span className="student-subject-pill">{selected.icon} {selected.subjectLabel}</span>
+        <h1>{selected.data.name || "الطالب"}</h1>
+        <p><b>{classLabel}</b><span>•</span>{selected.teacherName}</p>
+      </div>
+      <div className="student-head-actions student-primary-actions" aria-label="إجراءات بوابة الطالب">
+        <button type="button" className="student-action-home" data-student-action="home" onClick={() => window.location.assign("/")}><span>⌂</span><b>البوابة الرئيسية</b></button>
+        <button type="button" className="student-action-print" data-student-action="print" data-native-print="true" onClick={() => window.print()}><span>▤</span><b>طباعة التقرير</b></button>
+        <button type="button" className="student-action-subjects" data-student-action="subjects" onClick={showStudentSubjects}><span>▦</span><b>تغيير المادة</b></button>
       </div>
     </header>
 
