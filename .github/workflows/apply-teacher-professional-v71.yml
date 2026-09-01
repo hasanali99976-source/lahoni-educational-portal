@@ -1,0 +1,69 @@
+name: Apply teacher professional v71
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-teacher-professional-v71.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Activate professional teacher styles
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          layout = Path('app/teacher/layout.tsx')
+          text = layout.read_text(encoding='utf-8')
+          marker = 'import "./teacher-professional-v71.css";'
+          attendance_import = 'import "./attendance-professional-v71.css";'
+          if marker not in text:
+              raise SystemExit('teacher professional import missing')
+          if attendance_import not in text:
+              text = text.replace(marker, marker + '\n' + attendance_import)
+          layout.write_text(text, encoding='utf-8')
+
+          sw = Path('public/sw.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          sw_text = re.sub(r'const CACHE_NAME = "[^"]+";', 'const CACHE_NAME = "ostadh-lahooni-v71-teacher-professional";', sw_text, count=1)
+          sw.write_text(sw_text, encoding='utf-8')
+
+          required = [
+              'teacher-pro-header',
+              'teacher-command-panel',
+              'teacher-mobile-nav',
+              'attendance-professional-v71.css',
+          ]
+          final = layout.read_text(encoding='utf-8')
+          missing = [item for item in required if item not in final]
+          if missing:
+              raise SystemExit('missing teacher v71 markers: ' + ', '.join(missing))
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production
+        run: npm run build
+
+      - name: Commit verified activation
+        run: |
+          if git diff --quiet; then
+            echo "No activation changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/layout.tsx public/sw.js
+          git commit -m "تفعيل التصميم الاحترافي وتنبيه الحضور الذكي v71"
+          git push
