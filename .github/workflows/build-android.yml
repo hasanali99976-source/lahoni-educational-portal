@@ -25,13 +25,13 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Build debug APK
+      - name: Build debug APK v1.7.0
         working-directory: android-app
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ostadh-lahooni-apk
+          name: ostadh-lahooni-apk-v1.7.0
           path: android-app/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
