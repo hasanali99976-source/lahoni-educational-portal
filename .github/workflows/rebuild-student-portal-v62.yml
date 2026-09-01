@@ -1,0 +1,68 @@
+name: Rebuild student portal v62
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rebuild-student-portal-v62.yml'
+      - '.github/scripts/rebuild_student_portal_v62.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply student portal premium redesign
+        run: python3 .github/scripts/rebuild_student_portal_v62.py
+
+      - name: Verify UI-only scope
+        run: |
+          CHANGED="$(git diff --name-only)"
+          echo "$CHANGED"
+          test -n "$CHANGED"
+          if echo "$CHANGED" | grep -E '^app/api/|^lib/server/|firebase|firestore'; then
+            echo 'Forbidden data or API change detected'
+            exit 1
+          fi
+          grep -q 'data-student-action="home"' app/student/page.tsx
+          grep -q 'data-student-action="print"' app/student/page.tsx
+          grep -q 'data-native-print="true"' app/student/page.tsx
+          grep -q 'student-premium-v62.css' app/student/layout.tsx
+          grep -q 'ostadh-lahooni-v62-student-premium' public/sw.js
+          grep -q '62-student-premium' app/pwa-register.tsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified redesign
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/page.tsx app/student/layout.tsx app/student/student-premium-v62.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'تقوية بوابة الطالب وإظهار الطباعة والرجوع للرئيسية'
+            git push origin main
+          fi
