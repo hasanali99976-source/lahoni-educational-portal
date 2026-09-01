@@ -287,14 +287,13 @@ export default function StudentPage() {
         <div className="knowledge-brand"><span>{selected.icon}</span><div><small>بوابة أستاذ لحوني التعليمية</small><strong>بوابة الطالب المعرفية</strong></div></div>
         <div className="knowledge-topline-tools">
           <div className="knowledge-sync" title="تتحدث بياناتك تلقائيًا"><i /><div><b>البيانات محدثة</b><small>تحديث تلقائي وآمن</small></div></div>
-          <button type="button" className="knowledge-print-quick" data-student-action="print" data-native-print="true" onClick={() => window.print()}><span>▤</span><div><b>تقرير الطالب</b><small>طباعة البيانات والتفاصيل</small></div></button>
+          <button type="button" className="knowledge-print-quick" data-student-action="print" data-native-print="true" onClick={() => window.print()}><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/><path d="M17 12h.01"/></svg></span><div><b>تقرير الطالب</b><small>لوحة بيانية في صفحة واحدة</small></div></button>
         </div>
       </div>
 
-      <div className="knowledge-hero">
-        <div className="knowledge-subject-mark" aria-hidden="true"><span>{selected.icon}</span></div>
+      <div className="knowledge-hero knowledge-hero-compact">
         <div className="knowledge-hero-copy">
-          <small>{subjectProfile.eyebrow}</small>
+          <div className="knowledge-subject-heading"><span className="knowledge-subject-mini" aria-hidden="true">{selected.icon}</span><small>{subjectProfile.eyebrow}</small></div>
           <h1>{selected.data.name || "الطالب"}</h1>
           <h2>{subjectProfile.title}</h2>
           <p>{subjectProfile.description}</p>
@@ -306,9 +305,9 @@ export default function StudentPage() {
         </div>
       </div>
 
-      <div className="knowledge-actions" aria-label="إجراءات الطالب">
-        <button type="button" data-student-action="subjects" onClick={showStudentSubjects}><span>▦</span><div><b>تغيير المادة</b><small>عرض جميع المواد المرتبطة بك</small></div></button>
-        <button type="button" className="danger" data-student-action="logout" onClick={exitStudentPortal}><span>↪</span><div><b>تسجيل الخروج</b><small>إنهاء جلسة الطالب الحالية</small></div></button>
+      <div className="knowledge-actions knowledge-session-actions" aria-label="إجراءات الطالب">
+        <button type="button" className="knowledge-subjects-action" data-student-action="subjects" onClick={showStudentSubjects}><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><div><b>موادي</b><small>الانتقال بين المواد المرتبطة بك</small></div><i>عرض</i></button>
+        <button type="button" className="knowledge-logout-action" data-student-action="logout" onClick={exitStudentPortal}><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8V5.5A2.5 2.5 0 0 0 11.5 3h-5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h5a2.5 2.5 0 0 0 2.5-2.5V16"/><path d="M10 12h10m-3.5-3.5L20 12l-3.5 3.5"/></svg></span><div><b>تسجيل الخروج</b><small>إنهاء جلسة الطالب بأمان</small></div><i>خروج</i></button>
       </div>
     </header>
 
@@ -371,43 +370,44 @@ export default function StudentPage() {
       </section>
     </div>}
 
-    <section className="student-print-report knowledge-print-report" aria-label="تقرير الطالب القابل للطباعة">
-      <header className="student-print-head knowledge-print-head">
-        <div><small>بوابة أستاذ لحوني التعليمية</small><h1>تقرير التحصيل العلمي والمتابعة</h1><p>{selected.subjectLabel} • {selected.teacherName}</p></div>
-        <div className="student-print-badge"><span>{selected.icon}</span><strong>{ar(percentage)}٪</strong><small>مستوى التحصيل</small></div>
+    <section className="student-print-report student-print-dashboard" aria-label="تقرير الطالب البياني القابل للطباعة">
+      <header className="print-dashboard-head">
+        <div className="print-dashboard-brand"><span>{selected.icon}</span><div><small>بوابة أستاذ لحوني التعليمية</small><h1>لوحة التحصيل العلمي للطالب</h1><p>{selected.subjectLabel} • {selected.teacherName}</p></div></div>
+        <div className="print-dashboard-status"><small>التقدير الحالي</small><strong>{percentage >= 90 ? "متميز" : percentage >= 80 ? "متقدم" : percentage >= 70 ? "جيد" : percentage >= 50 ? "متوسط" : "يحتاج دعمًا"}</strong><span>{new Intl.DateTimeFormat("ar-SA", { dateStyle: "medium" }).format(new Date())}</span></div>
       </header>
 
-      <section className="student-print-identity knowledge-print-identity">
-        <div><span>اسم الطالب</span><strong>{selected.data.name || "الطالب"}</strong></div>
+      <section className="print-dashboard-identity">
+        <div><span>الطالب</span><strong>{selected.data.name || "الطالب"}</strong></div>
         <div><span>الفصل</span><strong>{classLabel}</strong></div>
         <div><span>المادة</span><strong>{selected.subjectLabel}</strong></div>
         <div><span>المعلم</span><strong>{selected.teacherName}</strong></div>
-        <div><span>تاريخ التقرير</span><strong>{new Intl.DateTimeFormat("ar-SA", { dateStyle: "long" }).format(new Date())}</strong></div>
-        <div><span>حالة البيانات</span><strong>محدثة من بوابة الطالب</strong></div>
       </section>
 
-      <section className="knowledge-print-summary" aria-label="ملخص الأرقام">
-        <article><span>المجموع الكلي</span><strong>{ar(finalTotal)} / {ar(FINAL_MAX)}</strong><small>إجمالي ما رُصد للطالب</small></article>
-        <article><span>نسبة التحصيل</span><strong>{ar(percentage)}٪</strong><small>مقارنة بالدرجة الكاملة</small></article>
-        <article><span>الحضور</span><strong>{ar(attendanceSummary.present)}</strong><small>أيام أو حصص الحضور المعتمدة</small></article>
-        <article><span>الغياب</span><strong>{ar(attendanceSummary.absent)}</strong><small>الحالات المسجلة غيابًا</small></article>
-        <article><span>التأخر</span><strong>{ar(attendanceSummary.late)}</strong><small>مرات التأخر المسجلة</small></article>
-        <article><span>الانضباط</span><strong>{ar(attendanceSummary.disciplineRate)}٪</strong><small>مؤشر الانتظام في المادة</small></article>
+      <section className="print-dashboard-visuals">
+        <article className="print-score-visual">
+          <div className="print-ring" style={{ "--print-score": percentage } as CSSProperties}><div><strong>{ar(percentage)}٪</strong><span>نسبة التحصيل</span></div></div>
+          <div className="print-score-copy"><small>المجموع الكلي</small><strong>{ar(finalTotal)} <span>من {ar(FINAL_MAX)}</span></strong><p>{smartMessage}</p></div>
+        </article>
+
+        <section className="print-unit-chart">
+          <header><div><small>الخريطة البيانية</small><h2>أداء الوحدات</h2></div><span>المقياس: {ar(UNIT_MAX)} درجات لكل وحدة</span></header>
+          <div className="print-unit-bars">{units.map(unit => <article key={`chart-${unit.key}`} style={{ "--bar": Math.min(100, unit.total / Math.max(UNIT_MAX, 1) * 100) } as CSSProperties}><div><strong>{unit.label}</strong><span>{ar(unit.total)} / {ar(UNIT_MAX)}</span></div><div className="print-bar-track"><i /></div></article>)}</div>
+        </section>
+
+        <article className="print-discipline-visual">
+          <div className="print-ring discipline" style={{ "--print-score": attendanceSummary.disciplineRate } as CSSProperties}><div><strong>{ar(attendanceSummary.disciplineRate)}٪</strong><span>الانضباط</span></div></div>
+          <div className="print-attendance-mini"><span><b>{ar(attendanceSummary.present)}</b> حاضر</span><span className="absent"><b>{ar(attendanceSummary.absent)}</b> غائب</span><span className="late"><b>{ar(attendanceSummary.late)}</b> متأخر</span><span><b>{ar(attendanceSummary.excused)}</b> مستأذن</span></div>
+        </article>
       </section>
 
-      <section className="knowledge-print-reading">
-        <article className="strength"><small>نقطة القوة الحالية</small><strong>{strongestUnit?.label || "بانتظار رصد الدرجات"}</strong><p>{strongestUnit ? `حقق الطالب ${ar(strongestUnit.total)} من ${ar(UNIT_MAX)} في هذا الجانب.` : "ستظهر نقطة القوة بعد اكتمال رصد الدرجات."}</p></article>
-        <article className="priority"><small>أولوية التحسين</small><strong>{weakestUnit?.label || "المراجعة المنتظمة"}</strong><p>{weakestUnit ? `الدرجة الحالية ${ar(weakestUnit.total)} من ${ar(UNIT_MAX)}؛ ويوصى بمراجعة المهارة ثم التدريب عليها.` : "يوصى بالبدء بمراجعة المهارات الأساسية."}</p></article>
+      <section className="print-dashboard-guidance">
+        <article className="print-reading-card strength"><small>نقطة القوة</small><strong>{strongestUnit?.label || "بانتظار اكتمال الرصد"}</strong><p>{strongestUnit ? `حقق الطالب ${ar(strongestUnit.total)} من ${ar(UNIT_MAX)}؛ ويحافظ عليها بالمراجعة المنتظمة.` : "تظهر نقطة القوة بعد اكتمال رصد الدرجات."}</p></article>
+        <article className="print-reading-card priority"><small>أولوية التحسين</small><strong>{weakestUnit?.label || "المهارات الأساسية"}</strong><p>{weakestUnit ? `الدرجة الحالية ${ar(weakestUnit.total)} من ${ar(UNIT_MAX)}؛ ابدأ بالمفهوم ثم طبّق عليه.` : "ابدأ بمهارة واحدة، ثم اختبر فهمك بسؤال قصير."}</p></article>
+        <article className="print-reading-card followup"><small>متابعة المعلم</small><strong>{selected.data.parentCounselorLastNotice?.title || "متابعة تعليمية"}</strong><p>{selected.data.parentCounselorLastNotice?.message || selected.data.teacherNote || disciplineMessage}</p></article>
+        <article className="print-plan-card"><small>خطة العمل القادمة</small><ol>{dailyPlan.map((item, index) => <li key={`dashboard-plan-${item}`}><span>{index + 1}</span>{item}</li>)}</ol></article>
       </section>
 
-      <section className="student-print-section knowledge-print-table"><h2>تفصيل درجات الوحدات</h2><p className="knowledge-print-help">يبين الجدول مكونات درجة كل وحدة، ثم مجموعها من الدرجة المخصصة للوحدة.</p><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map(unit => <tr key={`print-${unit.key}`}><td>{unit.label}</td><td>{ar(unit.attendance)} / {ar(GRADE_DISTRIBUTION.attendance)}</td><td>{ar(unit.participation)} / {ar(GRADE_DISTRIBUTION.participation)}</td><td>{ar(unit.homework)} / {ar(GRADE_DISTRIBUTION.homework)}</td><td>{ar(unit.unitExam)} / {ar(GRADE_DISTRIBUTION.unitExam)}</td><td><strong>{ar(unit.total)} / {ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></section>
-
-      <section className="knowledge-print-attendance"><h2>تفاصيل الحضور والانضباط</h2><div><article><span>حاضر</span><strong>{ar(attendanceSummary.present)}</strong></article><article><span>غائب</span><strong>{ar(attendanceSummary.absent)}</strong></article><article><span>متأخر</span><strong>{ar(attendanceSummary.late)}</strong></article><article><span>مستأذن</span><strong>{ar(attendanceSummary.excused)}</strong></article><article><span>هروب</span><strong>{ar(attendanceSummary.escaped)}</strong></article></div><p>{disciplineMessage}</p></section>
-
-      <section className="knowledge-print-plan"><div><h2>خطة الطالب المقترحة</h2><p>خطوات قصيرة مبنية على مستوى التحصيل الحالي:</p></div><ol>{dailyPlan.map(item => <li key={`print-plan-${item}`}>{item}</li>)}</ol></section>
-
-      <section className="student-print-note knowledge-print-note"><h2>ملاحظة المتابعة والتوصية</h2><p>{selected.data.parentCounselorLastNotice?.message || selected.data.teacherNote || `${smartMessage} الأولوية الحالية: ${weakestUnit?.label || "المراجعة المنتظمة"}.`}</p></section>
-      <footer><span>تقرير تعليمي صادر من بوابة أستاذ لحوني التعليمية</span><span>المعلم: {selected.teacherName}</span></footer>
+      <footer className="print-dashboard-footer"><span>تقرير مبسط لفهم مستوى الطالب واتخاذ الخطوة التالية</span><strong>بوابة أستاذ لحوني التعليمية</strong></footer>
     </section>
   </main>;
 }
