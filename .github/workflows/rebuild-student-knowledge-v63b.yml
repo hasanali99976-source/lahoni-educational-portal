@@ -1,0 +1,76 @@
+name: Rebuild student knowledge portal v63b
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rebuild-student-knowledge-v63b.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Repair patch runner and apply redesign
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/rebuild_student_knowledge_v63.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('old_tabs_pattern.subn(new_tabs, page, count=1)', 'old_tabs_pattern.subn(lambda _match: new_tabs, page, count=1)')
+          path.write_text(text, encoding='utf-8')
+          PY
+          python3 .github/scripts/rebuild_student_knowledge_v63.py
+
+      - name: Verify UI-only scope and required behavior
+        run: |
+          grep -q 'StudentKeyboardScroll' app/student/page.tsx
+          grep -q 'student-knowledge-shell' app/student/page.tsx
+          grep -q 'type StudentTab = "home" | "achievement" | "tests" | "attendance" | "ai"' app/student/page.tsx
+          grep -q 'مساعد تعلم ذكي مبني على بياناتك' app/student/page.tsx
+          grep -q 'data-native-print="true"' app/student/page.tsx
+          ! grep -q 'البوابة الرئيسية' app/student/page.tsx
+          ! grep -q 'import Link from' app/student/page.tsx
+          grep -q 'ArrowDown' app/student/student-keyboard-scroll.tsx
+          grep -q 'PageDown' app/student/student-keyboard-scroll.tsx
+          grep -q 'student-scroll-controller' app/student/student-knowledge-v63.css
+          grep -q 'data-subject^="history"' app/student/student-knowledge-v63.css
+          grep -q 'ostadh-lahooni-v63-student-knowledge' public/sw.js
+          grep -q '63-student-knowledge' app/pwa-register.tsx
+          git diff --exit-code -- app/api lib firestore.rules android-app
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Runtime audit
+        run: npm run audit:runtime
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified student portal
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/scripts/rebuild_student_knowledge_v63.py app/student/page.tsx app/student/layout.tsx app/student/student-keyboard-scroll.tsx app/student/student-knowledge-v63.css public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'إعادة بناء بوابة الطالب المعرفية ودعم التمرير بالأسهم'
+            git push origin main
+          fi
