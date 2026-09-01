@@ -34,7 +34,7 @@ const tabs: { key: StudentTab; icon: string; label: string; note: string }[] = [
   { key: "attendance", icon: "◉", label: "انضباطي", note: "الحضور والمتابعة" },
   { key: "ai", icon: "✦", label: "المساعد", note: "توجيه ذكي" },
 ];'''
-page, changed = old_tabs_pattern.subn(new_tabs, page, count=1)
+page, changed = old_tabs_pattern.subn(lambda _match: new_tabs, page, count=1)
 if changed != 1:
     raise SystemExit('failed to replace student tabs block')
 

@@ -1,7 +1,6 @@
 import "./student-v3.css";
 import "./student-mobile-complete.css";
-import "./student-lite-v61.css";
-import "./student-premium-v62.css";
+import "./student-knowledge-v63.css";
 import StudentQrLock from "./student-qr-lock";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
