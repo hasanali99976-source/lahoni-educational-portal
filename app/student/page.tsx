@@ -299,15 +299,14 @@ export default function StudentPage() {
           <p>{subjectProfile.description}</p>
           <div className="knowledge-meta"><span>{selected.subjectLabel}</span><span>{classLabel}</span><span>{selected.teacherName}</span></div>
         </div>
-        <div className="knowledge-overall" style={{ "--score": percentage } as CSSProperties}>
-          <div><strong>{ar(percentage)}٪</strong><span>مستوى التحصيل</span></div>
-          <small>{ar(finalTotal)} من {ar(FINAL_MAX)}</small>
+        <div className="knowledge-score-pill" style={{ "--score": percentage } as CSSProperties} aria-label={`نسبة التحصيل ${ar(percentage)}٪`}>
+          <small>التحصيل</small><strong>{ar(percentage)}٪</strong><span>{ar(finalTotal)} من {ar(FINAL_MAX)}</span><i aria-hidden="true" />
         </div>
       </div>
 
-      <div className="knowledge-actions knowledge-session-actions" aria-label="إجراءات الطالب">
-        <button type="button" className="knowledge-subjects-action" data-student-action="subjects" onClick={showStudentSubjects}><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><div><b>موادي</b><small>الانتقال بين المواد المرتبطة بك</small></div><i>عرض</i></button>
-        <button type="button" className="knowledge-logout-action" data-student-action="logout" onClick={exitStudentPortal}><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8V5.5A2.5 2.5 0 0 0 11.5 3h-5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h5a2.5 2.5 0 0 0 2.5-2.5V16"/><path d="M10 12h10m-3.5-3.5L20 12l-3.5 3.5"/></svg></span><div><b>تسجيل الخروج</b><small>إنهاء جلسة الطالب بأمان</small></div><i>خروج</i></button>
+      <div className="knowledge-actions knowledge-session-actions knowledge-compact-actions" aria-label="إجراءات الطالب">
+        <button type="button" className="knowledge-subjects-action" data-student-action="subjects" onClick={showStudentSubjects} aria-label="العودة إلى موادي"><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><b>موادي</b></button>
+        <button type="button" className="knowledge-logout-action" data-student-action="logout" onClick={exitStudentPortal} aria-label="تسجيل الخروج"><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8V5.5A2.5 2.5 0 0 0 11.5 3h-5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h5a2.5 2.5 0 0 0 2.5-2.5V16"/><path d="M10 12h10m-3.5-3.5L20 12l-3.5 3.5"/></svg></span><b>خروج</b></button>
       </div>
     </header>
 
@@ -383,20 +382,44 @@ export default function StudentPage() {
         <div><span>المعلم</span><strong>{selected.teacherName}</strong></div>
       </section>
 
-      <section className="print-dashboard-visuals">
-        <article className="print-score-visual">
-          <div className="print-ring" style={{ "--print-score": percentage } as CSSProperties}><div><strong>{ar(percentage)}٪</strong><span>نسبة التحصيل</span></div></div>
-          <div className="print-score-copy"><small>المجموع الكلي</small><strong>{ar(finalTotal)} <span>من {ar(FINAL_MAX)}</span></strong><p>{smartMessage}</p></div>
+      <section className="print-analytics-board" aria-label="الرسوم البيانية والتحليل">
+        <article className="print-gauge-card score">
+          <header><small>مؤشر التحصيل</small><strong>{percentage >= 90 ? "متميز" : percentage >= 80 ? "متقدم" : percentage >= 70 ? "جيد" : percentage >= 50 ? "متوسط" : "يحتاج دعمًا"}</strong></header>
+          <svg className="print-gauge-svg" viewBox="0 0 120 120" role="img" aria-label={`نسبة التحصيل ${ar(percentage)}٪`}>
+            <circle className="gauge-track" cx="60" cy="60" r="46" pathLength="100" />
+            <circle className="gauge-value" cx="60" cy="60" r="46" pathLength="100" strokeDasharray={`${Math.max(0, Math.min(100, percentage))} 100`} />
+            <text x="60" y="57" textAnchor="middle" className="gauge-number">{ar(percentage)}٪</text>
+            <text x="60" y="75" textAnchor="middle" className="gauge-label">التحصيل</text>
+          </svg>
+          <div className="print-gauge-detail"><b>{ar(finalTotal)} من {ar(FINAL_MAX)}</b><span>{smartMessage}</span></div>
         </article>
 
-        <section className="print-unit-chart">
-          <header><div><small>الخريطة البيانية</small><h2>أداء الوحدات</h2></div><span>المقياس: {ar(UNIT_MAX)} درجات لكل وحدة</span></header>
-          <div className="print-unit-bars">{units.map(unit => <article key={`chart-${unit.key}`} style={{ "--bar": Math.min(100, unit.total / Math.max(UNIT_MAX, 1) * 100) } as CSSProperties}><div><strong>{unit.label}</strong><span>{ar(unit.total)} / {ar(UNIT_MAX)}</span></div><div className="print-bar-track"><i /></div></article>)}</div>
-        </section>
+        <article className="print-bars-card">
+          <header><div><small>مخطط بياني</small><h2>أداء الوحدات</h2></div><span>من {ar(UNIT_MAX)} لكل وحدة</span></header>
+          <svg className="print-bars-svg" viewBox={`0 0 540 ${Math.max(170, units.length * 34 + 38)}`} role="img" aria-label="مخطط درجات الوحدات">
+            {units.map((unit, index) => {
+              const y = 24 + index * 34;
+              const barWidth = Math.max(3, Math.min(100, unit.total / Math.max(UNIT_MAX, 1) * 100)) * 3.15;
+              return <g key={`svg-unit-${unit.key}`}>
+                <text x="520" y={y + 11} textAnchor="end" className="bar-unit-label">{unit.label}</text>
+                <rect x="120" y={y} width="315" height="14" rx="7" className="bar-track" />
+                <rect x="120" y={y} width={barWidth} height="14" rx="7" className="bar-value" />
+                <text x="105" y={y + 11} textAnchor="end" className="bar-score-label">{ar(unit.total)}/{ar(UNIT_MAX)}</text>
+              </g>;
+            })}
+          </svg>
+          <p><b>قراءة سريعة:</b> أعلى أداء في {strongestUnit?.label || "الوحدات المكتملة"}، والأولوية الآن {weakestUnit?.label || "المراجعة الأساسية"}.</p>
+        </article>
 
-        <article className="print-discipline-visual">
-          <div className="print-ring discipline" style={{ "--print-score": attendanceSummary.disciplineRate } as CSSProperties}><div><strong>{ar(attendanceSummary.disciplineRate)}٪</strong><span>الانضباط</span></div></div>
-          <div className="print-attendance-mini"><span><b>{ar(attendanceSummary.present)}</b> حاضر</span><span className="absent"><b>{ar(attendanceSummary.absent)}</b> غائب</span><span className="late"><b>{ar(attendanceSummary.late)}</b> متأخر</span><span><b>{ar(attendanceSummary.excused)}</b> مستأذن</span></div>
+        <article className="print-gauge-card discipline">
+          <header><small>مؤشر الانضباط</small><strong>{disciplineMessage}</strong></header>
+          <svg className="print-gauge-svg" viewBox="0 0 120 120" role="img" aria-label={`نسبة الانضباط ${ar(attendanceSummary.disciplineRate)}٪`}>
+            <circle className="gauge-track" cx="60" cy="60" r="46" pathLength="100" />
+            <circle className="gauge-value" cx="60" cy="60" r="46" pathLength="100" strokeDasharray={`${Math.max(0, Math.min(100, attendanceSummary.disciplineRate))} 100`} />
+            <text x="60" y="57" textAnchor="middle" className="gauge-number">{ar(attendanceSummary.disciplineRate)}٪</text>
+            <text x="60" y="75" textAnchor="middle" className="gauge-label">الانضباط</text>
+          </svg>
+          <div className="print-attendance-numbers"><span><b>{ar(attendanceSummary.present)}</b> حاضر</span><span><b>{ar(attendanceSummary.absent)}</b> غائب</span><span><b>{ar(attendanceSummary.late)}</b> متأخر</span><span><b>{ar(attendanceSummary.excused)}</b> مستأذن</span></div>
         </article>
       </section>
 
