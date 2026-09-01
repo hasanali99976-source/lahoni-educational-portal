@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 function isEditableTarget(target: EventTarget | null) {
   if (!(target instanceof Element)) return false;
@@ -8,8 +8,6 @@ function isEditableTarget(target: EventTarget | null) {
 }
 
 export default function StudentKeyboardScroll() {
-  const [position, setPosition] = useState({ up: false, down: true });
-
   useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
@@ -27,12 +25,6 @@ export default function StudentKeyboardScroll() {
     body.style.overflowY = "auto";
     body.style.height = "auto";
 
-    const update = () => {
-      const top = window.scrollY || root.scrollTop || body.scrollTop || 0;
-      const max = Math.max(0, root.scrollHeight - window.innerHeight);
-      setPosition({ up: top > 8, down: top < max - 8 });
-    };
-
     const move = (top: number) => window.scrollBy({ top, behavior: "smooth" });
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || isEditableTarget(event.target)) return;
@@ -46,13 +38,8 @@ export default function StudentKeyboardScroll() {
       else if (event.key === " " && !(event.target instanceof Element && event.target.closest("button,a"))) { event.preventDefault(); move(event.shiftKey ? -pageStep : pageStep); }
     };
 
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
       document.removeEventListener("keydown", onKeyDown);
       root.style.overflowY = previous.rootOverflowY;
       root.style.height = previous.rootHeight;
@@ -62,9 +49,5 @@ export default function StudentKeyboardScroll() {
     };
   }, []);
 
-  return <aside className="student-scroll-controller" aria-label="التنقل داخل صفحة الطالب">
-    <button type="button" disabled={!position.up} onClick={() => window.scrollBy({ top: -Math.max(320, window.innerHeight * .75), behavior: "smooth" })} aria-label="الصعود في الصفحة">↑</button>
-    <span>تنقّل</span>
-    <button type="button" disabled={!position.down} onClick={() => window.scrollBy({ top: Math.max(320, window.innerHeight * .75), behavior: "smooth" })} aria-label="النزول في الصفحة">↓</button>
-  </aside>;
+  return null;
 }
