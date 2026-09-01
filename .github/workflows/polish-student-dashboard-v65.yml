@@ -27,8 +27,20 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Prepare corrected patch script
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('.github/scripts/polish_student_dashboard_v65.py').read_text(encoding='utf-8')
+          source = source.replace(
+              "page.find('    <section className=\"student-print-report\"')",
+              "page.find('    <section className=\"student-print-report')",
+          )
+          Path('/tmp/polish_student_dashboard_v65.py').write_text(source, encoding='utf-8')
+          PY
+
       - name: Apply student dashboard polish
-        run: python3 .github/scripts/polish_student_dashboard_v65.py
+        run: python3 /tmp/polish_student_dashboard_v65.py
 
       - name: Verify UI-only scope and one-page report
         run: |
