@@ -1,0 +1,53 @@
+name: Fix Attendance Realtime v73
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/scripts/fix_attendance_realtime_v73.py"
+      - ".github/workflows/fix-attendance-realtime-v73.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Apply attendance fixes
+        run: python .github/scripts/fix_attendance_realtime_v73.py
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Check patch
+        run: git diff --check
+
+      - name: Commit verified changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/attendance/page.tsx app/teacher/attendance/attendance-schedule-guard.tsx app/student/page.tsx app/pwa-register.tsx public/sw.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix: sync attendance across app web and student portal"
+          git push origin main
