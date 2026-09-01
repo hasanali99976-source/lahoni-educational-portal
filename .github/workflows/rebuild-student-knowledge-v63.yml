@@ -67,3 +67,5 @@ jobs:
             git commit -m 'إعادة بناء بوابة الطالب المعرفية ودعم التمرير بالأسهم'
             git push origin main
           fi
+
+# retry after replacement-tool fix
