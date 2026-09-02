@@ -57,6 +57,16 @@ const STATUS_LABELS: Record<AttendanceStatus, string> = {
   excused: "مستأذن",
   escaped: "هروب",
 };
+const ATTENDANCE_CLASS_COLORS = [
+  "#0e4b59",
+  "#2457a1",
+  "#6f3fa0",
+  "#a34f2f",
+  "#2f7a55",
+  "#8a5a05",
+  "#8f3555",
+  "#3f5f8f",
+];
 
 function toDateInput(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -226,6 +236,7 @@ export default function AttendancePage() {
   const [deleting, setDeleting] = useState(false);
   const [hasSavedRecord, setHasSavedRecord] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [allPdfBusy, setAllPdfBusy] = useState(false);
   const autoFillKeyRef = useRef("");
   const cloudSyncTimerRef = useRef<number | null>(null);
   const [clockTick, setClockTick] = useState(0);
@@ -784,6 +795,82 @@ export default function AttendancePage() {
     }
   }
 
+  async function downloadAllAttendancePdf() {
+    if (!attendancePath || !classes.length) return setMessage("لا توجد فصول متاحة للطباعة.");
+    setAllPdfBusy(true);
+    setMessage(`جارٍ تجهيز تحضير جميع الفصول بتاريخ ${selectedDate}...`);
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
+      let totalPages = 0;
+      let totalStudents = 0;
+      let includedClasses = 0;
+
+      for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
+        const className = classes[classIndex];
+        const roster = students
+          .filter(student => clean(student.class) === clean(className))
+          .sort((a, b) => clean(a.name).localeCompare(clean(b.name), "ar"));
+        if (!roster.length) continue;
+
+        let savedRecords = readRecords(attendanceKey(teacherId, subjectKey, className, selectedDate))
+          || readRecords(legacyAttendanceKey(teacherId, subjectKey, className, selectedDate))
+          || {};
+        try {
+          const snapshot = await withTimeout(getDoc(doc(db, attendancePath, `${safeId(className)}_${selectedDate}`)), 3500);
+          if (snapshot.exists()) {
+            const data = snapshot.data() as AttendanceDocument;
+            if (data.records && typeof data.records === "object") savedRecords = data.records;
+          }
+        } catch {
+          // إذا تعذر الاتصال نستخدم آخر نسخة محفوظة محليًا بدل إسقاط الفصل من التقرير.
+        }
+
+        const values = roster.map(student => savedRecords[studentCode(student)] || "present");
+        const classCounts = {
+          present: values.filter(value => value === "present").length,
+          absent: values.filter(value => value === "absent").length,
+          late: values.filter(value => value === "late").length,
+          excused: values.filter(value => value === "excused").length,
+          escaped: values.filter(value => value === "escaped").length,
+        };
+        const classRows = roster.map((student, index) => ({
+          number: index + 1,
+          name: clean(student.name) || "طالب بدون اسم",
+          status: STATUS_LABELS[savedRecords[studentCode(student)] || "present"],
+        }));
+        const canvases = renderAttendancePdfPages({
+          portalName: PORTAL_NAME,
+          teacherName,
+          subject,
+          className,
+          date: selectedDate,
+          hijriDate: formatHijri(selectedDate),
+          rows: classRows,
+          counts: classCounts,
+          accentColor: ATTENDANCE_CLASS_COLORS[classIndex % ATTENDANCE_CLASS_COLORS.length],
+        });
+
+        canvases.forEach(canvas => {
+          if (totalPages > 0) pdf.addPage("a4", "landscape");
+          pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+          totalPages += 1;
+        });
+        totalStudents += roster.length;
+        includedClasses += 1;
+      }
+
+      if (!totalPages) throw new Error("attendance_all_pdf_no_pages");
+      pdf.save(`تحضير-جميع-الفصول-${selectedDate}.pdf`);
+      setMessage(`تم تنزيل تحضير جميع الفصول: ${includedClasses} فصل، ${totalStudents} طالبًا، ${totalPages} صفحة. لكل فصل لون مستقل.`);
+    } catch (error) {
+      console.error("attendance-all-classes-pdf", error);
+      setMessage("تعذر إنشاء PDF جميع الفصول الآن. أعد المحاولة بعد تحديث الصفحة.");
+    } finally {
+      setAllPdfBusy(false);
+    }
+  }
+
   function printAdminReport() {
     void downloadAttendancePdf();
   }
@@ -938,7 +1025,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
         <div className="attendance-main-actions">
           <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
           <button type="button" className="attendance-delete" onClick={() => void deleteAttendance()} disabled={!selectedClass || !hasSavedRecord || deleting || saving}>{deleting ? "جارٍ الحذف..." : "حذف التحضير"}</button>
-          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF كامل — كل الطلاب</button>
+          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF كامل — كل الطلاب</button><button type="button" className="attendance-pdf attendance-all-pdf" onClick={() => void downloadAllAttendancePdf()} disabled={!classes.length || allPdfBusy}>{allPdfBusy ? "جارٍ تجهيز جميع الفصول..." : "تحميل PDF لجميع الفصول"}</button>
           <button type="button" className="attendance-excel" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تحميل Excel</button>
         </div>
       </section>

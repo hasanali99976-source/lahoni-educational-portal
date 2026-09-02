@@ -21,6 +21,7 @@ type AttendanceOptions = {
   hijriDate: string;
   rows: AttendancePageRow[];
   counts: { present: number; absent: number; late: number; excused: number; escaped: number };
+  accentColor?: string;
 };
 
 type GradesOptions = {
@@ -107,8 +108,8 @@ function rounded(ctx: CanvasRenderingContext2D, x: number, y: number, w: number,
   }
 }
 
-function reportHeader(ctx: CanvasRenderingContext2D, title: string, portalName: string, subtitle: string, pageIndex: number, pageCount: number) {
-  rounded(ctx, 28, 22, WIDTH - 56, 104, 20, "#0e4b59");
+function reportHeader(ctx: CanvasRenderingContext2D, title: string, portalName: string, subtitle: string, pageIndex: number, pageCount: number, accentColor = "#0e4b59") {
+  rounded(ctx, 28, 22, WIDTH - 56, 104, 20, accentColor);
   text(ctx, portalName, WIDTH - 56, 48, { size: 17, weight: 900, color: "#d8edf1", maxWidth: 560 });
   text(ctx, subtitle, WIDTH - 56, 83, { size: 26, min: 18, weight: 900, color: "#ffffff", maxWidth: 620 });
   text(ctx, title, 56, 78, { size: 31, min: 24, weight: 900, color: "#ffffff", align: "left", maxWidth: 610 });
@@ -148,7 +149,7 @@ export function renderAttendancePdfPages(options: AttendanceOptions) {
   const pages = chunks(options.rows, ATTENDANCE_ROWS_PER_PAGE);
   return pages.map((pageRows, pageIndex) => {
     const { canvas, ctx } = createCanvas();
-    reportHeader(ctx, "تقرير الحضور اليومي", options.portalName, "سجل الحضور والمتابعة اليومية", pageIndex, pages.length);
+    reportHeader(ctx, "تقرير الحضور اليومي", options.portalName, "سجل الحضور والمتابعة اليومية", pageIndex, pages.length, options.accentColor || "#0e4b59");
     meta(ctx, [
       { label: "المعلم", value: options.teacherName },
       { label: "المادة", value: options.subject },
@@ -185,7 +186,7 @@ export function renderAttendancePdfPages(options: AttendanceOptions) {
     const statusW = 260;
     const nameW = w - numberW - statusW;
     rounded(ctx, x, top, w, bottom - top, 12, "#ffffff", "#bfd1d7");
-    ctx.fillStyle = "#174b59";
+    ctx.fillStyle = options.accentColor || "#174b59";
     ctx.fillRect(x, top, w, headerH);
     text(ctx, "م", x + w - numberW / 2, top + headerH / 2, { size: 16, weight: 900, color: "#ffffff", align: "center" });
     text(ctx, "اسم الطالب", x + statusW + nameW / 2, top + headerH / 2, { size: 17, weight: 900, color: "#ffffff", align: "center" });
