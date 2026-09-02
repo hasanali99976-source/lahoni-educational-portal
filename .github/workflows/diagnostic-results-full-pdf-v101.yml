@@ -1,0 +1,47 @@
+name: Diagnostic Results Full PDF v101
+
+on:
+  push:
+    paths:
+      - '.github/scripts/diagnostic_results_pdf_v101.py'
+      - '.github/workflows/diagnostic-results-full-pdf-v101.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply complete results PDF patch
+        run: python .github/scripts/diagnostic_results_pdf_v101.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify complete diagnostic results PDF
+        run: |
+          grep -q 'downloadDiagnosticResultsPdf' app/teacher/diagnostics/diagnostic-results.tsx
+          grep -q 'gradePlan' app/teacher/grades/page.tsx
+          grep -q 'الخطة العلاجية / الإثرائية' lib/diagnostic-results-pdf.ts
+          grep -q 'MAX_PLAN_LINES_PER_SEGMENT' lib/diagnostic-results-pdf.ts
+          grep -q 'ostadh-lahooni-v101-diagnostic-results-full-pdf' public/sw.js
+      - name: Commit validated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/diagnostics/diagnostic-results.tsx lib/diagnostic-results-pdf.ts app/pwa-register.tsx public/sw.js
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'fix: export complete diagnostic results and plans PDF'
+            git push origin HEAD:main
+          fi
