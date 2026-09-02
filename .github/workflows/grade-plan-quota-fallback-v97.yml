@@ -1,0 +1,48 @@
+name: Grade Plan Quota Fallback v97
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/grade_plan_quota_fallback_v97.py'
+      - '.github/workflows/grade-plan-quota-fallback-v97.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply quota fallback patch
+        run: python .github/scripts/grade_plan_quota_fallback_v97.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify fallback flow
+        run: |
+          grep -F 'grade_plan_quota_exceeded' app/api/teacher/grade-plan/route.ts
+          grep -F 'approved=local' app/teacher/grade-plan/page.tsx
+          grep -F 'readLocalGradePlan(session.teacherId)' app/teacher/layout.tsx
+          grep -F 'readLocalGradePlan(d?.teacherId)' app/teacher/page.tsx
+          grep -F 'ostadh-lahooni-v97-grade-plan-quota-fallback' public/sw.js
+      - name: Commit validated changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grade-plan/page.tsx app/teacher/layout.tsx app/teacher/page.tsx app/pwa-register.tsx public/sw.js
+          git commit -m 'fix: approve grade plan when Firebase quota is exhausted'
+          git push origin main
