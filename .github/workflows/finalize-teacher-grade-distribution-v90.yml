@@ -1,0 +1,55 @@
+name: Finalize Teacher Grade Distribution v90
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/finalize_teacher_grade_distribution_v90.py'
+      - '.github/workflows/finalize-teacher-grade-distribution-v90.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply finalization
+        run: python .github/scripts/finalize_teacher_grade_distribution_v90.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify final grade distribution system
+        run: |
+          grep -q 'gradePlanByTeacher' app/api/student/lookup/route.ts
+          grep -q 'gradePlan: gradePlanByTeacher.get' app/api/student/lookup/route.ts
+          grep -q 'ostadh-lahooni-v90-grade-distribution' app/pwa-register.tsx
+          grep -q 'ostadh-lahooni-v90-grade-distribution' public/sw.js
+          grep -q 'خطة التقييم المعتمدة' app/teacher/grade-plan/page.tsx
+          grep -q 'اختيار خطة جديدة' app/teacher/grade-plan/page.tsx
+          grep -q 'general100' lib/grade-plan.ts
+          grep -q 'periods' lib/grade-plan.ts
+          grep -q 'custom' lib/grade-plan.ts
+          grep -q 'gradePlanValues' app/teacher/grades/page.tsx
+          grep -q 'calculateGradePlanResult' app/teacher/reports/page.tsx
+          grep -q 'calculateGradePlanResult' app/teacher/ai/page.tsx
+      - name: Commit validated finalization
+        run: |
+          if git diff --quiet; then
+            echo 'No generated changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/api/student/lookup/route.ts app/pwa-register.tsx public/sw.js
+          git commit -m 'feat: finalize teacher grade distribution system'
+          git push
