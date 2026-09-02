@@ -1,0 +1,46 @@
+name: Apply One Page Print and Smart Mastery v79b
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-one-page-smart-follow-v79b.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply corrected patch
+        run: python .github/scripts/run_v79_hotfix.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify changes
+        run: |
+          grep -q 'عدد الطلاب في الملف' app/teacher/attendance/page.tsx
+          grep -q 'PDF صفحة واحدة — كل الطلاب' app/teacher/grades/page.tsx
+          grep -q 'تحليل ذكي مبني على بيانات الفصل' app/teacher/follow-up/page.tsx
+          grep -q 'الطالب لم يتفاعل مع أسئلة الحصة' app/teacher/follow-up/page.tsx
+          grep -q 'ostadh-lahooni-v79-one-page-smart-mastery' public/sw.js
+          git diff --check
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx app/teacher/grades/page.tsx app/teacher/follow-up/page.tsx app/teacher/follow-up/follow-up.css public/sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: one-page class PDFs and smarter mastery follow-up'
+          git push
