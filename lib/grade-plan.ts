@@ -36,6 +36,7 @@ export type GradeValueMap = Record<string, number>;
 export type LegacyUnit = Record<string, unknown>;
 export type GradeStudentLike = {
   gradeValues?: GradeValueMap;
+  gradePlanValues?: Record<string, GradeValueMap>;
   units?: Record<string, LegacyUnit>;
   research?: number;
   researchScore?: number;
@@ -175,7 +176,7 @@ function automaticItems(total: number, template: Array<[string, string, GradeCat
 
 export function createAutomaticGradePlan(mode: GradePlanMode, unitCount = 5): GradePlanDraft {
   if (mode === "units") {
-    const count = Math.max(1, Math.min(50, Math.floor(unitCount || 1)));
+    const count = Math.max(1, Math.floor(unitCount || 1));
     const unitTotals = distributeEvenly(100, count);
     return {
       mode,
@@ -234,11 +235,11 @@ export function normalizeGradePlanDraft(value: unknown): GradePlanDraft {
   const mode = MODE_SET.has(rawMode) ? rawMode : "general100";
   const method = METHOD_SET.has(rawMethod) ? rawMethod : "manual";
   const rawSections = Array.isArray(source.sections) ? source.sections : [];
-  const sections = rawSections.slice(0, 50).map((sectionValue, sectionIndex) => {
+  const sections = rawSections.map((sectionValue, sectionIndex) => {
     const section = sectionValue && typeof sectionValue === "object" ? sectionValue as Record<string, unknown> : {};
     const sectionId = safeId(section.id, mode === "units" ? `unit${sectionIndex + 1}` : mode === "periods" ? `period${sectionIndex + 1}` : mode === "custom" ? "custom" : "general");
     const rawItems = Array.isArray(section.items) ? section.items : [];
-    const items = rawItems.slice(0, 80).map((itemValue, itemIndex) => {
+    const items = rawItems.map((itemValue, itemIndex) => {
       const item = itemValue && typeof itemValue === "object" ? itemValue as Record<string, unknown> : {};
       const rawCategory = text(item.category) as GradeCategory;
       return {
@@ -372,9 +373,12 @@ function percentage(earned: number, maximum: number) {
 export function calculateGradePlanResult(plan: GradePlan | GradePlanDraft | null | undefined, student: GradeStudentLike): GradePlanResult {
   if (!plan) return { earned: 0, maximum: 100, percentage: 0, recordedMaximum: 0, completion: 0, complete: false, finalScore: null, sections: [], dimensions: [] };
   const draft = normalizeGradePlanDraft(plan);
+  const planId = "id" in plan ? String(plan.id || "") : "";
+  const versionValues = planId && student.gradePlanValues?.[planId] ? student.gradePlanValues[planId] : null;
+  const effectiveStudent = versionValues ? { ...student, gradeValues: versionValues } : student;
   const sections: GradeSectionResult[] = draft.sections.map(section => {
     const items = section.items.map(item => {
-      const source = readGradeEntry(student, section, item);
+      const source = readGradeEntry(effectiveStudent, section, item);
       const counted = source.recorded ? Math.max(0, Math.min(item.max, source.value)) : 0;
       return { ...source, counted: roundGrade(counted), maximum: item.max, item };
     });

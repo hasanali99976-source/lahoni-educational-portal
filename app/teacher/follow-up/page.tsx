@@ -4,11 +4,13 @@ import { collection, doc, increment, onSnapshot, setDoc } from "firebase/firesto
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import { calculateGradePlanResult, type GradePlan, type GradeStudentLike } from "../../../lib/grade-plan";
+import { useGradePlan } from "../../../lib/use-grade-plan";
 import "./follow-up.css";
 
 type UnitRecord = { attendance?: number; participation?: number; homework?: number; unitExam?: number; total?: number };
 type TeacherNoteEntry = { id: string; type: string; label: string; message?: string; createdAt: string; teacherName?: string; subject?: string };
-type Student = { id: string; storageId?: string; name?: string; class?: string; className?: string; code?: string; accessCode?: string; studentCode?: string; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; units?: Record<string, UnitRecord> };
+type Student = GradeStudentLike & { id: string; storageId?: string; name?: string; class?: string; className?: string; code?: string; accessCode?: string; studentCode?: string; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; units?: Record<string, UnitRecord> };
 type SchoolClass = { id: string; name: string; grade?: number; section?: string };
 type AiInsight = { analysis: string; recommendedAction: string; suggestedNote: string };
 type EvaluatedStudent = Student & { points: number; completion: number; performance: number; finalScore: number | null; missing: number };
@@ -31,59 +33,21 @@ function aliases(student: Student) {
   return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(value => String(value || "").trim()).filter(Boolean))];
 }
 
-function evaluateStudent(student: Student): EvaluatedStudent {
-  let points = 0;
-  let recordedMax = 0;
-  let missing = 0;
-  unitKeys.forEach(unitKey => {
-    const unit = student.units?.[unitKey];
-    (Object.keys(componentMax) as Array<keyof typeof componentMax>).forEach(key => {
-      const raw = unit?.[key];
-      const value = Number(raw);
-      if (raw === undefined || raw === null || !Number.isFinite(value)) {
-        missing += 1;
-        return;
-      }
-      const maximum = componentMax[key];
-      points += Math.max(0, Math.min(maximum, value));
-      recordedMax += maximum;
-    });
-  });
-  const research = Number(student.researchScore);
-  if (student.researchScore === undefined || student.researchScore === null || !Number.isFinite(research)) {
-    missing += 1;
-  } else {
-    points += Math.max(0, Math.min(researchMax, research));
-    recordedMax += researchMax;
-  }
-  const completion = Math.round(recordedMax);
-  const performance = recordedMax ? Math.round((points / recordedMax) * 100) : 0;
-  return { ...student, points: Math.round(points * 10) / 10, completion, performance, finalScore: recordedMax === 100 ? Math.round(points) : null, missing };
+function evaluateStudent(student: Student, plan: GradePlan | null): EvaluatedStudent {
+  const result = calculateGradePlanResult(plan, student);
+  const missing = result.sections.reduce((sum, section) => sum + section.items.filter(item => !item.recorded).length, 0);
+  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing };
 }
 
-function dimensionScore(student: Student, key: keyof typeof componentMax) {
-  const values = unitKeys.flatMap(unitKey => {
-    const raw = student.units?.[unitKey]?.[key];
-    const value = Number(raw);
-    return raw === undefined || raw === null || !Number.isFinite(value) ? [] : [Math.max(0, Math.min(componentMax[key], value))];
-  });
-  if (!values.length) return { value: 0, recorded: 0 };
-  return { value: Math.round(values.reduce((sum, value) => sum + value, 0) / (values.length * componentMax[key]) * 100), recorded: values.length };
-}
-
-function insightProfile(student: Student) {
-  const labels: Record<keyof typeof componentMax, string> = {
-    attendance: "الحضور والانضباط",
-    participation: "المشاركة الصفية",
-    homework: "الواجبات",
-    unitExam: "اختبارات الوحدات",
+function insightProfile(student: Student, plan: GradePlan | null) {
+  const result = calculateGradePlanResult(plan, student);
+  const dimensions = result.dimensions.filter(item => item.maximum > 0);
+  const weakest = [...dimensions].sort((a, b) => a.percentage - b.percentage)[0];
+  const strongest = [...dimensions].sort((a, b) => b.percentage - a.percentage)[0];
+  return {
+    weakest: weakest ? { key: weakest.key, label: weakest.label, value: Math.round(weakest.percentage), recorded: weakest.maximum } : { key: "none", label: "لا يوجد رصد كافٍ", value: 0, recorded: 0 },
+    strongest: strongest ? { key: strongest.key, label: strongest.label, value: Math.round(strongest.percentage), recorded: strongest.maximum } : { key: "none", label: "لا يوجد رصد كافٍ", value: 0, recorded: 0 },
   };
-  const dimensions = (Object.keys(componentMax) as Array<keyof typeof componentMax>)
-    .map(key => ({ key, label: labels[key], ...dimensionScore(student, key) }))
-    .filter(item => item.recorded > 0);
-  const weakest = [...dimensions].sort((a, b) => a.value - b.value)[0] || { key: "unitExam" as const, label: "لا يوجد رصد كافٍ", value: 0, recorded: 0 };
-  const strongest = [...dimensions].sort((a, b) => b.value - a.value)[0] || { key: "participation" as const, label: "لا يوجد رصد كافٍ", value: 0, recorded: 0 };
-  return { weakest, strongest };
 }
 
 function statusFor(student: EvaluatedStudent, threshold: number) {
@@ -94,6 +58,7 @@ function statusFor(student: EvaluatedStudent, threshold: number) {
 
 export default function FollowUpPage() {
   const session = useTeacherClient();
+  const { activePlan } = useGradePlan(true);
   const teacherId = session.teacherId || "";
   const teacherName = session.teacherName || "المعلم";
   const subjectKey = session.subjectKey || "history";
@@ -160,7 +125,7 @@ export default function FollowUpPage() {
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
-  const evaluated = useMemo(() => visible.map(evaluateStudent), [visible]);
+  const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)), [visible, activePlan]);
   const completed = useMemo(() => evaluated.filter(student => student.completion === 100), [evaluated]);
   const mastered = useMemo(() => completed.filter(student => (student.finalScore || 0) >= threshold), [completed, threshold]);
   const support = useMemo(() => completed.filter(student => (student.finalScore || 0) < threshold), [completed, threshold]);
@@ -191,8 +156,8 @@ export default function FollowUpPage() {
 
   async function requestAiInsight() {
     if (!analysisStudent || aiLoading) return;
-    const evaluation = evaluateStudent(analysisStudent);
-    const profile = insightProfile(analysisStudent);
+    const evaluation = evaluateStudent(analysisStudent, activePlan);
+    const profile = insightProfile(analysisStudent, activePlan);
     const repeatedNotes = Object.entries(analysisStudent.teacherNoteCounts || {}).filter(([, count]) => Number(count) > 0).map(([type, count]) => ({ label: noteOptions.find(option => option.type === type)?.label || type, count: Number(count) }));
     setAiLoading(true);
     setAiInsight(null);
@@ -241,6 +206,7 @@ export default function FollowUpPage() {
   if (!teacherId) return <main className="follow-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
 
   return <main className="follow-page" dir="rtl">
+    {!activePlan && <div className="follow-toast" role="status">لم تُعتمد خطة توزيع الدرجات بعد. <a href="/teacher/grade-plan">إعداد التوزيع الآن</a></div>}
     <section className="follow-head">
       <div><span>متابعة التحصيل — {subject}</span><h1>متابعة الإتقان</h1><p>صفحة مختصرة: تفرّق بين الإتقان الحقيقي والرصد غير المكتمل، وتترك التحليل الذكي كإجراء اختياري لكل طالب.</p></div>
       <div className="follow-filters">
@@ -274,7 +240,7 @@ export default function FollowUpPage() {
       </tbody></table>{!evaluated.length && <p className="empty">لا توجد بيانات طلاب في النطاق المختار.</p>}</div>
     </section>
 
-    {analysisStudent && (() => { const evaluation = evaluateStudent(analysisStudent); const profile = insightProfile(analysisStudent); return <div className="follow-modal" onClick={() => setAnalysisStudent(null)}><section className="analysis-modal" onClick={event => event.stopPropagation()}>
+    {analysisStudent && (() => { const evaluation = evaluateStudent(analysisStudent, activePlan); const profile = insightProfile(analysisStudent, activePlan); return <div className="follow-modal" onClick={() => setAnalysisStudent(null)}><section className="analysis-modal" onClick={event => event.stopPropagation()}>
       <header><div><small>تحليل اختياري</small><h3>تحليل الطالب بالذكاء الاصطناعي</h3><p>{analysisStudent.name}</p></div><button className="close" onClick={() => setAnalysisStudent(null)}>×</button></header>
       <div className="analysis-facts"><article><span>الأداء الحالي</span><strong>{evaluation.performance}%</strong></article><article><span>اكتمال الرصد</span><strong>{evaluation.completion}%</strong></article><article><span>أضعف محور مرصود</span><strong>{profile.weakest.label} — {profile.weakest.value}%</strong></article></div>
       <p className="ai-note">الذكاء الاصطناعي يحلل المؤشرات المرصودة فقط، ولا يحفظ أو يرسل ملاحظة تلقائيًا. إذا كان الرصد ناقصًا فالتحليل مبدئي.</p>

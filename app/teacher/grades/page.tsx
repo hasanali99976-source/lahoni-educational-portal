@@ -29,6 +29,7 @@ type Student = GradeStudentLike & {
   class: string;
   className: string;
   gradeValues?: GradeValueMap;
+  gradePlanValues?: Record<string, GradeValueMap>;
   units?: Record<string, LegacyUnit>;
   notes?: string;
 };
@@ -116,7 +117,7 @@ export default function GradesPage() {
     classStudents.forEach(student => {
       const row: GradeValueMap = {};
       section.items.forEach(item => {
-        const entry = readGradeEntry(student, section, item);
+        const entry = readGradeEntry(studentForPlan(student), section, item);
         row[entry.key] = clamp(entry.value, item.max);
       });
       next[student.id] = row;
@@ -127,6 +128,15 @@ export default function GradesPage() {
   function itemKey(item: GradePlanItem) {
     return section ? gradeEntryKey(section.id, item.id) : "";
   }
+  function valuesForPlan(student: Student) {
+    if (!activePlan) return student.gradeValues || {};
+    return student.gradePlanValues?.[activePlan.id] || student.gradeValues || {};
+  }
+
+  function studentForPlan(student: Student) {
+    return { ...student, gradeValues: valuesForPlan(student) };
+  }
+
 
   function setGradeValue(studentId: string, item: GradePlanItem, value: number) {
     const key = itemKey(item);
@@ -152,7 +162,7 @@ export default function GradesPage() {
   }
 
   function effectiveStudent(student: Student) {
-    return { ...student, gradeValues: { ...(student.gradeValues || {}), ...(localValues[student.id] || {}) } };
+    return { ...student, gradeValues: { ...valuesForPlan(student), ...(localValues[student.id] || {}) } };
   }
 
   function sectionTotal(student: Student) {
@@ -166,7 +176,7 @@ export default function GradesPage() {
     try {
       const now = new Date().toISOString();
       await Promise.all(classStudents.map(student => {
-        const mergedValues = { ...(student.gradeValues || {}), ...(localValues[student.id] || {}) };
+        const mergedValues = { ...valuesForPlan(student), ...(localValues[student.id] || {}) };
         return setDoc(doc(db, tenantStudentsPath(tenant), student.id), {
           name: student.name,
           class: student.class,
@@ -175,6 +185,7 @@ export default function GradesPage() {
           active: true,
           rosterActive: true,
           gradeValues: mergedValues,
+          gradePlanValues: { ...(student.gradePlanValues || {}), [activePlan.id]: mergedValues },
           activeGradePlanId: activePlan.id,
           activeGradePlanVersion: activePlan.version,
           gradePlanUpdatedAt: now,
@@ -183,7 +194,7 @@ export default function GradesPage() {
         }, { merge: true });
       }));
       setStudents(current => current.map(student => classStudents.some(item => item.id === student.id)
-        ? { ...student, gradeValues: { ...(student.gradeValues || {}), ...(localValues[student.id] || {}) } }
+        ? { ...student, gradeValues: { ...valuesForPlan(student), ...(localValues[student.id] || {}) }, gradePlanValues: { ...(student.gradePlanValues || {}), [activePlan.id]: { ...valuesForPlan(student), ...(localValues[student.id] || {}) } } }
         : student));
       setMessage(`تم حفظ درجات ${section.label} بدون تغيير أو حذف أي بيانات قديمة.`);
     } catch (error) {

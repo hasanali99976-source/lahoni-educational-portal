@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ACADEMIC_UNITS, FINAL_MAX, GRADE_DISTRIBUTION, RESEARCH_MAX, UNIT_MAX, calculatePercentage, calculateUnitTotal } from "../../lib/academic-config";
+import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type GradeValueMap } from "../../lib/grade-plan";
 import "./student-diagnostics.css";
 import "./student-portal-tabs.css";
 import "./attendance-summary.css";
@@ -11,7 +12,7 @@ import StudentKeyboardScroll from "./student-keyboard-scroll";
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
 type AttendanceSummary = { present: number; absent: number; late: number; excused: number; escaped: number; total: number; disciplineRate: number; latestDate?: string };
 type TeacherNoteEntry = { id?: string; type?: string; label?: string; message?: string; createdAt?: string; teacherName?: string; subject?: string };
-type StudentRecord = { name?: string; class?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; absences?: number; late?: number; attendanceSummary?: AttendanceSummary; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
+type StudentRecord = { gradePlan?: GradePlan | null; gradeValues?: GradeValueMap; gradePlanValues?: Record<string, GradeValueMap>; name?: string; class?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; absences?: number; late?: number; attendanceSummary?: AttendanceSummary; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
 type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
 type StudentTab = "home" | "achievement" | "tests" | "attendance" | "ai";
 
@@ -217,24 +218,40 @@ export default function StudentPage() {
     window.location.replace(`/student?logout=${Date.now()}`);
   }
 
-  const units = useMemo(() => ACADEMIC_UNITS.map(unit => {
-    const row = selected?.data.units?.[unit.key] || {};
-    const attendance = Number(row.attendance || 0);
-    const participation = Number(row.participation || 0);
-    const homework = Number(row.homework || 0);
-    const unitExam = Number(row.unitExam ?? row.exam1 ?? row.exam2 ?? 0);
-    const total = Math.min(UNIT_MAX, Number(row.total ?? calculateUnitTotal({ attendance, participation, homework, unitExam })));
-    return { ...unit, attendance, participation, homework, unitExam, total };
-  }), [selected]);
+  const approvedPlan = useMemo(() => normalizeGradePlan(selected?.data.gradePlan), [selected?.data.gradePlan]);
+  const planResult = useMemo(() => approvedPlan ? calculateGradePlanResult(approvedPlan, selected?.data || {}) : null, [approvedPlan, selected]);
+  const units = useMemo(() => {
+    if (approvedPlan && planResult) return planResult.sections.map(section => {
+      const byCategory = Object.fromEntries(planResult.dimensions.map(item => [item.key, item]));
+      const itemValue = (category: string) => section.items.filter(entry => entry.item.category === category).reduce((sum, entry) => sum + entry.counted, 0);
+      return {
+        key: section.id, label: section.label, examLabel: section.label,
+        attendance: itemValue("attendance"), participation: itemValue("participation"), homework: itemValue("homework"), unitExam: itemValue("unitExam"),
+        total: section.earned, max: section.maximum, items: section.items, byCategory,
+      };
+    });
+    return ACADEMIC_UNITS.map(unit => {
+      const row = selected?.data.units?.[unit.key] || {};
+      const attendance = Number(row.attendance || 0);
+      const participation = Number(row.participation || 0);
+      const homework = Number(row.homework || 0);
+      const unitExam = Number(row.unitExam ?? row.exam1 ?? row.exam2 ?? 0);
+      const total = Math.min(UNIT_MAX, Number(row.total ?? calculateUnitTotal({ attendance, participation, homework, unitExam })));
+      return { ...unit, attendance, participation, homework, unitExam, total, max: UNIT_MAX, items: [] as never[] };
+    });
+  }, [approvedPlan, planResult, selected]);
 
-  const research = Math.min(RESEARCH_MAX, Number(selected?.data.researchScore ?? selected?.data.research ?? 0));
-  const unitsTotal = units.reduce((sum, unit) => sum + unit.total, 0);
-  const finalTotal = Math.min(FINAL_MAX, unitsTotal + research);
-  const percentage = calculatePercentage(finalTotal, FINAL_MAX);
+  const legacyResearch = Math.min(RESEARCH_MAX, Number(selected?.data.researchScore ?? selected?.data.research ?? 0));
+  const research = approvedPlan ? (planResult?.dimensions.filter(item => item.key === "research" || item.key === "project").reduce((sum, item) => sum + item.earned, 0) || 0) : legacyResearch;
+  const unitsTotal = approvedPlan ? (planResult?.earned || 0) : units.reduce((sum, unit) => sum + unit.total, 0);
+  const finalMaximum = 100;
+  const finalTotal = approvedPlan ? (planResult?.earned || 0) : Math.min(FINAL_MAX, unitsTotal + research);
+  const percentage = approvedPlan ? (planResult?.percentage || 0) : calculatePercentage(finalTotal, FINAL_MAX);
+  const completion = approvedPlan ? (planResult?.completion || 0) : percentage;
   const smartMessage = encouragements[Math.min(20, Math.max(0, Math.floor(percentage / 5)))]!;
-  const weakestUnit = [...units].sort((a, b) => a.total - b.total)[0];
-  const strongestUnit = [...units].sort((a, b) => b.total - a.total)[0];
-  const targetScore = Math.min(FINAL_MAX, Math.max(0, goal / 100 * FINAL_MAX));
+  const weakestUnit = [...units].sort((a, b) => (a.max ? a.total / a.max : 0) - (b.max ? b.total / b.max : 0))[0];
+  const strongestUnit = [...units].sort((a, b) => (b.max ? b.total / b.max : 0) - (a.max ? a.total / a.max : 0))[0];
+  const targetScore = Math.min(finalMaximum, Math.max(0, goal / 100 * finalMaximum));
   const remainingForGoal = Math.max(0, targetScore - finalTotal);
   const goalReached = percentage >= goal;
   const classLabel = selected?.data.class?.trim() || "الفصل غير محدد";
@@ -248,8 +265,8 @@ export default function StudentPage() {
   const dailyPlan = percentage >= 90
     ? ["راجع ملخص الدرس لمدة ١٥ دقيقة.", "حل سؤالين إثرائيين.", "اشرح فكرة واحدة لزميلك."]
     : percentage >= 70
-      ? [`راجع ${weakestUnit?.label || "الوحدة الأضعف"} لمدة ٢٠ دقيقة.`, "حل ثلاثة أسئلة من أخطائك السابقة.", "سجّل نقطة واحدة تحتاج سؤال المعلم عنها."]
-      : [`ابدأ بأساسيات ${weakestUnit?.label || "الوحدة الأضعف"} لمدة ٢٠ دقيقة.`, "حل مثالًا مع الشرح خطوة بخطوة.", "اطلب تغذية راجعة من معلمك قبل الانتقال لمهارة جديدة."];
+      ? [`راجع ${weakestUnit?.label || "القسم الأضعف"} لمدة ٢٠ دقيقة.`, "حل ثلاثة أسئلة من أخطائك السابقة.", "سجّل نقطة واحدة تحتاج سؤال المعلم عنها."]
+      : [`ابدأ بأساسيات ${weakestUnit?.label || "القسم الأضعف"} لمدة ٢٠ دقيقة.`, "حل مثالًا مع الشرح خطوة بخطوة.", "اطلب تغذية راجعة من معلمك قبل الانتقال لمهارة جديدة."];
   const subjectProfile = subjectKnowledgeProfile(selected?.subjectKey || "", selected?.subjectLabel || "المادة");
 
   if (!selected) {
@@ -301,7 +318,7 @@ export default function StudentPage() {
           <div className="knowledge-meta"><span>{selected.subjectLabel}</span><span>{classLabel}</span><span>{selected.teacherName}</span></div>
         </div>
         <div className="knowledge-score-pill" style={{ "--score": percentage } as CSSProperties} aria-label={`نسبة التحصيل ${ar(percentage)}٪`}>
-          <small>التحصيل</small><strong>{ar(percentage)}٪</strong><span>{ar(finalTotal)} من {ar(FINAL_MAX)}</span><i aria-hidden="true" />
+          <small>التحصيل</small><strong>{ar(percentage)}٪</strong><span>{ar(finalTotal)} من {ar(finalMaximum)}</span><i aria-hidden="true" />
         </div>
       </div>
 
@@ -337,24 +354,24 @@ export default function StudentPage() {
       </section>
 
       <section className="knowledge-insights">
-        <article className="success"><span>↗</span><div><small>أقوى جانب</small><strong>{strongestUnit?.label || "بانتظار رصد الدرجات"}</strong><p>{strongestUnit ? `${ar(strongestUnit.total)} من ${ar(UNIT_MAX)} — استمر على نفس أسلوب المراجعة.` : "ستظهر هنا أقوى وحدة بعد رصد الدرجات."}</p></div></article>
-        <article className="focus"><span>◎</span><div><small>أولوية التركيز</small><strong>{weakestUnit?.label || "ابدأ بالأساسيات"}</strong><p>{weakestUnit ? `${ar(weakestUnit.total)} من ${ar(UNIT_MAX)} — راجع المهارة ثم اختبر نفسك.` : "اختر مهارة واحدة وابدأ بها اليوم."}</p></div></article>
+        <article className="success"><span>↗</span><div><small>أقوى جانب</small><strong>{strongestUnit?.label || "بانتظار رصد الدرجات"}</strong><p>{strongestUnit ? `${ar(strongestUnit.total)} من ${ar(strongestUnit.max)} — استمر على نفس أسلوب المراجعة.` : "ستظهر هنا أقوى وحدة بعد رصد الدرجات."}</p></div></article>
+        <article className="focus"><span>◎</span><div><small>أولوية التركيز</small><strong>{weakestUnit?.label || "ابدأ بالأساسيات"}</strong><p>{weakestUnit ? `${ar(weakestUnit.total)} من ${ar(weakestUnit.max)} — راجع المهارة ثم اختبر نفسك.` : "اختر مهارة واحدة وابدأ بها اليوم."}</p></div></article>
         <article className="notice"><span>!</span><div><small>آخر متابعة</small><strong>{selected.data.parentCounselorLastNotice?.title || "لا توجد تنبيهات"}</strong><p>{selected.data.parentCounselorLastNotice?.message || selected.data.teacherNote || "أمورك جيدة، استمر في التعلم المنتظم."}</p></div></article>
       </section>
     </div>}
 
     {activeTab === "achievement" && <div className="student-tab-panel knowledge-panel">
-      <section className="knowledge-section-head"><div><small>التحصيل العلمي</small><h2>درجاتي وخطة تقدمي</h2><p>تفصيل أداء {selected.subjectLabel} مع هدف واضح للمرحلة القادمة.</p></div><div className="knowledge-total"><strong>{ar(finalTotal)}</strong><span>من {ar(FINAL_MAX)}</span></div></section>
+      <section className="knowledge-section-head"><div><small>التحصيل العلمي</small><h2>درجاتي وخطة تقدمي</h2><p>تفصيل أداء {selected.subjectLabel} مع هدف واضح للمرحلة القادمة.</p></div><div className="knowledge-total"><strong>{ar(finalTotal)}</strong><span>من {ar(finalMaximum)}</span></div></section>
 
       <section className="knowledge-achievement-grid">
         <div className="knowledge-goal-card">
           <div className="goal-ring" style={{ "--goal": Math.min(100, percentage / Math.max(goal, 1) * 100) } as CSSProperties}><strong>{ar(goal)}٪</strong><span>هدفي</span></div>
           <div className="goal-controls"><label>الدرجة المستهدفة<input type="range" min="50" max="100" step="1" value={goal} onChange={event => setGoal(Number(event.target.value))} /></label><div className="goal-numbers"><span>الحالي <b>{ar(percentage)}٪</b></span><span>المطلوب <b>{ar(targetScore)}</b></span><span>المتبقي <b>{ar(remainingForGoal)}</b></span></div><p className={goalReached ? "goal-success" : ""}>{goalReached ? "أحسنت، وصلت إلى هدفك الحالي. ارفع الهدف عندما تكون جاهزًا." : `ابدأ بمراجعة ${weakestUnit?.label || "المهارة الأضعف"} ثم اختبر نفسك.`}</p></div>
         </div>
-        <div className="knowledge-score-cards"><article><small>مجموع الوحدات</small><strong>{ar(unitsTotal)}</strong></article><article><small>البحث والمشروع</small><strong>{ar(research)}</strong></article><article><small>نسبة الإنجاز</small><strong>{ar(percentage)}٪</strong></article></div>
+        <div className="knowledge-score-cards"><article><small>{approvedPlan ? "المجموع الحالي" : "مجموع الوحدات"}</small><strong>{ar(unitsTotal)}</strong></article><article><small>{approvedPlan ? "اكتمال الرصد" : "البحث والمشروع"}</small><strong>{approvedPlan ? `${ar(completion)}٪` : ar(research)}</strong></article><article><small>نسبة الإنجاز</small><strong>{ar(percentage)}٪</strong></article></div>
       </section>
 
-      <section className="student-units-table knowledge-table-card"><div className="student-section-title"><h2>تفصيل الدرجات</h2><p>اضغط على المساعد الذكي لمعرفة نقطة البداية المناسبة.</p></div><div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map(unit => <tr key={unit.key}><td data-label="الوحدة"><b>{unit.label}</b></td><td data-label="الحضور">{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td data-label="المشاركة">{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td data-label="الواجبات">{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td data-label="الاختبار">{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td data-label="المجموع"><strong>{ar(unit.total)}/{ar(UNIT_MAX)}</strong></td></tr>)}</tbody></table></div></section>
+      <section className="student-units-table knowledge-table-card"><div className="student-section-title"><h2>تفصيل الدرجات</h2><p>{approvedPlan ? "حسب خطة توزيع الدرجات المعتمدة من المعلم." : "حسب نظام الرصد السابق."}</p></div>{approvedPlan && planResult ? <div className="student-table-scroll dynamic-student-grades">{planResult.sections.map(section => <table key={section.id}><thead><tr><th colSpan={3}>{section.label} — {ar(section.earned)} من {ar(section.maximum)}</th></tr><tr><th>عنصر التقييم</th><th>درجتي</th><th>من</th></tr></thead><tbody>{section.items.map(entry => <tr key={entry.key}><td><b>{entry.item.label}</b></td><td>{entry.recorded ? ar(entry.value) : "—"}</td><td>{ar(entry.maximum)}</td></tr>)}</tbody></table>)}</div> : <div className="student-table-scroll"><table><thead><tr><th>الوحدة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الاختبار</th><th>المجموع</th></tr></thead><tbody>{units.map(unit => <tr key={unit.key}><td data-label="الوحدة"><b>{unit.label}</b></td><td data-label="الحضور">{ar(unit.attendance)}/{ar(GRADE_DISTRIBUTION.attendance)}</td><td data-label="المشاركة">{ar(unit.participation)}/{ar(GRADE_DISTRIBUTION.participation)}</td><td data-label="الواجبات">{ar(unit.homework)}/{ar(GRADE_DISTRIBUTION.homework)}</td><td data-label="الاختبار">{ar(unit.unitExam)}/{ar(GRADE_DISTRIBUTION.unitExam)}</td><td data-label="المجموع"><strong>{ar(unit.total)}/{ar(unit.max)}</strong></td></tr>)}</tbody></table></div>}</section>
     </div>}
 
     {activeTab === "tests" && <div className="student-tab-panel knowledge-panel"><section className="knowledge-section-head"><div><small>القياس والتقويم</small><h2>اختباراتي</h2><p>الاختبارات المتاحة والنتائج في مكان واحد دون تغيير نظام الاختبارات.</p></div><span className="knowledge-section-icon">✓</span></section><div className="knowledge-tests-shell"><StudentDiagnostics accessToken={selected.accessToken} /></div></div>}
@@ -369,7 +386,7 @@ export default function StudentPage() {
       <section className="knowledge-ai-panel"><header><span>✦</span><div><small>مساعد تعلم ذكي مبني على بياناتك</small><h2>مساعد {selected.subjectLabel}</h2><p>يحلل درجاتك وحضورك ويقترح لك نقطة بداية عملية، دون تغيير بياناتك الأصلية.</p></div></header>
         <div className="knowledge-ai-grid">
           <article><small>تحليل المستوى</small><strong>{percentage >= 90 ? "متقدم" : percentage >= 75 ? "جيد" : percentage >= 50 ? "متوسط" : "يحتاج دعمًا"}</strong><p>{smartMessage}</p></article>
-          <article><small>ابدأ من هنا</small><strong>{weakestUnit?.label || "المهارة الأساسية"}</strong><p>{weakestUnit ? `درجتك الحالية ${ar(weakestUnit.total)} من ${ar(UNIT_MAX)}. راجع المفهوم، ثم حل ثلاثة أسئلة قصيرة.` : "راجع المفهوم الأساسي ثم اختبر فهمك بسؤال قصير."}</p></article>
+          <article><small>ابدأ من هنا</small><strong>{weakestUnit?.label || "المهارة الأساسية"}</strong><p>{weakestUnit ? `درجتك الحالية ${ar(weakestUnit.total)} من ${ar(weakestUnit.max)}. راجع المفهوم، ثم حل ثلاثة أسئلة قصيرة.` : "راجع المفهوم الأساسي ثم اختبر فهمك بسؤال قصير."}</p></article>
           <article><small>خطة اليوم</small><strong>{dailyPlan[0]}</strong><p>{dailyPlan.slice(1).join(" ثم ")}</p></article>
           <article><small>الانضباط</small><strong>{ar(attendanceSummary.disciplineRate)}٪</strong><p>{disciplineMessage}</p></article>
           <article className="wide"><small>سؤال التفكير اليومي</small><strong>{subjectProfile.prompt}</strong><p>اكتب إجابتك في دفترك، ثم قارنها بما تعلمته في الدرس.</p></article>
@@ -400,24 +417,24 @@ export default function StudentPage() {
             <text x="60" y="57" textAnchor="middle" className="gauge-number">{ar(percentage)}٪</text>
             <text x="60" y="75" textAnchor="middle" className="gauge-label">التحصيل</text>
           </svg>
-          <div className="print-gauge-detail"><b>{ar(finalTotal)} من {ar(FINAL_MAX)}</b><span>{smartMessage}</span></div>
+          <div className="print-gauge-detail"><b>{ar(finalTotal)} من {ar(finalMaximum)}</b><span>{smartMessage}</span></div>
         </article>
 
         <article className="print-bars-card">
-          <header><div><small>مخطط بياني</small><h2>أداء الوحدات</h2></div><span>من {ar(UNIT_MAX)} لكل وحدة</span></header>
+          <header><div><small>مخطط بياني</small><h2>{approvedPlan ? "أداء أقسام الخطة" : "أداء الوحدات"}</h2></div><span>{approvedPlan ? "حسب الدرجة القصوى لكل قسم" : `من ${ar(UNIT_MAX)} لكل وحدة`}</span></header>
           <svg className="print-bars-svg" viewBox={`0 0 540 ${Math.max(170, units.length * 34 + 38)}`} role="img" aria-label="مخطط درجات الوحدات">
             {units.map((unit, index) => {
               const y = 24 + index * 34;
-              const barWidth = Math.max(3, Math.min(100, unit.total / Math.max(UNIT_MAX, 1) * 100)) * 3.15;
+              const barWidth = Math.max(3, Math.min(100, unit.total / Math.max(unit.max, 1) * 100)) * 3.15;
               return <g key={`svg-unit-${unit.key}`}>
                 <text x="520" y={y + 11} textAnchor="end" className="bar-unit-label">{unit.label}</text>
                 <rect x="120" y={y} width="315" height="14" rx="7" className="bar-track" />
                 <rect x="120" y={y} width={barWidth} height="14" rx="7" className="bar-value" />
-                <text x="105" y={y + 11} textAnchor="end" className="bar-score-label">{ar(unit.total)}/{ar(UNIT_MAX)}</text>
+                <text x="105" y={y + 11} textAnchor="end" className="bar-score-label">{ar(unit.total)}/{ar(unit.max)}</text>
               </g>;
             })}
           </svg>
-          <p><b>قراءة سريعة:</b> أعلى أداء في {strongestUnit?.label || "الوحدات المكتملة"}، والأولوية الآن {weakestUnit?.label || "المراجعة الأساسية"}.</p>
+          <p><b>قراءة سريعة:</b> أعلى أداء في {strongestUnit?.label || "الأقسام المكتملة"}، والأولوية الآن {weakestUnit?.label || "المراجعة الأساسية"}.</p>
         </article>
 
         <article className="print-gauge-card discipline">

@@ -68,9 +68,12 @@ export async function GET(request: Request) {
     || `${String(studentData.grade || "")} ${String(studentData.section || "")}`,
   );
 
-  const [attendance, timetable] = await Promise.all([
+  const gradePlanConfig = await adminDb().collection(`portalV2Data/${access.teacherId}/gradePlanConfig`).doc("current").get();
+  const activeGradePlanId = gradePlanConfig.exists ? String(gradePlanConfig.data()?.activePlanId || "") : "";
+  const [attendance, timetable, gradePlanSnapshot] = await Promise.all([
     adminDb().collection(`${root}/attendance`).get(),
     adminDb().collection(`${root}/timetable`).doc("weekly").get(),
+    activeGradePlanId ? adminDb().collection(`portalV2Data/${access.teacherId}/gradePlanVersions`).doc(activeGradePlanId).get() : Promise.resolve(null),
   ]);
 
   const explicitByDate = new Map<string, AttendanceEntry>();
@@ -146,6 +149,7 @@ export async function GET(request: Request) {
         latestDate,
         attendanceSource,
       },
+      gradePlan: gradePlanSnapshot && gradePlanSnapshot.exists ? { id: gradePlanSnapshot.id, ...gradePlanSnapshot.data() } : null,
     },
     attendanceSource,
     expectedWeekdays: [...expectedWeekdays],

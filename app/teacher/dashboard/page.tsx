@@ -7,6 +7,8 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import { calculateGradePlanResult, GRADE_CATEGORY_LABELS, type GradeStudentLike } from "../../../lib/grade-plan";
+import { useGradePlan } from "../../../lib/use-grade-plan";
 
 type UnitGrade = {
   percentage?: number;
@@ -34,7 +36,7 @@ type Lesson = { subject?: string; className?: string; notes?: string };
 type Scope = "all" | "class" | "student";
 type WorkspaceView = "today" | "analysis";
 
-const dimensions = [
+const legacyDimensions = [
   ["attendance", "الحضور"],
   ["participation", "المشاركة"],
   ["homework", "الواجبات"],
@@ -95,6 +97,7 @@ function arabicTime(value: Date) {
 
 export default function TeacherDashboardPage() {
   const session = useTeacherClient();
+  const { activePlan } = useGradePlan(true);
   const [students, setStudents] = useState<Student[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [timetable, setTimetable] = useState<Record<string, Lesson>>({});
@@ -105,6 +108,19 @@ export default function TeacherDashboardPage() {
   const [checkedTasks, setCheckedTasks] = useState<string[]>([]);
   const [now, setNow] = useState<Date | null>(null);
   const [message, setMessage] = useState("");
+
+  const dimensions = useMemo<Array<[string, string]>>(() => {
+    if (!activePlan) return legacyDimensions.map(item => [item[0], item[1]]);
+    const seen = new Set<string>();
+    const values: Array<[string, string]> = [];
+    activePlan.sections.forEach(section => section.items.forEach(item => {
+      const key = item.category || "custom";
+      if (seen.has(key)) return;
+      seen.add(key);
+      values.push([key, GRADE_CATEGORY_LABELS[item.category] || item.label]);
+    }));
+    return values.length ? values : legacyDimensions.map(item => [item[0], item[1]]);
+  }, [activePlan]);
 
   useEffect(() => {
     setNow(new Date());
@@ -204,19 +220,22 @@ export default function TeacherDashboardPage() {
   const attendanceRateToday = todayClassNames.length ? Math.round(completedAttendance / todayClassNames.length * 100) : 0;
 
   const analyses = useMemo(() => students.map(student => {
+    const result = activePlan ? calculateGradePlanResult(activePlan, student as unknown as GradeStudentLike) : null;
     const units = Object.values(student.units || {});
-    const percentages = units.map(unit => Number(unit.percentage || 0)).filter(value => value > 0);
+    const legacyPercentages = units.map(unit => Number(unit.percentage || 0)).filter(value => value > 0);
     const dimensionScores = Object.fromEntries(dimensions.map(([key]) => {
+      if (result) return [key, result.dimensions.find(item => item.key === key)?.percentage || 0];
       const maximum = key === "attendance" ? 3 : key === "participation" ? 4 : key === "homework" ? 2 : 10;
-      const values = units.map(unit => Number(key === "unitExam" ? unit.unitExam ?? unit.exam1 ?? unit.exam2 ?? 0 : unit[key] || 0));
+      const values = units.map(unit => Number(key === "unitExam" ? unit.unitExam ?? unit.exam1 ?? unit.exam2 ?? 0 : (unit as Record<string, unknown>)[key] || 0));
       return [key, values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / (values.length * maximum) * 100) : 0];
     })) as Record<string, number>;
     const statuses = attendance.map(day => day.records?.[student.id]).filter(Boolean);
     const absence = statuses.filter(status => status === "absent" || status === "escaped").length;
     const late = statuses.filter(status => status === "late").length;
-    const average = percentages.length ? Math.round(percentages.reduce((sum, value) => sum + value, 0) / percentages.length) : 0;
-    return { ...student, average, ratedUnits: percentages.length, dimensionScores, absence, late, level: level(average) };
-  }), [students, attendance]);
+    const average = result ? Math.round(result.percentage) : legacyPercentages.length ? Math.round(legacyPercentages.reduce((sum, value) => sum + value, 0) / legacyPercentages.length) : 0;
+    const ratedUnits = result ? result.sections.filter(section => section.recordedMaximum > 0).length : legacyPercentages.length;
+    return { ...student, average, ratedUnits, dimensionScores, absence, late, completion: result?.completion || 0, level: level(average) };
+  }), [students, attendance, activePlan, dimensions]);
 
   const filtered = useMemo(() => analyses.filter(student => {
     if (scope === "class") return Boolean(selectedClass) && String(student.class || "").trim() === selectedClass;
@@ -262,7 +281,7 @@ export default function TeacherDashboardPage() {
   const checklistTasks = [
     { id: "schedule", title: "راجعت جدول اليوم", note: todayLessons.length ? `${todayLessons.length} حصص مجدولة` : "لا توجد حصص مسجلة اليوم" },
     { id: "attendance", title: "اكتمل تحضير اليوم", note: todayClassNames.length ? `${completedAttendance} من ${todayClassNames.length} فصول` : "لا توجد حصص للتحضير", automatic: true },
-    { id: "grades", title: "راجعت الرصد المطلوب", note: "تأكد من الوحدات والطلاب غير المرصودين" },
+    { id: "grades", title: "راجعت الرصد المطلوب", note: "تأكد من أقسام الخطة والطلاب غير المرصودين" },
     { id: "support", title: "راجعت الطلاب المحتاجين دعمًا", note: `${analyses.filter(student => student.ratedUnits > 0 && student.average < 60).length} طلاب حاليًا` },
   ];
 
@@ -320,6 +339,7 @@ export default function TeacherDashboardPage() {
       <section className="daily-actions" aria-label="إجراءات المعلم السريعة">
         <Link className="daily-action" href="/teacher/attendance"><span>✓</span><div><b>تسجيل الحضور</b><small>افتح الفصل وسجل الحالة مباشرة</small></div></Link>
         <Link className="daily-action" href="/teacher/grades"><span>٪</span><div><b>رصد الدرجات</b><small>إدخال الدرجات وحفظها سحابيًا</small></div></Link>
+        <Link className="daily-action" href="/teacher/grade-plan"><span>١٠٠</span><div><b>توزيع الدرجات</b><small>{activePlan ? `الخطة المعتمدة — نسخة ${activePlan.version}` : "إعداد طريقة احتساب الـ100"}</small></div></Link>
         <Link className="daily-action" href="/teacher/diagnostics"><span>⌁</span><div><b>الاختبارات التشخيصية</b><small>النتائج والخطط العلاجية فقط</small></div></Link>
         <Link className="daily-action" href="/teacher/ai"><span>AI</span><div><b>المساعد الذكي</b><small>تحليل واقتراحات تساعد قرارك</small></div></Link>
       </section>
@@ -357,7 +377,7 @@ export default function TeacherDashboardPage() {
       </section>
 
       <section className="smart-daily-insight">
-        <div><span className="smart-insight-label">قراءة ذكية سريعة</span><h2>{supportStudents.length ? `${supportStudents[0].name} في مقدمة المتابعة` : "ابدأ الرصد لظهور القراءة الذكية"}</h2><p>{supportStudents.length ? `أقل متوسط مرصود حاليًا ${supportStudents[0].average}٪ في ${supportStudents[0].class}. الأولوية العامة للتحسين: ${weakest?.label || "—"}.` : "بعد رصد أول وحدة ستظهر هنا أولوية المتابعة ونقطة القوة والطلاب المحتاجون دعمًا."}</p></div>
+        <div><span className="smart-insight-label">قراءة ذكية سريعة</span><h2>{supportStudents.length ? `${supportStudents[0].name} في مقدمة المتابعة` : "ابدأ الرصد لظهور القراءة الذكية"}</h2><p>{supportStudents.length ? `أقل متوسط مرصود حاليًا ${supportStudents[0].average}٪ في ${supportStudents[0].class}. الأولوية العامة للتحسين: ${weakest?.label || "—"}.` : "بعد بدء الرصد وفق الخطة المعتمدة ستظهر هنا أولوية المتابعة ونقطة القوة والطلاب المحتاجون دعمًا."}</p></div>
         <div className="smart-insight-actions">
           <button type="button" onClick={() => setView("analysis")}>فتح التحليل الكامل <span>←</span></button>
           <Link href="/teacher/follow-up">فتح الإتقان والمتابعة <span>←</span></Link>
@@ -376,8 +396,8 @@ export default function TeacherDashboardPage() {
       <section className="analytics-stats"><article><small>الطلاب</small><b>{filtered.length}</b><span>{rated.length} لديهم درجات</span></article><article><small>متوسط الأداء</small><b>{overall}%</b><span>{level(overall).label}</span></article><article className="positive"><small>المتميزون</small><b>{excellent}</b><span>٩٠٪ فأعلى</span></article><article className="warning"><small>يحتاجون دعمًا</small><b>{needsSupport}</b><span>أقل من ٦٠٪</span></article></section>
 
       <section className="analytics-grid">
-        <article className="analysis-card dimensions-card"><h2>مقارنة عناصر الأداء</h2><p>الحضور والمشاركة والواجبات والاختبارات</p><div className="dimension-bars">{dimensionAverages.map(item => <div key={item.key}><span><b>{item.label}</b><em>{item.value}%</em></span><i><u style={{ width: `${item.value}%` }}/></i></div>)}</div><footer><span>نقطة القوة: <b>{strongest?.label || "—"}</b></span><span>الأولوية: <b>{weakest?.label || "—"}</b></span></footer></article>
-        <article className="analysis-card insight-card"><span className="ai-label">AI قراءة ذكية</span><h2>{selectedAnalysis ? `تحليل ${selectedAnalysis.name}` : "قراءة النطاق الحالي"}</h2><strong className={level(selectedAnalysis?.average ?? overall).className}>{level(selectedAnalysis?.average ?? overall).label}</strong><p>{level(selectedAnalysis?.average ?? overall).advice}</p><dl><div><dt>المتوسط</dt><dd>{selectedAnalysis?.average ?? overall}%</dd></div><div><dt>الوحدات</dt><dd>{selectedAnalysis?.ratedUnits ?? rated.reduce((sum, student) => sum + student.ratedUnits, 0)}</dd></div><div><dt>الغياب</dt><dd>{selectedAnalysis?.absence ?? absences}</dd></div><div><dt>الأولوية</dt><dd>{weakest?.label || "—"}</dd></div></dl></article>
+        <article className="analysis-card dimensions-card"><h2>مقارنة عناصر الأداء</h2><p>عناصر التقييم في خطة توزيع الدرجات المعتمدة</p><div className="dimension-bars">{dimensionAverages.map(item => <div key={item.key}><span><b>{item.label}</b><em>{item.value}%</em></span><i><u style={{ width: `${item.value}%` }}/></i></div>)}</div><footer><span>نقطة القوة: <b>{strongest?.label || "—"}</b></span><span>الأولوية: <b>{weakest?.label || "—"}</b></span></footer></article>
+        <article className="analysis-card insight-card"><span className="ai-label">AI قراءة ذكية</span><h2>{selectedAnalysis ? `تحليل ${selectedAnalysis.name}` : "قراءة النطاق الحالي"}</h2><strong className={level(selectedAnalysis?.average ?? overall).className}>{level(selectedAnalysis?.average ?? overall).label}</strong><p>{level(selectedAnalysis?.average ?? overall).advice}</p><dl><div><dt>المتوسط</dt><dd>{selectedAnalysis?.average ?? overall}%</dd></div><div><dt>الأقسام المرصودة</dt><dd>{selectedAnalysis?.ratedUnits ?? rated.reduce((sum, student) => sum + student.ratedUnits, 0)}</dd></div><div><dt>الغياب</dt><dd>{selectedAnalysis?.absence ?? absences}</dd></div><div><dt>الأولوية</dt><dd>{weakest?.label || "—"}</dd></div></dl></article>
       </section>
 
       <article className="analysis-card comparison-table"><header><h2>{scope === "all" ? "مقارنة الفصول" : "تفاصيل الطلاب"}</h2><p>{scope === "all" ? "ترتيب الفصول حسب متوسط الأداء" : "عرض مختصر يساعدك على تحديد الأولوية"}</p></header><div className="analytics-table-wrap"><table>
