@@ -1,0 +1,47 @@
+name: Force Grade Plan Redirect v95
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/force_grade_plan_redirect_v95.py'
+      - '.github/workflows/force-grade-plan-redirect-v95.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply redirect patch
+        run: python .github/scripts/force_grade_plan_redirect_v95.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify redirect behavior
+        run: |
+          grep -F 'if (!editRequested) window.location.replace("/teacher/grades");' app/teacher/grade-plan/page.tsx
+          grep -F 'جارٍ فتح سجل الدرجات…' app/teacher/grade-plan/page.tsx
+          grep -F 'grade-plan-edit-icon' app/teacher/grades/page.tsx
+          grep -F 'ostadh-lahooni-v95-grade-plan-direct' public/sw.js
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grade-plan/page.tsx app/pwa-register.tsx public/sw.js
+          git commit -m 'fix: force approved grade plan into gradebook'
+          git push origin main
