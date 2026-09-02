@@ -21,3 +21,4 @@ for path in (PWA, SW):
     path.write_text(text, encoding='utf-8')
 
 print('grade plan approval now redirects to approved view; cache bumped to v93')
+# trigger after workflow registration
