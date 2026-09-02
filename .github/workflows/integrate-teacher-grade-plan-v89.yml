@@ -1,0 +1,50 @@
+name: Teacher Grade Distribution v89
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/integrate_teacher_grade_plan_v89.py'
+      - '.github/workflows/integrate-teacher-grade-plan-v89.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply integration
+        run: python .github/scripts/integrate_teacher_grade_plan_v89.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify grade distribution integration
+        run: |
+          grep -q 'href: "/teacher/grade-plan"' app/teacher/layout.tsx
+          grep -q 'gradePlanSnapshot' app/api/student/profile/route.ts
+          grep -q 'calculateGradePlanResult' app/student/page.tsx
+          grep -q 'calculateGradePlanResult' app/teacher/follow-up/page.tsx
+          grep -q 'gradePlanValues' app/teacher/grades/page.tsx
+          grep -q 'const count = Math.max(1, Math.floor(unitCount || 1));' lib/grade-plan.ts
+          ! grep -q 'Math.min(50' lib/grade-plan.ts
+      - name: Commit validated integration
+        run: |
+          if git diff --quiet; then
+            echo 'No generated changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/grade-plan.ts app/teacher/grades/page.tsx app/teacher/layout.tsx app/mobile-app-enhancer.tsx app/teacher/dashboard/page.tsx app/api/student/profile/route.ts app/student/page.tsx app/teacher/follow-up/page.tsx
+          git commit -m 'feat: integrate approved teacher grade distribution across portal'
+          git push
