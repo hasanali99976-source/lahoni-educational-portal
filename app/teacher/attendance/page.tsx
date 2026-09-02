@@ -56,6 +56,10 @@ const STATUS_LABELS: Record<AttendanceStatus, string> = {
   excused: "مستأذن",
   escaped: "هروب",
 };
+const ATTENDANCE_CLASS_COLORS = [
+  "#0e4b59", "#2457a1", "#6f3fa0", "#a34f2f",
+  "#2f7a55", "#8a5a05", "#8f3555", "#3f5f8f",
+];
 function toDateInput(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Riyadh",
@@ -69,6 +73,17 @@ function toDateInput(date: Date) {
 
 function attendanceToday() {
   return toDateInput(new Date());
+}
+
+function schoolWeekDates(base: string) {
+  const current = new Date(`${base}T12:00:00`);
+  const sundayOffset = current.getDay();
+  current.setDate(current.getDate() - sundayOffset);
+  return Array.from({ length: 5 }, (_, index) => {
+    const day = new Date(current);
+    day.setDate(current.getDate() + index);
+    return toDateInput(day);
+  });
 }
 
 function riyadhHour(date = new Date()) {
@@ -862,6 +877,63 @@ export default function AttendancePage() {
     }
   }
 
+  async function printWeeklyAllClassesPdf() {
+    if (!attendancePath || !classes.length) return setMessage("لا توجد فصول متاحة للتقرير الأسبوعي.");
+    setReporting(true);
+    setMessage("جارٍ تجهيز التقرير الأسبوعي لجميع الفصول...");
+    try {
+      const weekDates = schoolWeekDates(selectedDate).filter(day => day >= ATTENDANCE_START_DATE);
+      const localDocuments = Object.values(readAttendanceIndex(teacherId, subjectKey));
+      let serverDocuments: AttendanceDocument[] = [];
+      try {
+        const snapshot = await withTimeout(getDocs(collection(db, attendancePath)), 6000);
+        serverDocuments = snapshot.docs.map(item => item.data() as AttendanceDocument);
+      } catch {
+        serverDocuments = [];
+      }
+      const merged = new Map<string, AttendanceDocument>();
+      [...serverDocuments, ...localDocuments].forEach(item => {
+        if (!item.class || !item.date) return;
+        merged.set(`${attendanceClassKey(item.class)}|${item.date}`, item);
+      });
+      const rosterSource = uniqueActiveRoster(officialStudents.length ? officialStudents : students);
+      const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+      const pages = classes.map((className, classIndex) => {
+        const roster = rosterSource
+          .filter(student => attendanceStudentMatchesClass(student, className))
+          .sort((a, b) => clean(a.name).localeCompare(clean(b.name), "ar"));
+        if (!roster.length) return "";
+        const accent = ATTENDANCE_CLASS_COLORS[classIndex % ATTENDANCE_CLASS_COLORS.length];
+        const rowHeight = Math.max(4.1, Math.min(5.25, 137 / Math.max(roster.length, 1)));
+        const fontSize = roster.length >= 40 ? 6.2 : roster.length >= 34 ? 6.7 : roster.length >= 29 ? 7.1 : 7.7;
+        const body = roster.map((student, index) => {
+          const code = studentCode(student);
+          const cells = weekDates.map((day, dayIndex) => {
+            const record = merged.get(`${attendanceClassKey(className)}|${day}`);
+            if (!record) return `<td class="not-saved" title="لم يُحفظ تحضير ${dayNames[dayIndex] || ""}">—</td>`;
+            const status = record.records?.[code] || "present";
+            return `<td class="s-${status}">${escapeHtml(STATUS_LABELS[status])}</td>`;
+          }).join("");
+          return `<tr><td class="num">${index + 1}</td><td class="student">${escapeHtml(clean(student.name) || "طالب بدون اسم")}</td>${cells}</tr>`;
+        }).join("");
+        const heads = weekDates.map((day, index) => `<th><span>${dayNames[index] || ""}</span><small>${day.slice(5)}</small></th>`).join("");
+        return `<section class="page" style="--accent:${accent};--row-h:${rowHeight}mm;--font:${fontSize}px"><header><div><b>${PORTAL_NAME}</b><small>سجل الحضور الأسبوعي — جميع الفصول</small></div><strong>${escapeHtml(className)}</strong></header><div class="meta"><span>المعلم: <b>${escapeHtml(teacherName)}</b></span><span>المادة: <b>${escapeHtml(subject)}</b></span><span>الأسبوع: <b>${weekDates[0]} إلى ${weekDates.at(-1)}</b></span><span>عدد الطلاب: <b>${roster.length}</b></span></div><table><colgroup><col style="width:9mm"><col style="width:70mm">${weekDates.map(() => '<col>').join('')}</colgroup><thead><tr><th>م</th><th class="student-head">اسم الطالب</th>${heads}</tr></thead><tbody>${body}</tbody></table><footer><span>توقيع المعلم: ____________________</span><b>${escapeHtml(className)}</b><span>اعتماد الإدارة: ____________________</span></footer></section>`;
+      }).filter(Boolean).join("");
+      if (!pages) throw new Error("لا توجد أسماء طلاب في الفصول المتاحة.");
+      const popup = window.open("", "_blank", "width=1400,height=920");
+      if (!popup) return setMessage("اسمح بالنوافذ المنبثقة لفتح التقرير الأسبوعي.");
+      popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>التحضير الأسبوعي — جميع الفصول</title><style>
+@page{size:A4 landscape;margin:0}*{box-sizing:border-box}html,body{margin:0;background:#e9eef2;color:#17303b;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{position:sticky;top:0;z-index:10;display:flex;justify-content:center;gap:10px;padding:10px;background:#102f3b}.toolbar button{border:0;border-radius:10px;padding:10px 20px;font-weight:900;cursor:pointer}.toolbar .print{background:#f1c75a}.toolbar .close{background:#fff}.page{width:297mm;height:210mm;margin:6mm auto;background:#fff;overflow:hidden;page-break-after:always;break-after:page;box-shadow:0 16px 45px #0002;padding:5mm 6mm 4mm;display:grid;grid-template-rows:21mm 12mm minmax(0,1fr) 9mm;gap:2mm;border-top:4mm solid var(--accent)}.page:last-child{page-break-after:auto;break-after:auto}header{display:flex;align-items:center;justify-content:space-between;background:var(--accent);color:#fff;border-radius:3mm;padding:3mm 5mm}header b{display:block;font-size:12px}header small{display:block;margin-top:1mm;font-size:7.5px;opacity:.86}header strong{font-size:19px;padding:1.5mm 4mm;border-radius:99px;background:#fff;color:var(--accent)}.meta{display:grid;grid-template-columns:1.2fr 1fr 1.35fr .7fr;gap:2mm}.meta span{border:1px solid #d7e2e7;border-radius:2mm;padding:2mm 2.5mm;background:#f8fbfc;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;border:1px solid #c7d6dc;border-radius:2.5mm;overflow:hidden}th{height:8mm;background:var(--accent);color:#fff;border-left:1px solid #ffffff2d;font-size:7.4px;padding:1mm}th span,th small{display:block}.student-head{text-align:right;padding-right:3mm}td{height:var(--row-h);padding:.35mm 1mm;border-top:1px solid #dce5e9;border-left:1px solid #e5ecef;text-align:center;font-size:var(--font);font-weight:800;line-height:1.05}tbody tr:nth-child(even){background:#f7fafb}.num{width:9mm}.student{text-align:right;padding-right:2.5mm;font-weight:900}.s-present{background:#e5f7ec;color:#13643d}.s-absent{background:#fde8eb;color:#9f2936}.s-late{background:#fff1cd;color:#865500}.s-excused{background:#e6efff;color:#2457a1}.s-escaped{background:#efe6ff;color:#60379f}.not-saved{color:#8a9aa1;background:#f1f4f5}footer{border-top:1px dashed #aebfc6;display:flex;align-items:center;justify-content:space-between;font-size:7.5px;color:#607780}footer b{color:var(--accent);font-size:9px}@media print{html,body{background:#fff}.toolbar{display:none}.page{margin:0;box-shadow:none}}
+</style></head><body><div class="toolbar"><button class="print" onclick="window.print()">طباعة أو حفظ PDF</button><button class="close" onclick="window.close()">إغلاق</button></div>${pages}</body></html>`);
+      popup.document.close();
+      setMessage(`تم تجهيز التقرير الأسبوعي لجميع الفصول: ${classes.length} فصل، ولكل فصل لون مستقل.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "تعذر تجهيز التقرير الأسبوعي لجميع الفصول.");
+    } finally {
+      setReporting(false);
+    }
+  }
+
   function printAdminReport() {
     void downloadAttendancePdf();
   }
@@ -1053,7 +1125,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
 
       <details className="attendance-range-report">
         <summary><div><span>التقارير المتقدمة</span><strong>تقرير أسبوعي أو فترة محددة</strong></div><small>اضغط للفتح</small></summary>
-        <div className="attendance-range-content"><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب لكل طالب خلال الفترة، ويمكن تحميله بصيغتي Excel وPDF.</p><div className="attendance-range-controls"><label><span>من تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportFrom} onChange={event => setReportFrom(clampAttendanceDate(event.target.value))}/></label><label><span>إلى تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportTo} onChange={event => setReportTo(clampAttendanceDate(event.target.value))}/></label><button type="button" className="attendance-range-excel" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تحميل تقرير الفترة Excel"}</button><button type="button" className="attendance-range-pdf" onClick={() => void printRangePdf()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "معاينة وحفظ PDF"}</button></div></div>
+        <div className="attendance-range-content"><p>يعرض تواريخ الغياب والتأخير والاستئذان والهروب لكل طالب خلال الفترة، ويمكن تحميله بصيغتي Excel وPDF.</p><div className="attendance-range-controls"><label><span>من تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportFrom} onChange={event => setReportFrom(clampAttendanceDate(event.target.value))}/></label><label><span>إلى تاريخ</span><input type="date" min={ATTENDANCE_START_DATE} value={reportTo} onChange={event => setReportTo(clampAttendanceDate(event.target.value))}/></label><button type="button" className="attendance-range-excel" onClick={() => void exportRangeExcel()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "تحميل تقرير الفترة Excel"}</button><button type="button" className="attendance-range-pdf" onClick={() => void printRangePdf()} disabled={!selectedClass || reporting}>{reporting ? "جارٍ التجهيز..." : "معاينة وحفظ PDF"}</button><button type="button" className="attendance-range-pdf attendance-weekly-all" onClick={() => void printWeeklyAllClassesPdf()} disabled={!classes.length || reporting}>{reporting ? "جارٍ التجهيز..." : "PDF أسبوعي — جميع الفصول"}</button></div></div>
       </details>
 
       {message ? <p className="attendance-message" role="status">{message}</p> : null}

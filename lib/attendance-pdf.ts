@@ -182,7 +182,12 @@ function drawTable(ctx: CanvasRenderingContext2D, rows: AttendancePdfRow[], acce
   const x = 28;
   const w = WIDTH - 56;
   const headerH = 46;
-  const rowH = Math.floor((bottom - top - headerH) / ROWS_PER_PAGE);
+  const fittedRows = Math.max(ROWS_PER_PAGE, rows.length);
+  const rowH = Math.floor((bottom - top - headerH) / fittedRows);
+  const compact = rows.length > ROWS_PER_PAGE;
+  const numberSize = compact ? Math.max(11, 17 - (rows.length - ROWS_PER_PAGE) * 0.24) : 17;
+  const nameSize = compact ? Math.max(11.5, 19 - (rows.length - ROWS_PER_PAGE) * 0.3) : 19;
+  const statusSize = compact ? Math.max(10, 15 - (rows.length - ROWS_PER_PAGE) * 0.22) : 15;
   const numberW = 105;
   const statusW = 260;
   const nameW = w - numberW - statusW;
@@ -205,11 +210,12 @@ function drawTable(ctx: CanvasRenderingContext2D, rows: AttendancePdfRow[], acce
     ctx.fillStyle = index % 2 ? "#f6fafb" : "#ffffff";
     ctx.fillRect(x, y, w, rowH);
     line(ctx, x, y + rowH, x + w, y + rowH);
-    text(ctx, row.number, x + w - numberW / 2, y + rowH / 2, { size: 17, weight: 900, align: "center" });
-    text(ctx, row.name, x + w - numberW - 18, y + rowH / 2, { size: 19, min: 12.5, weight: 900, maxWidth: nameW - 36 });
+    text(ctx, row.number, x + w - numberW / 2, y + rowH / 2, { size: numberSize, min: 9.5, weight: 900, align: "center" });
+    text(ctx, row.name, x + w - numberW - 18, y + rowH / 2, { size: nameSize, min: 10.5, weight: 900, maxWidth: nameW - 36 });
     const style = statusStyle(row.status);
-    rounded(ctx, x + 55, y + 7, statusW - 110, rowH - 14, (rowH - 14) / 2, style.fill);
-    text(ctx, row.status, x + statusW / 2, y + rowH / 2, { size: 15, min: 10, weight: 900, color: style.color, align: "center", maxWidth: statusW - 130 });
+    const pillPad = Math.max(3, Math.min(7, Math.floor(rowH * 0.18)));
+    rounded(ctx, x + 55, y + pillPad, statusW - 110, Math.max(12, rowH - pillPad * 2), Math.max(6, (rowH - pillPad * 2) / 2), style.fill);
+    text(ctx, row.status, x + statusW / 2, y + rowH / 2, { size: statusSize, min: 9, weight: 900, color: style.color, align: "center", maxWidth: statusW - 130 });
   });
   ctx.restore();
 }
@@ -255,7 +261,7 @@ export async function downloadAttendancePdfDocument(options: AttendancePdfDocume
   let studentCount = 0;
 
   usableClasses.forEach((classReport, classIndex) => {
-    const pages = chunks(classReport.rows, ROWS_PER_PAGE);
+    const pages = [classReport.rows];
     pages.forEach((pageRows, pageIndex) => {
       const canvas = renderPage(options, classReport, pageRows, pageIndex, pages.length, classIndex);
       if (pageCount > 0) pdf.addPage("a4", "landscape");
