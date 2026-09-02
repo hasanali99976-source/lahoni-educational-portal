@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
-import { renderAttendancePdfPages } from "../../../lib/class-pdf-pages-v83";
+import { downloadAttendancePdfDocument, type AttendancePdfClass } from "../../../lib/attendance-pdf";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -57,17 +56,6 @@ const STATUS_LABELS: Record<AttendanceStatus, string> = {
   excused: "مستأذن",
   escaped: "هروب",
 };
-const ATTENDANCE_CLASS_COLORS = [
-  "#0e4b59",
-  "#2457a1",
-  "#6f3fa0",
-  "#a34f2f",
-  "#2f7a55",
-  "#8a5a05",
-  "#8f3555",
-  "#3f5f8f",
-];
-
 function toDateInput(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Riyadh",
@@ -768,29 +756,24 @@ export default function AttendancePage() {
   async function downloadAttendancePdf() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
-    setMessage(`جارٍ إنشاء PDF التحضير من القائمة الكاملة: ${rows.length} طالبًا...`);
+    setMessage(`جارٍ إنشاء PDF التحضير من الصفر: ${rows.length} طالبًا...`);
     try {
-      if (document.fonts?.ready) await document.fonts.ready;
-      const canvases = renderAttendancePdfPages({
+      const result = await downloadAttendancePdfDocument({
         portalName: PORTAL_NAME,
         teacherName,
         subject,
-        className: selectedClass,
         date: selectedDate,
         hijriDate: formatHijri(selectedDate),
-        rows: rows.map(row => ({ number: row.number, name: row.name, status: row.status })),
-        counts,
+        fileName: `تحضير-${safeFile(selectedClass)}-${selectedDate}.pdf`,
+        classes: [{
+          className: selectedClass,
+          rows: rows.map(row => ({ number: row.number, name: row.name, status: row.status })),
+          counts,
+        }],
       });
-      if (!canvases.length) throw new Error("attendance_pdf_no_pages");
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      canvases.forEach((canvas, index) => {
-        if (index > 0) pdf.addPage("a4", "landscape");
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
-      });
-      pdf.save(`تحضير-${safeFile(selectedClass)}-${selectedDate}.pdf`);
-      setMessage(`تم تنزيل التحضير كاملًا: ${rows.length} من ${classStudents.length} طالبًا في ${canvases.length} صفحة.`);
+      setMessage(`تم تنزيل PDF كامل: ${result.studentCount} طالبًا في ${result.pageCount} صفحة.`);
     } catch (error) {
-      console.error("attendance-paginated-pdf", error);
+      console.error("attendance-pdf-v86", error);
       setMessage("تعذر إنشاء PDF الآن. حدّث الصفحة ثم أعد المحاولة.");
     }
   }
@@ -798,20 +781,13 @@ export default function AttendancePage() {
   async function downloadAllAttendancePdf() {
     if (!attendancePath || !classes.length) return setMessage("لا توجد فصول متاحة للطباعة.");
     setAllPdfBusy(true);
-    setMessage(`جارٍ تجهيز تحضير جميع الفصول بتاريخ ${selectedDate}...`);
+    setMessage(`جارٍ تجهيز PDF جميع الفصول بتاريخ ${selectedDate}...`);
     try {
-      if (document.fonts?.ready) await document.fonts.ready;
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      let totalPages = 0;
-      let totalStudents = 0;
-      let includedClasses = 0;
-
-      for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
-        const className = classes[classIndex];
+      const reports = await Promise.all(classes.map(async className => {
         const roster = students
           .filter(student => clean(student.class) === clean(className))
           .sort((a, b) => clean(a.name).localeCompare(clean(b.name), "ar"));
-        if (!roster.length) continue;
+        if (!roster.length) return null;
 
         let savedRecords = readRecords(attendanceKey(teacherId, subjectKey, className, selectedDate))
           || readRecords(legacyAttendanceKey(teacherId, subjectKey, className, selectedDate))
@@ -823,48 +799,41 @@ export default function AttendancePage() {
             if (data.records && typeof data.records === "object") savedRecords = data.records;
           }
         } catch {
-          // إذا تعذر الاتصال نستخدم آخر نسخة محفوظة محليًا بدل إسقاط الفصل من التقرير.
+          // نستخدم آخر نسخة محلية عند تعذر الاتصال، ولا نسقط الفصل من التقرير.
         }
 
         const values = roster.map(student => savedRecords[studentCode(student)] || "present");
-        const classCounts = {
-          present: values.filter(value => value === "present").length,
-          absent: values.filter(value => value === "absent").length,
-          late: values.filter(value => value === "late").length,
-          excused: values.filter(value => value === "excused").length,
-          escaped: values.filter(value => value === "escaped").length,
-        };
-        const classRows = roster.map((student, index) => ({
-          number: index + 1,
-          name: clean(student.name) || "طالب بدون اسم",
-          status: STATUS_LABELS[savedRecords[studentCode(student)] || "present"],
-        }));
-        const canvases = renderAttendancePdfPages({
-          portalName: PORTAL_NAME,
-          teacherName,
-          subject,
+        return {
           className,
-          date: selectedDate,
-          hijriDate: formatHijri(selectedDate),
-          rows: classRows,
-          counts: classCounts,
-          accentColor: ATTENDANCE_CLASS_COLORS[classIndex % ATTENDANCE_CLASS_COLORS.length],
-        });
+          rows: roster.map((student, index) => ({
+            number: index + 1,
+            name: clean(student.name) || "طالب بدون اسم",
+            status: STATUS_LABELS[savedRecords[studentCode(student)] || "present"],
+          })),
+          counts: {
+            present: values.filter(value => value === "present").length,
+            absent: values.filter(value => value === "absent").length,
+            late: values.filter(value => value === "late").length,
+            excused: values.filter(value => value === "excused").length,
+            escaped: values.filter(value => value === "escaped").length,
+          },
+        } satisfies AttendancePdfClass;
+      }));
 
-        canvases.forEach(canvas => {
-          if (totalPages > 0) pdf.addPage("a4", "landscape");
-          pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
-          totalPages += 1;
-        });
-        totalStudents += roster.length;
-        includedClasses += 1;
-      }
-
-      if (!totalPages) throw new Error("attendance_all_pdf_no_pages");
-      pdf.save(`تحضير-جميع-الفصول-${selectedDate}.pdf`);
-      setMessage(`تم تنزيل تحضير جميع الفصول: ${includedClasses} فصل، ${totalStudents} طالبًا، ${totalPages} صفحة. لكل فصل لون مستقل.`);
+      const printable = reports.filter((item): item is AttendancePdfClass => !!item);
+      if (!printable.length) throw new Error("attendance_all_pdf_no_students");
+      const result = await downloadAttendancePdfDocument({
+        portalName: PORTAL_NAME,
+        teacherName,
+        subject,
+        date: selectedDate,
+        hijriDate: formatHijri(selectedDate),
+        fileName: `تحضير-جميع-الفصول-${selectedDate}.pdf`,
+        classes: printable,
+      });
+      setMessage(`تم تنزيل جميع الفصول: ${result.classCount} فصل، ${result.studentCount} طالبًا، ${result.pageCount} صفحة.`);
     } catch (error) {
-      console.error("attendance-all-classes-pdf", error);
+      console.error("attendance-all-pdf-v86", error);
       setMessage("تعذر إنشاء PDF جميع الفصول الآن. أعد المحاولة بعد تحديث الصفحة.");
     } finally {
       setAllPdfBusy(false);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v85-colored-all-attendance";
+const CACHE_NAME = "ostadh-lahooni-v86-clean-attendance-evaluation-plans";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",
