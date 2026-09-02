@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v79-one-page-smart-mastery";
+const CACHE_NAME = "ostadh-lahooni-v80-real-ai-mastery";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",

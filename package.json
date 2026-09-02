@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@vercel/functions": "3.9.5",
+    "ai": "^7.0.90",
     "firebase": "^12.2.1",
     "firebase-admin": "^14.3.0",
     "framer-motion": "^13.1.0",
