@@ -77,6 +77,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/teacher";
   const [ready, setReady] = useState(false);
+  const [hasGradePlan, setHasGradePlan] = useState<boolean | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [teacherId, setTeacherId] = useState<string>();
   const [teacherName, setTeacherName] = useState("المعلم");
@@ -115,6 +116,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     setSubjectName("التاريخ");
     setSubjects([]);
     setAssignments([]);
+    setHasGradePlan(null);
     setMenuOpen(false);
   }
 
@@ -153,10 +155,27 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     let active = true;
     fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
-      .then((session: TeacherSession) => {
+      .then(async (session: TeacherSession) => {
         if (!active) return;
         if (!session.teacherId) throw new Error("missing_teacher_identity");
         applySession(session);
+
+        const planResponse = await fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" });
+        const planData = planResponse.ok ? await planResponse.json().catch(() => ({})) : {};
+        const nextHasGradePlan = Boolean(planData?.activePlan || planData?.hasActivePlan);
+        if (!active) return;
+        setHasGradePlan(nextHasGradePlan);
+
+        const onGradePlanPage = pathname.startsWith("/teacher/grade-plan");
+        const editRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("edit") === "1";
+        if (!nextHasGradePlan && !onGradePlanPage) {
+          window.location.replace("/teacher/grade-plan?setup=1");
+          return;
+        }
+        if (nextHasGradePlan && onGradePlanPage && !editRequested) {
+          window.location.replace("/teacher/grades");
+          return;
+        }
         setReady(true);
       })
       .catch(() => {
@@ -245,6 +264,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
         <div className="teacher-pro-actions">
           <Link className="teacher-pro-action ai" href="/teacher/ai"><TabIcon type="ai"/><span>المساعد</span></Link>
+          {hasGradePlan ? <Link className="teacher-pro-action grade-plan-mini-action" href="/teacher/grade-plan?edit=1" title="تعديل خطة توزيع الدرجات" aria-label="تعديل خطة توزيع الدرجات"><TabIcon type="gradeplan"/></Link> : null}
           <button className="teacher-pro-action" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><TabIcon type="more"/><span>المزيد</span></button>
         </div>
       </header>
