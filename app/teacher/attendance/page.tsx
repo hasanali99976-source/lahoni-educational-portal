@@ -200,6 +200,28 @@ function classNamesFromPayload(value: unknown) {
   }).filter(Boolean);
 }
 
+function attendanceClassKey(value: unknown, gradeValue?: unknown, sectionValue?: unknown) {
+  const canonical = canonicalClassFromParts(gradeValue, sectionValue, value);
+  return normalizeClass(canonical) || clean(canonical);
+}
+
+function attendanceStudentMatchesClass(student: UnifiedStudent, className: string) {
+  const studentClass = attendanceClassKey(student.className || student.class, student.grade, student.section);
+  const targetClass = attendanceClassKey(className);
+  return Boolean(studentClass && targetClass && studentClass === targetClass);
+}
+
+function uniqueActiveRoster(source: UnifiedStudent[]) {
+  const byCode = new Map<string, UnifiedStudent>();
+  source.forEach(student => {
+    const code = studentCode(student);
+    const name = clean(student.name);
+    if (!code || !name || student.active === false || student.rosterActive === false) return;
+    byCode.set(code, { ...student, id: code, code, name });
+  });
+  return [...byCode.values()];
+}
+
 export default function AttendancePage() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
@@ -356,14 +378,10 @@ export default function AttendancePage() {
   );
 
   const students = useMemo(() => {
+    if (scopedOfficialStudents.length) return uniqueActiveRoster(scopedOfficialStudents);
     const deleted = loadDeletedCodes(teacherId);
-    const source = scopedOfficialStudents.length
-      ? scopedOfficialStudents
-      : mergeStudents(scopedLocalStudents, scopedOfficialStudents);
-    return source.filter(student => {
-      const code = studentCode(student);
-      return !deleted.has(code) && student.active !== false && student.rosterActive !== false;
-    });
+    return uniqueActiveRoster(mergeStudents(scopedLocalStudents, scopedOfficialStudents))
+      .filter(student => !deleted.has(studentCode(student)));
   }, [scopedOfficialStudents, scopedLocalStudents, teacherId]);
 
   const officialStudentClasses = useMemo(
@@ -501,7 +519,7 @@ export default function AttendancePage() {
   }, [ready, teacherId, teacherName, subjectKey, subject, attendancePath, students, timetableLessons, clockTick]);
 
   const classStudents = useMemo(
-    () => students.filter(student => clean(student.class) === clean(selectedClass)),
+    () => students.filter(student => attendanceStudentMatchesClass(student, selectedClass)),
     [students, selectedClass],
   );
 
@@ -727,7 +745,10 @@ export default function AttendancePage() {
   }
 
   function reportRows() {
-    return classStudents.map((student, index) => ({
+    const pdfRoster = uniqueActiveRoster(officialStudents.length ? officialStudents : students)
+      .filter(student => attendanceStudentMatchesClass(student, selectedClass))
+      .sort((a, b) => clean(a.name).localeCompare(clean(b.name), "ar"));
+    return pdfRoster.map((student, index) => ({
       number: index + 1,
       name: clean(student.name) || "طالب بدون اسم",
       className: selectedClass,
@@ -783,9 +804,10 @@ export default function AttendancePage() {
     setAllPdfBusy(true);
     setMessage(`جارٍ تجهيز PDF جميع الفصول بتاريخ ${selectedDate}...`);
     try {
+      const pdfRosterSource = uniqueActiveRoster(officialStudents.length ? officialStudents : students);
       const reports = await Promise.all(classes.map(async className => {
-        const roster = students
-          .filter(student => clean(student.class) === clean(className))
+        const roster = pdfRosterSource
+          .filter(student => attendanceStudentMatchesClass(student, className))
           .sort((a, b) => clean(a.name).localeCompare(clean(b.name), "ar"));
         if (!roster.length) return null;
 
