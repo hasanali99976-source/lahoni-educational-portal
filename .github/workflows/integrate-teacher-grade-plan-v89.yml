@@ -34,6 +34,7 @@ jobs:
           grep -q 'gradePlanSnapshot' app/api/student/profile/route.ts
           grep -q 'calculateGradePlanResult' app/student/page.tsx
           grep -q 'calculateGradePlanResult' app/teacher/follow-up/page.tsx
+          grep -q 'calculateGradePlanResult' app/teacher/ai/page.tsx
           grep -q 'gradePlanValues' app/teacher/grades/page.tsx
           grep -q 'const count = Math.max(1, Math.floor(unitCount || 1));' lib/grade-plan.ts
           ! grep -q 'Math.min(50' lib/grade-plan.ts
