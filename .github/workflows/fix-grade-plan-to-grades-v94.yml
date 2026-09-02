@@ -1,0 +1,49 @@
+name: Fix Grade Plan To Grades v94
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-grade-plan-to-grades-v94.py'
+      - '.github/workflows/fix-grade-plan-to-grades-v94.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply grade plan flow fix
+        run: python .github/scripts/fix-grade-plan-to-grades-v94.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify flow
+        run: |
+          grep -q 'window.location.replace("/teacher/grades")' app/teacher/grade-plan/page.tsx
+          grep -q 'grade-plan?edit=1' app/teacher/grades/page.tsx
+          grep -q 'grade-plan-edit-icon' app/teacher/grades/dynamic-gradebook.css
+          ! grep -q 'label: "توزيع الدرجات"' app/teacher/layout.tsx
+          grep -q 'ostadh-lahooni-v94-grade-plan-to-grades' app/pwa-register.tsx
+          grep -q 'ostadh-lahooni-v94-grade-plan-to-grades' public/sw.js
+      - name: Commit validated fix
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grade-plan/page.tsx app/teacher/grades/page.tsx app/teacher/grades/dynamic-gradebook.css app/teacher/layout.tsx app/pwa-register.tsx public/sw.js
+          git commit -m 'fix: send approved grade plan to gradebook'
+          git push
