@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
-import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { renderAttendanceClassCanvas } from "../../../lib/class-pdf-canvas";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -758,130 +758,32 @@ export default function AttendancePage() {
   async function downloadAttendancePdf() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
-    setMessage(`جارٍ تجهيز تحضير ${selectedClass} — ${rows.length} طالبًا...`);
-
-    const columnCount = rows.length <= 24 ? 1 : rows.length <= 60 ? 2 : 3;
-    const rowsPerColumn = Math.ceil(rows.length / columnCount);
-    const rowHeight = Math.max(16, Math.min(28, Math.floor(590 / Math.max(rowsPerColumn, 1))));
-    const rowFontSize = rowHeight <= 18 ? 7.1 : rowHeight <= 21 ? 8 : rowHeight <= 24 ? 8.9 : 9.7;
-    const columns = Array.from({ length: columnCount }, (_, columnIndex) =>
-      rows.slice(columnIndex * rowsPerColumn, (columnIndex + 1) * rowsPerColumn),
-    );
-    const statusClass = (status: string) => {
-      if (status === "حاضر") return "present";
-      if (status === "غائب") return "absent";
-      if (status === "متأخر") return "late";
-      if (status === "مستأذن") return "excused";
-      return "escaped";
-    };
-    const tablesHtml = columns.map(columnRows => `
-      <table class="attendance-mini-table">
-        <colgroup><col style="width:9%"><col style="width:66%"><col style="width:25%"></colgroup>
-        <thead><tr><th>م</th><th>اسم الطالب</th><th>الحالة</th></tr></thead>
-        <tbody>${columnRows.map(row => `<tr data-student-row="true"><td class="number">${row.number}</td><td class="student-name">${escapeHtml(row.name)}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status)}</span></td></tr>`).join("")}</tbody>
-      </table>`).join("");
-
-    const host = document.createElement("div");
-    host.dir = "rtl";
-    host.setAttribute("aria-hidden", "true");
-    host.style.cssText = "position:fixed;left:0;top:0;width:1123px;height:794px;z-index:-9999;pointer-events:none;background:#fff;";
-    host.innerHTML = `
-      <style>
-        *{box-sizing:border-box}
-        .attendance-pdf-page{width:1123px;height:794px;padding:12px 15px;background:#fff;color:#173b49;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;display:grid;grid-template-rows:50px 30px 25px minmax(0,1fr) 16px;gap:4px;overflow:hidden}
-        .pdf-head{border-radius:10px;padding:7px 13px;display:flex;align-items:center;justify-content:space-between;background:#0d4655;color:#fff}.pdf-head small{display:block;font-size:8px;color:#cae5eb;font-weight:800}.pdf-head strong{display:block;margin-top:1px;font-size:16px}.pdf-head .class{text-align:left}.pdf-head .class strong{font-size:17px}.pdf-head .class span{font-size:7px;color:#ffe29a;font-weight:900}
-        .pdf-meta{display:grid;grid-template-columns:1.25fr 1fr .8fr 1fr 1.25fr;gap:4px}.pdf-meta div{border:1px solid #d6e2e7;border-radius:6px;background:#f8fbfc;padding:3px 6px;overflow:hidden}.pdf-meta small{display:block;color:#6d828b;font-size:6px;font-weight:800}.pdf-meta strong{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .pdf-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.pdf-summary article{display:flex;align-items:center;justify-content:center;gap:3px;border:1px solid #dbe6ea;border-radius:6px;background:#f8fbfc;font-size:7px;font-weight:900}.pdf-summary strong{font-size:11px}.pdf-summary .present{background:#e7f7ed}.pdf-summary .absent{background:#fdebed}.pdf-summary .late{background:#fff4da}.pdf-summary .excused{background:#e9f1ff}.pdf-summary .escaped{background:#f2eaff}
-        .pdf-tables{min-height:0;display:grid;grid-template-columns:repeat(${columnCount},minmax(0,1fr));gap:7px;align-items:start;overflow:hidden}
-        .attendance-mini-table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #bfcfd5}.attendance-mini-table th{height:20px;background:#183f4c;color:#fff;border:1px solid #315966;font-size:7px;padding:2px}.attendance-mini-table td{height:${rowHeight}px;border:1px solid #dbe5e8;padding:1px 4px;text-align:center;font-size:${rowFontSize}px;line-height:1.05;overflow:hidden}.attendance-mini-table tbody tr:nth-child(even){background:#f7fafb}.student-name{text-align:right!important;font-weight:900;white-space:nowrap;letter-spacing:-.15px}.number{font-weight:900}.status{display:inline-block;min-width:42px;padding:2px 4px;border-radius:999px;font-size:${Math.max(6.1, rowFontSize - 1.2)}px;font-weight:900}.status.present{background:#dcf6e6;color:#12653b}.status.absent{background:#fde4e7;color:#a12230}.status.late{background:#ffefc4;color:#885802}.status.excused{background:#dfeaff;color:#1f52a0}.status.escaped{background:#ecdefe;color:#5b2e9e}
-        .pdf-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px dashed #b7c7cc;padding-top:2px;color:#607780;font-size:7px}.pdf-footer strong,.pdf-footer .verify{font-weight:900;color:#155247}
-      </style>
-      <section class="attendance-pdf-page">
-        <header class="pdf-head"><div><small>بوابة أستاذ لحوني التعليمية</small><strong>سجل التحضير اليومي</strong></div><div class="class"><small>الفصل</small><strong>${escapeHtml(selectedClass)}</strong><span>صفحة واحدة — الفصل كامل</span></div></header>
-        <section class="pdf-meta"><div><small>المعلم</small><strong>${escapeHtml(teacherName)}</strong></div><div><small>المادة</small><strong>${escapeHtml(subject)}</strong></div><div><small>الفصل</small><strong>${escapeHtml(selectedClass)}</strong></div><div><small>الميلادي</small><strong>${selectedDate}</strong></div><div><small>الهجري</small><strong>${escapeHtml(formatHijri(selectedDate))}</strong></div></section>
-        <section class="pdf-summary"><article><strong>${rows.length}</strong><span>إجمالي</span></article><article class="present"><strong>${counts.present}</strong><span>حاضر</span></article><article class="absent"><strong>${counts.absent}</strong><span>غائب</span></article><article class="late"><strong>${counts.late}</strong><span>متأخر</span></article><article class="excused"><strong>${counts.excused}</strong><span>مستأذن</span></article><article class="escaped"><strong>${counts.escaped}</strong><span>هروب</span></article></section>
-        <section class="pdf-tables">${tablesHtml}</section>
-        <footer class="pdf-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span>${escapeHtml(selectedClass)} — ${selectedDate}</span><span class="verify">تم إدراج ${rows.length} من ${rows.length} طالبًا</span></footer>
-      </section>`;
-
-    document.body.appendChild(host);
+    setMessage(`جارٍ إنشاء PDF واضح لـ ${rows.length} طالبًا...`);
     try {
       if (document.fonts?.ready) await document.fonts.ready;
-      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-      const captureTarget = host.querySelector(".attendance-pdf-page") as HTMLElement | null;
-      const tablesTarget = host.querySelector(".pdf-tables") as HTMLElement | null;
-      if (!captureTarget || !tablesTarget) throw new Error("pdf_target_missing");
-      const renderedRows = [...host.querySelectorAll<HTMLElement>("[data-student-row='true']")];
-      if (renderedRows.length !== rows.length) throw new Error("pdf_row_count_mismatch");
-      const tablesRect = tablesTarget.getBoundingClientRect();
-      if (renderedRows.some(node => node.getBoundingClientRect().bottom > tablesRect.bottom + 1)) throw new Error("pdf_rows_overflow");
-      const canvas = await html2canvas(captureTarget, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-        logging: false,
-        useCORS: true,
-        width: 1123,
-        height: 794,
-        windowWidth: 1123,
-        windowHeight: 794,
+      const canvas = renderAttendanceClassCanvas({
+        portalName: PORTAL_NAME,
+        teacherName,
+        subject,
+        className: selectedClass,
+        date: selectedDate,
+        hijriDate: formatHijri(selectedDate),
+        rows: rows.map(row => ({ number: row.number, name: row.name, status: row.status })),
+        counts,
       });
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
       pdf.addImage(canvas.toDataURL("image/jpeg", 0.96), "JPEG", 0, 0, 297, 210, undefined, "FAST");
       pdf.save(`تحضير-${safeFile(selectedClass)}-${selectedDate}.pdf`);
-      setMessage(`تم تنزيل التحضير: ${rows.length} طالبًا في صفحة واحدة بدون تقسيم.`);
+      setMessage(`تم تنزيل التحضير كاملًا: ${rows.length} طالبًا في صفحة واحدة.`);
     } catch (error) {
-      console.error("attendance-pdf", error);
-      setMessage("تعذر ضبط جميع الأسماء داخل صفحة PDF. حدّث الصفحة وأعد المحاولة؛ لن يتم تنزيل ملف ناقص.");
-    } finally {
-      host.remove();
+      console.error("attendance-direct-canvas-pdf", error);
+      setMessage("تعذر إنشاء PDF الآن. حدّث الصفحة ثم أعد المحاولة.");
     }
   }
 
-  function printAdminReport() {
-    const rows = reportRows();
-    if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
-    const popup = window.open("", "_blank", "width=1280,height=920");
-    if (!popup) return setMessage("اسمح بالنوافذ المنبثقة لفتح التقرير");
-    const logoUrl = `${window.location.origin}/icons/ostadh-lahooni-192.jpg`;
-    const statusClass = (status: string) => {
-      if (status === "حاضر") return "present";
-      if (status === "غائب") return "absent";
-      if (status === "متأخر") return "late";
-      if (status === "مستأذن") return "excused";
-      return "escaped";
-    };
-    const pageSize = 13;
-    const pageGroups = Array.from({ length: Math.ceil(rows.length / pageSize) }, (_, pageIndex) => rows.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize));
-    const pagesHtml = pageGroups.map((pageRows, pageIndex) => {
-      const bodyRows = pageRows.map(row => `<tr><td class="index">${row.number}</td><td class="student-name">${escapeHtml(row.name)}</td><td>${escapeHtml(row.className)}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status)}</span></td><td class="notes"></td></tr>`).join("");
-      return `<section class="print-sheet">
-        <header class="report-top"><div class="brand"><img src="${logoUrl}" alt="شعار البوابة"><div><strong>${PORTAL_NAME}</strong><small>بوابة تحضير الطلاب والمتابعة اليومية</small></div></div><div class="title"><span>صفحة ${pageIndex + 1} من ${pageGroups.length}</span><h1>تقرير الحضور اليومي</h1></div></header>
-        <main class="report-body">
-          <section class="meta"><div><small>المعلم</small><strong>${escapeHtml(teacherName)}</strong></div><div><small>المادة</small><strong>${escapeHtml(subject)}</strong></div><div><small>الفصل</small><strong>${escapeHtml(selectedClass)}</strong></div><div><small>التاريخ الميلادي</small><strong>${selectedDate}</strong></div><div><small>التاريخ الهجري</small><strong>${escapeHtml(formatHijri(selectedDate))}</strong></div></section>
-          <section class="summary"><article class="all"><strong>${rows.length}</strong><span>إجمالي الطلاب</span></article><article class="present"><strong>${counts.present}</strong><span>حاضر</span></article><article class="absent"><strong>${counts.absent}</strong><span>غائب</span></article><article class="late"><strong>${counts.late}</strong><span>متأخر</span></article><article class="excused"><strong>${counts.excused}</strong><span>مستأذن</span></article><article class="escaped"><strong>${counts.escaped}</strong><span>هروب</span></article></section>
-          <table><colgroup><col style="width:10mm"><col><col style="width:34mm"><col style="width:30mm"><col style="width:38mm"></colgroup><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody>${bodyRows}</tbody></table>
-          ${pageIndex === pageGroups.length - 1 ? `<section class="signatures"><div><small>توقيع المعلم</small><strong>____________________________</strong></div><div><small>اعتماد الإدارة</small><strong>____________________________</strong></div></section>` : ''}
-          <footer class="report-footer"><b>${PORTAL_NAME}</b><span class="seal">تحضير يومي موثّق</span><span>${escapeHtml(selectedClass)} — ${selectedDate}</span></footer>
-        </main>
-      </section>`;
-    }).join("");
 
-    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تقرير حضور ${escapeHtml(selectedClass)}</title><style>
-@page{size:A4 landscape;margin:5mm}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#e8eef2;color:#102a35;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.toolbar{position:sticky;top:0;z-index:5;display:flex;justify-content:center;align-items:center;gap:10px;padding:12px;background:linear-gradient(135deg,#082d38,#0d5262);box-shadow:0 8px 25px rgba(5,38,47,.22)}
-.toolbar button{border:0;border-radius:12px;padding:11px 22px;font:800 13px inherit;cursor:pointer}.toolbar .print{background:#e7b649;color:#102a35}.toolbar .close{background:#fff;color:#163d49}
-.print-sheet{width:287mm;min-height:198mm;margin:7mm auto;background:#fff;border-radius:5mm;overflow:visible;box-shadow:0 18px 50px rgba(16,42,53,.18);position:relative;break-after:page;page-break-after:always}.print-sheet:last-child{break-after:auto;page-break-after:auto}
-.report-top{display:flex;align-items:center;justify-content:space-between;padding:5mm 8mm 4mm;background:linear-gradient(135deg,#082d38 0%,#0d5665 74%,#137586 100%);color:#fff;position:relative;overflow:hidden}
-.brand{display:flex;align-items:center;gap:4mm}.brand img{width:14mm;height:14mm;border-radius:3mm;object-fit:cover;border:1mm solid rgba(255,255,255,.22);background:#fff}.brand strong{display:block;font-size:14px}.brand small{display:block;margin-top:1mm;font-size:8px;color:#cce8ec}.title{text-align:left}.title span{display:inline-block;padding:1.2mm 3mm;border-radius:99px;background:#e7b649;color:#18333a;font-size:8px;font-weight:900}.title h1{font-size:18px;margin:2mm 0 0;line-height:1.1}
-.report-body{padding:3mm 7mm 4mm}.meta{display:grid;grid-template-columns:1.35fr 1fr 1fr 1.05fr 1.45fr;gap:2mm;margin-bottom:2.5mm}.meta div{border:1px solid #dbe6ea;border-radius:2.5mm;background:#f8fbfc;padding:1.8mm 2.5mm;min-height:10.5mm}.meta small{display:block;color:#67808a;font-size:7px;font-weight:700;margin-bottom:.5mm}.meta strong{font-size:9px;color:#123946}
-.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:2mm;margin-bottom:2.5mm}.summary article{border-radius:2.5mm;padding:1.5mm 2mm;text-align:center;border:1px solid #e0eaed;background:#fff}.summary strong{display:block;font-size:13px;line-height:1}.summary span{display:block;margin-top:.7mm;font-size:7px;font-weight:800}.summary .all{background:#eef6f8;color:#164858}.summary .present{background:#e5f7ec;color:#12653b}.summary .absent{background:#fdebed;color:#9e2935}.summary .late{background:#fff4d9;color:#8b5a06}.summary .excused{background:#e8f1ff;color:#2459a8}.summary .escaped{background:#f1eaff;color:#6036a5}
-table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #cad9de}thead th{background:#143f4d;color:#fff;font-size:8px;padding:2mm;border:1px solid #315966}tbody td{padding:1.4mm 2mm;font-size:8px;border:1px solid #dce6e9;text-align:center;height:7.2mm}tbody tr:nth-child(even){background:#f7fafb}.student-name{text-align:right!important;font-weight:800;color:#173e4a}.index{width:10mm;font-weight:900}.notes{width:38mm}.status{display:inline-flex;align-items:center;justify-content:center;min-width:22mm;padding:1mm 2mm;border-radius:99px;font-size:7.2px;font-weight:900}.status.present{background:#dcf6e6;color:#12653b}.status.absent{background:#fde4e7;color:#a12230}.status.late{background:#ffefc4;color:#885802}.status.excused{background:#dfeaff;color:#1f52a0}.status.escaped{background:#ecdefe;color:#5b2e9e}
-.signatures{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin:3mm 3mm 0;padding-top:2mm;border-top:1px dashed #a9bdc4}.signatures div{text-align:center}.signatures small{display:block;color:#617780;font-size:7.5px}.signatures strong{display:block;margin-top:2mm;font-size:8px;color:#173d49}.report-footer{display:flex;justify-content:space-between;align-items:center;margin-top:2mm;padding:2mm 1mm 0;color:#5d737b;font-size:7px}.report-footer b{color:#174653}.report-footer .seal{border:1px solid #d5a535;color:#8a6612;border-radius:99px;padding:.8mm 3mm;font-weight:900}
-@media print{html,body{background:#fff!important}.toolbar{display:none!important}.print-sheet{width:100%!important;min-height:0!important;margin:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;break-after:page!important;page-break-after:always!important}.print-sheet:last-child{break-after:auto!important;page-break-after:auto!important}table,tr,td,th{break-inside:avoid!important;page-break-inside:avoid!important}}
-</style></head><body><div class="toolbar"><button class="print" onclick="window.print()">طباعة أو حفظ PDF</button><button class="close" onclick="window.close()">إغلاق المعاينة</button></div>${pagesHtml}</body></html>`);
-    popup.document.close();
+  function printAdminReport() {
+    void downloadAttendancePdf();
   }
 
   async function buildRangeRows(): Promise<{ rows: RangeRow[]; days: string[] }> {
@@ -1034,7 +936,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
         <div className="attendance-main-actions">
           <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
           <button type="button" className="attendance-delete" onClick={() => void deleteAttendance()} disabled={!selectedClass || !hasSavedRecord || deleting || saving}>{deleting ? "جارٍ الحذف..." : "حذف التحضير"}</button>
-          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF صفحة واحدة — كل الطلاب</button>
+          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF واضح — صفحة واحدة</button>
           <button type="button" className="attendance-excel" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تحميل Excel</button>
         </div>
       </section>
