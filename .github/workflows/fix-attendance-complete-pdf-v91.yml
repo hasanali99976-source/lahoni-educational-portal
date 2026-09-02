@@ -1,0 +1,49 @@
+name: Complete Attendance PDF v91
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-attendance-complete-pdf-v91.py'
+      - '.github/workflows/fix-attendance-complete-pdf-v91.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply attendance PDF fix
+        run: python .github/scripts/fix-attendance-complete-pdf-v91.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify complete attendance roster logic
+        run: |
+          grep -q 'function attendanceStudentMatchesClass' app/teacher/attendance/page.tsx
+          grep -q 'if (scopedOfficialStudents.length) return uniqueActiveRoster(scopedOfficialStudents);' app/teacher/attendance/page.tsx
+          grep -q 'const pdfRoster = uniqueActiveRoster(officialStudents.length ? officialStudents : students)' app/teacher/attendance/page.tsx
+          grep -q 'const pdfRosterSource = uniqueActiveRoster(officialStudents.length ? officialStudents : students);' app/teacher/attendance/page.tsx
+          grep -q 'const ROWS_PER_PAGE = 18;' lib/attendance-pdf.ts
+          grep -q 'Math.ceil(items.length / size)' lib/attendance-pdf.ts
+      - name: Commit validated fix
+        run: |
+          if git diff --quiet; then
+            echo 'No generated changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx
+          git commit -m 'fix: print every official student in attendance PDFs'
+          git push
