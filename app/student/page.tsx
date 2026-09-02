@@ -219,7 +219,16 @@ export default function StudentPage() {
   }
 
   const approvedPlan = useMemo(() => normalizeGradePlan(selected?.data.gradePlan), [selected?.data.gradePlan]);
-  const planResult = useMemo(() => approvedPlan ? calculateGradePlanResult(approvedPlan, selected?.data || {}) : null, [approvedPlan, selected]);
+  const studentDataForPlan = useMemo(() => {
+    const data = selected?.data;
+    if (!data || !approvedPlan) return data || {};
+    const specificValues = data.gradePlanValues?.[approvedPlan.id];
+    return {
+      ...data,
+      gradeValues: specificValues && typeof specificValues === "object" ? specificValues : (data.gradeValues || {}),
+    };
+  }, [selected?.data, approvedPlan?.id]);
+  const planResult = useMemo(() => approvedPlan ? calculateGradePlanResult(approvedPlan, studentDataForPlan) : null, [approvedPlan, studentDataForPlan]);
   const units = useMemo(() => {
     if (approvedPlan && planResult) return planResult.sections.map(section => {
       const byCategory = Object.fromEntries(planResult.dimensions.map(item => [item.key, item]));
@@ -422,7 +431,7 @@ export default function StudentPage() {
 
         <article className="print-bars-card">
           <header><div><small>مخطط بياني</small><h2>{approvedPlan ? "أداء أقسام الخطة" : "أداء الوحدات"}</h2></div><span>{approvedPlan ? "حسب الدرجة القصوى لكل قسم" : `من ${ar(UNIT_MAX)} لكل وحدة`}</span></header>
-          <svg className="print-bars-svg" viewBox={`0 0 540 ${Math.max(170, units.length * 34 + 38)}`} role="img" aria-label="مخطط درجات الوحدات">
+          <svg className="print-bars-svg" viewBox={`0 0 540 ${Math.max(170, units.length * 34 + 38)}`} role="img" aria-label={approvedPlan ? "مخطط درجات أقسام الخطة المعتمدة" : "مخطط درجات الوحدات"}>
             {units.map((unit, index) => {
               const y = 24 + index * 34;
               const barWidth = Math.max(3, Math.min(100, unit.total / Math.max(unit.max, 1) * 100)) * 3.15;

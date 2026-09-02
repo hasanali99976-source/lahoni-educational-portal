@@ -31,6 +31,8 @@ type Student = GradeStudentLike & {
   className: string;
   gradeValues?: GradeValueMap;
   gradePlanValues?: Record<string, GradeValueMap>;
+  activeGradePlanId?: string;
+  gradePlanSnapshot?: Record<string, unknown>;
   units?: Record<string, LegacyUnit>;
   notes?: string;
 };
@@ -115,6 +117,44 @@ export default function GradesPage() {
   }, [activePlan, selectedSection]);
 
   useEffect(() => {
+    if (!tenant || !activePlan || !students.length || typeof window === "undefined") return;
+    const needsSync = students.filter(student => {
+      const snapshotId = String(student.gradePlanSnapshot?.id || "");
+      return student.activeGradePlanId !== activePlan.id || snapshotId !== activePlan.id;
+    });
+    if (!needsSync.length) return;
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      const now = new Date().toISOString();
+      try {
+        for (let index = 0; index < needsSync.length && !cancelled; index += 40) {
+          await Promise.all(needsSync.slice(index, index + 40).map(student => setDoc(
+            doc(db, tenantStudentsPath(tenant), student.id),
+            {
+              name: student.name,
+              class: student.class,
+              className: student.class,
+              code: student.code,
+              active: true,
+              rosterActive: true,
+              activeGradePlanId: activePlan.id,
+              activeGradePlanVersion: activePlan.version,
+              gradePlanSnapshot: activePlan,
+              gradePlanSyncedAt: now,
+              teacherId: tenant.teacherId,
+              subjectKey: tenant.subjectKey,
+            },
+            { merge: true },
+          )));
+        }
+      } catch (syncError) {
+        console.warn("grade-plan-student-sync-v99", syncError);
+      }
+    }, 700);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [tenant, activePlan?.id, activePlan?.version, students]);
+
+  useEffect(() => {
     if (!section) { setLocalValues({}); return; }
     const next: LocalValues = {};
     classStudents.forEach(student => {
@@ -191,13 +231,15 @@ export default function GradesPage() {
           gradePlanValues: { ...(student.gradePlanValues || {}), [activePlan.id]: mergedValues },
           activeGradePlanId: activePlan.id,
           activeGradePlanVersion: activePlan.version,
+          gradePlanSnapshot: activePlan,
+          gradePlanSyncedAt: now,
           gradePlanUpdatedAt: now,
           teacherId: tenant.teacherId,
           subjectKey: tenant.subjectKey,
         }, { merge: true });
       }));
       setStudents(current => current.map(student => classStudents.some(item => item.id === student.id)
-        ? { ...student, gradeValues: { ...valuesForPlan(student), ...(localValues[student.id] || {}) }, gradePlanValues: { ...(student.gradePlanValues || {}), [activePlan.id]: { ...valuesForPlan(student), ...(localValues[student.id] || {}) } } }
+        ? { ...student, gradeValues: { ...valuesForPlan(student), ...(localValues[student.id] || {}) }, gradePlanValues: { ...(student.gradePlanValues || {}), [activePlan.id]: { ...valuesForPlan(student), ...(localValues[student.id] || {}) } }, activeGradePlanId: activePlan.id, gradePlanSnapshot: activePlan as unknown as Record<string, unknown> }
         : student));
       setMessage(`تم حفظ درجات ${section.label} بدون تغيير أو حذف أي بيانات قديمة.`);
     } catch (error) {

@@ -11,6 +11,16 @@ type GradePlanState = {
   history: Array<{ id: string; version: number; mode: string; method: string; status: string; activatedAt: string; archivedAt?: string }>;
 };
 
+function newestGradePlan(localPlan: GradePlan | null, serverPlan: GradePlan | null) {
+  if (!localPlan) return serverPlan;
+  if (!serverPlan) return localPlan;
+  if (serverPlan.id === localPlan.id) return serverPlan;
+  if (serverPlan.version !== localPlan.version) return serverPlan.version > localPlan.version ? serverPlan : localPlan;
+  const serverTime = Date.parse(serverPlan.activatedAt || serverPlan.createdAt || "") || 0;
+  const localTime = Date.parse(localPlan.activatedAt || localPlan.createdAt || "") || 0;
+  return serverTime >= localTime ? serverPlan : localPlan;
+}
+
 export function useGradePlan(enabled = true) {
   const [state, setState] = useState<GradePlanState>(() => ({
     activePlan: enabled ? readLocalGradePlan() : null,
@@ -31,8 +41,8 @@ export function useGradePlan(enabled = true) {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر تحميل خطة توزيع الدرجات.");
       const serverPlan = normalizeGradePlan(data.activePlan);
-      const activePlan = serverPlan || localPlan;
-      if (serverPlan) saveLocalGradePlan(serverPlan);
+      const activePlan = newestGradePlan(localPlan, serverPlan);
+      if (activePlan) saveLocalGradePlan(activePlan);
       setState({
         activePlan,
         loading: false,

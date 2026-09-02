@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v98-full-grades-pdf";
-const RELOAD_KEY = "ostadh-lahooni-v98-full-grades-pdf";
+const CURRENT_CACHE = "ostadh-lahooni-v99-gradebook-student-sync";
+const RELOAD_KEY = "ostadh-lahooni-v99-gradebook-student-sync";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        registration = await navigator.serviceWorker.register("/sw.js?v=98-full-grades-pdf", {
+        registration = await navigator.serviceWorker.register("/sw.js?v=99-gradebook-student-sync", {
           scope: "/",
           updateViaCache: "none",
         });

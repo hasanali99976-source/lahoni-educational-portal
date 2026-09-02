@@ -38,6 +38,34 @@ function isQuotaError(error: unknown) {
   return text.includes("resource-exhausted") || text.includes("quota exceeded");
 }
 
+function objectRecord(value: unknown): Record<string, any> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : null;
+}
+
+function planVersion(value: Record<string, any> | null) {
+  return Math.max(0, Number(value?.version || 0));
+}
+
+function planTime(value: Record<string, any> | null) {
+  return Date.parse(String(value?.activatedAt || value?.createdAt || "")) || 0;
+}
+
+function chooseStudentGradePlan(serverPlan: Record<string, unknown> | null, studentData: Record<string, unknown>) {
+  const cloud = objectRecord(serverPlan);
+  const embedded = objectRecord(studentData.gradePlanSnapshot) || objectRecord(studentData.gradePlan);
+  if (!cloud) return embedded;
+  if (!embedded) return cloud;
+  if (String(cloud.id || "") === String(embedded.id || "")) return cloud;
+  if (planVersion(cloud) !== planVersion(embedded)) return planVersion(cloud) > planVersion(embedded) ? cloud : embedded;
+  return planTime(cloud) >= planTime(embedded) ? cloud : embedded;
+}
+
+function valuesForStudentPlan(studentData: Record<string, unknown>, planId: string) {
+  const all = objectRecord(studentData.gradePlanValues);
+  const specific = planId && all ? objectRecord(all[planId]) : null;
+  return specific || objectRecord(studentData.gradeValues) || {};
+}
+
 function parseStudentPath(path: string, data: Record<string, unknown>): LocatedStudent | null {
   const parts = path.split("/");
   if (parts.length !== 6 || parts[0] !== "portalV2Data" || parts[2] !== "subjects" || parts[4] !== "students") return null;
@@ -257,6 +285,9 @@ export async function POST(request: Request) {
     const matches = located.map(item => {
       const candidate = chosenBySubject.get(item.subjectId)!;
       const subject = getSubjectConfig(item.subjectId);
+      const gradePlan = chooseStudentGradePlan(gradePlanByTeacher.get(item.teacherId) || null, item.data);
+      const effectiveGradePlanId = String(gradePlan?.id || item.data.activeGradePlanId || "");
+      const effectiveGradeValues = valuesForStudentPlan(item.data, effectiveGradePlanId);
       const accessToken = createStudentAccessToken({
         studentId: item.studentId,
         teacherId: item.teacherId,
@@ -274,7 +305,9 @@ export async function POST(request: Request) {
         accessToken,
         data: {
           ...item.data,
-          gradePlan: gradePlanByTeacher.get(item.teacherId) || null,
+          gradePlan,
+          activeGradePlanId: effectiveGradePlanId,
+          gradeValues: effectiveGradeValues,
           absences: 0,
           late: 0,
           attendanceSummary: {
