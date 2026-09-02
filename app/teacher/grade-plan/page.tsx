@@ -43,7 +43,7 @@ function formatDate(value: string) {
 }
 
 export default function GradePlanPage() {
-  const { activePlan, history, loading, error, refresh } = useGradePlan(true);
+  const { activePlan, history, loading, error } = useGradePlan(true);
   const [building, setBuilding] = useState(false);
   const [mode, setMode] = useState<GradePlanMode>("units");
   const [method, setMethod] = useState<GradePlanMethod>("automatic");
@@ -73,6 +73,12 @@ export default function GradePlanPage() {
     });
     setMessage("أنت تعدّل نسخة جديدة مبنية على الخطة المعتمدة الحالية. لن تتأثر النسخة السابقة إلا بعد اعتماد النسخة الجديدة.");
   }, [loading, activePlan?.id]);
+
+  useEffect(() => {
+    if (loading || !activePlan || building || typeof window === "undefined") return;
+    const editRequested = new URLSearchParams(window.location.search).get("edit") === "1";
+    if (!editRequested) window.location.replace("/teacher/grades");
+  }, [loading, activePlan?.id, building]);
 
   function startNew() {
     setBuilding(true);
@@ -154,8 +160,7 @@ export default function GradePlanPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر اعتماد الخطة.");
-      // الاعتماد ناجح: انتقل صراحة إلى واجهة الخطة المعتمدة بدل البقاء في وضع البناء.
-      await refresh();
+      // الاعتماد ناجح: افتح سجل الدرجات فورًا بدون انتظار أي إعادة تحميل للخطة.
       window.location.replace("/teacher/grades");
       return;
     } catch (saveError) {
@@ -168,28 +173,7 @@ export default function GradePlanPage() {
   if (loading) return <main className="grade-plan-page" dir="rtl"><section className="grade-plan-loading">جارٍ تحميل إعداد توزيع الدرجات…</section></main>;
 
   if (activePlan && !building) {
-    return <main className="grade-plan-page" dir="rtl">
-      <section className="approved-hero">
-        <div><span>مقفلة ومعتمدة</span><h1>خطة التقييم المعتمدة</h1><p>هذه الصفحة للعرض فقط. الرصد والتقارير والإتقان والطالب والذكاء الاصطناعي يقرؤون هذا التوزيع تلقائيًا.</p></div>
-        <button type="button" onClick={startNew}>اختيار خطة جديدة</button>
-      </section>
-      {message && <p className="grade-plan-message success">{message}</p>}
-      <section className="approved-summary">
-        <article><small>النظام</small><strong>{GRADE_PLAN_MODE_LABELS[activePlan.mode]}</strong></article>
-        <article><small>طريقة البداية</small><strong>{activePlan.method === "automatic" ? "توزيع تلقائي" : "توزيع يدوي"}</strong></article>
-        <article><small>الإصدار</small><strong>نسخة {activePlan.version}</strong></article>
-        <article><small>تاريخ الاعتماد</small><strong>{formatDate(activePlan.activatedAt)}</strong></article>
-      </section>
-      <section className="approved-plan-card">
-        {activePlan.sections.map(section => <article className="approved-section" key={section.id}>
-          <header><div><small>{activePlan.mode === "periods" ? "100 مستقلة" : "جزء من 100"}</small><h2>{section.label}</h2></div><strong>{section.max} درجة</strong></header>
-          <div className="approved-items">{section.items.map(item => <div key={item.id}><span>{item.label}<small>{GRADE_CATEGORY_LABELS[item.category]}</small></span><b>{item.max}</b></div>)}</div>
-          <footer><span>مجموع العناصر</span><b>{total(section.items)} / {section.max}</b></footer>
-        </article>)}
-      </section>
-      <section className="grade-plan-lock-note"><b>🔒 لا توجد خانات تعديل لهذه الخطة.</b><span>لأي تغيير استخدم «اختيار خطة جديدة». النسخ السابقة ودرجات الطلاب الأصلية لا تُحذف.</span></section>
-      {history.length > 1 && <section className="grade-plan-history"><h2>سجل النسخ</h2>{history.map(item => <div key={item.id}><span>نسخة {item.version} — {GRADE_PLAN_MODE_LABELS[item.mode as GradePlanMode] || item.mode}</span><b>{item.status === "active" ? "المعتمدة الآن" : "محفوظة في الأرشيف"}</b><small>{formatDate(item.activatedAt)}</small></div>)}</section>}
-    </main>;
+    return <main className="grade-plan-page" dir="rtl"><section className="grade-plan-loading">جارٍ فتح سجل الدرجات…</section></main>;
   }
 
   return <main className="grade-plan-page" dir="rtl">
