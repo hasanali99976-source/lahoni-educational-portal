@@ -281,25 +281,24 @@ export default function AttendancePage() {
       .then(response => response.ok ? response.json() : Promise.reject(new Error("roster_load_failed")))
       .then(data => {
         if (!active) return;
-        const list = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
-          const code = String(student.code || student.accessCode || student.studentCode || student.id || "").trim().toUpperCase();
-          const className = canonicalClassFromParts(
-            student.grade,
-            student.section,
-            student.className || student.class,
-          );
+        // استخدم نفس قائمة وطريقة صفحة رصد الدرجات حتى لا يختلف عدد طلاب الفصل بين الصفحتين.
+        const list: UnifiedStudent[] = (Array.isArray(data.students) ? data.students : []).map((student: Record<string, unknown>) => {
+          const code = String(student.code || student.id || student.accessCode || student.studentCode || "").trim().toUpperCase();
+          const className = String(student.className || student.class || "").trim();
           return {
             ...student,
             id: code,
             code,
             accessCode: code,
             studentCode: code,
+            name: String(student.name || "").trim(),
             class: className,
             className,
             active: student.active !== false,
             rosterActive: student.active !== false,
           } as UnifiedStudent;
         }).filter((student: UnifiedStudent) => !!student.id && !!student.name && !!student.class);
+        list.sort((a: UnifiedStudent, b: UnifiedStudent) => clean(a.class).localeCompare(clean(b.class), "ar", { numeric: true }) || clean(a.name).localeCompare(clean(b.name), "ar"));
 
         const receivedClasses = [
           ...classNamesFromPayload(data.classes),
@@ -503,7 +502,7 @@ export default function AttendancePage() {
   }, [ready, teacherId, teacherName, subjectKey, subject, attendancePath, students, timetableLessons, clockTick]);
 
   const classStudents = useMemo(
-    () => students.filter(student => (normalizeClass(student.class) || clean(student.class)) === selectedClass),
+    () => students.filter(student => clean(student.class) === clean(selectedClass)),
     [students, selectedClass],
   );
 
@@ -758,7 +757,7 @@ export default function AttendancePage() {
   async function downloadAttendancePdf() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
-    setMessage(`جارٍ إنشاء PDF كامل لـ ${rows.length} طالبًا...`);
+    setMessage(`جارٍ إنشاء PDF التحضير من القائمة الكاملة: ${rows.length} طالبًا...`);
     try {
       if (document.fonts?.ready) await document.fonts.ready;
       const canvases = renderAttendancePdfPages({
@@ -778,7 +777,7 @@ export default function AttendancePage() {
         pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
       });
       pdf.save(`تحضير-${safeFile(selectedClass)}-${selectedDate}.pdf`);
-      setMessage(`تم تنزيل التحضير كاملًا: ${rows.length} طالبًا في ${canvases.length} صفحة واضحة.`);
+      setMessage(`تم تنزيل التحضير كاملًا: ${rows.length} من ${classStudents.length} طالبًا في ${canvases.length} صفحة.`);
     } catch (error) {
       console.error("attendance-paginated-pdf", error);
       setMessage("تعذر إنشاء PDF الآن. حدّث الصفحة ثم أعد المحاولة.");
