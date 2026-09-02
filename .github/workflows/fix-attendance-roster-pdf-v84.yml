@@ -1,0 +1,45 @@
+name: Fix Attendance Roster PDF v84
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-attendance-roster-pdf-v84.yml'
+      - '.github/scripts/fix_attendance_roster_pdf_v84.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply patch
+        run: python3 .github/scripts/fix_attendance_roster_pdf_v84.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify
+        run: |
+          grep -q 'نفس قائمة وطريقة صفحة رصد الدرجات' app/teacher/attendance/page.tsx
+          grep -q 'ostadh-lahooni-v84-attendance-roster-pdf' public/sw.js
+          grep -q 'renderAttendancePdfPages' app/teacher/attendance/page.tsx
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx public/sw.js
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'fix: use complete roster in daily attendance PDF'
+            git push
+          fi
