@@ -7,6 +7,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
+import { readLocalGradePlan, setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import {
   TeacherClientContext,
   type TeacherClientAssignment,
@@ -95,6 +96,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
   function applySession(session: TeacherSession) {
     const nextSubjectKey = session.subjectKey || "history";
+    if (session.teacherId) setGradePlanCurrentTeacher(session.teacherId);
     setTeacherId(session.teacherId);
     setTeacherName(session.teacherName || "المعلم");
     setSubjectKey(nextSubjectKey);
@@ -162,7 +164,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
         const planResponse = await fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" });
         const planData = planResponse.ok ? await planResponse.json().catch(() => ({})) : {};
-        const nextHasGradePlan = Boolean(planData?.activePlan || planData?.hasActivePlan);
+        const nextHasGradePlan = Boolean(planData?.activePlan || planData?.hasActivePlan || readLocalGradePlan(session.teacherId));
         if (!active) return;
         setHasGradePlan(nextHasGradePlan);
 

@@ -8,6 +8,7 @@ import {
   planModeDescription,
   roundGrade,
   validateGradePlanDraft,
+  normalizeGradePlan,
   type GradeCategory,
   type GradePlanDraft,
   type GradePlanItem,
@@ -15,6 +16,8 @@ import {
   type GradePlanMode,
 } from "../../../lib/grade-plan";
 import { useGradePlan } from "../../../lib/use-grade-plan";
+import { useTeacherClient } from "../../../lib/teacher-client";
+import { createLocalGradePlan, saveLocalGradePlan } from "../../../lib/grade-plan-local";
 import "./grade-plan.css";
 
 const categories: GradeCategory[] = ["attendance", "participation", "homework", "unitExam", "research", "project", "performance", "custom"];
@@ -43,6 +46,7 @@ function formatDate(value: string) {
 }
 
 export default function GradePlanPage() {
+  const session = useTeacherClient();
   const { activePlan, history, loading, error } = useGradePlan(true);
   const [building, setBuilding] = useState(false);
   const [mode, setMode] = useState<GradePlanMode>("units");
@@ -159,10 +163,20 @@ export default function GradePlanPage() {
         body: JSON.stringify({ plan: checked.draft }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || "تعذر اعتماد الخطة.");
-      // الاعتماد ناجح: افتح سجل الدرجات فورًا بدون انتظار أي إعادة تحميل للخطة.
-      window.location.replace("/teacher/grades");
-      return;
+      if (response.ok) {
+        const serverPlan = normalizeGradePlan(data.activePlan);
+        if (serverPlan) saveLocalGradePlan(serverPlan);
+        else if (session.teacherId) saveLocalGradePlan(createLocalGradePlan(checked.draft, session.teacherId, Number(data.version || activePlan?.version || 1)));
+        window.location.replace("/teacher/grades?approved=1");
+        return;
+      }
+      if (data.code === "grade_plan_quota_exceeded" && session.teacherId) {
+        const localPlan = createLocalGradePlan(checked.draft, session.teacherId, (activePlan?.version || 0) + 1);
+        saveLocalGradePlan(localPlan);
+        window.location.replace("/teacher/grades?approved=local");
+        return;
+      }
+      throw new Error(data.message || "تعذر اعتماد الخطة.");
     } catch (saveError) {
       setMessage(saveError instanceof Error ? saveError.message : "تعذر اعتماد الخطة.");
     } finally {

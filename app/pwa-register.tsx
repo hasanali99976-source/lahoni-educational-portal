@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v96-first-entry-plan";
-const RELOAD_KEY = "ostadh-lahooni-v96-first-entry-plan";
+const CURRENT_CACHE = "ostadh-lahooni-v97-grade-plan-quota-fallback";
+const RELOAD_KEY = "ostadh-lahooni-v97-grade-plan-quota-fallback";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        registration = await navigator.serviceWorker.register("/sw.js?v=96-first-entry-plan", {
+        registration = await navigator.serviceWorker.register("/sw.js?v=97-grade-plan-quota-fallback", {
           scope: "/",
           updateViaCache: "none",
         });
