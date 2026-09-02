@@ -1,0 +1,46 @@
+name: Fix Grade Plan Approved Redirect v93
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-grade-plan-approved-redirect-v93.py'
+      - '.github/workflows/fix-grade-plan-approved-redirect-v93.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply redirect fix
+        run: python .github/scripts/fix-grade-plan-approved-redirect-v93.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify redirect and cache
+        run: |
+          grep -q 'window.location.replace("/teacher/grade-plan?view=approved")' app/teacher/grade-plan/page.tsx
+          grep -q 'ostadh-lahooni-v93-grade-plan-approved-redirect' public/sw.js
+          grep -q 'ostadh-lahooni-v93-grade-plan-approved-redirect' app/pwa-register.tsx
+      - name: Commit validated fix
+        run: |
+          if git diff --quiet; then
+            echo 'No generated changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grade-plan/page.tsx app/pwa-register.tsx public/sw.js
+          git commit -m 'fix: redirect approved grade plan to locked view'
+          git push
