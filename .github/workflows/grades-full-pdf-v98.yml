@@ -1,0 +1,49 @@
+name: Grades Full PDF v98
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/grades_full_pdf_v98.py'
+      - '.github/workflows/grades-full-pdf-v98.yml'
+      - 'lib/grades-pdf.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply full grades PDF patch
+        run: python .github/scripts/grades_full_pdf_v98.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify PDF features
+        run: |
+          grep -F 'downloadGradebookPdfDocument' app/teacher/grades/page.tsx
+          grep -F '📄 PDF الفصل كامل' app/teacher/grades/page.tsx
+          grep -F '📚 جميع الدرجات PDF' app/teacher/grades/page.tsx
+          grep -F 'CLASS_ACCENTS' lib/grades-pdf.ts
+          grep -F 'ostadh-lahooni-v98-full-grades-pdf' public/sw.js
+      - name: Commit validated changes
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grades/page.tsx app/pwa-register.tsx public/sw.js
+          git commit -m 'feat: add full colored gradebook PDFs'
+          git push origin main
