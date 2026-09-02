@@ -8,6 +8,7 @@ import type { SubjectKey } from "../../../lib/subject-config";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import AiDiagnosticBuilder from "./ai-diagnostic-builder";
 import DiagnosticResults from "./diagnostic-results";
+import { downloadDiagnosticPdfDocument } from "../../../lib/diagnostic-pdf";
 import "./diagnostics.css";
 
 type Question = { id: string; text: string; options: string[]; correctIndex: number; skill: string };
@@ -82,6 +83,27 @@ export default function DiagnosticsPage() {
       setDeletingId("");
     }
   }
+  async function downloadDiagnosticPdf(item: Diagnostic, teacherCopy = false) {
+    setMessage(teacherCopy ? "جارٍ تجهيز PDF كامل بالإجابات…" : "جارٍ تجهيز PDF كامل للطالب…");
+    try {
+      const result = await downloadDiagnosticPdfDocument({
+        portalName: PORTAL_NAME,
+        teacherName: session?.teacherName || "المعلم",
+        subject: session?.subject || "المادة",
+        gradeLabel: session?.activeGradeLabel || "",
+        title: item.title,
+        instructions: item.instructions,
+        questions: item.questions,
+        teacherCopy,
+        fileName: `${item.title.replace(/[\\/:*?"<>|]/g, "-")}-${teacherCopy ? "نسخة-المعلم" : "نسخة-الطالب"}.pdf`,
+      });
+      setMessage(`تم إنشاء PDF كامل: ${result.questionCount} سؤالًا في ${result.pageCount} صفحة.`);
+    } catch (error) {
+      console.error("diagnostic-pdf-v100", error);
+      setMessage("تعذر إنشاء PDF الاختبار الآن.");
+    }
+  }
+
   function printPreviewTest(item: Diagnostic) {
     const popup = window.open("", "_blank", "width=1100,height=900");
     if (!popup) return setMessage("تعذر فتح نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.");
@@ -153,5 +175,5 @@ export default function DiagnosticsPage() {
       <div className="questions-editor">{questions.map((question, index) => <article key={question.id}><header><strong>السؤال {index + 1}</strong>{questions.length > 1 && <button onClick={() => setQuestions(current => current.filter(item => item.id !== question.id))}>حذف</button>}</header><input value={question.text} onChange={event => updateQuestion(question.id, { text: event.target.value })} placeholder="نص السؤال" /><input value={question.skill} onChange={event => updateQuestion(question.id, { skill: event.target.value })} placeholder="المهارة التي يقيسها السؤال" /><label className="option-count">عدد خيارات الإجابة<select value={question.options.length} onChange={event => setOptionCount(question, Number(event.target.value))}>{optionCounts.map(count => <option key={count} value={count}>{count} خيارات</option>)}</select></label>{question.options.map((option, optionIndex) => <label className="answer-option" key={optionIndex}><input type="radio" name={`correct-${question.id}`} checked={question.correctIndex === optionIndex} onChange={() => updateQuestion(question.id, { correctIndex: optionIndex })} /><input value={option} onChange={event => { const options = [...question.options]; options[optionIndex] = event.target.value; updateQuestion(question.id, { options }); }} placeholder={`الخيار ${optionIndex + 1}`} /></label>)}</article>)}</div><button className="add-question" onClick={() => setQuestions(current => [...current, newQuestion()])}>+ إضافة سؤال</button>
       <section className="plan-editor"><h3>الخطة العلاجية حسب النتيجة</h3><label>أقل من ٥٠٪<textarea value={plans.low} onChange={event => setPlans({ ...plans, low: event.target.value })} /></label><label>من ٥٠٪ إلى ٧٩٪<textarea value={plans.medium} onChange={event => setPlans({ ...plans, medium: event.target.value })} /></label><label>٨٠٪ فأعلى<textarea value={plans.high} onChange={event => setPlans({ ...plans, high: event.target.value })} /></label></section>{message && <p className="diagnostic-message">{message}</p>}<div className="builder-actions"><button onClick={() => save(false)}>حفظ مسودة</button><button className="primary" onClick={() => save(true)}>نشر للطلاب</button></div></section>
     <section className="diagnostic-list"><h2>اختبارات المادة</h2>{!items.length && <p>لا توجد اختبارات حتى الآن.</p>}{items.map(item => <article key={item.id}><div><strong>{item.title}</strong><small>{item.questions.length} أسئلة • {item.published ? "منشور" : "مسودة"}</small></div><div className="diagnostic-list-actions"><button className="preview-test-button" type="button" onClick={() => setPreview(item)}>معاينة الاختبار</button><button className="delete-test-button" disabled={deletingId === item.id} onClick={() => void deleteDiagnostic(item)}>{deletingId === item.id ? "جارٍ الحذف…" : "حذف بالكامل"}</button></div></article>)}</section>
-    {preview ? <div className="diagnostic-preview-modal" role="dialog" aria-modal="true" onClick={() => setPreview(null)}><section onClick={event => event.stopPropagation()}><header><div><small>{preview.published ? "اختبار منشور للطلاب" : "اختبار محفوظ كمسودة"}</small><h2>{preview.title}</h2><p>{preview.instructions || "لا توجد تعليمات إضافية."}</p></div><button type="button" onClick={() => setPreview(null)} aria-label="إغلاق المعاينة">×</button></header><div className="diagnostic-preview-questions">{preview.questions.map((question, questionIndex) => <article key={question.id || questionIndex}><div className="preview-question-title"><b>السؤال {questionIndex + 1}</b><span>{question.skill || "مهارة غير محددة"}</span></div><h3>{question.text}</h3><div className="preview-options">{question.options.map((option, optionIndex) => <div key={optionIndex} className={question.correctIndex === optionIndex ? "correct" : ""}><i>{String.fromCharCode(65 + optionIndex)}</i><span>{option}</span>{question.correctIndex === optionIndex ? <strong>الإجابة الصحيحة</strong> : null}</div>)}</div></article>)}</div><footer><button type="button" onClick={() => printPreviewTest(preview)}>طباعة الاختبار</button><button type="button" className="primary" onClick={() => setPreview(null)}>إغلاق</button></footer></section></div> : null}</main>;
+    {preview ? <div className="diagnostic-preview-modal" role="dialog" aria-modal="true" onClick={() => setPreview(null)}><section onClick={event => event.stopPropagation()}><header><div><small>{preview.published ? "اختبار منشور للطلاب" : "اختبار محفوظ كمسودة"}</small><h2>{preview.title}</h2><p>{preview.instructions || "لا توجد تعليمات إضافية."}</p></div><button type="button" onClick={() => setPreview(null)} aria-label="إغلاق المعاينة">×</button></header><div className="diagnostic-preview-questions">{preview.questions.map((question, questionIndex) => <article key={question.id || questionIndex}><div className="preview-question-title"><b>السؤال {questionIndex + 1}</b><span>{question.skill || "مهارة غير محددة"}</span></div><h3>{question.text}</h3><div className="preview-options">{question.options.map((option, optionIndex) => <div key={optionIndex} className={question.correctIndex === optionIndex ? "correct" : ""}><i>{String.fromCharCode(65 + optionIndex)}</i><span>{option}</span>{question.correctIndex === optionIndex ? <strong>الإجابة الصحيحة</strong> : null}</div>)}</div></article>)}</div><footer><button type="button" onClick={() => void downloadDiagnosticPdf(preview, false)}>📄 PDF نسخة الطالب كاملة</button><button type="button" onClick={() => void downloadDiagnosticPdf(preview, true)}>✅ PDF نسخة المعلم بالإجابات</button><button type="button" className="primary" onClick={() => setPreview(null)}>إغلاق</button></footer></section></div> : null}</main>;
 }
