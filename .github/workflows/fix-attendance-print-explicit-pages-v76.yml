@@ -1,0 +1,45 @@
+name: Fix Attendance Print Explicit Pages v76
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-attendance-print-explicit-pages-v76.yml'
+      - '.github/scripts/fix_attendance_print_explicit_pages_v76.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply patch
+        run: python3 .github/scripts/fix_attendance_print_explicit_pages_v76.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify explicit pagination
+        run: |
+          grep -q 'const pageSize = 13' app/teacher/attendance/page.tsx
+          grep -q 'print-sheet' app/teacher/attendance/page.tsx
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'fix: paginate attendance print into explicit pages'
+            git push
+          fi
