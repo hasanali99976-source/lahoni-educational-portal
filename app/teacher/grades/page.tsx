@@ -5,7 +5,7 @@ import Link from "next/link";
 import { doc, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
-import { renderGradesClassCanvas } from "../../../lib/class-pdf-canvas";
+import { renderGradesPdfPages } from "../../../lib/class-pdf-pages-v83";
 import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { type ClientTenant, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
@@ -176,7 +176,7 @@ export default function GradesPage() {
 
   async function downloadGradesPdf() {
     if (!classStudents.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
-    setMessage(`جارٍ إنشاء سجل واضح لـ ${classStudents.length} طالبًا...`);
+    setMessage(`جارٍ إنشاء سجل كامل لـ ${classStudents.length} طالبًا...`);
     const allRows = classStudents.map((student, index) => {
       const row = grades[student.id] || emptyGrade;
       return {
@@ -192,7 +192,7 @@ export default function GradesPage() {
     });
     try {
       if (document.fonts?.ready) await document.fonts.ready;
-      const canvas = renderGradesClassCanvas({
+      const canvases = renderGradesPdfPages({
         portalName: "بوابة أستاذ لحوني التعليمية",
         teacherName: session.teacherName || "",
         subject: session.subject || "المادة",
@@ -202,19 +202,22 @@ export default function GradesPage() {
         examLabel: unitInfo.examLabel,
         rows: allRows,
       });
+      if (!canvases.length) throw new Error("grades_pdf_no_pages");
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.96), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      canvases.forEach((canvas, index) => {
+        if (index > 0) pdf.addPage("a4", "landscape");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      });
       pdf.save(`درجات-${selectedClass}-${unitInfo.label}.pdf`);
-      setMessage(`تم تنزيل سجل الدرجات كاملًا: ${allRows.length} طالبًا في صفحة واحدة.`);
+      setMessage(`تم تنزيل سجل الدرجات كاملًا: ${allRows.length} طالبًا في ${canvases.length} صفحة واضحة.`);
     } catch (error) {
-      console.error("grades-direct-canvas-pdf", error);
+      console.error("grades-paginated-pdf", error);
       setMessage("تعذر إنشاء PDF الآن. حدّث الصفحة ثم أعد المحاولة.");
     }
   }
 
-
   return <main className="gradebook-page grades-page" dir="rtl"><div className="gradebook-wrap"><section className="gradebook-card">
-    <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo.label}</h1><p>{session.subject || "المادة"}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. تظهر الفصول الرقمية المختارة فقط.</p></div><div className="gradebook-actions"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label><label>الوحدة<select value={selectedUnit} onChange={event => setSelectedUnit(event.target.value as typeof selectedUnit)}>{ACADEMIC_UNITS.map(unit => <option key={unit.key} value={unit.key}>{unit.label}</option>)}</select></label><button type="button" className="research-link" onClick={() => void downloadGradesPdf()}>📄 PDF واضح — صفحة واحدة</button><button type="button" className="research-link" onClick={exportExcel}>📊 Excel</button><Link href="/teacher/research" className="research-link">🔬 درجة البحث</Link><button type="button" className="save-button" onClick={saveRegister} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ الدرجات"}</button></div></header>
+    <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo.label}</h1><p>{session.subject || "المادة"}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. تظهر الفصول الرقمية المختارة فقط.</p></div><div className="gradebook-actions"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label><label>الوحدة<select value={selectedUnit} onChange={event => setSelectedUnit(event.target.value as typeof selectedUnit)}>{ACADEMIC_UNITS.map(unit => <option key={unit.key} value={unit.key}>{unit.label}</option>)}</select></label><button type="button" className="research-link" onClick={() => void downloadGradesPdf()}>📄 PDF كامل — كل الطلاب</button><button type="button" className="research-link" onClick={exportExcel}>📊 Excel</button><Link href="/teacher/research" className="research-link">🔬 درجة البحث</Link><button type="button" className="save-button" onClick={saveRegister} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ الدرجات"}</button></div></header>
     <div className="gradebook-scroll"><table className="gradebook-table compact-five-table"><thead><tr><th className="sticky-number">م</th><th className="sticky-name">اسم الطالب</th>{columns.map(([key, label]) => <th key={key}><span>{label}</span><div className="header-score-control"><input value={GRADE_DISTRIBUTION[key]} readOnly/><button type="button" onClick={() => applyFullGrade(key)}>✓ الكل</button></div></th>)}<th>المجموع<small>من {UNIT_MAX}</small></th><th>الملاحظات</th><th>مسح</th></tr></thead><tbody>{classStudents.map((student, index) => { const row = grades[student.id] || emptyGrade; return <tr key={student.id}><td className="sticky-number">{index + 1}</td><td className="sticky-name"><strong>{student.name}</strong></td>{columns.map(([key]) => <td key={key}><div className="mobile-grade-control"><button type="button" className="grade-step minus" onClick={() => setGradeValue(student.id, key, Number(row[key] || 0) - 1)}>−</button><input className="grade-input" type="number" min="0" max={GRADE_DISTRIBUTION[key]} value={row[key]} onChange={event => setGradeValue(student.id, key, Number(event.target.value))}/><button type="button" className="grade-step plus" onClick={() => setGradeValue(student.id, key, Number(row[key] || 0) + 1)}>+</button></div></td>)}<td className="student-total">{calculateUnitTotal(row)}</td><td><input className="notes-input" value={row.notes || ""} onChange={event => setGrades(current => ({ ...current, [student.id]: { ...(current[student.id] || emptyGrade), notes: event.target.value } }))}/></td><td><button className="row-delete-button" type="button" onClick={() => setGrades(current => ({ ...current, [student.id]: { ...emptyGrade } }))}>مسح</button></td></tr>; })}{!classStudents.length && <tr><td colSpan={9} className="empty-row">{loading ? "جارٍ تحميل الطلاب..." : "لا يوجد طلاب في الفصل المختار."}</td></tr>}</tbody></table></div>
     <footer className="gradebook-footer"><span>المادة: {session.subject || "المادة"}</span><span>المرحلة: {session.activeGradeLabel || "جميع المراحل"}</span><span>الفصل: {selectedClass || "—"}</span><span>عدد الطلاب: {classStudents.length}</span></footer>{message && <p className="gradebook-message">{message}</p>}
   </section></div></main>;

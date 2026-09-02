@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
-import { renderAttendanceClassCanvas } from "../../../lib/class-pdf-canvas";
+import { renderAttendancePdfPages } from "../../../lib/class-pdf-pages-v83";
 import { db } from "../../../lib/firebase";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -758,10 +758,10 @@ export default function AttendancePage() {
   async function downloadAttendancePdf() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
-    setMessage(`جارٍ إنشاء PDF واضح لـ ${rows.length} طالبًا...`);
+    setMessage(`جارٍ إنشاء PDF كامل لـ ${rows.length} طالبًا...`);
     try {
       if (document.fonts?.ready) await document.fonts.ready;
-      const canvas = renderAttendanceClassCanvas({
+      const canvases = renderAttendancePdfPages({
         portalName: PORTAL_NAME,
         teacherName,
         subject,
@@ -771,16 +771,19 @@ export default function AttendancePage() {
         rows: rows.map(row => ({ number: row.number, name: row.name, status: row.status })),
         counts,
       });
+      if (!canvases.length) throw new Error("attendance_pdf_no_pages");
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.96), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      canvases.forEach((canvas, index) => {
+        if (index > 0) pdf.addPage("a4", "landscape");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      });
       pdf.save(`تحضير-${safeFile(selectedClass)}-${selectedDate}.pdf`);
-      setMessage(`تم تنزيل التحضير كاملًا: ${rows.length} طالبًا في صفحة واحدة.`);
+      setMessage(`تم تنزيل التحضير كاملًا: ${rows.length} طالبًا في ${canvases.length} صفحة واضحة.`);
     } catch (error) {
-      console.error("attendance-direct-canvas-pdf", error);
+      console.error("attendance-paginated-pdf", error);
       setMessage("تعذر إنشاء PDF الآن. حدّث الصفحة ثم أعد المحاولة.");
     }
   }
-
 
   function printAdminReport() {
     void downloadAttendancePdf();
@@ -936,7 +939,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
         <div className="attendance-main-actions">
           <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
           <button type="button" className="attendance-delete" onClick={() => void deleteAttendance()} disabled={!selectedClass || !hasSavedRecord || deleting || saving}>{deleting ? "جارٍ الحذف..." : "حذف التحضير"}</button>
-          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF واضح — صفحة واحدة</button>
+          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF كامل — كل الطلاب</button>
           <button type="button" className="attendance-excel" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تحميل Excel</button>
         </div>
       </section>
