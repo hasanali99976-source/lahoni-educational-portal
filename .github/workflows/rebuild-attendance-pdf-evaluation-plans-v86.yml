@@ -1,0 +1,56 @@
+name: Clean Attendance PDF + Evaluation Plans v86
+
+on:
+  push:
+    paths:
+      - '.github/workflows/rebuild-attendance-pdf-evaluation-plans-v86.yml'
+      - '.github/scripts/rebuild_attendance_pdf_and_evaluation_plans_v86.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply v86 patch
+        run: python3 .github/scripts/rebuild_attendance_pdf_and_evaluation_plans_v86.py
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify attendance PDF and evaluation plans
+        run: |
+          test -f lib/attendance-pdf.ts
+          test -f app/teacher/evaluation-plans/page.tsx
+          test -f app/teacher/evaluation-plans/evaluation-plans.css
+          grep -q 'downloadAttendancePdfDocument' app/teacher/attendance/page.tsx
+          grep -q 'PDF التحضير من الصفر' app/teacher/attendance/page.tsx
+          grep -q 'خطط التقييم' app/teacher/layout.tsx
+          grep -q 'evaluationPlans' app/teacher/evaluation-plans/page.tsx
+          grep -q 'ostadh-lahooni-v86-clean-attendance-evaluation-plans' public/sw.js
+
+      - name: Commit validated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx app/teacher/evaluation-plans/page.tsx app/teacher/evaluation-plans/evaluation-plans.css app/teacher/layout.tsx lib/attendance-pdf.ts public/sw.js
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'feat: rebuild attendance PDF and add evaluation plans'
+            git push
+          fi
