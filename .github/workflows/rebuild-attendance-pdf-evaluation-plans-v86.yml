@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/rebuild-attendance-pdf-evaluation-plans-v86.yml'
       - '.github/scripts/rebuild_attendance_pdf_and_evaluation_plans_v86.py'
+      - '.github/scripts/fix_v86_evaluation_plan_types.py'
   workflow_dispatch:
 
 permissions:
@@ -26,6 +27,9 @@ jobs:
       - name: Apply v86 patch
         run: python3 .github/scripts/rebuild_attendance_pdf_and_evaluation_plans_v86.py
 
+      - name: Fix evaluation plan enum typing
+        run: python3 .github/scripts/fix_v86_evaluation_plan_types.py
+
       - name: Install
         run: npm ci
 
@@ -41,6 +45,7 @@ jobs:
           grep -q 'PDF التحضير من الصفر' app/teacher/attendance/page.tsx
           grep -q 'خطط التقييم' app/teacher/layout.tsx
           grep -q 'evaluationPlans' app/teacher/evaluation-plans/page.tsx
+          grep -q 'evaluationTypeKey' app/teacher/evaluation-plans/page.tsx
           grep -q 'ostadh-lahooni-v86-clean-attendance-evaluation-plans' public/sw.js
 
       - name: Commit validated changes
