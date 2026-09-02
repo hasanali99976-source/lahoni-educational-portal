@@ -10,6 +10,12 @@ function teacherRoot(teacherId: string) {
   return `portalV2Data/${teacherId}`;
 }
 
+function isQuotaError(error: unknown) {
+  const source = error as { code?: string; message?: string } | null;
+  const text = `${source?.code || ""} ${source?.message || ""}`.toLowerCase();
+  return text.includes("resource-exhausted") || text.includes("resource_exhausted") || text.includes("quota exceeded");
+}
+
 export async function GET() {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
@@ -41,7 +47,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       activePlan,
-      hasActivePlan: Boolean(activePlan),
+      hasActivePlan: Boolean(activePlan || activePlanId),
       versionNumber: Number(config.data()?.versionNumber || 0),
       history,
     }, { headers: { "Cache-Control": "no-store, max-age=0" } });
@@ -101,9 +107,26 @@ export async function POST(request: Request) {
       }, { merge: true });
     });
 
-    return NextResponse.json({ ok: true, planId, version, message: "تم اعتماد خطة توزيع الدرجات وقفلها." }, { status: 201 });
+    const activePlan = normalizeGradePlan({
+      ...validation.draft,
+      id: planId,
+      version,
+      teacherId: session.userId,
+      status: "active",
+      createdAt: now,
+      activatedAt: now,
+    });
+
+    return NextResponse.json({ ok: true, planId, version, activePlan, message: "تم اعتماد خطة توزيع الدرجات وقفلها." }, { status: 201 });
   } catch (error) {
     console.error("teacher grade plan save failed", error);
+    if (isQuotaError(error)) {
+      return NextResponse.json({
+        ok: false,
+        code: "grade_plan_quota_exceeded",
+        message: "تم بلوغ حصة التخزين السحابي مؤقتًا. يمكن اعتماد الخطة محليًا ومتابعة الرصد الآن.",
+      }, { status: 507 });
+    }
     return NextResponse.json({ ok: false, message: "تعذر اعتماد الخطة الآن. لم يتم تغيير الخطة الحالية." }, { status: 500 });
   }
 }
