@@ -34,12 +34,12 @@ const primaryTabs: TeacherTab[] = [
   { href: "/teacher/dashboard", key: "dashboard", label: "يومي", note: "مركز العمل اليومي" },
   { href: "/teacher/attendance", key: "attendance", label: "الحضور", note: "التحضير والمتابعة" },
   { href: "/teacher/grades", key: "grades", label: "الدرجات", note: "الرصد والحفظ" },
+  { href: "/teacher/evaluation-plans", key: "evaluation", label: "خطط التقييم", note: "جدولة أدوات التقويم ودرجاتها" },
   { href: "/teacher/students", key: "students", label: "الطلاب", note: "الفصول وبيانات الدخول" },
 ];
 
 const moreTabs: TeacherTab[] = [
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
-  { href: "/teacher/evaluation-plans", key: "evaluation", label: "خطط التقييم", note: "جدولة أدوات التقويم ودرجاتها" },
   { href: "/teacher/timetable", key: "timetable", label: "جدولي الدراسي", note: "حصص الأسبوع" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },

@@ -320,6 +320,7 @@ export default function TeacherDashboardPage() {
       <section className="daily-actions" aria-label="إجراءات المعلم السريعة">
         <Link className="daily-action" href="/teacher/attendance"><span>✓</span><div><b>تسجيل الحضور</b><small>افتح الفصل وسجل الحالة مباشرة</small></div></Link>
         <Link className="daily-action" href="/teacher/grades"><span>٪</span><div><b>رصد الدرجات</b><small>إدخال الدرجات وحفظها سحابيًا</small></div></Link>
+        <Link className="daily-action" href="/teacher/evaluation-plans"><span>▣</span><div><b>خطط التقييم</b><small>جدولة الاختبارات والمهام وربطها بالفصول</small></div></Link>
         <Link className="daily-action" href="/teacher/diagnostics"><span>⌁</span><div><b>الاختبارات التشخيصية</b><small>النتائج والخطط العلاجية فقط</small></div></Link>
         <Link className="daily-action" href="/teacher/ai"><span>AI</span><div><b>المساعد الذكي</b><small>تحليل واقتراحات تساعد قرارك</small></div></Link>
       </section>

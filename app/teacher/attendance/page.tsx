@@ -994,7 +994,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;bo
         <div className="attendance-main-actions">
           <button className="attendance-save" onClick={() => void saveAttendance()} disabled={!selectedClass || saving || deleting}>{saving ? "جارٍ الحفظ..." : "حفظ التحضير"}</button>
           <button type="button" className="attendance-delete" onClick={() => void deleteAttendance()} disabled={!selectedClass || !hasSavedRecord || deleting || saving}>{deleting ? "جارٍ الحذف..." : "حذف التحضير"}</button>
-          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>تحميل PDF كامل — كل الطلاب</button><button type="button" className="attendance-pdf attendance-all-pdf" onClick={() => void downloadAllAttendancePdf()} disabled={!classes.length || allPdfBusy}>{allPdfBusy ? "جارٍ تجهيز جميع الفصول..." : "تحميل PDF لجميع الفصول"}</button>
+          <button type="button" className="attendance-pdf" onClick={() => void downloadAttendancePdf()} disabled={!selectedClass || !classStudents.length}>PDF الحضور الجديد — الفصل</button><button type="button" className="attendance-pdf attendance-all-pdf" onClick={() => void downloadAllAttendancePdf()} disabled={!classes.length || allPdfBusy}>{allPdfBusy ? "جارٍ تجهيز جميع الفصول..." : "PDF الحضور الجديد — جميع الفصول"}</button>
           <button type="button" className="attendance-excel" onClick={exportExcel} disabled={!selectedClass || !classStudents.length}>تحميل Excel</button>
         </div>
       </section>
