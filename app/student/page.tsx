@@ -10,7 +10,8 @@ import StudentKeyboardScroll from "./student-keyboard-scroll";
 
 type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
 type AttendanceSummary = { present: number; absent: number; late: number; excused: number; escaped: number; total: number; disciplineRate: number; latestDate?: string };
-type StudentRecord = { name?: string; class?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; absences?: number; late?: number; attendanceSummary?: AttendanceSummary; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
+type TeacherNoteEntry = { id?: string; type?: string; label?: string; message?: string; createdAt?: string; teacherName?: string; subject?: string };
+type StudentRecord = { name?: string; class?: string; accessCode?: string; teacherName?: string; research?: number; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; absences?: number; late?: number; attendanceSummary?: AttendanceSummary; units?: Record<string, UnitRecord>; parentCounselorLastNotice?: { title?: string; message?: string } };
 type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
 type StudentTab = "home" | "achievement" | "tests" | "attendance" | "ai";
 
@@ -309,6 +310,14 @@ export default function StudentPage() {
         <button type="button" className="knowledge-logout-action" data-student-action="logout" onClick={exitStudentPortal} aria-label="تسجيل الخروج"><span className="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8V5.5A2.5 2.5 0 0 0 11.5 3h-5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h5a2.5 2.5 0 0 0 2.5-2.5V16"/><path d="M10 12h10m-3.5-3.5L20 12l-3.5 3.5"/></svg></span><b>خروج</b></button>
       </div>
     </header>
+
+    {((selected.data.teacherNotes?.length || 0) > 0 || !!selected.data.teacherNote) && <section className="student-teacher-alerts" aria-label="ملاحظات المعلم">
+      <header><div className="student-teacher-alert-title"><span>🔔</span><div><small>متابعة المعلم</small><h2>ملاحظات مهمة لولي الأمر والطالب</h2></div></div><strong>{ar(Number(selected.data.teacherNoteCount || selected.data.teacherNotes?.length || 1))} ملاحظة</strong></header>
+      <div className="student-teacher-alert-list">
+        {(selected.data.teacherNotes || []).map((entry, index) => <article key={entry.id || `${entry.type || "note"}-${entry.createdAt || index}`}><div><b>{entry.label || "ملاحظة المعلم"}</b>{entry.message && <p>{entry.message}</p>}</div><small>{entry.createdAt ? new Date(entry.createdAt).toLocaleDateString("ar-SA-u-ca-gregory") : ""}{entry.subject ? ` • ${entry.subject}` : ""}{entry.teacherName ? ` • ${entry.teacherName}` : ""}</small></article>)}
+        {!(selected.data.teacherNotes || []).length && selected.data.teacherNote && <article><div><b>ملاحظة المعلم</b><p>{selected.data.teacherNote}</p></div><small>{selected.subjectLabel} • {selected.teacherName}</small></article>}
+      </div>
+    </section>}
 
     <nav className="student-portal-tabs knowledge-tabs" aria-label="أقسام بوابة الطالب">
       {tabs.map(tab => <button type="button" key={tab.key} className={activeTab === tab.key ? "active" : ""} aria-current={activeTab === tab.key ? "page" : undefined} onClick={() => { setActiveTab(tab.key); window.scrollTo({ top: 0, behavior: "smooth" }); }}><span>{tab.icon}</span><div><b>{tab.label}</b><small>{tab.note}</small></div></button>)}
