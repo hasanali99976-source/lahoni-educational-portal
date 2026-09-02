@@ -1,0 +1,46 @@
+name: Fix Canvas PDF v82
+
+on:
+  push:
+    paths:
+      - '.github/scripts/fix_canvas_pdf_v82.py'
+      - '.github/workflows/fix-canvas-pdf-v82.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply patch
+        run: python .github/scripts/fix_canvas_pdf_v82.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify
+        run: |
+          grep -q 'renderAttendanceClassCanvas' app/teacher/attendance/page.tsx
+          grep -q 'renderGradesClassCanvas' app/teacher/grades/page.tsx
+          grep -q 'canvas.getContext("2d")' lib/class-pdf-canvas.ts
+          grep -q 'v82-direct-canvas-pdf' public/sw.js
+          ! grep -q 'html2canvas(captureTarget' app/teacher/attendance/page.tsx
+          ! grep -q 'html2canvas(captureTarget' app/teacher/grades/page.tsx
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/attendance/page.tsx app/teacher/grades/page.tsx lib/class-pdf-canvas.ts public/sw.js
+          git diff --cached --quiet || git commit -m 'fix: draw Arabic class PDFs directly on canvas'
+          git push
