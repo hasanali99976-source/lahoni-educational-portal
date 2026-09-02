@@ -1,0 +1,48 @@
+name: Attendance One Page Weekly All v92
+
+on:
+  push:
+    paths:
+      - '.github/workflows/attendance-onepage-weekly-all-v92.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply attendance v92 patch
+        run: python .github/scripts/attendance_onepage_weekly_all_v92.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify attendance changes
+        run: |
+          grep -q 'const pages = \[classReport.rows\]' lib/attendance-pdf.ts
+          grep -q 'PDF أسبوعي — جميع الفصول' app/teacher/attendance/page.tsx
+          grep -q 'ATTENDANCE_CLASS_COLORS' app/teacher/attendance/page.tsx
+          grep -q 'v92-onepage-weekly-all' app/pwa-register.tsx
+      - name: Commit and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/attendance-pdf.ts app/teacher/attendance/page.tsx public/sw.js app/pwa-register.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'feat: one-page attendance and weekly all-class report'
+          git push origin main
