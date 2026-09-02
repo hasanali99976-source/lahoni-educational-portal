@@ -18,6 +18,7 @@ import {
   type GradeValueMap,
 } from "../../../lib/grade-plan";
 import { useGradePlan } from "../../../lib/use-grade-plan";
+import { downloadGradebookPdfDocument, type GradebookPdfClass } from "../../../lib/grades-pdf";
 import "./register.css";
 import "./dynamic-gradebook.css";
 
@@ -57,6 +58,8 @@ export default function GradesPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [allPdfBusy, setAllPdfBusy] = useState(false);
 
   useEffect(() => {
     if (!tenant) return;
@@ -225,11 +228,94 @@ export default function GradesPage() {
     XLSX.writeFile(workbook, `درجات-${selectedClass}-${section.label}.xlsx`);
   }
 
+
+  function buildPdfClass(className: string): GradebookPdfClass | null {
+    if (!activePlan) return null;
+    const roster = students
+      .filter(student => student.class === className)
+      .sort((a, b) => a.name.localeCompare(b.name, "ar"));
+    if (!roster.length) return null;
+
+    const sections = activePlan.sections.map(planSection => ({
+      id: planSection.id,
+      label: planSection.label,
+      max: planSection.max,
+      columns: planSection.items.map(item => ({ id: item.id, label: item.label, max: item.max })),
+      rows: roster.map((student, index) => {
+        const source = className === selectedClass ? effectiveStudent(student) : studentForPlan(student);
+        const result = calculateGradePlanResult(activePlan, source);
+        const sectionResult = result.sections.find(item => item.id === planSection.id);
+        return {
+          number: index + 1,
+          name: student.name,
+          values: planSection.items.map(item => readGradeEntry(source, planSection, item).value),
+          sectionTotal: sectionResult?.earned || 0,
+          overallTotal: result.earned,
+          percentage: result.percentage,
+        };
+      }),
+    }));
+
+    return { className, sections };
+  }
+
+  async function downloadCurrentClassGradesPdf() {
+    if (!activePlan || !selectedClass) return setMessage("اختر الفصل أولًا.");
+    const report = buildPdfClass(selectedClass);
+    if (!report) return setMessage("لا توجد أسماء طلاب في الفصل المحدد.");
+    setPdfBusy(true);
+    setMessage(`جارٍ تجهيز PDF كامل لدرجات ${selectedClass}...`);
+    try {
+      const result = await downloadGradebookPdfDocument({
+        portalName: "بوابة أستاذ لحوني التعليمية",
+        teacherName: session.teacherName || "المعلم",
+        subject: session.subject || "المادة",
+        gradeLabel: session.activeGradeLabel || "",
+        planLabel: GRADE_PLAN_MODE_LABELS[activePlan.mode],
+        planVersion: activePlan.version,
+        classes: [report],
+        fileName: `درجات-${selectedClass.replace(/[\\/:*?"<>|]/g, "-")}-كامل.pdf`,
+      });
+      setMessage(`تم إنشاء PDF كامل للفصل: ${result.studentCount} طالبًا في ${result.pageCount} صفحة.`);
+    } catch (error) {
+      console.error("gradebook-class-pdf-v98", error);
+      setMessage("تعذر إنشاء PDF درجات الفصل الآن.");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
+  async function downloadAllClassesGradesPdf() {
+    if (!activePlan || !classes.length) return setMessage("لا توجد فصول متاحة للطباعة.");
+    setAllPdfBusy(true);
+    setMessage("جارٍ جلب جميع الدرجات وتجهيز PDF لكل الفصول...");
+    try {
+      const reports = classes.map(buildPdfClass).filter((item): item is GradebookPdfClass => !!item);
+      if (!reports.length) throw new Error("gradebook_all_pdf_no_students");
+      const result = await downloadGradebookPdfDocument({
+        portalName: "بوابة أستاذ لحوني التعليمية",
+        teacherName: session.teacherName || "المعلم",
+        subject: session.subject || "المادة",
+        gradeLabel: session.activeGradeLabel || "",
+        planLabel: GRADE_PLAN_MODE_LABELS[activePlan.mode],
+        planVersion: activePlan.version,
+        classes: reports,
+        fileName: `جميع-الدرجات-${(session.subject || "المادة").replace(/[\\/:*?"<>|]/g, "-")}.pdf`,
+      });
+      setMessage(`تم إنشاء PDF جميع الدرجات: ${result.classCount} فصل، ${result.studentCount} طالبًا، ${result.pageCount} صفحة.`);
+    } catch (error) {
+      console.error("gradebook-all-pdf-v98", error);
+      setMessage("تعذر إنشاء PDF جميع الدرجات الآن.");
+    } finally {
+      setAllPdfBusy(false);
+    }
+  }
+
   if (planLoading) return <main className="gradebook-page" dir="rtl"><section className="grade-plan-required">جارٍ تحميل خطة توزيع الدرجات…</section></main>;
   if (!activePlan) return <main className="gradebook-page" dir="rtl"><section className="grade-plan-required"><span>إعداد مطلوب</span><h1>اختر طريقة توزيع الـ100 درجة أولًا</h1><p>صفحة الرصد لا تستخدم توزيعًا ثابتًا بعد الآن. يجب اعتماد خطة توزيع درجات للمعلم قبل بدء الرصد الجديد.</p>{planError && <small>{planError}</small>}<Link href="/teacher/grade-plan">إعداد توزيع الدرجات</Link></section></main>;
 
   return <main className="gradebook-page grades-page dynamic-gradebook-page" dir="rtl"><div className="gradebook-wrap"><section className="gradebook-card">
-    <header className="gradebook-head dynamic-gradebook-head"><div><span className="active-plan-badge">الخطة المعتمدة — نسخة {activePlan.version}</span><h1>سجل رصد الدرجات — {section?.label || ""}</h1><p>{session.subject || "المادة"}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""} • {GRADE_PLAN_MODE_LABELS[activePlan.mode]}</p></div><div className="gradebook-actions"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>{activePlan.sections.length > 1 && <label>{activePlan.mode === "units" ? "الوحدة" : "الفترة"}<select value={selectedSection} onChange={event => setSelectedSection(event.target.value)}>{activePlan.sections.map(item => <option key={item.id} value={item.id}>{item.label} — {item.max}</option>)}</select></label>}<button type="button" className="research-link" onClick={exportExcel}>📊 Excel</button><button type="button" className="research-link" onClick={() => window.print()}>🖨 طباعة / PDF</button><button type="button" className="save-button" onClick={() => void saveRegister()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ الدرجات"}</button></div></header>
+    <header className="gradebook-head dynamic-gradebook-head"><div><span className="active-plan-badge">الخطة المعتمدة — نسخة {activePlan.version}</span><h1>سجل رصد الدرجات — {section?.label || ""}</h1><p>{session.subject || "المادة"}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""} • {GRADE_PLAN_MODE_LABELS[activePlan.mode]}</p></div><div className="gradebook-actions"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>{activePlan.sections.length > 1 && <label>{activePlan.mode === "units" ? "الوحدة" : "الفترة"}<select value={selectedSection} onChange={event => setSelectedSection(event.target.value)}>{activePlan.sections.map(item => <option key={item.id} value={item.id}>{item.label} — {item.max}</option>)}</select></label>}<button type="button" className="research-link" onClick={exportExcel}>📊 Excel</button><button type="button" className="research-link" onClick={() => void downloadCurrentClassGradesPdf()} disabled={!selectedClass || pdfBusy}>{pdfBusy ? "جارٍ إنشاء PDF..." : "📄 PDF الفصل كامل"}</button><button type="button" className="research-link" onClick={() => void downloadAllClassesGradesPdf()} disabled={allPdfBusy}>{allPdfBusy ? "جارٍ جلب الجميع..." : "📚 جميع الدرجات PDF"}</button><button type="button" className="save-button" onClick={() => void saveRegister()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ الدرجات"}</button></div></header>
     <div className="approved-plan-readonly"><b>{section?.label}</b><span>درجة القسم: {section?.max}</span><small>توزيع الخطة هنا للقراءة فقط؛ لا توجد خانات لتعديل الخطة داخل صفحة الرصد.</small></div>
     <div className="gradebook-scroll"><table className="gradebook-table dynamic-grade-table"><thead><tr><th className="sticky-number">م</th><th className="sticky-name">اسم الطالب</th>{section?.items.map(item => <th key={item.id}><span>{item.label}</span><small>من {item.max}</small><div className="header-score-control"><input value={item.max} readOnly/><button type="button" onClick={() => applyFullGrade(item)}>✓ الكل</button></div></th>)}<th>مجموع القسم<small>من {section?.max}</small></th><th>المجموع الحالي<small>من 100</small></th><th>مسح القسم</th></tr></thead><tbody>{classStudents.map((student, index) => {
       const source = effectiveStudent(student);

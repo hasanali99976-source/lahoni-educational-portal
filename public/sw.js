@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v97-grade-plan-quota-fallback";
+const CACHE_NAME = "ostadh-lahooni-v98-full-grades-pdf";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",
