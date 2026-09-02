@@ -1,0 +1,48 @@
+name: Visible Evaluation Plans + PWA Refresh v87
+
+on:
+  push:
+    paths:
+      - '.github/workflows/make-v87-visible-and-refresh.yml'
+      - '.github/scripts/make_v87_visible_and_refresh.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply v87 patch
+        run: python3 .github/scripts/make_v87_visible_and_refresh.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify visible changes
+        run: |
+          grep -q 'href: "/teacher/evaluation-plans"' app/teacher/layout.tsx
+          grep -q 'خطط التقييم' app/teacher/dashboard/page.tsx
+          grep -q 'label: "الخطط"' app/mobile-app-enhancer.tsx
+          grep -q 'PDF الحضور الجديد — الفصل' app/teacher/attendance/page.tsx
+          grep -q 'ostadh-lahooni-v87-visible-evaluation-plans' app/pwa-register.tsx
+          grep -q 'ostadh-lahooni-v87-visible-evaluation-plans' public/sw.js
+      - name: Commit validated changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/pwa-register.tsx public/sw.js app/teacher/layout.tsx app/teacher/dashboard/page.tsx app/mobile-app-enhancer.tsx app/teacher/attendance/page.tsx
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'fix: expose evaluation plans and refresh PWA shell'
+            git push
+          fi
