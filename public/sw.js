@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v75-notes-print";
+const CACHE_NAME = "ostadh-lahooni-v77-one-page-pdf";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",

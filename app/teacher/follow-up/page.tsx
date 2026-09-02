@@ -118,7 +118,7 @@ ${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—
       return { id: crypto.randomUUID(), type, label: option.label, message: type === "other" ? note.trim() : "", createdAt: now, teacherName, subject } as TeacherNoteEntry;
     });
     const notes = [...entries, ...previous].slice(0, 100);
-    const latestText = entries.map(entry => entry.message ? `${entry.label}: ${entry.message}` : entry.label).join(" • ");
+    const latestText = entries.map(entry => entry.type === "other" ? (entry.message || entry.label) : entry.message ? `${entry.label}: ${entry.message}` : entry.label).join(" • ");
     await setDoc(doc(db, studentsPath, noteStudent.storageId || noteStudent.id), {
       teacherNote: latestText,
       teacherNoteCount: Number(noteStudent.teacherNoteCount || previous.length || 0) + entries.length,
