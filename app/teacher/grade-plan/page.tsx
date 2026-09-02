@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   GRADE_CATEGORY_LABELS,
   GRADE_PLAN_MODE_LABELS,
@@ -54,6 +54,25 @@ export default function GradePlanPage() {
 
   const validation = useMemo(() => validateGradePlanDraft(draft), [draft]);
   const overall = useMemo(() => draft.mode === "periods" ? draft.sections.map(section => total(section.items)) : [roundGrade(draft.sections.reduce((sum, section) => sum + Number(section.max || 0), 0))], [draft]);
+
+  useEffect(() => {
+    if (loading || !activePlan || typeof window === "undefined") return;
+    const editRequested = new URLSearchParams(window.location.search).get("edit") === "1";
+    if (!editRequested) return;
+    setBuilding(true);
+    setMode(activePlan.mode);
+    setMethod(activePlan.method);
+    setUnitCount(activePlan.mode === "units" ? activePlan.sections.length : 5);
+    setDraft({
+      mode: activePlan.mode,
+      method: activePlan.method,
+      sections: activePlan.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({ ...item })),
+      })),
+    });
+    setMessage("أنت تعدّل نسخة جديدة مبنية على الخطة المعتمدة الحالية. لن تتأثر النسخة السابقة إلا بعد اعتماد النسخة الجديدة.");
+  }, [loading, activePlan?.id]);
 
   function startNew() {
     setBuilding(true);
@@ -137,7 +156,7 @@ export default function GradePlanPage() {
       if (!response.ok) throw new Error(data.message || "تعذر اعتماد الخطة.");
       // الاعتماد ناجح: انتقل صراحة إلى واجهة الخطة المعتمدة بدل البقاء في وضع البناء.
       await refresh();
-      window.location.replace("/teacher/grade-plan?view=approved");
+      window.location.replace("/teacher/grades");
       return;
     } catch (saveError) {
       setMessage(saveError instanceof Error ? saveError.message : "تعذر اعتماد الخطة.");

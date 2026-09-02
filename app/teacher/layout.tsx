@@ -38,7 +38,6 @@ const primaryTabs: TeacherTab[] = [
 ];
 
 const moreTabs: TeacherTab[] = [
-  { href: "/teacher/grade-plan", key: "gradeplan", label: "توزيع الدرجات", note: "إعداد واعتماد الـ100 درجة" },
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
   { href: "/teacher/timetable", key: "timetable", label: "جدولي الدراسي", note: "حصص الأسبوع" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
