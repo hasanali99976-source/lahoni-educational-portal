@@ -193,6 +193,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "لم تُربط مواد هذا الصف بالمعلمين بعد." }, { status: 401 });
     }
 
+    const gradePlanByTeacher = new Map<string, Record<string, unknown> | null>();
+    await Promise.all([...new Set([...chosenBySubject.values()].map(candidate => candidate.teacherId))].map(async teacherId => {
+      try {
+        const config = await adminDb().collection(`portalV2Data/${teacherId}/gradePlanConfig`).doc("current").get();
+        const activePlanId = config.exists ? String(config.data()?.activePlanId || "") : "";
+        if (!activePlanId) {
+          gradePlanByTeacher.set(teacherId, null);
+          return;
+        }
+        const plan = await adminDb().collection(`portalV2Data/${teacherId}/gradePlanVersions`).doc(activePlanId).get();
+        gradePlanByTeacher.set(teacherId, plan.exists ? { id: plan.id, ...plan.data() } : null);
+      } catch (gradePlanError) {
+        console.warn("student approved grade plan lookup deferred", gradePlanError);
+        gradePlanByTeacher.set(teacherId, null);
+      }
+    }));
+
     const repairWrites: Array<{ path: string; data: Record<string, unknown> }> = [];
     const located = [...chosenBySubject.values()].map(candidate => {
       if (candidate.existing) return candidate.existing;
@@ -257,6 +274,7 @@ export async function POST(request: Request) {
         accessToken,
         data: {
           ...item.data,
+          gradePlan: gradePlanByTeacher.get(item.teacherId) || null,
           absences: 0,
           late: 0,
           attendanceSummary: {
