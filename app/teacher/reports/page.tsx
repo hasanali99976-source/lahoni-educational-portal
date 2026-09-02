@@ -1,42 +1,58 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
-import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
+import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import { calculateGradePlanResult, GRADE_PLAN_MODE_LABELS, type GradeStudentLike } from "../../../lib/grade-plan";
+import { useGradePlan } from "../../../lib/use-grade-plan";
 import "./reports.css";
 
-type UnitRecord={attendance?:number;participation?:number;homework?:number;unitExam?:number;total?:number};
-type Student={id:string;name?:string;class?:string;researchScore?:number;units?:Record<string,UnitRecord>};
-type AttendanceDoc={records?:Record<string,"present"|"absent"|"late"|"excused">};
-type Session={authenticated?:boolean;teacherId?:string;teacherName?:string;subjectKey?:SubjectKey;subject?:string};
-const units=[["unit1","الوحدة الأولى"],["unit2","الوحدة الثانية"],["unit3","الوحدة الثالثة"],["unit4","الوحدة الرابعة"],["unit5","الوحدة الخامسة"]] as const;
+type Student = GradeStudentLike & { id: string; name?: string; class?: string; className?: string };
+type AttendanceDoc = { records?: Record<string, "present" | "absent" | "late" | "excused" | "escaped"> };
 function hijriToday(){return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab",{day:"numeric",month:"long",year:"numeric"}).format(new Date())}
 
 export default function ReportsPage(){
   const session = useTeacherClient();
-  const teacherId = session?.teacherId || "";
-  const teacherName = session?.teacherName || "";
-  const subjectKey = session?.subjectKey || "history";
-  const subject = session?.subject || "";
-  const ready = !!session?.teacherId && !!session?.subjectKey;
-
+  const { activePlan, loading: planLoading } = useGradePlan(true);
+  const teacherId = session.teacherId || "";
+  const teacherName = session.teacherName || "";
+  const subjectKey = session.subjectKey || "history";
+  const subject = session.subject || "";
+  const ready = !!session.teacherId && !!session.subjectKey;
   const [students,setStudents]=useState<Student[]>([]),[attendanceDocs,setAttendanceDocs]=useState<AttendanceDoc[]>([]),[selectedClass,setSelectedClass]=useState(""),[selectedStudent,setSelectedStudent]=useState("");
   const [message,setMessage]=useState("");
-  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"students"):"",[teacherId,subjectKey]);
-  const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as any,"attendance"):"",[teacherId,subjectKey]);
+  const studentsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as never,"students"):"",[teacherId,subjectKey]);
+  const attendancePath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as never,"attendance"):"",[teacherId,subjectKey]);
 
-  useEffect(()=>{ if(!ready){ setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب")) },[ready,studentsPath]);
-  useEffect(()=>{ if(!ready){ setMessage("انتهت الجلسة. سجّل الدخول من جديد."); return; } return onSnapshot(collection(db,attendancePath),snap=>setAttendanceDocs(snap.docs.map(d=>d.data() as AttendanceDoc)),()=>setMessage("تعذر تحميل حضور هذا الحساب")) },[ready,attendancePath]);
- const classes=useMemo(()=>Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
- const classStudents=useMemo(()=>selectedClass?students.filter(s=>(s.class||"").trim()===selectedClass):students,[students,selectedClass]);
- useEffect(()=>{if(!classStudents.some(s=>s.id===selectedStudent))setSelectedStudent(classStudents[0]?.id||"")},[classStudents,selectedStudent]);
- const student=classStudents.find(s=>s.id===selectedStudent);
- const unitRows=useMemo(()=>units.map(([key,label])=>{const r=student?.units?.[key]||{};const attendance=Number(r.attendance||0),participation=Number(r.participation||0),homework=Number(r.homework||0),unitExam=Number(r.unitExam||0),total=Number(r.total??attendance+participation+homework+unitExam);return{key,label,attendance,participation,homework,unitExam,total}}),[student]);
- const research=Number(student?.researchScore||0),finalTotal=unitRows.reduce((sum,u)=>sum+u.total,0)+research;
- const attendanceSummary=useMemo(()=>{const result={present:0,absent:0,late:0,excused:0};if(!student)return result;attendanceDocs.forEach(d=>{const status=d.records?.[student.id];if(status)result[status]+=1});return result},[attendanceDocs,student]);
- const recordedDays=Object.values(attendanceSummary).reduce((a,b)=>a+b,0),attendanceRate=recordedDays?Math.round(attendanceSummary.present/recordedDays*100):0,initial=(student?.name||"ط").trim().charAt(0);
- if(!ready)return <main className="student-report-page" dir="rtl"><section className="report-empty">{message||"جارٍ تجهيز تقارير الحساب..."}</section></main>;
- return <main className="student-report-page" dir="rtl"><div className="student-report-wrap"><section className="report-selector-card"><div><h1>ملخص الطالب — {subject}</h1><p>المعلم: {teacherName}. تظهر تقارير طلاب هذا الحساب فقط.</p></div><div className="report-selectors"><label>الفصل<select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">جميع الفصول</option>{classes.map(c=><option key={c}>{c}</option>)}</select></label><label>الطالب<select value={selectedStudent} onChange={e=>setSelectedStudent(e.target.value)}><option value="">اختر الطالب</option>{classStudents.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div></section>{message&&<section className="report-empty">{message}</section>}{!student?<section className="report-empty">لا يوجد طلاب في مساحة هذا الحساب.</section>:<><section className="student-hero-card"><div className="student-main-info"><div className="student-avatar">{initial}</div><div><small>اسم الطالب</small><h2>{student.name}</h2><p>الفصل: {student.class||"غير محدد"}</p></div></div><div className="final-score-box"><span>المجموع النهائي</span><strong>{finalTotal}</strong><small>من ١٠٠ درجة</small></div></section><section className="unit-score-grid">{unitRows.map(u=><article key={u.key}><span>{u.label}</span><strong>{u.total}</strong><small>من ١٩</small></article>)}<article className="research-score-card"><span>البحث</span><strong>{research}</strong><small>من ٥</small></article></section><section className="attendance-summary-grid"><article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong><small>يوم</small></article><article><span>مرات التأخر</span><strong>{attendanceSummary.late}</strong><small>مرة</small></article><article><span>مرات الاستئذان</span><strong>{attendanceSummary.excused}</strong><small>مرة</small></article><article><span>نسبة الحضور</span><strong>{attendanceRate}%</strong><small>من الأيام المسجلة</small></article></section><section className="unit-details-card print-grade-sheet"><header><div><h2>كشف درجات الطالب</h2><p>الوحدات الخمس والبحث والمجموع النهائي.</p><small className="student-name-small">الطالب: {student.name}</small></div><button className="print-sheet-button" onClick={()=>window.print()}>🖨 طباعة كشف الدرجات</button></header><div className="print-sheet-heading"><h2>مدرسة التهذيب الثانوية</h2><p>كشف درجات مادة {subject}</p><div><span><b>اسم الطالب:</b> {student.name}</span><span><b>الفصل:</b> {student.class||"—"}</span><span><b>المعلم:</b> {teacherName}</span><span><b>التاريخ:</b> {hijriToday()}</span></div></div><div className="unit-table-scroll"><table className="unit-details-table"><thead><tr><th>الوحدة</th><th>الحضور<br/><small>من ١</small></th><th>المشاركة<br/><small>من ٢</small></th><th>الواجبات<br/><small>من ٢</small></th><th>اختبار الوحدة<br/><small>من ١٤</small></th><th>مجموع الوحدة<br/><small>من ١٩</small></th></tr></thead><tbody>{unitRows.map(u=><tr key={u.key}><td><strong>{u.label}</strong></td><td>{u.attendance}</td><td>{u.participation}</td><td>{u.homework}</td><td>{u.unitExam}</td><td><b>{u.total}</b></td></tr>)}</tbody><tfoot><tr><td colSpan={5}>درجة البحث</td><td>{research} / ٥</td></tr><tr className="final-row"><td colSpan={5}>المجموع النهائي</td><td>{finalTotal} / ١٠٠</td></tr></tfoot></table></div><div className="print-attendance-line">الغياب: {attendanceSummary.absent} يوم • التأخر: {attendanceSummary.late} • الاستئذان: {attendanceSummary.excused} • نسبة الحضور: {attendanceRate}%</div></section></>}</div></main>;
+  useEffect(()=>{if(!ready)return;return onSnapshot(collection(db,studentsPath),snap=>{const list=snap.docs.map(d=>({id:d.id,...d.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list)},()=>setMessage("تعذر تحميل طلاب هذا الحساب"))},[ready,studentsPath]);
+  useEffect(()=>{if(!ready)return;return onSnapshot(collection(db,attendancePath),snap=>setAttendanceDocs(snap.docs.map(d=>d.data() as AttendanceDoc)),()=>setMessage("تعذر تحميل حضور هذا الحساب"))},[ready,attendancePath]);
+
+  const classes=useMemo(()=>Array.from(new Set(students.map(s=>String(s.className||s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")),[students]);
+  const classStudents=useMemo(()=>selectedClass?students.filter(s=>String(s.className||s.class||"").trim()===selectedClass):students,[students,selectedClass]);
+  useEffect(()=>{if(!classStudents.some(s=>s.id===selectedStudent))setSelectedStudent(classStudents[0]?.id||"")},[classStudents,selectedStudent]);
+  const student=classStudents.find(s=>s.id===selectedStudent);
+  const result=useMemo(()=>activePlan&&student?calculateGradePlanResult(activePlan,student):null,[activePlan,student]);
+  const attendanceSummary=useMemo(()=>{const value={present:0,absent:0,late:0,excused:0,escaped:0};if(!student)return value;attendanceDocs.forEach(d=>{const status=d.records?.[student.id];if(status)value[status]+=1});return value},[attendanceDocs,student]);
+  const recordedDays=Object.values(attendanceSummary).reduce((a,b)=>a+b,0),attendanceRate=recordedDays?Math.round((attendanceSummary.present+attendanceSummary.late*.5+attendanceSummary.excused)/recordedDays*100):0,initial=(student?.name||"ط").trim().charAt(0);
+
+  if(!ready)return <main className="student-report-page" dir="rtl"><section className="report-empty">جارٍ تجهيز تقارير الحساب…</section></main>;
+  if(planLoading)return <main className="student-report-page" dir="rtl"><section className="report-empty">جارٍ تحميل خطة توزيع الدرجات…</section></main>;
+  if(!activePlan)return <main className="student-report-page" dir="rtl"><section className="report-empty"><h2>لم تُعتمد خطة توزيع الدرجات بعد</h2><p>التقارير ستقرأ الخطة المعتمدة تلقائيًا بعد إعدادها.</p><Link href="/teacher/grade-plan">إعداد توزيع الدرجات</Link></section></main>;
+
+  return <main className="student-report-page" dir="rtl"><div className="student-report-wrap">
+    <section className="report-selector-card"><div><span className="active-plan-badge">{GRADE_PLAN_MODE_LABELS[activePlan.mode]} — نسخة {activePlan.version}</span><h1>ملخص الطالب — {subject}</h1><p>المعلم: {teacherName}. الاحتساب مبني على خطة توزيع الدرجات المعتمدة.</p></div><div className="report-selectors"><label>الفصل<select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="">جميع الفصول</option>{classes.map(c=><option key={c}>{c}</option>)}</select></label><label>الطالب<select value={selectedStudent} onChange={e=>setSelectedStudent(e.target.value)}><option value="">اختر الطالب</option>{classStudents.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div></section>
+    {message&&<section className="report-empty">{message}</section>}
+    {!student||!result?<section className="report-empty">لا يوجد طالب محدد.</section>:<>
+      <section className="student-hero-card"><div className="student-main-info"><div className="student-avatar">{initial}</div><div><small>اسم الطالب</small><h2>{student.name}</h2><p>الفصل: {String(student.className||student.class||"غير محدد")}</p></div></div><div className="final-score-box"><span>{result.complete?"المجموع النهائي":"المجموع الحالي"}</span><strong>{result.earned}</strong><small>من ١٠٠ درجة • اكتمال الرصد {result.completion}%</small></div></section>
+      <section className="unit-score-grid">{result.sections.map(section=><article key={section.id}><span>{section.label}</span><strong>{section.earned}</strong><small>من {section.maximum} • {section.percentage}%</small></article>)}</section>
+      <section className="attendance-summary-grid"><article><span>أيام الغياب</span><strong>{attendanceSummary.absent}</strong><small>يوم</small></article><article><span>مرات التأخر</span><strong>{attendanceSummary.late}</strong><small>مرة</small></article><article><span>الاستئذان</span><strong>{attendanceSummary.excused}</strong><small>مرة</small></article><article><span>نسبة الانضباط</span><strong>{attendanceRate}%</strong><small>من الأيام المسجلة</small></article></section>
+      <section className="unit-details-card print-grade-sheet"><header><div><h2>كشف درجات الطالب</h2><p>يعرض عناصر خطة توزيع الدرجات المعتمدة فقط.</p><small className="student-name-small">الطالب: {student.name}</small></div><button className="print-sheet-button" onClick={()=>window.print()}>🖨 طباعة كشف الدرجات</button></header><div className="print-sheet-heading"><h2>مدرسة التهذيب الثانوية</h2><p>كشف درجات مادة {subject}</p><div><span><b>اسم الطالب:</b> {student.name}</span><span><b>الفصل:</b> {String(student.className||student.class||"—")}</span><span><b>المعلم:</b> {teacherName}</span><span><b>التاريخ:</b> {hijriToday()}</span></div></div>
+        {result.sections.map(section=><div className="unit-table-scroll" key={section.id}><table className="unit-details-table"><thead><tr><th colSpan={3}>{section.label} — من {section.maximum}</th></tr><tr><th>عنصر التقييم</th><th>الدرجة المرصودة</th><th>الدرجة القصوى</th></tr></thead><tbody>{section.items.map(entry=><tr key={entry.key}><td><strong>{entry.item.label}</strong></td><td>{entry.recorded?entry.value:"—"}</td><td>{entry.maximum}</td></tr>)}</tbody><tfoot><tr><td>مجموع {section.label}</td><td>{section.earned}</td><td>{section.maximum}</td></tr></tfoot></table></div>)}
+        <div className="print-attendance-line">المجموع الحالي: {result.earned} / ١٠٠ • اكتمال الرصد: {result.completion}% • الغياب: {attendanceSummary.absent} • التأخر: {attendanceSummary.late} • الانضباط: {attendanceRate}%</div>
+      </section>
+    </>}
+  </div></main>;
 }
