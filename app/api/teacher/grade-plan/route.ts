@@ -21,13 +21,13 @@ export async function GET() {
     const activePlanId = config.exists ? String(config.data()?.activePlanId || "") : "";
     const [activeSnapshot, historySnapshot] = await Promise.all([
       activePlanId ? database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(activePlanId).get() : Promise.resolve(null),
-      database.collection(`${root}/${VERSIONS_COLLECTION}`).orderBy("version", "desc").limit(20).get(),
+      database.collection(`${root}/${VERSIONS_COLLECTION}`).get(),
     ]);
     const activePlan = activeSnapshot && activeSnapshot.exists
       ? normalizeGradePlan({ id: activeSnapshot.id, ...activeSnapshot.data() })
       : null;
-    const history = historySnapshot.docs.map(document => {
-      const data = document.data() as Record<string, unknown>;
+    const history = historySnapshot.docs.map((document: { id: string; data: () => Record<string, unknown> }) => {
+      const data = document.data();
       return {
         id: document.id,
         version: Number(data.version || 0),
@@ -37,7 +37,7 @@ export async function GET() {
         activatedAt: String(data.activatedAt || ""),
         archivedAt: String(data.archivedAt || ""),
       };
-    });
+    }).sort((a, b) => b.version - a.version).slice(0, 20);
     return NextResponse.json({
       ok: true,
       activePlan,
