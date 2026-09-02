@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v92-onepage-weekly-all";
+const CACHE_NAME = "ostadh-lahooni-v93-grade-plan-approved-redirect";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",

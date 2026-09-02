@@ -135,9 +135,10 @@ export default function GradePlanPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر اعتماد الخطة.");
+      // الاعتماد ناجح: انتقل صراحة إلى واجهة الخطة المعتمدة بدل البقاء في وضع البناء.
       await refresh();
-      setBuilding(false);
-      setMessage("تم اعتماد الخطة وقفلها. أصبحت هي مصدر الاحتساب في البوابة.");
+      window.location.replace("/teacher/grade-plan?view=approved");
+      return;
     } catch (saveError) {
       setMessage(saveError instanceof Error ? saveError.message : "تعذر اعتماد الخطة.");
     } finally {
