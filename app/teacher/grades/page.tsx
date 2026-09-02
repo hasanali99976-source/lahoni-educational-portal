@@ -4,29 +4,45 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { doc, setDoc } from "firebase/firestore";
 import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
-import { renderGradesPdfPages } from "../../../lib/class-pdf-pages-v83";
 import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { type ClientTenant, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
-import { ACADEMIC_UNITS, GRADE_DISTRIBUTION, UNIT_MAX, calculatePercentage, calculateUnitTotal, clampGrade, type GradeKey } from "../../../lib/academic-config";
+import {
+  GRADE_PLAN_MODE_LABELS,
+  calculateGradePlanResult,
+  gradeEntryKey,
+  readGradeEntry,
+  roundGrade,
+  type GradePlanItem,
+  type GradeStudentLike,
+  type GradeValueMap,
+} from "../../../lib/grade-plan";
+import { useGradePlan } from "../../../lib/use-grade-plan";
 import "./register.css";
+import "./dynamic-gradebook.css";
 
-type GradeRecord = Record<GradeKey, number> & { notes: string };
-type UnitRecord = Partial<GradeRecord> & { exam1?: number; exam2?: number; total?: number; percentage?: number };
-type Student = {
+type LegacyUnit = Record<string, unknown>;
+type Student = GradeStudentLike & {
   id: string;
   code: string;
   name: string;
   class: string;
   className: string;
-  units?: Record<string, UnitRecord>;
+  gradeValues?: GradeValueMap;
+  units?: Record<string, LegacyUnit>;
+  notes?: string;
 };
 
-const emptyGrade: GradeRecord = { attendance: 0, participation: 0, homework: 0, unitExam: 0, notes: "" };
+type LocalValues = Record<string, GradeValueMap>;
+
+function clamp(value: number, maximum: number) {
+  const number = Number.isFinite(value) ? value : 0;
+  return roundGrade(Math.max(0, Math.min(maximum, number)));
+}
 
 export default function GradesPage() {
   const session = useTeacherClient();
+  const { activePlan, loading: planLoading, error: planError } = useGradePlan(true);
   const tenant = useMemo<ClientTenant | null>(() => session.teacherId && session.subjectKey ? {
     teacherId: session.teacherId,
     teacherName: session.teacherName || "",
@@ -35,8 +51,8 @@ export default function GradesPage() {
 
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
-  const [selectedUnit, setSelectedUnit] = useState(ACADEMIC_UNITS[0].key);
-  const [grades, setGrades] = useState<Record<string, GradeRecord>>({});
+  const [selectedSection, setSelectedSection] = useState("");
+  const [localValues, setLocalValues] = useState<LocalValues>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -66,10 +82,11 @@ export default function GradesPage() {
               name: String(value.name || "").trim(),
               class: className,
               className,
+              gradeValues: value.gradeValues && typeof value.gradeValues === "object" ? value.gradeValues as GradeValueMap : {},
             };
           })
           .filter((student: Student) => Boolean(student.id && student.name && student.class));
-        list.sort((a: Student, b: Student) => a.class.localeCompare(b.class, "ar", { numeric: true }) || a.name.localeCompare(b.name, "ar"));
+        list.sort((a, b) => a.class.localeCompare(b.class, "ar", { numeric: true }) || a.name.localeCompare(b.name, "ar"));
         setStudents(list);
       })
       .catch(error => {
@@ -79,11 +96,9 @@ export default function GradesPage() {
     return () => controller.abort();
   }, [tenant, session.activeGrade]);
 
-  const classes = useMemo(() => [...new Set(students.map(student => student.class))]
-    .sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+  const classes = useMemo(() => [...new Set(students.map(student => student.class))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
   const classStudents = useMemo(() => students.filter(student => student.class === selectedClass), [students, selectedClass]);
-  const unitInfo = ACADEMIC_UNITS.find(unit => unit.key === selectedUnit) || ACADEMIC_UNITS[0];
-  const columns: Array<[GradeKey, string]> = [["attendance", "الحضور"], ["participation", "المشاركة"], ["homework", "الواجبات"], ["unitExam", unitInfo.examLabel]];
+  const section = useMemo(() => activePlan?.sections.find(item => item.id === selectedSection) || activePlan?.sections[0] || null, [activePlan, selectedSection]);
 
   useEffect(() => {
     if (!classes.length) { setSelectedClass(""); return; }
@@ -91,33 +106,67 @@ export default function GradesPage() {
   }, [classes, selectedClass]);
 
   useEffect(() => {
-    const next: Record<string, GradeRecord> = {};
-    classStudents.forEach(student => {
-      const saved = student.units?.[selectedUnit] || {};
-      next[student.id] = { ...emptyGrade, ...saved, unitExam: Number(saved.unitExam ?? saved.exam1 ?? saved.exam2 ?? 0) };
-    });
-    setGrades(next);
-  }, [classStudents, selectedUnit]);
+    if (!activePlan?.sections.length) { setSelectedSection(""); return; }
+    if (!selectedSection || !activePlan.sections.some(item => item.id === selectedSection)) setSelectedSection(activePlan.sections[0].id);
+  }, [activePlan, selectedSection]);
 
-  function setGradeValue(id: string, key: GradeKey, value: number) {
-    setGrades(current => ({ ...current, [id]: { ...(current[id] || emptyGrade), [key]: clampGrade(key, value) } }));
+  useEffect(() => {
+    if (!section) { setLocalValues({}); return; }
+    const next: LocalValues = {};
+    classStudents.forEach(student => {
+      const row: GradeValueMap = {};
+      section.items.forEach(item => {
+        const entry = readGradeEntry(student, section, item);
+        row[entry.key] = clamp(entry.value, item.max);
+      });
+      next[student.id] = row;
+    });
+    setLocalValues(next);
+  }, [classStudents, section?.id, activePlan?.id]);
+
+  function itemKey(item: GradePlanItem) {
+    return section ? gradeEntryKey(section.id, item.id) : "";
   }
 
-  function applyFullGrade(key: GradeKey) {
-    setGrades(current => {
+  function setGradeValue(studentId: string, item: GradePlanItem, value: number) {
+    const key = itemKey(item);
+    setLocalValues(current => ({ ...current, [studentId]: { ...(current[studentId] || {}), [key]: clamp(value, item.max) } }));
+  }
+
+  function applyFullGrade(item: GradePlanItem) {
+    const key = itemKey(item);
+    setLocalValues(current => {
       const next = { ...current };
-      classStudents.forEach(student => { next[student.id] = { ...(next[student.id] || emptyGrade), [key]: GRADE_DISTRIBUTION[key] }; });
+      classStudents.forEach(student => { next[student.id] = { ...(next[student.id] || {}), [key]: item.max }; });
       return next;
     });
   }
 
+  function clearRow(studentId: string) {
+    if (!section) return;
+    setLocalValues(current => {
+      const row = { ...(current[studentId] || {}) };
+      section.items.forEach(item => { row[itemKey(item)] = 0; });
+      return { ...current, [studentId]: row };
+    });
+  }
+
+  function effectiveStudent(student: Student) {
+    return { ...student, gradeValues: { ...(student.gradeValues || {}), ...(localValues[student.id] || {}) } };
+  }
+
+  function sectionTotal(student: Student) {
+    if (!activePlan || !section) return 0;
+    return calculateGradePlanResult(activePlan, effectiveStudent(student)).sections.find(item => item.id === section.id)?.earned || 0;
+  }
+
   async function saveRegister() {
-    if (!tenant || !selectedClass) return setMessage("اختر الفصل أولًا");
+    if (!tenant || !selectedClass || !activePlan || !section) return setMessage("اختر الفصل أولًا");
     setSaving(true);
     try {
+      const now = new Date().toISOString();
       await Promise.all(classStudents.map(student => {
-        const row = grades[student.id] || emptyGrade;
-        const total = calculateUnitTotal(row);
+        const mergedValues = { ...(student.gradeValues || {}), ...(localValues[student.id] || {}) };
         return setDoc(doc(db, tenantStudentsPath(tenant), student.id), {
           name: student.name,
           class: student.class,
@@ -125,100 +174,57 @@ export default function GradesPage() {
           code: student.code,
           active: true,
           rosterActive: true,
-          units: {
-            [selectedUnit]: {
-              ...(student.units?.[selectedUnit] || {}),
-              ...row,
-              total,
-              maximumTotal: UNIT_MAX,
-              percentage: calculatePercentage(total, UNIT_MAX),
-              maxGrades: GRADE_DISTRIBUTION,
-              updatedAt: new Date().toISOString(),
-            },
-          },
+          gradeValues: mergedValues,
+          activeGradePlanId: activePlan.id,
+          activeGradePlanVersion: activePlan.version,
+          gradePlanUpdatedAt: now,
           teacherId: tenant.teacherId,
           subjectKey: tenant.subjectKey,
         }, { merge: true });
       }));
       setStudents(current => current.map(student => classStudents.some(item => item.id === student.id)
-        ? { ...student, units: { ...(student.units || {}), [selectedUnit]: { ...(student.units?.[selectedUnit] || {}), ...(grades[student.id] || emptyGrade), total: calculateUnitTotal(grades[student.id] || emptyGrade), percentage: calculatePercentage(calculateUnitTotal(grades[student.id] || emptyGrade), UNIT_MAX) } } }
+        ? { ...student, gradeValues: { ...(student.gradeValues || {}), ...(localValues[student.id] || {}) } }
         : student));
-      setMessage("تم حفظ الدرجات بنجاح");
-    } catch {
-      setMessage("تعذر حفظ الدرجات");
+      setMessage(`تم حفظ درجات ${section.label} بدون تغيير أو حذف أي بيانات قديمة.`);
+    } catch (error) {
+      console.error("dynamic-gradebook-save", error);
+      setMessage("تعذر حفظ الدرجات الآن.");
     } finally {
       setSaving(false);
     }
   }
 
   function exportExcel() {
-    if (!classStudents.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
+    if (!activePlan || !section || !classStudents.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
     const rows = classStudents.map((student, index) => {
-      const row = grades[student.id] || emptyGrade;
-      return {
-        "م": index + 1,
-        "اسم الطالب": student.name,
-        "الفصل": student.class,
-        "الحضور": row.attendance,
-        "المشاركة": row.participation,
-        "الواجبات": row.homework,
-        [unitInfo.examLabel]: row.unitExam,
-        [`المجموع من ${UNIT_MAX}`]: calculateUnitTotal(row),
-        "الملاحظات": row.notes,
-      };
+      const source = effectiveStudent(student);
+      const sectionResult = calculateGradePlanResult(activePlan, source).sections.find(item => item.id === section.id);
+      const row: Record<string, string | number> = { "م": index + 1, "اسم الطالب": student.name, "الفصل": student.class };
+      section.items.forEach(item => {
+        row[`${item.label} (من ${item.max})`] = readGradeEntry(source, section, item).value;
+      });
+      row[`المجموع (من ${section.max})`] = sectionResult?.earned || 0;
+      row["نسبة الخطة الحالية"] = calculateGradePlanResult(activePlan, source).percentage;
+      return row;
     });
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.json_to_sheet(rows);
-    sheet["!cols"] = [{ wch: 6 }, { wch: 30 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 24 }];
-    XLSX.utils.book_append_sheet(workbook, sheet, "الدرجات");
-    XLSX.writeFile(workbook, `درجات-${selectedClass}-${unitInfo.label}.xlsx`);
+    sheet["!cols"] = Object.keys(rows[0] || {}).map((key, index) => ({ wch: index === 1 ? 30 : Math.max(12, Math.min(24, key.length + 3)) }));
+    XLSX.utils.book_append_sheet(workbook, sheet, section.label.slice(0, 28) || "الدرجات");
+    XLSX.writeFile(workbook, `درجات-${selectedClass}-${section.label}.xlsx`);
   }
 
-  async function downloadGradesPdf() {
-    if (!classStudents.length) return setMessage("اختر فصلًا يحتوي على طلاب أولًا");
-    setMessage(`جارٍ إنشاء سجل كامل لـ ${classStudents.length} طالبًا...`);
-    const allRows = classStudents.map((student, index) => {
-      const row = grades[student.id] || emptyGrade;
-      return {
-        number: index + 1,
-        name: student.name,
-        attendance: row.attendance,
-        participation: row.participation,
-        homework: row.homework,
-        unitExam: row.unitExam,
-        total: calculateUnitTotal(row),
-        notes: row.notes || "",
-      };
-    });
-    try {
-      if (document.fonts?.ready) await document.fonts.ready;
-      const canvases = renderGradesPdfPages({
-        portalName: "بوابة أستاذ لحوني التعليمية",
-        teacherName: session.teacherName || "",
-        subject: session.subject || "المادة",
-        stage: session.activeGradeLabel || "",
-        className: selectedClass,
-        unitLabel: unitInfo.label,
-        examLabel: unitInfo.examLabel,
-        rows: allRows,
-      });
-      if (!canvases.length) throw new Error("grades_pdf_no_pages");
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      canvases.forEach((canvas, index) => {
-        if (index > 0) pdf.addPage("a4", "landscape");
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
-      });
-      pdf.save(`درجات-${selectedClass}-${unitInfo.label}.pdf`);
-      setMessage(`تم تنزيل سجل الدرجات كاملًا: ${allRows.length} طالبًا في ${canvases.length} صفحة واضحة.`);
-    } catch (error) {
-      console.error("grades-paginated-pdf", error);
-      setMessage("تعذر إنشاء PDF الآن. حدّث الصفحة ثم أعد المحاولة.");
-    }
-  }
+  if (planLoading) return <main className="gradebook-page" dir="rtl"><section className="grade-plan-required">جارٍ تحميل خطة توزيع الدرجات…</section></main>;
+  if (!activePlan) return <main className="gradebook-page" dir="rtl"><section className="grade-plan-required"><span>إعداد مطلوب</span><h1>اختر طريقة توزيع الـ100 درجة أولًا</h1><p>صفحة الرصد لا تستخدم توزيعًا ثابتًا بعد الآن. يجب اعتماد خطة توزيع درجات للمعلم قبل بدء الرصد الجديد.</p>{planError && <small>{planError}</small>}<Link href="/teacher/grade-plan">إعداد توزيع الدرجات</Link></section></main>;
 
-  return <main className="gradebook-page grades-page" dir="rtl"><div className="gradebook-wrap"><section className="gradebook-card">
-    <header className="gradebook-head"><div><h1>سجل رصد الدرجات — {unitInfo.label}</h1><p>{session.subject || "المادة"}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. تظهر الفصول الرقمية المختارة فقط.</p></div><div className="gradebook-actions"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label><label>الوحدة<select value={selectedUnit} onChange={event => setSelectedUnit(event.target.value as typeof selectedUnit)}>{ACADEMIC_UNITS.map(unit => <option key={unit.key} value={unit.key}>{unit.label}</option>)}</select></label><button type="button" className="research-link" onClick={() => void downloadGradesPdf()}>📄 PDF كامل — كل الطلاب</button><button type="button" className="research-link" onClick={exportExcel}>📊 Excel</button><Link href="/teacher/research" className="research-link">🔬 درجة البحث</Link><button type="button" className="save-button" onClick={saveRegister} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ الدرجات"}</button></div></header>
-    <div className="gradebook-scroll"><table className="gradebook-table compact-five-table"><thead><tr><th className="sticky-number">م</th><th className="sticky-name">اسم الطالب</th>{columns.map(([key, label]) => <th key={key}><span>{label}</span><div className="header-score-control"><input value={GRADE_DISTRIBUTION[key]} readOnly/><button type="button" onClick={() => applyFullGrade(key)}>✓ الكل</button></div></th>)}<th>المجموع<small>من {UNIT_MAX}</small></th><th>الملاحظات</th><th>مسح</th></tr></thead><tbody>{classStudents.map((student, index) => { const row = grades[student.id] || emptyGrade; return <tr key={student.id}><td className="sticky-number">{index + 1}</td><td className="sticky-name"><strong>{student.name}</strong></td>{columns.map(([key]) => <td key={key}><div className="mobile-grade-control"><button type="button" className="grade-step minus" onClick={() => setGradeValue(student.id, key, Number(row[key] || 0) - 1)}>−</button><input className="grade-input" type="number" min="0" max={GRADE_DISTRIBUTION[key]} value={row[key]} onChange={event => setGradeValue(student.id, key, Number(event.target.value))}/><button type="button" className="grade-step plus" onClick={() => setGradeValue(student.id, key, Number(row[key] || 0) + 1)}>+</button></div></td>)}<td className="student-total">{calculateUnitTotal(row)}</td><td><input className="notes-input" value={row.notes || ""} onChange={event => setGrades(current => ({ ...current, [student.id]: { ...(current[student.id] || emptyGrade), notes: event.target.value } }))}/></td><td><button className="row-delete-button" type="button" onClick={() => setGrades(current => ({ ...current, [student.id]: { ...emptyGrade } }))}>مسح</button></td></tr>; })}{!classStudents.length && <tr><td colSpan={9} className="empty-row">{loading ? "جارٍ تحميل الطلاب..." : "لا يوجد طلاب في الفصل المختار."}</td></tr>}</tbody></table></div>
-    <footer className="gradebook-footer"><span>المادة: {session.subject || "المادة"}</span><span>المرحلة: {session.activeGradeLabel || "جميع المراحل"}</span><span>الفصل: {selectedClass || "—"}</span><span>عدد الطلاب: {classStudents.length}</span></footer>{message && <p className="gradebook-message">{message}</p>}
+  return <main className="gradebook-page grades-page dynamic-gradebook-page" dir="rtl"><div className="gradebook-wrap"><section className="gradebook-card">
+    <header className="gradebook-head dynamic-gradebook-head"><div><span className="active-plan-badge">الخطة المعتمدة — نسخة {activePlan.version}</span><h1>سجل رصد الدرجات — {section?.label || ""}</h1><p>{session.subject || "المادة"}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""} • {GRADE_PLAN_MODE_LABELS[activePlan.mode]}</p></div><div className="gradebook-actions"><label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">اختر الفصل</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>{activePlan.sections.length > 1 && <label>{activePlan.mode === "units" ? "الوحدة" : "الفترة"}<select value={selectedSection} onChange={event => setSelectedSection(event.target.value)}>{activePlan.sections.map(item => <option key={item.id} value={item.id}>{item.label} — {item.max}</option>)}</select></label>}<Link className="research-link" href="/teacher/grade-plan">🔒 خطة التقييم المعتمدة</Link><button type="button" className="research-link" onClick={exportExcel}>📊 Excel</button><button type="button" className="research-link" onClick={() => window.print()}>🖨 طباعة / PDF</button><button type="button" className="save-button" onClick={() => void saveRegister()} disabled={!selectedClass || saving}>{saving ? "جارٍ الحفظ..." : "💾 حفظ الدرجات"}</button></div></header>
+    <div className="approved-plan-readonly"><b>{section?.label}</b><span>درجة القسم: {section?.max}</span><small>توزيع الخطة هنا للقراءة فقط؛ لا توجد خانات لتعديل الخطة داخل صفحة الرصد.</small></div>
+    <div className="gradebook-scroll"><table className="gradebook-table dynamic-grade-table"><thead><tr><th className="sticky-number">م</th><th className="sticky-name">اسم الطالب</th>{section?.items.map(item => <th key={item.id}><span>{item.label}</span><small>من {item.max}</small><div className="header-score-control"><input value={item.max} readOnly/><button type="button" onClick={() => applyFullGrade(item)}>✓ الكل</button></div></th>)}<th>مجموع القسم<small>من {section?.max}</small></th><th>المجموع الحالي<small>من 100</small></th><th>مسح القسم</th></tr></thead><tbody>{classStudents.map((student, index) => {
+      const source = effectiveStudent(student);
+      const result = calculateGradePlanResult(activePlan, source);
+      return <tr key={student.id}><td className="sticky-number">{index + 1}</td><td className="sticky-name"><strong>{student.name}</strong><small>{result.completion}% من الخطة تم رصده</small></td>{section?.items.map(item => { const key = itemKey(item); const value = localValues[student.id]?.[key] ?? readGradeEntry(student, section, item).value; return <td key={item.id}><div className="mobile-grade-control"><button type="button" className="grade-step minus" onClick={() => setGradeValue(student.id, item, Number(value || 0) - 1)}>−</button><input className="grade-input" type="number" min="0" max={item.max} step="0.5" value={value} onChange={event => setGradeValue(student.id, item, Number(event.target.value))}/><button type="button" className="grade-step plus" onClick={() => setGradeValue(student.id, item, Number(value || 0) + 1)}>+</button></div></td>; })}<td className="student-total">{sectionTotal(student)}</td><td className="student-total overall-total">{result.earned}<small>{result.complete ? "مكتمل" : `${result.completion}% رصد`}</small></td><td><button className="row-delete-button" type="button" onClick={() => clearRow(student.id)}>مسح</button></td></tr>;
+    })}{!classStudents.length && <tr><td colSpan={(section?.items.length || 0) + 5} className="empty-row">{loading ? "جارٍ تحميل الطلاب..." : "لا يوجد طلاب في الفصل المختار."}</td></tr>}</tbody></table></div>
+    <footer className="gradebook-footer"><span>المادة: {session.subject || "المادة"}</span><span>الخطة: {GRADE_PLAN_MODE_LABELS[activePlan.mode]}</span><span>الإصدار: {activePlan.version}</span><span>الفصل: {selectedClass || "—"}</span><span>عدد الطلاب: {classStudents.length}</span></footer>{message && <p className="gradebook-message">{message}</p>}
   </section></div></main>;
 }
