@@ -758,12 +758,12 @@ export default function AttendancePage() {
   async function downloadAttendancePdf() {
     const rows = reportRows();
     if (!selectedClass || !rows.length) return setMessage("الفصل ظاهر في الجدول، لكن لا توجد له أسماء طلاب مسجلة بعد.");
-    setMessage(`جارٍ تجهيز تحضير ${selectedClass} — ${rows.length} طالبًا في صفحة واحدة...`);
+    setMessage(`جارٍ تجهيز تحضير ${selectedClass} — ${rows.length} طالبًا...`);
 
-    const columnCount = rows.length <= 22 ? 1 : rows.length <= 44 ? 2 : rows.length <= 66 ? 3 : 4;
+    const columnCount = rows.length <= 24 ? 1 : rows.length <= 60 ? 2 : 3;
     const rowsPerColumn = Math.ceil(rows.length / columnCount);
-    const rowHeight = Math.max(10, Math.min(22, Math.floor(545 / Math.max(rowsPerColumn, 1))));
-    const rowFontSize = rowHeight <= 11 ? 6.4 : rowHeight <= 14 ? 7.3 : rowHeight <= 17 ? 8.2 : 9.2;
+    const rowHeight = Math.max(16, Math.min(28, Math.floor(590 / Math.max(rowsPerColumn, 1))));
+    const rowFontSize = rowHeight <= 18 ? 7.1 : rowHeight <= 21 ? 8 : rowHeight <= 24 ? 8.9 : 9.7;
     const columns = Array.from({ length: columnCount }, (_, columnIndex) =>
       rows.slice(columnIndex * rowsPerColumn, (columnIndex + 1) * rowsPerColumn),
     );
@@ -775,40 +775,47 @@ export default function AttendancePage() {
       return "escaped";
     };
     const tablesHtml = columns.map(columnRows => `
-      <table>
-        <colgroup><col style="width:28px"><col><col style="width:63px"></colgroup>
+      <table class="attendance-mini-table">
+        <colgroup><col style="width:9%"><col style="width:66%"><col style="width:25%"></colgroup>
         <thead><tr><th>م</th><th>اسم الطالب</th><th>الحالة</th></tr></thead>
-        <tbody>${columnRows.map(row => `<tr><td class="number">${row.number}</td><td class="student-name">${escapeHtml(row.name)}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status)}</span></td></tr>`).join("")}</tbody>
+        <tbody>${columnRows.map(row => `<tr data-student-row="true"><td class="number">${row.number}</td><td class="student-name">${escapeHtml(row.name)}</td><td><span class="status ${statusClass(row.status)}">${escapeHtml(row.status)}</span></td></tr>`).join("")}</tbody>
       </table>`).join("");
 
-    const sheet = document.createElement("section");
-    sheet.dir = "rtl";
-    sheet.setAttribute("aria-hidden", "true");
-    sheet.style.cssText = "position:fixed;left:-14000px;top:0;width:1123px;height:794px;background:#fff;overflow:visible;pointer-events:none;";
-    sheet.innerHTML = `
+    const host = document.createElement("div");
+    host.dir = "rtl";
+    host.setAttribute("aria-hidden", "true");
+    host.style.cssText = "position:fixed;left:0;top:0;width:1123px;height:794px;z-index:-9999;pointer-events:none;background:#fff;";
+    host.innerHTML = `
       <style>
         *{box-sizing:border-box}
-        .pdf-sheet{width:1123px;height:794px;padding:13px 16px 11px;background:#fff;color:#123946;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;display:grid;grid-template-rows:54px 31px 27px minmax(0,1fr) 17px;gap:5px;overflow:hidden}
-        .pdf-head{border-radius:12px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#082d38,#0d5665 72%,#137586);color:#fff}.pdf-head small{display:block;font-size:8px;color:#cde8ec;font-weight:800}.pdf-head strong{display:block;margin-top:1px;font-size:17px}.pdf-head .class{text-align:left}.pdf-head .class strong{font-size:18px}.pdf-head .class span{display:inline-block;margin-top:2px;padding:2px 7px;border-radius:999px;background:#e7b649;color:#17353e;font-size:7px;font-weight:900}
-        .pdf-meta{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr 1.25fr;gap:5px}.pdf-meta div{border:1px solid #d8e5e9;border-radius:7px;background:#f8fbfc;padding:4px 7px;overflow:hidden}.pdf-meta small{display:block;color:#6a8089;font-size:6px;font-weight:800}.pdf-meta strong{display:block;margin-top:1px;font-size:8px;color:#153e4b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .pdf-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.pdf-summary article{border:1px solid #dce7ea;border-radius:7px;text-align:center;padding:2px;background:#f8fbfc}.pdf-summary strong{display:inline;font-size:11px}.pdf-summary span{margin-right:3px;font-size:6px;font-weight:900}.pdf-summary .present{background:#e5f7ec;color:#12653b}.pdf-summary .absent{background:#fdebed;color:#9e2935}.pdf-summary .late{background:#fff4d9;color:#8b5a06}.pdf-summary .excused{background:#e8f1ff;color:#2459a8}.pdf-summary .escaped{background:#f1eaff;color:#6036a5}
-        .pdf-tables{min-height:0;height:100%;display:grid;grid-template-columns:repeat(${columnCount},minmax(0,1fr));gap:6px;align-items:start;overflow:visible}
-        table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #bfcfd5}th{height:19px;background:#143f4d;color:#fff;border:1px solid #315966;font-size:7px;padding:2px}td{height:${rowHeight}px;border:1px solid #dbe5e8;padding:1px 3px;text-align:center;font-size:${rowFontSize}px;line-height:1;overflow:hidden}tbody tr:nth-child(even){background:#f7fafb}.student-name{text-align:right!important;font-weight:800;white-space:nowrap;letter-spacing:-.1px}.number{font-weight:900}.status{display:inline-block;min-width:44px;padding:2px 3px;border-radius:999px;font-size:${Math.max(5.8, rowFontSize - 1.5)}px;font-weight:900}.status.present{background:#dcf6e6;color:#12653b}.status.absent{background:#fde4e7;color:#a12230}.status.late{background:#ffefc4;color:#885802}.status.excused{background:#dfeaff;color:#1f52a0}.status.escaped{background:#ecdefe;color:#5b2e9e}
-        .pdf-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px dashed #b7c7cc;padding-top:3px;color:#607780;font-size:7px}.pdf-footer strong{color:#174653}.pdf-footer .verify{font-weight:900;color:#0b6a4d}
+        .attendance-pdf-page{width:1123px;height:794px;padding:12px 15px;background:#fff;color:#173b49;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;display:grid;grid-template-rows:50px 30px 25px minmax(0,1fr) 16px;gap:4px;overflow:hidden}
+        .pdf-head{border-radius:10px;padding:7px 13px;display:flex;align-items:center;justify-content:space-between;background:#0d4655;color:#fff}.pdf-head small{display:block;font-size:8px;color:#cae5eb;font-weight:800}.pdf-head strong{display:block;margin-top:1px;font-size:16px}.pdf-head .class{text-align:left}.pdf-head .class strong{font-size:17px}.pdf-head .class span{font-size:7px;color:#ffe29a;font-weight:900}
+        .pdf-meta{display:grid;grid-template-columns:1.25fr 1fr .8fr 1fr 1.25fr;gap:4px}.pdf-meta div{border:1px solid #d6e2e7;border-radius:6px;background:#f8fbfc;padding:3px 6px;overflow:hidden}.pdf-meta small{display:block;color:#6d828b;font-size:6px;font-weight:800}.pdf-meta strong{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .pdf-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.pdf-summary article{display:flex;align-items:center;justify-content:center;gap:3px;border:1px solid #dbe6ea;border-radius:6px;background:#f8fbfc;font-size:7px;font-weight:900}.pdf-summary strong{font-size:11px}.pdf-summary .present{background:#e7f7ed}.pdf-summary .absent{background:#fdebed}.pdf-summary .late{background:#fff4da}.pdf-summary .excused{background:#e9f1ff}.pdf-summary .escaped{background:#f2eaff}
+        .pdf-tables{min-height:0;display:grid;grid-template-columns:repeat(${columnCount},minmax(0,1fr));gap:7px;align-items:start;overflow:hidden}
+        .attendance-mini-table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #bfcfd5}.attendance-mini-table th{height:20px;background:#183f4c;color:#fff;border:1px solid #315966;font-size:7px;padding:2px}.attendance-mini-table td{height:${rowHeight}px;border:1px solid #dbe5e8;padding:1px 4px;text-align:center;font-size:${rowFontSize}px;line-height:1.05;overflow:hidden}.attendance-mini-table tbody tr:nth-child(even){background:#f7fafb}.student-name{text-align:right!important;font-weight:900;white-space:nowrap;letter-spacing:-.15px}.number{font-weight:900}.status{display:inline-block;min-width:42px;padding:2px 4px;border-radius:999px;font-size:${Math.max(6.1, rowFontSize - 1.2)}px;font-weight:900}.status.present{background:#dcf6e6;color:#12653b}.status.absent{background:#fde4e7;color:#a12230}.status.late{background:#ffefc4;color:#885802}.status.excused{background:#dfeaff;color:#1f52a0}.status.escaped{background:#ecdefe;color:#5b2e9e}
+        .pdf-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px dashed #b7c7cc;padding-top:2px;color:#607780;font-size:7px}.pdf-footer strong,.pdf-footer .verify{font-weight:900;color:#155247}
       </style>
-      <div class="pdf-sheet">
-        <header class="pdf-head"><div><small>بوابة أستاذ لحوني التعليمية</small><strong>سجل التحضير اليومي</strong></div><div class="class"><small>الفصل</small><strong>${escapeHtml(selectedClass)}</strong><span>صفحة واحدة — جميع الطلاب</span></div></header>
+      <section class="attendance-pdf-page">
+        <header class="pdf-head"><div><small>بوابة أستاذ لحوني التعليمية</small><strong>سجل التحضير اليومي</strong></div><div class="class"><small>الفصل</small><strong>${escapeHtml(selectedClass)}</strong><span>صفحة واحدة — الفصل كامل</span></div></header>
         <section class="pdf-meta"><div><small>المعلم</small><strong>${escapeHtml(teacherName)}</strong></div><div><small>المادة</small><strong>${escapeHtml(subject)}</strong></div><div><small>الفصل</small><strong>${escapeHtml(selectedClass)}</strong></div><div><small>الميلادي</small><strong>${selectedDate}</strong></div><div><small>الهجري</small><strong>${escapeHtml(formatHijri(selectedDate))}</strong></div></section>
         <section class="pdf-summary"><article><strong>${rows.length}</strong><span>إجمالي</span></article><article class="present"><strong>${counts.present}</strong><span>حاضر</span></article><article class="absent"><strong>${counts.absent}</strong><span>غائب</span></article><article class="late"><strong>${counts.late}</strong><span>متأخر</span></article><article class="excused"><strong>${counts.excused}</strong><span>مستأذن</span></article><article class="escaped"><strong>${counts.escaped}</strong><span>هروب</span></article></section>
         <section class="pdf-tables">${tablesHtml}</section>
-        <footer class="pdf-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span>${escapeHtml(selectedClass)} — ${selectedDate}</span><span class="verify">عدد الطلاب في الملف: ${rows.length} من ${rows.length}</span></footer>
-      </div>`;
+        <footer class="pdf-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span>${escapeHtml(selectedClass)} — ${selectedDate}</span><span class="verify">تم إدراج ${rows.length} من ${rows.length} طالبًا</span></footer>
+      </section>`;
 
-    document.body.appendChild(sheet);
+    document.body.appendChild(host);
     try {
       if (document.fonts?.ready) await document.fonts.ready;
       await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-      const canvas = await html2canvas(sheet, {
+      const captureTarget = host.querySelector(".attendance-pdf-page") as HTMLElement | null;
+      const tablesTarget = host.querySelector(".pdf-tables") as HTMLElement | null;
+      if (!captureTarget || !tablesTarget) throw new Error("pdf_target_missing");
+      const renderedRows = [...host.querySelectorAll<HTMLElement>("[data-student-row='true']")];
+      if (renderedRows.length !== rows.length) throw new Error("pdf_row_count_mismatch");
+      const tablesRect = tablesTarget.getBoundingClientRect();
+      if (renderedRows.some(node => node.getBoundingClientRect().bottom > tablesRect.bottom + 1)) throw new Error("pdf_rows_overflow");
+      const canvas = await html2canvas(captureTarget, {
         scale: 2,
         backgroundColor: "#ffffff",
         logging: false,
@@ -819,13 +826,14 @@ export default function AttendancePage() {
         windowHeight: 794,
       });
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.96), "JPEG", 0, 0, 297, 210, undefined, "FAST");
       pdf.save(`تحضير-${safeFile(selectedClass)}-${selectedDate}.pdf`);
-      setMessage(`تم تنزيل التحضير في صفحة واحدة: ${rows.length} من ${rows.length} طالبًا.`);
-    } catch {
-      setMessage("تعذر إنشاء PDF الآن. أعد المحاولة بعد تحديث الصفحة.");
+      setMessage(`تم تنزيل التحضير: ${rows.length} طالبًا في صفحة واحدة بدون تقسيم.`);
+    } catch (error) {
+      console.error("attendance-pdf", error);
+      setMessage("تعذر ضبط جميع الأسماء داخل صفحة PDF. حدّث الصفحة وأعد المحاولة؛ لن يتم تنزيل ملف ناقص.");
     } finally {
-      sheet.remove();
+      host.remove();
     }
   }
 

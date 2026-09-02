@@ -6,7 +6,8 @@ type Dimension = { label?: unknown; value?: unknown };
 type RepeatedNote = { label?: unknown; count?: unknown };
 type InsightBody = {
   subject?: unknown;
-  total?: unknown;
+  performance?: unknown;
+  completion?: unknown;
   missing?: unknown;
   weakest?: Dimension;
   strongest?: Dimension;
@@ -42,41 +43,31 @@ export async function POST(request: Request) {
   try {
     const body = await request.json() as InsightBody;
     const subject = shortText(body.subject || "المادة", 50);
-    const total = boundedNumber(body.total, 0, 105);
+    const performance = boundedNumber(body.performance);
+    const completion = boundedNumber(body.completion);
     const missing = Math.round(boundedNumber(body.missing, 0, 30));
-    const weakest = {
-      label: shortText(body.weakest?.label || "غير محدد", 60),
-      value: boundedNumber(body.weakest?.value),
-    };
-    const strongest = {
-      label: shortText(body.strongest?.label || "غير محدد", 60),
-      value: boundedNumber(body.strongest?.value),
-    };
+    const weakest = { label: shortText(body.weakest?.label || "غير محدد", 60), value: boundedNumber(body.weakest?.value) };
+    const strongest = { label: shortText(body.strongest?.label || "غير محدد", 60), value: boundedNumber(body.strongest?.value) };
     const repeatedNotes = (Array.isArray(body.repeatedNotes) ? body.repeatedNotes : [])
-      .slice(0, 6)
-      .map(item => ({ label: shortText(item.label, 80), count: Math.round(boundedNumber(item.count, 0, 50)) }))
+      .slice(0, 5)
+      .map(item => ({ label: shortText(item.label, 90), count: Math.round(boundedNumber(item.count, 0, 50)) }))
       .filter(item => item.label && item.count > 0);
 
-    const prompt = `أنت مساعد تربوي سعودي متخصص في تحليل أداء طلاب المرحلة الثانوية.\n\nحلل المؤشرات التالية لطالب مجهول الاسم في مادة ${subject}:\n- درجة الإتقان الحالية: ${total}%\n- عناصر الرصد غير المكتملة: ${missing}\n- أضعف محور: ${weakest.label} (${weakest.value}%)\n- أقوى محور: ${strongest.label} (${strongest.value}%)\n- الملاحظات المتكررة: ${repeatedNotes.length ? repeatedNotes.map(item => `${item.label} (${item.count} مرات)`).join("، ") : "لا توجد ملاحظات متكررة"}\n\nالمطلوب إخراج JSON فقط بلا Markdown بهذه المفاتيح العربية المحتوى والإنجليزية الاسم:\n{\n  "analysis": "تشخيص تربوي مختصر من جملة أو جملتين يشرح النمط الظاهر من البيانات دون أحكام شخصية",\n  "recommendedAction": "إجراء واحد عملي يمكن للمعلم تطبيقه في الحصة القادمة",\n  "suggestedNote": "ملاحظة مدرسية محترمة وواضحة تصلح للطالب وولي الأمر، تبدأ بعبارة الطالب أو أظهر الطالب، ولا تتجاوز 30 كلمة"\n}\n\nقواعد مهمة:\n- لا تذكر اسم طالب أو تفترض جنسًا أو حالة صحية أو نفسية أو عائلية.\n- لا تستخدم تشخيصات طبية أو نفسية.\n- لا تخترع أحداثًا لم تظهر في البيانات.\n- إذا كان الرصد ناقصًا، اذكر أن الحكم مبدئي.\n- اجعل اللغة مهنية، مباشرة، داعمة، وغير جارحة.`;
+    const prompt = `أنت مساعد تربوي سعودي يساعد المعلم على قراءة مؤشرات طالب في المرحلة الثانوية. اسم الطالب غير مُرسل إليك.\n\nالمادة: ${subject}\nالأداء في العناصر التي تم رصدها فقط: ${performance}%\nنسبة اكتمال الرصد: ${completion}%\nعدد العناصر غير المرصودة: ${missing}\nأضعف محور مرصود: ${weakest.label} (${weakest.value}%)\nأقوى محور مرصود: ${strongest.label} (${strongest.value}%)\nالملاحظات المتكررة: ${repeatedNotes.length ? repeatedNotes.map(item => `${item.label} (${item.count} مرات)`).join("، ") : "لا توجد"}\n\nأخرج JSON فقط بهذه المفاتيح:\n{\n  "analysis": "قراءة تربوية قصيرة تفرق بوضوح بين ضعف الأداء وبين نقص الرصد",\n  "recommendedAction": "إجراء واحد محدد للمعلم في الحصة القادمة",\n  "suggestedNote": "ملاحظة مدرسية محترمة وواضحة تبدأ بكلمة الطالب، وتصلح للطالب وولي الأمر"\n}\n\nقواعد:\n- إذا كان اكتمال الرصد أقل من 100% فلا تصف الطالب بأنه ضعيف أو متعثر بشكل نهائي، بل قل إن القراءة مبدئية.\n- لا تخترع سببًا نفسيًا أو صحيًا أو عائليًا.\n- لا تذكر اسم طالب أو معلومات شخصية.\n- لا تتجاوز الملاحظة المقترحة 30 كلمة.\n- استخدم العربية المهنية المباشرة.`;
 
     const result = await generateText({
-      model: "openai/gpt-5.6-luna",
-      system: "أجب بالعربية فقط والتزم بصيغة JSON المطلوبة حرفيًا.",
+      model: "openai/gpt-5.4",
+      system: "أجب بالعربية فقط، وأعد JSON صالحًا دون Markdown أو شرح إضافي.",
       prompt,
     });
-
     const parsed = parseJsonText(result.text);
     const analysis = shortText(parsed.analysis, 420);
     const recommendedAction = shortText(parsed.recommendedAction, 320);
     const suggestedNote = shortText(parsed.suggestedNote, 260);
     if (!analysis || !recommendedAction || !suggestedNote) throw new Error("incomplete_ai_response");
-
     return NextResponse.json({ ok: true, analysis, recommendedAction, suggestedNote });
   } catch (error) {
     console.error("student-insight-ai", error);
-    return NextResponse.json({
-      ok: false,
-      message: "تعذر الاتصال بالذكاء الاصطناعي الآن. الاقتراح الذكي المحلي ما زال متاحًا.",
-    }, { status: 503 });
+    return NextResponse.json({ ok: false, message: "تعذر تشغيل التحليل بالذكاء الاصطناعي الآن. جرّب مرة أخرى بعد قليل." }, { status: 503 });
   }
 }

@@ -185,7 +185,6 @@ export default function GradesPage() {
       '"': "&quot;",
       "'": "&#39;",
     }[character] || character));
-
     const allRows = classStudents.map((student, index) => {
       const row = grades[student.id] || emptyGrade;
       return {
@@ -199,41 +198,61 @@ export default function GradesPage() {
         notes: row.notes || "",
       };
     });
-    const rowHeight = Math.max(8, Math.min(18, Math.floor(585 / Math.max(allRows.length, 1))));
-    const rowFontSize = rowHeight <= 8 ? 5.3 : rowHeight <= 10 ? 6 : rowHeight <= 12 ? 6.7 : rowHeight <= 15 ? 7.4 : 8.2;
-    const bodyRows = allRows.map(row => `<tr><td>${row.number}</td><td class="student-name">${escapePdfText(row.name)}</td><td>${row.attendance}</td><td>${row.participation}</td><td>${row.homework}</td><td>${row.unitExam}</td><td class="total">${row.total}</td><td class="notes">${escapePdfText(row.notes)}</td></tr>`).join("");
-    const sheet = document.createElement("section");
-    sheet.dir = "rtl";
-    sheet.setAttribute("aria-hidden", "true");
-    sheet.style.cssText = "position:fixed;left:-14000px;top:0;width:1123px;height:794px;background:#fff;overflow:visible;pointer-events:none;";
-    sheet.innerHTML = `
+    const columnCount = allRows.length <= 24 ? 1 : allRows.length <= 60 ? 2 : 3;
+    const rowsPerColumn = Math.ceil(allRows.length / columnCount);
+    const rowHeight = Math.max(15, Math.min(27, Math.floor(588 / Math.max(rowsPerColumn, 1))));
+    const rowFontSize = rowHeight <= 17 ? 6.2 : rowHeight <= 20 ? 7 : rowHeight <= 23 ? 7.8 : 8.6;
+    const columns = Array.from({ length: columnCount }, (_, columnIndex) =>
+      allRows.slice(columnIndex * rowsPerColumn, (columnIndex + 1) * rowsPerColumn),
+    );
+    const tablesHtml = columns.map(columnRows => `
+      <table class="grades-mini-table">
+        <colgroup><col style="width:6%"><col style="width:31%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:10%"><col style="width:9%"><col style="width:17%"></colgroup>
+        <thead><tr><th>م</th><th>اسم الطالب</th><th>حضور</th><th>مشاركة</th><th>واجب</th><th>اختبار</th><th>المجموع</th><th>ملاحظات</th></tr></thead>
+        <tbody>${columnRows.map(row => `<tr data-grade-row="true"><td>${row.number}</td><td class="student-name">${escapePdfText(row.name)}</td><td>${row.attendance}</td><td>${row.participation}</td><td>${row.homework}</td><td>${row.unitExam}</td><td class="total">${row.total}</td><td class="notes">${escapePdfText(row.notes)}</td></tr>`).join("")}</tbody>
+      </table>`).join("");
+
+    const host = document.createElement("div");
+    host.dir = "rtl";
+    host.setAttribute("aria-hidden", "true");
+    host.style.cssText = "position:fixed;left:0;top:0;width:1123px;height:794px;z-index:-9999;pointer-events:none;background:#fff;";
+    host.innerHTML = `
       <style>
         *{box-sizing:border-box}
-        .grade-pdf-sheet{width:1123px;height:794px;padding:13px 16px 11px;background:#fff;color:#123946;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;display:grid;grid-template-rows:54px 30px minmax(0,1fr) 17px;gap:5px;overflow:hidden}
-        .grade-pdf-head{border-radius:12px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#082d38,#0d5665 72%,#137586);color:#fff}.grade-pdf-head small{display:block;font-size:8px;color:#cde8ec;font-weight:800}.grade-pdf-head h1{margin:1px 0 0;font-size:18px}.grade-pdf-head .unit{text-align:left}.grade-pdf-head .unit strong{display:block;font-size:16px}.grade-pdf-head .unit span{display:inline-block;margin-top:2px;padding:2px 7px;border-radius:999px;background:#e7b649;color:#17353e;font-size:7px;font-weight:900}
-        .grade-pdf-meta{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:5px}.grade-pdf-meta div{border:1px solid #d8e5e9;border-radius:7px;background:#f8fbfc;padding:4px 7px;overflow:hidden}.grade-pdf-meta small{display:block;color:#6a8089;font-size:6px;font-weight:800}.grade-pdf-meta strong{display:block;margin-top:1px;font-size:8px;color:#153e4b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .table-wrap{min-height:0;height:100%;overflow:visible}table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #bfd0d5}th{height:20px;background:#143f4d;color:#fff;border:1px solid #315966;font-size:6.6px;padding:2px}td{height:${rowHeight}px;border:1px solid #dbe5e8;padding:1px 3px;text-align:center;font-size:${rowFontSize}px;line-height:1;overflow:hidden}tbody tr:nth-child(even){background:#f7fafb}.student-name{text-align:right!important;font-weight:900;font-size:${Math.max(5.8, rowFontSize + .4)}px;white-space:nowrap}.total{font-weight:900;background:#eef6f8}.notes{text-align:right!important;font-size:${Math.max(5, rowFontSize - .7)}px;white-space:nowrap}.grade-pdf-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px dashed #b7c7cc;padding-top:3px;color:#607780;font-size:7px}.grade-pdf-footer strong{color:#174653}.grade-pdf-footer .verify{font-weight:900;color:#0b6a4d}
+        .grade-pdf-page{width:1123px;height:794px;padding:12px 15px;background:#fff;color:#173b49;font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;display:grid;grid-template-rows:50px 30px minmax(0,1fr) 16px;gap:4px;overflow:hidden}
+        .grade-pdf-head{border-radius:10px;padding:7px 13px;display:flex;align-items:center;justify-content:space-between;background:#0d4655;color:#fff}.grade-pdf-head small{display:block;font-size:8px;color:#cae5eb;font-weight:800}.grade-pdf-head h1{margin:1px 0 0;font-size:16px}.grade-pdf-head .unit{text-align:left}.grade-pdf-head .unit strong{display:block;font-size:15px}.grade-pdf-head .unit span{font-size:7px;color:#ffe29a;font-weight:900}
+        .grade-pdf-meta{display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr;gap:4px}.grade-pdf-meta div{border:1px solid #d6e2e7;border-radius:6px;background:#f8fbfc;padding:3px 6px;overflow:hidden}.grade-pdf-meta small{display:block;color:#6d828b;font-size:6px;font-weight:800}.grade-pdf-meta strong{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .grade-pdf-tables{min-height:0;display:grid;grid-template-columns:repeat(${columnCount},minmax(0,1fr));gap:7px;align-items:start;overflow:hidden}
+        .grades-mini-table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #bfcfd5}.grades-mini-table th{height:20px;background:#183f4c;color:#fff;border:1px solid #315966;font-size:${Math.max(5.5, rowFontSize - 1)}px;padding:2px 1px;white-space:nowrap}.grades-mini-table td{height:${rowHeight}px;border:1px solid #dbe5e8;padding:1px 2px;text-align:center;font-size:${rowFontSize}px;line-height:1.05;overflow:hidden}.grades-mini-table tbody tr:nth-child(even){background:#f7fafb}.student-name{text-align:right!important;font-weight:900;white-space:nowrap;letter-spacing:-.22px}.total{font-weight:900;background:#edf5f7}.notes{text-align:right!important;font-size:${Math.max(5.7, rowFontSize - .5)}px;white-space:nowrap;text-overflow:ellipsis}.grade-pdf-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px dashed #b7c7cc;padding-top:2px;color:#607780;font-size:7px}.grade-pdf-footer strong,.grade-pdf-footer .verify{font-weight:900;color:#155247}
       </style>
-      <div class="grade-pdf-sheet">
+      <section class="grade-pdf-page">
         <header class="grade-pdf-head"><div><small>بوابة أستاذ لحوني التعليمية</small><h1>سجل رصد الدرجات</h1></div><div class="unit"><small>الوحدة</small><strong>${escapePdfText(unitInfo.label)}</strong><span>صفحة واحدة — الفصل كامل</span></div></header>
         <section class="grade-pdf-meta"><div><small>المادة</small><strong>${escapePdfText(session.subject || "المادة")}</strong></div><div><small>المرحلة</small><strong>${escapePdfText(session.activeGradeLabel || "")}</strong></div><div><small>الفصل</small><strong>${escapePdfText(selectedClass)}</strong></div><div><small>عدد الطلاب</small><strong>${allRows.length}</strong></div></section>
-        <div class="table-wrap"><table><colgroup><col style="width:32px"><col style="width:238px"><col style="width:69px"><col style="width:69px"><col style="width:69px"><col style="width:82px"><col style="width:62px"><col></colgroup><thead><tr><th>م</th><th>اسم الطالب</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>${escapePdfText(unitInfo.examLabel)}</th><th>المجموع</th><th>الملاحظات</th></tr></thead><tbody>${bodyRows}</tbody></table></div>
-        <footer class="grade-pdf-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span>${escapePdfText(selectedClass)} — ${escapePdfText(unitInfo.label)}</span><span class="verify">عدد الطلاب في الملف: ${allRows.length} من ${allRows.length}</span></footer>
-      </div>`;
+        <section class="grade-pdf-tables">${tablesHtml}</section>
+        <footer class="grade-pdf-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span>${escapePdfText(selectedClass)} — ${escapePdfText(unitInfo.label)}</span><span class="verify">تم إدراج ${allRows.length} من ${allRows.length} طالبًا</span></footer>
+      </section>`;
 
-    document.body.appendChild(sheet);
+    document.body.appendChild(host);
     try {
       if (document.fonts?.ready) await document.fonts.ready;
       await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-      const canvas = await html2canvas(sheet, { scale: 2, backgroundColor: "#ffffff", logging: false, useCORS: true, width: 1123, height: 794, windowWidth: 1123, windowHeight: 794 });
+      const captureTarget = host.querySelector(".grade-pdf-page") as HTMLElement | null;
+      const tablesTarget = host.querySelector(".grade-pdf-tables") as HTMLElement | null;
+      if (!captureTarget || !tablesTarget) throw new Error("grade_pdf_target_missing");
+      const renderedRows = [...host.querySelectorAll<HTMLElement>("[data-grade-row='true']")];
+      if (renderedRows.length !== allRows.length) throw new Error("grade_pdf_row_count_mismatch");
+      const tablesRect = tablesTarget.getBoundingClientRect();
+      if (renderedRows.some(node => node.getBoundingClientRect().bottom > tablesRect.bottom + 1)) throw new Error("grade_pdf_rows_overflow");
+      const canvas = await html2canvas(captureTarget, { scale: 2, backgroundColor: "#ffffff", logging: false, useCORS: true, width: 1123, height: 794, windowWidth: 1123, windowHeight: 794 });
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.96), "JPEG", 0, 0, 297, 210, undefined, "FAST");
       pdf.save(`درجات-${selectedClass}-${unitInfo.label}.pdf`);
-      setMessage(`تم تنزيل سجل الدرجات في صفحة واحدة: ${allRows.length} من ${allRows.length} طالبًا.`);
-    } catch {
-      setMessage("تعذر إنشاء PDF الآن. أعد المحاولة بعد تحديث الصفحة.");
+      setMessage(`تم تنزيل سجل الدرجات: ${allRows.length} طالبًا في صفحة واحدة بدون تقسيم.`);
+    } catch (error) {
+      console.error("grades-pdf", error);
+      setMessage("تعذر ضبط جميع الطلاب داخل صفحة PDF. لن يتم تنزيل ملف ناقص؛ حدّث الصفحة ثم أعد المحاولة.");
     } finally {
-      sheet.remove();
+      host.remove();
     }
   }
 

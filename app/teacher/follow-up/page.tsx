@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, increment, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, increment, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -10,102 +10,122 @@ type UnitRecord = { attendance?: number; participation?: number; homework?: numb
 type TeacherNoteEntry = { id: string; type: string; label: string; message?: string; createdAt: string; teacherName?: string; subject?: string };
 type Student = { id: string; storageId?: string; name?: string; class?: string; className?: string; code?: string; accessCode?: string; studentCode?: string; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; units?: Record<string, UnitRecord> };
 type SchoolClass = { id: string; name: string; grade?: number; section?: string };
-type RankedStudent = Student & { total: number; missing: number };
 type AiInsight = { analysis: string; recommendedAction: string; suggestedNote: string };
+type EvaluatedStudent = Student & { points: number; completion: number; performance: number; finalScore: number | null; missing: number };
+
 const unitKeys = ["unit1", "unit2", "unit3", "unit4", "unit5"];
 const counselorPhone = "966598353651";
+const componentMax = { attendance: 3, participation: 4, homework: 2, unitExam: 10 } as const;
+const researchMax = 5;
 const noteOptions = [
-  { type: "sleep", category: "سلوك داخل الحصة", label: "نام الطالب أثناء الحصة", description: "تسجيل حالة نوم واضحة أثناء وقت التعلم." },
-  { type: "no_interaction", category: "تفاعل صفي", label: "الطالب لم يتفاعل مع أسئلة الحصة", description: "ضعف مشاركة أو استجابة أثناء الشرح والنشاط." },
-  { type: "disruptive", category: "سلوك داخل الحصة", label: "الطالب كثير الحديث ويشتت زملاءه", description: "سلوك يؤثر في تركيز الطالب أو زملائه." },
-  { type: "participation", category: "تميز إيجابي", label: "الطالب شارك بفاعلية وتميز", description: "مشاركة إيجابية تستحق التعزيز والإشادة." },
-  { type: "homework_done", category: "واجبات", label: "الطالب أنجز الواجب المطلوب", description: "تم إنجاز الواجب المطلوب بصورة واضحة." },
-  { type: "homework_missing", category: "واجبات", label: "الطالب لم ينجز الواجب", description: "الواجب المطلوب غير منجز ويحتاج متابعة." },
-  { type: "attendance_followup", category: "انضباط", label: "الطالب يحتاج متابعة في الانضباط والحضور", description: "مناسبة عند تكرر الغياب أو التأخر أو ضعف الالتزام." },
-  { type: "needs_review", category: "تحصيل", label: "الطالب يحتاج مراجعة المهارة", description: "تستخدم عندما تشير الدرجات إلى ضعف في جانب محدد." },
-  { type: "improved", category: "تحسن", label: "الطالب أظهر تحسنًا ملحوظًا", description: "لتوثيق التحسن مقارنة بالمستوى السابق." },
-  { type: "missing_materials", category: "استعداد", label: "الطالب لم يحضر الكتاب أو الأدوات", description: "نقص في الاستعداد للحصة أو أدوات التعلم." },
-  { type: "other", category: "مخصصة", label: "ملاحظة مخصصة", description: "اكتب ملاحظة واضحة بصياغتك؛ سيظهر النص نفسه للطالب وولي الأمر." },
+  { type: "participation", group: "إيجابية", label: "الطالب شارك بفاعلية وتميز في الحصة.", description: "تعزيز واضح للمشاركة الإيجابية." },
+  { type: "improved", group: "إيجابية", label: "الطالب أظهر تحسنًا ملحوظًا في مستواه.", description: "لتوثيق التحسن مقارنة بمستواه السابق." },
+  { type: "needs_review", group: "تحصيل", label: "الطالب يحتاج إلى مراجعة المهارة أو المفهوم.", description: "عندما تشير الدرجات إلى حاجة لمراجعة محددة." },
+  { type: "homework_missing", group: "تحصيل", label: "الطالب لم ينجز الواجب المطلوب.", description: "ملاحظة مباشرة خاصة بالواجب." },
+  { type: "no_interaction", group: "تفاعل", label: "الطالب يحتاج إلى زيادة التفاعل والمشاركة أثناء الحصة.", description: "عند ضعف الاستجابة والمشاركة الصفية." },
+  { type: "disruptive", group: "سلوك", label: "الطالب يكثر الحديث أثناء الحصة مما يؤثر في التركيز.", description: "تستخدم عند تكرر الحديث أو التشتيت داخل الحصة." },
+  { type: "other", group: "مخصصة", label: "كتابة ملاحظة مخصصة للطالب.", description: "اكتب النص الذي تريد ظهوره للطالب وولي الأمر." },
 ];
-function studentTotal(student: Student) { return unitKeys.reduce((sum, key) => { const value = student.units?.[key] || {}; return sum + Number(value.total ?? ((value.attendance || 0) + (value.participation || 0) + (value.homework || 0) + (value.unitExam || 0))); }, 0) + Number(student.researchScore || 0); }
-function missingCount(student: Student) { let count = 0; unitKeys.forEach(key => { const value = student.units?.[key] || {}; if (value.attendance === undefined) count++; if (value.participation === undefined) count++; if (value.homework === undefined) count++; if (value.unitExam === undefined) count++; }); if (student.researchScore === undefined) count++; return count; }
-function level(total: number) {
-  if (total >= 90) return { label: "إتقان متميز", className: "excellent" };
-  if (total >= 80) return { label: "متقن", className: "mastered" };
-  if (total >= 70) return { label: "قريب من الإتقان", className: "near" };
-  if (total >= 60) return { label: "يحتاج تعزيزًا", className: "warning" };
-  return { label: "تدخل علاجي", className: "danger" };
+
+function aliases(student: Student) {
+  return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(value => String(value || "").trim()).filter(Boolean))];
 }
 
-const masteryDimensions = [
-  { key: "attendance", label: "الحضور والانضباط", max: 3 },
-  { key: "participation", label: "المشاركة الصفية", max: 4 },
-  { key: "homework", label: "الواجبات والتطبيق", max: 2 },
-  { key: "unitExam", label: "الاختبارات وفهم المفاهيم", max: 10 },
-] as const;
-
-function dimensionScore(student: Student, dimension: (typeof masteryDimensions)[number]) {
-  const values = unitKeys.flatMap(unitKey => {
+function evaluateStudent(student: Student): EvaluatedStudent {
+  let points = 0;
+  let recordedMax = 0;
+  let missing = 0;
+  unitKeys.forEach(unitKey => {
     const unit = student.units?.[unitKey];
-    if (!unit || unit[dimension.key] === undefined) return [];
-    return [Number(unit[dimension.key] || 0)];
+    (Object.keys(componentMax) as Array<keyof typeof componentMax>).forEach(key => {
+      const raw = unit?.[key];
+      const value = Number(raw);
+      if (raw === undefined || raw === null || !Number.isFinite(value)) {
+        missing += 1;
+        return;
+      }
+      const maximum = componentMax[key];
+      points += Math.max(0, Math.min(maximum, value));
+      recordedMax += maximum;
+    });
+  });
+  const research = Number(student.researchScore);
+  if (student.researchScore === undefined || student.researchScore === null || !Number.isFinite(research)) {
+    missing += 1;
+  } else {
+    points += Math.max(0, Math.min(researchMax, research));
+    recordedMax += researchMax;
+  }
+  const completion = Math.round(recordedMax);
+  const performance = recordedMax ? Math.round((points / recordedMax) * 100) : 0;
+  return { ...student, points: Math.round(points * 10) / 10, completion, performance, finalScore: recordedMax === 100 ? Math.round(points) : null, missing };
+}
+
+function dimensionScore(student: Student, key: keyof typeof componentMax) {
+  const values = unitKeys.flatMap(unitKey => {
+    const raw = student.units?.[unitKey]?.[key];
+    const value = Number(raw);
+    return raw === undefined || raw === null || !Number.isFinite(value) ? [] : [Math.max(0, Math.min(componentMax[key], value))];
   });
   if (!values.length) return { value: 0, recorded: 0 };
-  const value = Math.round(values.reduce((sum, item) => sum + item, 0) / (values.length * dimension.max) * 100);
-  return { value: Math.max(0, Math.min(100, value)), recorded: values.length };
+  return { value: Math.round(values.reduce((sum, value) => sum + value, 0) / (values.length * componentMax[key]) * 100), recorded: values.length };
 }
 
-function smartStudentProfile(student: Student) {
-  const total = studentTotal(student);
-  const missing = missingCount(student);
-  const breakdown = masteryDimensions.map(dimension => ({ ...dimension, ...dimensionScore(student, dimension) }));
-  const recorded = breakdown.filter(item => item.recorded > 0);
-  const weakest = [...recorded].sort((a, b) => a.value - b.value)[0] || { ...masteryDimensions[3], value: 0, recorded: 0 };
-  const strongest = [...recorded].sort((a, b) => b.value - a.value)[0] || { ...masteryDimensions[0], value: 0, recorded: 0 };
-  const repeated = Object.entries(student.teacherNoteCounts || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0];
-  const repeatedLabel = repeated ? noteOptions.find(option => option.type === repeated[0])?.label : "";
-  const reasonParts: string[] = [];
-  if (missing > 0) reasonParts.push(`الرصد غير مكتمل في ${missing} عنصرًا`);
-  if (weakest.recorded > 0) reasonParts.push(`أضعف محور: ${weakest.label} (${weakest.value}٪)`);
-  if (repeated && Number(repeated[1]) >= 2 && repeatedLabel) reasonParts.push(`تكررت «${repeatedLabel}» ${repeated[1]} مرات`);
-  const recommendations: Record<string, string> = {
-    attendance: "متابعة الانضباط والحضور يوميًا مع تعزيز الالتزام في بداية الحصة.",
-    participation: "استخدم سؤالًا مباشرًا أو نشاطًا ثنائيًا قصيرًا ثم عزز أي استجابة إيجابية.",
-    homework: "حدد واجبًا قصيرًا واضحًا مع إعادة المحاولة والتغذية الراجعة في الحصة التالية.",
-    unitExam: "ابدأ بمفهوم واحد غير متقن، ثم تقويم قصير وإعادة شرح حسب النتيجة.",
+function insightProfile(student: Student) {
+  const labels: Record<keyof typeof componentMax, string> = {
+    attendance: "الحضور والانضباط",
+    participation: "المشاركة الصفية",
+    homework: "الواجبات",
+    unitExam: "اختبارات الوحدات",
   };
-  return {
-    total,
-    missing,
-    weakest,
-    strongest,
-    reason: reasonParts.join(" • ") || "لا توجد مؤشرات سلبية متكررة في البيانات الحالية.",
-    recommendation: recommendations[weakest.key] || "استمر في المتابعة مع تقويم قصير للتحقق من ثبات الإتقان.",
-  };
+  const dimensions = (Object.keys(componentMax) as Array<keyof typeof componentMax>)
+    .map(key => ({ key, label: labels[key], ...dimensionScore(student, key) }))
+    .filter(item => item.recorded > 0);
+  const weakest = [...dimensions].sort((a, b) => a.value - b.value)[0] || { key: "unitExam" as const, label: "لا يوجد رصد كافٍ", value: 0, recorded: 0 };
+  const strongest = [...dimensions].sort((a, b) => b.value - a.value)[0] || { key: "participation" as const, label: "لا يوجد رصد كافٍ", value: 0, recorded: 0 };
+  return { weakest, strongest };
 }
 
-function suggestedTeacherNote(student: Student) {
-  const profile = smartStudentProfile(student);
-  if (profile.total >= 90) return "improved";
-  if (profile.weakest.key === "attendance") return "attendance_followup";
-  if (profile.weakest.key === "participation") return "no_interaction";
-  if (profile.weakest.key === "homework") return "homework_missing";
-  return "needs_review";
+function statusFor(student: EvaluatedStudent, threshold: number) {
+  if (student.completion < 100) return { label: "الرصد غير مكتمل", className: "incomplete" };
+  if ((student.finalScore || 0) >= threshold) return { label: "متقن", className: "mastered" };
+  return { label: "يحتاج دعمًا", className: "support" };
 }
-function aliases(student: Student) { return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(value => String(value || "").trim()).filter(Boolean))]; }
 
 export default function FollowUpPage() {
   const session = useTeacherClient();
-  const teacherId = session.teacherId || "", teacherName = session.teacherName || "المعلم", subjectKey = session.subjectKey || "history", subject = session.subject || "المادة", activeGrade = session.activeGrade || null;
-  const [storedStudents, setStoredStudents] = useState<Student[]>([]), [scopeStudents, setScopeStudents] = useState<Student[]>([]), [scopeClasses, setScopeClasses] = useState<SchoolClass[]>([]), [scopeLoading, setScopeLoading] = useState(false);
-  const [selectedClass, setSelectedClass] = useState(""), [selectedStudent, setSelectedStudent] = useState(""), [threshold, setThreshold] = useState(80);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]), [referralOpen, setReferralOpen] = useState(false), [notifyParents, setNotifyParents] = useState(false), [reason, setReason] = useState("انخفاض مستوى التحصيل الدراسي");
-  const [noteStudent, setNoteStudent] = useState<Student | null>(null), [selectedNoteTypes, setSelectedNoteTypes] = useState<string[]>([]), [note, setNote] = useState(""), [message, setMessage] = useState("");
-  const [aiInsight, setAiInsight] = useState<AiInsight | null>(null), [aiLoading, setAiLoading] = useState(false);
+  const teacherId = session.teacherId || "";
+  const teacherName = session.teacherName || "المعلم";
+  const subjectKey = session.subjectKey || "history";
+  const subject = session.subject || "المادة";
+  const activeGrade = session.activeGrade || null;
+  const [storedStudents, setStoredStudents] = useState<Student[]>([]);
+  const [scopeStudents, setScopeStudents] = useState<Student[]>([]);
+  const [scopeClasses, setScopeClasses] = useState<SchoolClass[]>([]);
+  const [scopeLoading, setScopeLoading] = useState(false);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [threshold, setThreshold] = useState(80);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [referralOpen, setReferralOpen] = useState(false);
+  const [notifyParents, setNotifyParents] = useState(false);
+  const [reason, setReason] = useState("انخفاض مستوى التحصيل الدراسي");
+  const [noteStudent, setNoteStudent] = useState<Student | null>(null);
+  const [selectedNoteType, setSelectedNoteType] = useState("");
+  const [note, setNote] = useState("");
+  const [analysisStudent, setAnalysisStudent] = useState<Student | null>(null);
+  const [aiInsight, setAiInsight] = useState<AiInsight | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "students") : "", [teacherId, subjectKey]);
   const referralsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "counselorReferrals") : "", [teacherId, subjectKey]);
 
-  useEffect(() => { if (!studentsPath) return; return onSnapshot(collection(db, studentsPath), snapshot => { const list = snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[]; setStoredStudents(list); }, () => setMessage("تعذر تحميل بيانات الطلاب.")); }, [studentsPath]);
+  useEffect(() => {
+    if (!studentsPath) return;
+    return onSnapshot(collection(db, studentsPath), snapshot => {
+      setStoredStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[]);
+    }, () => setMessage("تعذر تحميل بيانات الطلاب."));
+  }, [studentsPath]);
 
   useEffect(() => {
     if (!teacherId || !subjectKey || !activeGrade) { setScopeStudents([]); setScopeClasses([]); return; }
@@ -121,7 +141,6 @@ export default function FollowUpPage() {
       })
       .catch(error => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setScopeStudents([]); setScopeClasses([]);
         setMessage(error instanceof Error ? error.message : "تعذر تحميل الفصول المحددة.");
       })
       .finally(() => setScopeLoading(false));
@@ -134,73 +153,54 @@ export default function FollowUpPage() {
     return scopeStudents.map(rosterStudent => {
       const live = aliases(rosterStudent).map(alias => liveByAlias.get(alias)).find(Boolean);
       const officialClass = String(rosterStudent.className || rosterStudent.class || "").trim();
-      return {
-        ...rosterStudent,
-        ...(live || {}),
-        id: rosterStudent.id,
-        storageId: live?.id || rosterStudent.id,
-        code: rosterStudent.code || live?.code,
-        class: officialClass,
-        className: officialClass,
-      };
+      return { ...rosterStudent, ...(live || {}), id: rosterStudent.id, storageId: live?.id || rosterStudent.id, code: rosterStudent.code || live?.code, class: officialClass, className: officialClass };
     }).sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"));
   }, [scopeStudents, storedStudents]);
   const classes = useMemo(() => scopeClasses.map(item => item.name), [scopeClasses]);
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
-  const ranked = useMemo<RankedStudent[]>(() => visible.map(student => ({ ...student, total: studentTotal(student), missing: missingCount(student) })).sort((a, b) => b.total - a.total), [visible]);
-  const struggling = useMemo(() => ranked.filter(student => student.total < threshold).sort((a, b) => a.total - b.total), [ranked, threshold]);
-  const incomplete = ranked.filter(student => student.missing > 0), average = ranked.length ? Math.round(ranked.reduce((sum, student) => sum + student.total, 0) / ranked.length) : 0;
-  const referralCandidates = struggling.length ? struggling : ranked;
+  const evaluated = useMemo(() => visible.map(evaluateStudent), [visible]);
+  const completed = useMemo(() => evaluated.filter(student => student.completion === 100), [evaluated]);
+  const mastered = useMemo(() => completed.filter(student => (student.finalScore || 0) >= threshold), [completed, threshold]);
+  const support = useMemo(() => completed.filter(student => (student.finalScore || 0) < threshold), [completed, threshold]);
+  const incomplete = useMemo(() => evaluated.filter(student => student.completion < 100), [evaluated]);
+  const referralCandidates = support;
   const selectedStudents = referralCandidates.filter(student => selectedIds.includes(student.id));
-  const masteryRate = ranked.length ? Math.round(ranked.filter(student => student.total >= threshold).length / ranked.length * 100) : 0;
-  const dimensionSummary = masteryDimensions.map(dimension => {
-    const scores = ranked.map(student => dimensionScore(student, dimension)).filter(item => item.recorded > 0);
-    return { ...dimension, value: scores.length ? Math.round(scores.reduce((sum, item) => sum + item.value, 0) / scores.length) : 0, recorded: scores.length };
-  });
-  const weakestDimension = [...dimensionSummary].filter(item => item.recorded > 0).sort((a, b) => a.value - b.value)[0];
-  const firstPriority = struggling[0] ? smartStudentProfile(struggling[0]) : null;
 
-  function openReferral() { setSelectedIds(struggling.map(student => student.id)); setNotifyParents(false); setReferralOpen(true); }
+  function openReferral() {
+    if (!support.length) return setMessage("لا يوجد طلاب مكتملو الرصد تحت معيار الإتقان حاليًا.");
+    setSelectedIds(support.map(student => student.id));
+    setNotifyParents(false);
+    setReferralOpen(true);
+  }
+
   async function sendReferral() {
     if (!selectedStudents.length) return setMessage("حدد طالبًا واحدًا على الأقل للإحالة.");
     const now = new Date().toISOString();
     await Promise.all(selectedStudents.map(async student => {
-      await setDoc(doc(db, referralsPath, crypto.randomUUID()), { studentId: student.id, studentName: student.name || "", className: student.class || "", percentage: student.total, reason, status: "جديدة", teacherName, subject, createdAt: now });
-      if (notifyParents) await updateDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason}. المستوى الحالي ${student.total}%.`, percentage: student.total, createdAt: now } });
+      const percentage = student.finalScore || 0;
+      await setDoc(doc(db, referralsPath, crypto.randomUUID()), { studentId: student.id, studentName: student.name || "", className: student.class || "", percentage, reason, status: "جديدة", teacherName, subject, createdAt: now });
+      if (notifyParents) await setDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason}. مستوى الإتقان بعد اكتمال الرصد ${percentage}%.`, percentage, createdAt: now } }, { merge: true });
     }));
-    const text = `السلام عليكم،\
-إحالة طلاب للمرشد في مادة ${subject}\
-السبب: ${reason}\
-\
-${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"} — ${student.total}%`).join("\
-")}\
-\
-المعلم: ${teacherName}`;
+    const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالسبب: ${reason}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"} — ${student.finalScore || 0}%`).join("\n")}\n\nالمعلم: ${teacherName}`;
     window.open(`https://wa.me/${counselorPhone}?text=${encodeURIComponent(text)}`, "_blank");
-    setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`); setReferralOpen(false);
+    setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`);
+    setReferralOpen(false);
   }
+
   async function requestAiInsight() {
-    if (!noteStudent || aiLoading) return;
-    const smart = smartStudentProfile(noteStudent);
-    const repeatedNotes = Object.entries(noteStudent.teacherNoteCounts || {})
-      .filter(([, count]) => Number(count) > 0)
-      .map(([type, count]) => ({ label: noteOptions.find(option => option.type === type)?.label || type, count: Number(count) }));
+    if (!analysisStudent || aiLoading) return;
+    const evaluation = evaluateStudent(analysisStudent);
+    const profile = insightProfile(analysisStudent);
+    const repeatedNotes = Object.entries(analysisStudent.teacherNoteCounts || {}).filter(([, count]) => Number(count) > 0).map(([type, count]) => ({ label: noteOptions.find(option => option.type === type)?.label || type, count: Number(count) }));
     setAiLoading(true);
     setAiInsight(null);
     try {
       const response = await fetch("/api/teacher/student-insight", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject,
-          total: smart.total,
-          missing: smart.missing,
-          weakest: { label: smart.weakest.label, value: smart.weakest.value },
-          strongest: { label: smart.strongest.label, value: smart.strongest.value },
-          repeatedNotes,
-        }),
+        body: JSON.stringify({ subject, performance: evaluation.performance, completion: evaluation.completion, missing: evaluation.missing, weakest: { label: profile.weakest.label, value: profile.weakest.value }, strongest: { label: profile.strongest.label, value: profile.strongest.value }, repeatedNotes }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok) throw new Error(data.message || "تعذر تحليل البيانات بالذكاء الاصطناعي.");
@@ -211,43 +211,88 @@ ${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—
       setAiLoading(false);
     }
   }
+
   async function saveNote() {
     if (!noteStudent) return;
-    if (!selectedNoteTypes.length) return setMessage("اختر ملاحظة واحدة على الأقل.");
+    if (!selectedNoteType) return setMessage("اختر نوع الملاحظة أولًا.");
+    if (selectedNoteType === "other" && !note.trim()) return setMessage("اكتب نص الملاحظة المخصصة أولًا.");
+    const option = noteOptions.find(item => item.type === selectedNoteType);
+    if (!option) return;
     const now = new Date().toISOString();
     const previous = Array.isArray(noteStudent.teacherNotes) ? noteStudent.teacherNotes : [];
     const counts = { ...(noteStudent.teacherNoteCounts || {}) };
-    const entries = selectedNoteTypes.map(type => {
-      const option = noteOptions.find(item => item.type === type)!;
-      counts[type] = Number(counts[type] || 0) + 1;
-      return { id: crypto.randomUUID(), type, label: option.label, message: type === "other" ? note.trim() : "", createdAt: now, teacherName, subject } as TeacherNoteEntry;
-    });
-    const notes = [...entries, ...previous].slice(0, 100);
-    const latestText = entries.map(entry => entry.type === "other" ? (entry.message || entry.label) : entry.message ? `${entry.label}: ${entry.message}` : entry.label).join(" • ");
-    await setDoc(doc(db, studentsPath, noteStudent.storageId || noteStudent.id), {
-      teacherNote: latestText,
-      teacherNoteCount: Number(noteStudent.teacherNoteCount || previous.length || 0) + entries.length,
-      teacherNoteCounts: counts,
-      teacherNotes: notes,
-      teacherLastNoteAt: now,
-    }, { merge: true });
-    setMessage(`تم حفظ ${entries.length} ملاحظة للطالب وإضافتها إلى السجل.`);
-    setNoteStudent(null); setSelectedNoteTypes([]); setNote("");
+    counts[selectedNoteType] = Number(counts[selectedNoteType] || 0) + 1;
+    const entry: TeacherNoteEntry = { id: crypto.randomUUID(), type: selectedNoteType, label: option.label, message: selectedNoteType === "other" ? note.trim() : "", createdAt: now, teacherName, subject };
+    const notes = [entry, ...previous].slice(0, 100);
+    const latestText = selectedNoteType === "other" ? note.trim() : option.label;
+    await setDoc(doc(db, studentsPath, noteStudent.storageId || noteStudent.id), { teacherNote: latestText, teacherNoteCount: Number(noteStudent.teacherNoteCount || previous.length || 0) + 1, teacherNoteCounts: counts, teacherNotes: notes, teacherLastNoteAt: now }, { merge: true });
+    setMessage("تم حفظ الملاحظة وإضافتها إلى سجل الطالب.");
+    setNoteStudent(null);
+    setSelectedNoteType("");
+    setNote("");
   }
-  async function copyList() { await navigator.clipboard.writeText(struggling.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.total}%`).join("\
-")); setMessage("تم نسخ قائمة الطلاب المتعثرين."); }
+
+  async function copySupportList() {
+    if (!support.length) return setMessage("لا توجد قائمة دعم مكتملة الرصد لنسخها.");
+    await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("\n"));
+    setMessage("تم نسخ قائمة الطلاب الذين يحتاجون دعمًا.");
+  }
 
   if (!teacherId) return <main className="follow-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
+
   return <main className="follow-page" dir="rtl">
-    <section className="follow-head"><div><span>متابعة التحصيل — {subject}</span><h1>الإتقان والمتابعة الذكية</h1><p>قراءة أوضح لدرجة الإتقان، سبب التعثر، تكرار الملاحظات، والإجراء الأنسب لكل طالب.</p></div><div className="follow-filters"><label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label><label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label><label>معيار الإتقان<select value={threshold} onChange={event => setThreshold(Number(event.target.value))}><option value={80}>٨٠٪</option><option value={75}>٧٥٪</option><option value={70}>٧٠٪</option></select></label></div></section>
-    {scopeLoading ? <p className="follow-toast" role="status">جارٍ تحميل الفصول المحددة من إدارة الفصول…</p> : !classes.length ? <p className="follow-toast" role="status">لا توجد فصول محددة لهذه المادة. افتح «إدارة الطلاب ← إدارة فصولي» وحدد الفصول أولًا.</p> : null}
-    <section className="follow-overview"><article><span>الطلاب المعروضون</span><strong>{ranked.length}</strong><small>في النطاق الحالي</small></article><article className="mastery"><span>نسبة الإتقان</span><strong>{masteryRate}%</strong><small>حسب معيار {threshold}%</small></article><article><span>متوسط الأداء</span><strong>{average}%</strong><small>من إجمالي الرصد</small></article><article className="warn"><span>يحتاجون متابعة</span><strong>{struggling.length}</strong><small>تحت معيار الإتقان</small></article><article className="alert"><span>ناقصو الرصد</span><strong>{incomplete.length}</strong><small>الحكم غير مكتمل</small></article></section>
-    <section className="follow-smart-panel"><header><div><span>✦ تحليل ذكي مبني على بيانات الفصل</span><h2>ما الذي يحتاج انتباه المعلم الآن؟</h2></div><button type="button" onClick={() => { window.location.href = "/teacher/ai"; }}>فتح المساعد الذكي</button></header><div className="follow-smart-grid"><article><small>أضعف محور حاليًا</small><strong>{weakestDimension ? `${weakestDimension.label} — ${weakestDimension.value}%` : "بانتظار اكتمال الرصد"}</strong><p>يتم الحساب من درجات الطلاب المرصودة فعليًا، وليس من انطباع عام.</p></article><article><small>أولوية التدخل</small><strong>{struggling[0]?.name || "لا توجد أولوية حرجة"}</strong><p>{firstPriority?.reason || "الطلاب في النطاق الحالي ضمن مستوى الإتقان أو لم يكتمل الرصد بعد."}</p></article><article><small>الإجراء المقترح</small><strong>{firstPriority ? firstPriority.weakest.label : "متابعة دورية"}</strong><p>{firstPriority?.recommendation || "استمر في التقويم القصير وتوثيق التحسن والملاحظات الإيجابية."}</p></article></div></section>
-    <section className="follow-rank-grid"><article className="follow-card leaders-card"><header><div><small>تميز</small><h2>أفضل الطلاب</h2><p>أعلى النتائج في النطاق المختار.</p></div><b className="rank-icon">★</b></header><div className="rank-list">{ranked.slice(0, 5).map((student, index) => <div key={student.id}><i>{index + 1}</i><span><b>{student.name || "—"}</b><small>{student.class || "بدون فصل"}</small></span><strong>{student.total}%</strong></div>)}{!ranked.length && <p>لا توجد بيانات في هذا النطاق.</p>}</div></article>
-      <article className="follow-card support-card"><header><div><small>تدخل مبكر</small><h2>الطلاب الأكثر حاجة للدعم</h2><p>الأقل نتيجة أولًا لاتخاذ الإجراء سريعًا.</p></div><b className="rank-icon">!</b></header><div className="rank-list">{struggling.slice(0, 5).map((student, index) => <div key={student.id}><i>{index + 1}</i><span><b>{student.name || "—"}</b><small>{student.class || "بدون فصل"}</small></span><strong>{student.total}%</strong></div>)}{!struggling.length && <p>لا يوجد طلاب تحت معيار الإتقان.</p>}</div></article></section>
-    <section className="follow-card students-follow-card"><header><div><h2>قائمة المتابعة والإجراءات</h2><p>{selectedClass || "جميع الفصول"} • جميع الطلاب • يظهر عدد الملاحظات لكل طالب</p></div><div className="follow-actions"><button onClick={copyList}>نسخ القائمة</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button><button onClick={() => window.print()}>طباعة</button></div></header><div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>درجة الإتقان</th><th>الحالة</th><th>القراءة الذكية</th><th>الملاحظات</th></tr></thead><tbody>{ranked.map(student => { const status = level(student.total); const totalNotes = Number(student.teacherNoteCount || student.teacherNotes?.length || 0); const smart = smartStudentProfile(student); return <tr key={student.id}><td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td><td><b>{student.name || "—"}</b></td><td>{student.class || "—"}</td><td><div className="mastery-score"><strong>{student.total}%</strong><span><i style={{ width: `${Math.min(100, Math.max(0, student.total))}%` }} /></span></div></td><td><span className={`level ${status.className}`}>{status.label}</span></td><td className="follow-reason-cell"><b>{smart.reason}</b><small>{smart.recommendation}</small></td><td><div className="student-note-actions"><button className="note-btn" onClick={() => { setNoteStudent(student); setSelectedNoteTypes([]); setNote(""); setAiInsight(null); }}>ملاحظات الطالب</button><span className="note-total">{totalNotes} ملاحظة</span></div></td></tr>; })}</tbody></table>{!ranked.length && <p className="empty">لا توجد بيانات طلاب في النطاق المختار.</p>}</div></section>
-    {referralOpen && <div className="report-modal" onClick={() => setReferralOpen(false)}><section onClick={event => event.stopPropagation()}><header><div><h3>إحالة للمرشد الطلابي</h3><p>حدد طالبًا أو مجموعة طلاب، ثم سجل الإحالة.</p></div><button onClick={() => setReferralOpen(false)}>×</button></header><div className="referral-tools"><button onClick={() => setSelectedIds(referralCandidates.map(student => student.id))}>تحديد الكل</button><button onClick={() => setSelectedIds([])}>إلغاء التحديد</button></div><div className="referral-students">{referralCandidates.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name}</b><small>{student.class} • {student.total}%</small></span></label>)}</div><label className="reason-field">سبب الإحالة<textarea value={reason} onChange={event => setReason(event.target.value)} /></label><label className="parent-notify-option"><input type="checkbox" checked={notifyParents} onChange={event => setNotifyParents(event.target.checked)} /><span><b>إبلاغ ولي الأمر في بوابة الطالب وولي الأمر</b></span></label><div className="report-modal-actions"><button onClick={() => setReferralOpen(false)}>إلغاء</button><button className="primary" onClick={sendReferral}>تسجيل الإحالة وإرسالها</button></div></section></div>}
-    {noteStudent && (() => { const smart = smartStudentProfile(noteStudent); const suggestedType = suggestedTeacherNote(noteStudent); return <div className="note-modal" onClick={() => setNoteStudent(null)}><section className="note-modal-card" onClick={event => event.stopPropagation()}><header className="note-modal-title"><div><small>سجل واضح ومباشر</small><h3>ملاحظات الطالب</h3><p className="note-student-name">{noteStudent.name}</p></div><span className={`level ${level(smart.total).className}`}>{level(smart.total).label} — {smart.total}%</span></header><div className="note-ai-card"><div className="note-ai-head"><span>✦</span><div><small>قراءة ذكية قبل كتابة الملاحظة</small><strong>{smart.reason}</strong></div></div><p>{smart.recommendation}</p><div className="note-ai-actions"><button type="button" className="note-ai-suggest" onClick={() => { setSelectedNoteTypes(current => current.includes(suggestedType) ? current : [...current, suggestedType]); }}>اقتراح سريع من بيانات الطالب</button><button type="button" className="note-ai-generate" onClick={() => void requestAiInsight()} disabled={aiLoading}>{aiLoading ? "جاري تحليل البيانات بالذكاء الاصطناعي..." : "✦ تحليل وصياغة بالذكاء الاصطناعي"}</button></div>{aiInsight && <div className="note-ai-result"><div><small>تحليل AI</small><strong>{aiInsight.analysis}</strong></div><div><small>الإجراء المقترح</small><p>{aiInsight.recommendedAction}</p></div><div className="note-ai-ready"><small>ملاحظة جاهزة للطالب وولي الأمر</small><p>{aiInsight.suggestedNote}</p><button type="button" onClick={() => { setSelectedNoteTypes(current => current.includes("other") ? current : [...current, "other"]); setNote(aiInsight.suggestedNote); }}>استخدام هذه الصياغة كملاحظة مخصصة</button></div></div>}</div><div className="note-stats"><strong>{Number(noteStudent.teacherNoteCount || noteStudent.teacherNotes?.length || 0)}</strong><span>إجمالي الملاحظات السابقة — يظهر بجانب كل خيار عدد مرات تكراره</span></div><div className="note-options">{noteOptions.map(option => <label key={option.type} className={selectedNoteTypes.includes(option.type) ? "selected" : ""}><input type="checkbox" checked={selectedNoteTypes.includes(option.type)} onChange={event => setSelectedNoteTypes(current => event.target.checked ? [...current, option.type] : current.filter(type => type !== option.type))} /><div className="note-option-copy"><small>{option.category}</small><span>{option.label}</span><em>{option.description}</em></div><b>{Number(noteStudent.teacherNoteCounts?.[option.type] || 0)} مرة</b></label>)}</div>{selectedNoteTypes.includes("other") && <label className="other-note-wrap"><span>نص الملاحظة التي ستظهر للطالب وولي الأمر</span><textarea className="other-note" placeholder="مثال: يحتاج الطالب إلى التركيز عند قراءة السؤال كاملًا قبل الإجابة." value={note} onChange={event => setNote(event.target.value)} /><small>في بوابة الطالب سيظهر هذا النص فقط، ولن تظهر عبارة «ملاحظة مخصصة».</small></label>}<div className="note-history"><h4>سجل الملاحظات السابقة</h4>{(noteStudent.teacherNotes || []).slice(0, 8).map(entry => <article key={entry.id}>{entry.type === "other" ? <b>{entry.message || "ملاحظة مخصصة"}</b> : <><b>{entry.label}</b>{entry.message && <p>{entry.message}</p>}</>}<small>{new Date(entry.createdAt).toLocaleDateString("ar-SA-u-ca-gregory")} • {entry.subject || subject}</small></article>)}{!(noteStudent.teacherNotes || []).length && <p className="empty-note-history">لا توجد ملاحظات سابقة.</p>}</div><div className="note-modal-actions"><button onClick={() => setNoteStudent(null)}>إلغاء</button><button className="primary" onClick={saveNote}>حفظ الملاحظات</button></div></section></div>; })()}
+    <section className="follow-head">
+      <div><span>متابعة التحصيل — {subject}</span><h1>متابعة الإتقان</h1><p>صفحة مختصرة: تفرّق بين الإتقان الحقيقي والرصد غير المكتمل، وتترك التحليل الذكي كإجراء اختياري لكل طالب.</p></div>
+      <div className="follow-filters">
+        <label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
+        <label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label>
+        <label>معيار الإتقان<select value={threshold} onChange={event => setThreshold(Number(event.target.value))}><option value={80}>٨٠٪</option><option value={75}>٧٥٪</option><option value={70}>٧٠٪</option></select></label>
+      </div>
+    </section>
+
+    {scopeLoading ? <p className="follow-inline-message">جارٍ تحميل الفصول…</p> : !classes.length ? <p className="follow-inline-message">لا توجد فصول محددة لهذه المادة.</p> : null}
+
+    <section className="follow-overview">
+      <article><span>الطلاب</span><strong>{evaluated.length}</strong><small>في النطاق الحالي</small></article>
+      <article><span>مكتملو الرصد</span><strong>{completed.length}</strong><small>يمكن الحكم على الإتقان</small></article>
+      <article className="mastered"><span>متقنون</span><strong>{mastered.length}</strong><small>حسب معيار {threshold}٪</small></article>
+      <article className="support"><span>يحتاجون دعمًا</span><strong>{support.length}</strong><small>بعد اكتمال الرصد</small></article>
+      <article className="incomplete"><span>الرصد غير مكتمل</span><strong>{incomplete.length}</strong><small>لا يصدر عليهم حكم نهائي</small></article>
+    </section>
+
+    <section className="follow-card students-follow-card">
+      <header><div><h2>الطلاب</h2><p>درجة نهائية فقط عند اكتمال الرصد ١٠٠٪. قبل ذلك يظهر الأداء الحالي بوصفه مبدئيًا.</p></div><div className="follow-actions"><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
+      <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
+        {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}>
+          <td><input type="checkbox" disabled={status.className !== "support"} checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td>
+          <td className="student-name-cell"><b>{student.name || "—"}</b></td><td>{student.class || "—"}</td>
+          <td><strong>{student.finalScore !== null ? `${student.finalScore}%` : `${student.performance}% مبدئي`}</strong></td>
+          <td><div className="completion"><span><i style={{ width: `${student.completion}%` }} /></span><b>{student.completion}%</b></div></td>
+          <td><span className={`level ${status.className}`}>{status.label}</span></td>
+          <td><div className="row-actions"><button type="button" className="analysis-btn" onClick={() => { setAnalysisStudent(student); setAiInsight(null); }}>تحليل الطالب</button><button type="button" className="note-btn" onClick={() => { setNoteStudent(student); setSelectedNoteType(""); setNote(""); }}>ملاحظة <small>{Number(student.teacherNoteCount || student.teacherNotes?.length || 0)}</small></button></div></td>
+        </tr>; })}
+      </tbody></table>{!evaluated.length && <p className="empty">لا توجد بيانات طلاب في النطاق المختار.</p>}</div>
+    </section>
+
+    {analysisStudent && (() => { const evaluation = evaluateStudent(analysisStudent); const profile = insightProfile(analysisStudent); return <div className="follow-modal" onClick={() => setAnalysisStudent(null)}><section className="analysis-modal" onClick={event => event.stopPropagation()}>
+      <header><div><small>تحليل اختياري</small><h3>تحليل الطالب بالذكاء الاصطناعي</h3><p>{analysisStudent.name}</p></div><button className="close" onClick={() => setAnalysisStudent(null)}>×</button></header>
+      <div className="analysis-facts"><article><span>الأداء الحالي</span><strong>{evaluation.performance}%</strong></article><article><span>اكتمال الرصد</span><strong>{evaluation.completion}%</strong></article><article><span>أضعف محور مرصود</span><strong>{profile.weakest.label} — {profile.weakest.value}%</strong></article></div>
+      <p className="ai-note">الذكاء الاصطناعي يحلل المؤشرات المرصودة فقط، ولا يحفظ أو يرسل ملاحظة تلقائيًا. إذا كان الرصد ناقصًا فالتحليل مبدئي.</p>
+      <button className="generate-ai" onClick={() => void requestAiInsight()} disabled={aiLoading}>{aiLoading ? "جارٍ التحليل..." : "تحليل البيانات الآن"}</button>
+      {aiInsight && <div className="ai-result"><article><span>ملخص التحليل</span><p>{aiInsight.analysis}</p></article><article><span>الخطوة المقترحة للمعلم</span><p>{aiInsight.recommendedAction}</p></article><article><span>صياغة ملاحظة مقترحة</span><p>{aiInsight.suggestedNote}</p><button type="button" onClick={() => { setNoteStudent(analysisStudent); setSelectedNoteType("other"); setNote(aiInsight.suggestedNote); setAnalysisStudent(null); setAiInsight(null); }}>استخدامها كملاحظة مخصصة</button></article></div>}
+    </section></div>; })()}
+
+    {noteStudent && <div className="follow-modal" onClick={() => setNoteStudent(null)}><section className="note-modal-card" onClick={event => event.stopPropagation()}>
+      <header><div><small>سجل الطالب</small><h3>إضافة ملاحظة</h3><p>{noteStudent.name}</p></div><button className="close" onClick={() => setNoteStudent(null)}>×</button></header>
+      <p className="note-visibility">الملاحظة التي تحفظها هنا تظهر في بوابة الطالب وولي الأمر، لذلك كل خيار مكتوب بصياغته النهائية.</p>
+      <div className="note-options">{noteOptions.map(option => <label key={option.type} className={selectedNoteType === option.type ? "selected" : ""}><input type="radio" name="student-note" checked={selectedNoteType === option.type} onChange={() => setSelectedNoteType(option.type)} /><div><small>{option.group}</small><b>{option.label}</b><span>{option.description}</span></div><em>{Number(noteStudent.teacherNoteCounts?.[option.type] || 0)} مرة</em></label>)}</div>
+      {selectedNoteType === "other" && <label className="custom-note"><span>نص الملاحظة المخصصة</span><textarea value={note} onChange={event => setNote(event.target.value)} placeholder="اكتب الملاحظة كما تريد أن يقرأها الطالب وولي الأمر." /></label>}
+      <details className="note-history"><summary>عرض سجل الملاحظات السابقة ({noteStudent.teacherNotes?.length || 0})</summary><div>{(noteStudent.teacherNotes || []).slice(0, 10).map(entry => <article key={entry.id}><b>{entry.type === "other" ? (entry.message || entry.label) : entry.label}</b><small>{new Date(entry.createdAt).toLocaleDateString("ar-SA-u-ca-gregory")} • {entry.subject || subject}</small></article>)}{!(noteStudent.teacherNotes || []).length && <p>لا توجد ملاحظات سابقة.</p>}</div></details>
+      <div className="modal-actions"><button onClick={() => setNoteStudent(null)}>إلغاء</button><button className="primary" onClick={() => void saveNote()}>حفظ الملاحظة</button></div>
+    </section></div>}
+
+    {referralOpen && <div className="follow-modal" onClick={() => setReferralOpen(false)}><section className="referral-modal" onClick={event => event.stopPropagation()}><header><div><h3>إحالة للمرشد الطلابي</h3><p>تعرض هنا فقط الحالات مكتملة الرصد وتحت معيار الإتقان.</p></div><button className="close" onClick={() => setReferralOpen(false)}>×</button></header><div className="referral-students">{referralCandidates.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name}</b><small>{student.class} • {student.finalScore}%</small></span></label>)}</div><label className="reason-field">سبب الإحالة<textarea value={reason} onChange={event => setReason(event.target.value)} /></label><label className="parent-notify"><input type="checkbox" checked={notifyParents} onChange={event => setNotifyParents(event.target.checked)} /><span>إبلاغ ولي الأمر في البوابة</span></label><div className="modal-actions"><button onClick={() => setReferralOpen(false)}>إلغاء</button><button className="primary" onClick={() => void sendReferral()}>تسجيل الإحالة وإرسالها</button></div></section></div>}
+
     {message && <div className="follow-toast" role="status">{message}</div>}
   </main>;
 }
