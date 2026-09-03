@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import * as XLSX from "xlsx";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { normalizeClass } from "../../../lib/unified-roster";
 import "./timetable.css";
-import "./timetable-v105.css";
 
 type Lesson = { subject: string; className: string; notes: string };
 type Schedule = Record<string, Lesson>;
@@ -288,31 +286,15 @@ export default function TimetablePage() {
     );
   }
 
-  function exportExcel() {
-    const rows = days.map(day => {
-      const row: Record<string, string> = { "اليوم": day.label };
-      periods.forEach(period => {
-        const lesson = visibleSchedule[keyFor(day.key, period)];
-        row[`الحصة ${period}`] = lesson ? `${lesson.className}${lesson.notes ? ` — ${lesson.notes}` : ""}` : "";
-      });
-      return row;
-    });
-    const workbook = XLSX.utils.book_new();
-    const sheet = XLSX.utils.json_to_sheet(rows);
-    sheet["!cols"] = [{ wch: 14 }, ...periods.map(() => ({ wch: 24 }))];
-    XLSX.utils.book_append_sheet(workbook, sheet, "الجدول الدراسي");
-    XLSX.writeFile(workbook, `الجدول-الدراسي-${subject.label}-${session?.activeGradeLabel || "جميع-المراحل"}.xlsx`);
-  }
-
   if (!session) return <main className="timetable-page"><section className="timetable-hero"><h1>الجدول الدراسي</h1><p>جارٍ تحميل الجدول...</p></section></main>;
 
-  return <main className="timetable-page timetable-v105" dir="rtl">
-    <section className="timetable-hero"><div><span>تنظيم أسبوعك</span><h1>الجدول الدراسي</h1><p>{subject.label}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. يعرض فقط الفصول التي يدرّسها المعلم ويرتبط مباشرة بسجل المتابعة اليومي.</p></div><div className="timetable-actions no-print"><button className="print-main" onClick={() => window.print()}>PDF الجدول</button><button onClick={exportExcel}>Excel</button><button className="danger" onClick={clearAll} disabled={saving}>تفريغ الجدول</button></div></section>
+  return <main className="timetable-page" dir="rtl">
+    <section className="timetable-hero"><div><span>📅 تنظيم أسبوعك</span><h1>الجدول الدراسي الذكي</h1><p>{subject.label}{session.activeGradeLabel ? ` — ${session.activeGradeLabel}` : ""}. لا تظهر إلا الفصول الرقمية المختارة.</p></div><div className="timetable-actions no-print"><button className="print-main" onClick={() => window.print()}>🖨 طباعة صفحة واحدة</button><button className="danger" onClick={clearAll} disabled={saving}>تفريغ الجدول</button></div></section>
     {message && <p className="timetable-message no-print">{message}</p>}
-    <section className="smart-strip no-print"><div className="smart-head"><span>مساعد الجدول الذكي</span><strong>{smart.suggestion}</strong><button className="smart-action" onClick={smartAdd} disabled={saving}>اقترح وأضف أفضل حصة</button></div><div className="smart-stats"><article><small>الحصص المسجلة</small><b>{ar.format(smart.total)}</b></article><article><small>الخانات الفارغة</small><b>{ar.format(smart.empty)}</b></article><article><small>أكثر يوم ازدحامًا</small><b>{smart.busiest?.count ? smart.busiest.day : "—"}</b></article><article><small>أكثر فصل تكرارًا</small><b>{smart.mostClass ? smart.mostClass[0] : "—"}</b></article></div></section>
+    <section className="smart-strip no-print"><div className="smart-head"><span>✨ مساعد الجدول الذكي</span><strong>{smart.suggestion}</strong><button className="smart-action" onClick={smartAdd} disabled={saving}>🤖 اقترح وأضف أفضل حصة</button></div><div className="smart-stats"><article><small>الحصص المسجلة</small><b>{ar.format(smart.total)}</b></article><article><small>الخانات الفارغة</small><b>{ar.format(smart.empty)}</b></article><article><small>أكثر يوم ازدحامًا</small><b>{smart.busiest?.count ? smart.busiest.day : "—"}</b></article><article><small>أكثر فصل تكرارًا</small><b>{smart.mostClass ? smart.mostClass[0] : "—"}</b></article></div></section>
     <section className="timetable-meta"><strong>{session.teacherName}</strong><span>{subject.label}</span><span>{session.activeGradeLabel || "جميع المراحل"}</span><span>{ar.format(smart.total)} حصة مسجلة</span></section>
     <section className="table-wrap"><table className="weekly-table"><thead><tr><th>اليوم</th>{periods.map(period => <th key={period}>الحصة {ar.format(period)}</th>)}</tr></thead><tbody>{days.map(day => <tr key={day.key}><th>{day.label}</th>{periods.map(period => { const lesson = visibleSchedule[keyFor(day.key, period)]; return <td key={period}><button className={`lesson-cell ${lesson ? "filled" : ""}`} onClick={() => openCell(day.key, period)}><small>{ar.format(period)}</small>{lesson ? <><strong>{lesson.subject}</strong><span>{lesson.className}</span>{lesson.notes && <em>{lesson.notes}</em>}</> : <b>＋</b>}</button></td>; })}</tr>)}</tbody></table></section>
     <section className="mobile-days">{days.map(day => <article key={day.key}><h2>{day.label}</h2><div>{periods.map(period => { const lesson = visibleSchedule[keyFor(day.key, period)]; return <button key={period} className={lesson ? "filled" : ""} onClick={() => openCell(day.key, period)}><span>الحصة {ar.format(period)}</span>{lesson ? <><strong>{subject.label}</strong><small>{lesson.className}</small></> : <b>إضافة الفصل</b>}</button>; })}</div></article>)}</section>
-    {selected && <div className="lesson-modal no-print" role="dialog" aria-modal="true"><div className="lesson-editor"><header><div><span>تعديل الحصة {ar.format(selected.period)}</span><h2>{days.find(day => day.key === selected.day)?.label}</h2></div><button className="close" onClick={closeEditor} disabled={saving}>×</button></header><div className="fixed-subject"><span>المادة الحالية</span><strong>{subject.label}</strong><small>{session.activeGradeLabel || ""}</small></div><label><span>الفصل</span><select value={draft.className} onChange={event => setDraft(current => ({ ...current, className: event.target.value }))} disabled={saving}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select>{!classes.length && <small>حدد فصولك الرقمية من إدارة طلابي أولًا.</small>}</label><label><span>ملاحظات اختيارية</span><textarea value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="قاعة، نشاط، اختبار..." disabled={saving}/></label><footer><button className="save" onClick={saveLesson} disabled={saving}>{saving ? "جارٍ الحفظ..." : "حفظ الحصة"}</button><button className="delete" onClick={clearLesson} disabled={saving}>حذف الحصة</button><button onClick={closeEditor} disabled={saving}>إلغاء</button></footer></div></div>}
+    {selected && <div className="lesson-modal no-print" role="dialog" aria-modal="true"><div className="lesson-editor"><header><div><span>تعديل الحصة {ar.format(selected.period)}</span><h2>{days.find(day => day.key === selected.day)?.label}</h2></div><button className="close" onClick={closeEditor} disabled={saving}>×</button></header><div className="fixed-subject"><span>المادة الحالية</span><strong>{subject.label}</strong><small>{session.activeGradeLabel || ""}</small></div><label><span>الفصل</span><select value={draft.className} onChange={event => setDraft(current => ({ ...current, className: event.target.value }))} disabled={saving}><option value="">اختر الفصل</option>{classes.map(className => <option key={className} value={className}>{className}</option>)}</select>{!classes.length && <small>حدد فصولك الرقمية من إدارة الطلاب أولًا.</small>}</label><label><span>ملاحظات اختيارية</span><textarea value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="قاعة، نشاط، اختبار..." disabled={saving}/></label><footer><button className="save" onClick={saveLesson} disabled={saving}>{saving ? "جارٍ الحفظ..." : "حفظ الحصة"}</button><button className="delete" onClick={clearLesson} disabled={saving}>حذف الحصة</button><button onClick={closeEditor} disabled={saving}>إلغاء</button></footer></div></div>}
   </main>;
 }

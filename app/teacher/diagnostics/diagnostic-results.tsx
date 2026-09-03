@@ -5,7 +5,6 @@ import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import type { SubjectKey } from "../../../lib/subject-config";
-import { downloadDiagnosticResultsPdf, type DiagnosticResultsPdfClass } from "../../../lib/diagnostic-results-pdf";
 import "./diagnostic-results.css";
 
 type Diagnostic = { id: string; title: string };
@@ -410,60 +409,34 @@ export default function DiagnosticResults({
     return allRosterRows.filter(row => classOf(row.student) === key);
   }
 
-  function buildPdfClass(key: string): DiagnosticResultsPdfClass | null {
-    const rows = rowsForClass(key);
-    if (!rows.length) return null;
+  function reportPage(key: string, rows: RosterRow[], index: number) {
     const completed = rows.filter(row => row.result);
     const completedTotal = completed.length;
     const pendingTotal = Math.max(0, rows.length - completedTotal);
     const classAverage = completedTotal
       ? Math.round(completed.reduce((sum, row) => sum + percentOf(row.result as Result), 0) / completedTotal)
       : 0;
-    return {
-      className: classDisplay(key),
-      studentCount: rows.length,
-      completedCount: completedTotal,
-      pendingCount: pendingTotal,
-      average: classAverage,
-      rows: rows.map((row, index) => {
-        const result = row.result;
-        return {
-          number: index + 1,
-          studentName: row.student.name || row.student.id,
-          status: result ? "عمل الاختبار" : "لم يعمل الاختبار",
-          score: result ? `${result.score}/${result.total}` : "—",
-          percentage: result ? percentOf(result) : null,
-          level: result ? resultLevel(result) : "بانتظار الاختبار",
-          weakSkills: result?.weakSkills?.length ? result.weakSkills.join("، ") : result ? "لا توجد مهارات ضعيفة مسجلة" : "—",
-          plan: result
-            ? (result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, row.student.name || "الطالب", subjectName))
-            : "لم يؤد الطالب الاختبار بعد، لذلك لا توجد خطة تشخيصية حتى الآن.",
-          submittedAt: result ? formatDate(result.submittedAt) : "—",
-        };
-      }),
-    };
+    const rowsHtml = rows.map((row, rowIndex) => {
+      const result = row.result;
+      const status = result ? "عمل الاختبار" : "لم يعمل الاختبار";
+      const plan = result ? (result.teacherPlan || result.aiPlan || result.plan || fallbackPlan(result, row.student.name || "الطالب", subjectName)) : "—";
+      return `<tr class="${result ? "done" : "pending"}"><td>${rowIndex + 1}</td><td>${escapeHtml(row.student.name || row.student.id)}</td><td>${escapeHtml(status)}</td><td>${result ? `${result.score}/${result.total}` : "—"}</td><td>${result ? `${percentOf(result)}%` : "—"}</td><td>${result ? escapeHtml(resultLevel(result)) : "بانتظار الاختبار"}</td><td>${escapeHtml(result?.weakSkills?.join("، ") || "—")}</td><td>${escapeHtml(plan)}</td></tr>`;
+    }).join("");
+    return `<main class="page${index ? " page-break" : ""}"><div class="portal">${PORTAL_NAME}</div><h1>متابعة أداء الاختبار التشخيصي والخطط العلاجية</h1><div class="meta"><span><b>المادة:</b> ${escapeHtml(subjectName)}</span><span><b>الفصل:</b> ${escapeHtml(classDisplay(key))}</span><span><b>الاختبار:</b> ${escapeHtml(diagnosticTitle)}</span><span><b>عدد الطلاب:</b> ${rows.length}</span></div><div class="stats"><span>عمل الاختبار: ${completedTotal}</span><span>لم يعمل: ${pendingTotal}</span><span>نسبة الإنجاز: ${rows.length ? Math.round((completedTotal / rows.length) * 100) : 0}%</span><span>المتوسط: ${classAverage}%</span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الحالة</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المهارات الضعيفة</th><th>الخطة المقترحة</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer"><span>توقيع المعلم: __________</span><strong>${PORTAL_NAME}</strong><span>اعتماد الإدارة: __________</span></div></main>`;
   }
 
-  async function printClassReport() {
+  function printClassReport() {
     if (!className || !testId) return window.alert("اختر الفصول والاختبار أولًا.");
-    const reportClasses = (className === "all" ? classes : [className])
-      .map(buildPdfClass)
-      .filter((item): item is DiagnosticResultsPdfClass => Boolean(item));
-    if (!reportClasses.length) return window.alert("لا توجد أسماء في الفصول المحددة.");
-    setMessage("جارٍ تجهيز تقرير PDF كامل للنتائج والخطط…");
-    try {
-      const result = await downloadDiagnosticResultsPdf({
-        portalName: PORTAL_NAME,
-        subjectName,
-        diagnosticTitle,
-        classes: reportClasses,
-        fileName: `نتائج-${diagnosticTitle.replace(/[\\/:*?\"<>|]/g, "-")}-${className === "all" ? "جميع-الفصول" : classDisplay(className)}.pdf`,
-      });
-      setMessage(`تم إنشاء التقرير كاملًا: ${result.studentCount} طالبًا، ${result.classCount} فصل، ${result.pageCount} صفحة.`);
-    } catch (error) {
-      console.error("diagnostic-results-pdf-v101", error);
-      setMessage("تعذر إنشاء تقرير PDF الآن.");
-    }
+    const reportClasses = className === "all" ? classes : [className];
+    const pages = reportClasses
+      .map(key => ({ key, rows: rowsForClass(key) }))
+      .filter(item => item.rows.length)
+      .map((item, index) => reportPage(item.key, item.rows, index));
+    if (!pages.length) return window.alert("لا توجد أسماء في الفصول المحددة.");
+    const popup = window.open("", "_blank", "width=1400,height=900");
+    if (!popup) return;
+    popup.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>متابعة الاختبار التشخيصي — ${escapeHtml(className === "all" ? "جميع الفصول" : classDisplay(className))}</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172b3a;margin:0}.toolbar{position:sticky;top:0;z-index:5;display:flex;justify-content:center;gap:8px;padding:8px;background:#173f61}.toolbar button{border:0;border-radius:8px;padding:9px 16px;font-weight:800;cursor:pointer}.page{padding:5mm;min-height:190mm}.page-break{break-before:page;page-break-before:always}.portal{text-align:center;color:#173f61;font-weight:900;border-bottom:2px solid #173f61;padding-bottom:5px}h1{text-align:center;font-size:18px;margin:8px}.meta,.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #263746}.meta span,.stats span{padding:6px;border-left:1px solid #263746;font-size:11px}.stats{border-top:0}.stats span{font-weight:800}table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}th,td{border:1px solid #52677a;padding:4px;font-size:7.5px;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf1f6}.pending{background:#fff7e8}.done{background:#f5fff9}th:nth-child(1){width:3%}th:nth-child(2){width:13%}th:nth-child(3){width:9%}th:nth-child(4){width:7%}th:nth-child(5){width:6%}th:nth-child(6){width:9%}th:nth-child(7){width:17%}th:nth-child(8){width:36%}.footer{margin-top:8px;display:flex;justify-content:space-between;border-top:1px solid #8a9aa8;padding-top:5px;font-size:9px}@media print{.toolbar{display:none}.page{padding:0}.page-break{break-before:page;page-break-before:always}}</style></head><body><div class="toolbar"><button onclick="window.print()">طباعة أو حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>${pages.join("")}</body></html>`);
+    popup.document.close();
   }
 
   return <section className="diag-results" dir="rtl">

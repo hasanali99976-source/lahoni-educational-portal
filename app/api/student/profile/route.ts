@@ -52,33 +52,6 @@ function validStatus(value: unknown): value is AttendanceStatus {
   return value === "present" || value === "absent" || value === "late" || value === "excused" || value === "escaped";
 }
 
-function objectRecord(value: unknown): Record<string, any> | null {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : null;
-}
-
-function planVersion(value: Record<string, any> | null) {
-  return Math.max(0, Number(value?.version || 0));
-}
-
-function planTime(value: Record<string, any> | null) {
-  return Date.parse(String(value?.activatedAt || value?.createdAt || "")) || 0;
-}
-
-function chooseStudentGradePlan(serverPlan: Record<string, any> | null, studentData: Record<string, unknown>) {
-  const embedded = objectRecord(studentData.gradePlanSnapshot) || objectRecord(studentData.gradePlan);
-  if (!serverPlan) return embedded;
-  if (!embedded) return serverPlan;
-  if (String(serverPlan.id || "") === String(embedded.id || "")) return serverPlan;
-  if (planVersion(serverPlan) !== planVersion(embedded)) return planVersion(serverPlan) > planVersion(embedded) ? serverPlan : embedded;
-  return planTime(serverPlan) >= planTime(embedded) ? serverPlan : embedded;
-}
-
-function valuesForStudentPlan(studentData: Record<string, unknown>, planId: string) {
-  const all = objectRecord(studentData.gradePlanValues);
-  const specific = planId && all ? objectRecord(all[planId]) : null;
-  return specific || objectRecord(studentData.gradeValues) || {};
-}
-
 export async function GET(request: Request) {
   const header = request.headers.get("authorization") || "";
   const access = readStudentAccessToken(header.startsWith("Bearer ") ? header.slice(7) : "");
@@ -163,23 +136,10 @@ export async function GET(request: Request) {
     ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100))
     : 100;
 
-  const serverGradePlan = gradePlanSnapshot && gradePlanSnapshot.exists
-    ? { id: gradePlanSnapshot.id, ...gradePlanSnapshot.data() } as Record<string, any>
-    : null;
-  const gradePlan = chooseStudentGradePlan(serverGradePlan, studentData);
-  const effectiveGradePlanId = String(gradePlan?.id || studentData.activeGradePlanId || activeGradePlanId || "");
-  const effectiveGradeValues = valuesForStudentPlan(studentData, effectiveGradePlanId);
-  const visibleTeacherNotes = (Array.isArray(studentData.teacherNotes) ? studentData.teacherNotes : [])
-    .filter((note: unknown) => !note || typeof note !== "object" || (note as Record<string, unknown>).visibleToParent !== false)
-    .slice(0, 250);
-
   return NextResponse.json({
     ok: true,
     data: {
       ...studentData,
-      teacherNotes: visibleTeacherNotes,
-      teacherNoteCount: visibleTeacherNotes.length,
-      internalTeacherNotes: undefined,
       absences: counts.absent,
       late: counts.late,
       attendanceSummary: {
@@ -189,9 +149,7 @@ export async function GET(request: Request) {
         latestDate,
         attendanceSource,
       },
-      gradePlan,
-      activeGradePlanId: effectiveGradePlanId,
-      gradeValues: effectiveGradeValues,
+      gradePlan: gradePlanSnapshot && gradePlanSnapshot.exists ? { id: gradePlanSnapshot.id, ...gradePlanSnapshot.data() } : null,
     },
     attendanceSource,
     expectedWeekdays: [...expectedWeekdays],
