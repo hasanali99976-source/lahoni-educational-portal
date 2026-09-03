@@ -76,14 +76,9 @@ export default function PortalV105Runtime() {
   useEffect(() => {
     if (!pathname) return;
 
-    if (pathname.startsWith("/teacher/") && pathname !== "/teacher") {
-      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-      if (navigation?.type === "reload") {
-        void fetch("/api/teacher-logout", { method: "POST", cache: "no-store", keepalive: true })
-          .finally(() => window.location.replace("/teacher?reason=refresh"));
-        return;
-      }
-    }
+    // لا ننهي جلسة المعلم اعتمادًا على Navigation Timing؛ بعض انتقالات تسجيل الدخول
+    // تُسجل كـ reload في المتصفح وتسبب حلقة "جارٍ تجهيز بوابة المعلم".
+    // الخروج الآمن يبقى عبر مهلة الخمول وتسجيل الخروج الصريح.
 
     let gradeSaveTimer: number | null = null;
     const scheduleGradeSave = (event: Event) => {
