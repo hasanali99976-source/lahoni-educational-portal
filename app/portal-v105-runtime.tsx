@@ -22,10 +22,11 @@ function enhanceAttendance() {
 }
 
 function validateAttendanceRange(event: Event) {
-  const target = event.target instanceof Element ? target.closest<HTMLButtonElement>(".attendance-range-controls button") : null;
-  if (!target) return;
-  const controls = target.closest(".attendance-range-controls");
-  const inputs = controls?.querySelectorAll<HTMLInputElement>('input[type="date"]');
+  const source = event.target instanceof Element ? event.target : null;
+  const button = source?.closest(".attendance-range-controls button") as HTMLButtonElement | null;
+  if (!button) return;
+  const controls = button.closest(".attendance-range-controls");
+  const inputs = controls?.querySelectorAll('input[type="date"]') as NodeListOf<HTMLInputElement> | undefined;
   if (!inputs || inputs.length < 2) return;
   const from = inputs[0]?.value || "";
   const to = inputs[1]?.value || "";
@@ -47,8 +48,9 @@ function enhanceFollowUp() {
 }
 
 function redirectFollowUpNotes(event: Event) {
-  const target = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-v105-notes-redirect="1"]') : null;
-  if (!target) return;
+  const source = event.target instanceof Element ? event.target : null;
+  const button = source?.closest('[data-v105-notes-redirect="1"]') as HTMLButtonElement | null;
+  if (!button) return;
   event.preventDefault();
   event.stopPropagation();
   event.stopImmediatePropagation();
@@ -62,10 +64,9 @@ function enhanceGrades() {
 }
 
 function enhanceDashboard() {
-  document.querySelectorAll<HTMLElement>("h1").forEach(element => {
-    if (element.closest(".teacher-page-content") && ["يومي", "مركز العمل اليومي", "لوحة المعلم اليومية"].some(value => element.textContent?.includes(value))) {
-      element.textContent = "قياس معلومات الطلاب";
-    }
+  document.querySelectorAll<HTMLElement>(".daily-kicker").forEach(element => { element.textContent = "قياس معلومات الطلاب"; });
+  document.querySelectorAll<HTMLElement>(".daily-hero-copy p").forEach(element => {
+    if (element.textContent?.includes("كل ما تحتاجه للحصة")) element.textContent = "ملخص شامل للتحصيل والحضور والرصد والمتابعة، مع الوصول السريع إلى معلومات أي طالب من نفس المساحة.";
   });
 }
 
