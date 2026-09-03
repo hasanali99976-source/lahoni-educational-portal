@@ -1,8 +1,7 @@
-const CACHE_NAME = "ostadh-lahooni-v104-grade-plan-cloud-sync";
+const CACHE_NAME = "ostadh-lahooni-v105-unified-portal";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",
-  "/icon.svg",
   "/icons/ostadh-lahooni-192.jpg",
   "/portal-cover.webp",
 ];
@@ -40,8 +39,10 @@ self.addEventListener("fetch", event => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request, { cache: "no-store" })
-        .catch(async () => (await caches.match("/")) || Response.error()),
+      fetch(request, { cache: "no-store" }).catch(async () => {
+        if (url.pathname === "/") return (await caches.match("/")) || Response.error();
+        return Response.error();
+      }),
     );
     return;
   }
@@ -53,7 +54,7 @@ self.addEventListener("fetch", event => {
 
   if (["image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(response => {
+      caches.match(request).then(cached => cached || fetch(request, { cache: "reload" }).then(response => {
         if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
         return response;
       })),
