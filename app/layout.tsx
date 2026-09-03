@@ -19,6 +19,7 @@ import MobileAppEnhancer from "./mobile-app-enhancer";
 import MobileWindowBridge from "./mobile-window-bridge";
 import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
+import TeacherRaceWidget from "./admin/teacher-race-widget";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -29,15 +30,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "default" },
   formatDetection: { telephone: false },
-  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
+  icons: { icon: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }], apple: [{ url: "/icons/ostadh-lahooni-192.jpg", sizes: "192x192", type: "image/jpeg" }] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#0b2f3a", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#102f50", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
     <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime />
+    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime /><TeacherRaceWidget />
     <div className="portal-stage">{children}</div>
     <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
   </body></html>;
