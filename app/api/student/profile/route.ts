@@ -169,11 +169,17 @@ export async function GET(request: Request) {
   const gradePlan = chooseStudentGradePlan(serverGradePlan, studentData);
   const effectiveGradePlanId = String(gradePlan?.id || studentData.activeGradePlanId || activeGradePlanId || "");
   const effectiveGradeValues = valuesForStudentPlan(studentData, effectiveGradePlanId);
+  const visibleTeacherNotes = (Array.isArray(studentData.teacherNotes) ? studentData.teacherNotes : [])
+    .filter((note: unknown) => !note || typeof note !== "object" || (note as Record<string, unknown>).visibleToParent !== false)
+    .slice(0, 250);
 
   return NextResponse.json({
     ok: true,
     data: {
       ...studentData,
+      teacherNotes: visibleTeacherNotes,
+      teacherNoteCount: visibleTeacherNotes.length,
+      internalTeacherNotes: undefined,
       absences: counts.absent,
       late: counts.late,
       attendanceSummary: {
