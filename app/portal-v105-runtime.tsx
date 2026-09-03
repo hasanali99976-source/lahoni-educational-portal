@@ -76,6 +76,28 @@ export default function PortalV105Runtime() {
   useEffect(() => {
     if (!pathname) return;
 
+    if (pathname.startsWith("/teacher/") && pathname !== "/teacher") {
+      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      if (navigation?.type === "reload") {
+        void fetch("/api/teacher-logout", { method: "POST", cache: "no-store", keepalive: true })
+          .finally(() => window.location.replace("/teacher?reason=refresh"));
+        return;
+      }
+    }
+
+    let gradeSaveTimer: number | null = null;
+    const scheduleGradeSave = (event: Event) => {
+      if (!pathname.startsWith("/teacher/grades")) return;
+      const source = event.target instanceof Element ? event.target : null;
+      if (!source?.closest(".grade-input")) return;
+      if (gradeSaveTimer !== null) window.clearTimeout(gradeSaveTimer);
+      gradeSaveTimer = window.setTimeout(() => {
+        gradeSaveTimer = null;
+        const saveButton = document.querySelector<HTMLButtonElement>(".save-button");
+        if (saveButton && !saveButton.disabled) saveButton.click();
+      }, 900);
+    };
+
     const enhance = () => {
       if (pathname.startsWith("/teacher/attendance")) enhanceAttendance();
       if (pathname.startsWith("/teacher/follow-up")) enhanceFollowUp();
@@ -89,11 +111,14 @@ export default function PortalV105Runtime() {
 
     if (pathname.startsWith("/teacher/attendance")) document.addEventListener("click", validateAttendanceRange, true);
     if (pathname.startsWith("/teacher/follow-up")) document.addEventListener("click", redirectFollowUpNotes, true);
+    if (pathname.startsWith("/teacher/grades")) document.addEventListener("input", scheduleGradeSave, true);
 
     return () => {
       observer.disconnect();
+      if (gradeSaveTimer !== null) window.clearTimeout(gradeSaveTimer);
       document.removeEventListener("click", validateAttendanceRange, true);
       document.removeEventListener("click", redirectFollowUpNotes, true);
+      document.removeEventListener("input", scheduleGradeSave, true);
     };
   }, [pathname]);
 
