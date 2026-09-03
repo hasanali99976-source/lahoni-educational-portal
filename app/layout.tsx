@@ -21,6 +21,7 @@ import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalV105Runtime from "./portal-v105-runtime";
 import TeacherRaceWidget from "./admin/teacher-race-widget";
+import RosterImportWidget from "./admin/roster-import-widget";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -39,7 +40,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
     <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime /><PortalV105Runtime /><TeacherRaceWidget />
+    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime /><PortalV105Runtime /><TeacherRaceWidget /><RosterImportWidget />
     <div className="portal-stage">{children}</div>
     <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
   </body></html>;
