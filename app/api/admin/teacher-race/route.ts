@@ -9,10 +9,10 @@ function objectSize(value: unknown) {
 function gradeEntryCount(data: Record<string, unknown>) {
   const direct = objectSize(data.gradeValues);
   const plans = data.gradePlanValues && typeof data.gradePlanValues === "object" && !Array.isArray(data.gradePlanValues)
-    ? Object.values(data.gradePlanValues as Record<string, unknown>).reduce((sum, value) => sum + objectSize(value), 0)
+    ? Object.values(data.gradePlanValues as Record<string, unknown>).reduce<number>((sum, value) => sum + objectSize(value), 0)
     : 0;
   const legacy = data.units && typeof data.units === "object" && !Array.isArray(data.units)
-    ? Object.values(data.units as Record<string, unknown>).reduce((sum, value) => sum + objectSize(value), 0)
+    ? Object.values(data.units as Record<string, unknown>).reduce<number>((sum, value) => sum + objectSize(value), 0)
     : 0;
   return Math.max(direct, plans, legacy);
 }
@@ -25,8 +25,10 @@ export async function GET() {
     const database = adminDb();
     const users = await database.collection("portalV2Users").where("role", "==", "teacher").get();
     const rows = await Promise.all(users.docs.map(async teacherDoc => {
-      const teacher = teacherDoc.data() as Record<string, any>;
-      const subjectIds = Array.isArray(teacher.subjectIds) ? [...new Set(teacher.subjectIds.map(String))] : [];
+      const teacher = teacherDoc.data() as Record<string, unknown>;
+      const subjectIds: string[] = Array.isArray(teacher.subjectIds)
+        ? [...new Set((teacher.subjectIds as unknown[]).map(value => String(value)))]
+        : [];
       let attendance = 0;
       let timetable = 0;
       let gradeEntries = 0;
@@ -42,15 +44,15 @@ export async function GET() {
         ]);
 
         if (attendanceSnapshot) {
-          attendance += attendanceSnapshot.size;
-          attendanceSnapshot.docs.forEach(doc => {
-            const value = String((doc.data() as Record<string, unknown>).updatedAt || "");
+          attendance += attendanceSnapshot.docs.length;
+          attendanceSnapshot.docs.forEach(item => {
+            const value = String((item.data() as Record<string, unknown>).updatedAt || "");
             if (value > lastActivity) lastActivity = value;
           });
         }
 
-        studentsSnapshot?.docs.forEach(doc => {
-          const data = doc.data() as Record<string, unknown>;
+        studentsSnapshot?.docs.forEach(item => {
+          const data = item.data() as Record<string, unknown>;
           gradeEntries += gradeEntryCount(data);
           notes += Array.isArray(data.teacherNotes) ? data.teacherNotes.length : 0;
           notes += Array.isArray(data.internalTeacherNotes) ? data.internalTeacherNotes.length : 0;
@@ -59,9 +61,9 @@ export async function GET() {
         });
 
         if (timetableSnapshot?.exists) {
-          const lessons = timetableSnapshot.data()?.lessons;
-          timetable += objectSize(lessons);
-          const value = String(timetableSnapshot.data()?.updatedAt || "");
+          const timetableData = timetableSnapshot.data() as Record<string, unknown> | undefined;
+          timetable += objectSize(timetableData?.lessons);
+          const value = String(timetableData?.updatedAt || "");
           if (value > lastActivity) lastActivity = value;
         }
       }
