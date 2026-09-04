@@ -1,10 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v107-academic-identity";
+const CACHE_NAME = "ostadh-lahooni-v109-approved-academic";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",
   "/icon.svg",
-  "/icons/ostadh-lahooni-192.jpg",
-  "/subject-collage.svg?v=10",
+  "/icons/lahooni-identity-320.jpg",
+  "/subject-collage.svg?v=12",
   "/portal-cover.webp",
 ];
 
