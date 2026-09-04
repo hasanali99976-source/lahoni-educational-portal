@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-// v109 unified academic identity release
+// v109 unified academic identity release — Netlify preview sync
 const CURRENT_CACHE = "ostadh-lahooni-v109-approved-academic";
 const RELOAD_KEY = "ostadh-lahooni-v109-approved-academic";
 
