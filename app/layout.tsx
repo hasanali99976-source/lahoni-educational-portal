@@ -9,7 +9,8 @@ import "./design-lab-live-polish.css";
 import "./design-lab-refine-v2.css";
 import "./roster-pdf-v4.css";
 import "./teacher/teacher-academy-v12-guards.css";
-import { Tajawal } from "next/font/google";
+import "./teacher-academy-v13.css";
+import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
 import MobileAppEnhancer from "./mobile-app-enhancer";
@@ -20,8 +21,7 @@ import DesignLabSmartAssist from "./design-lab-smart-assist";
 import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherWorkActivityTracker from "./teacher-work-activity-tracker";
 
-// Design Lab publish marker: teacher academy V12 cleanup is the active teacher visual system.
-const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
+const academyFont = Alexandria({ subsets: ["arabic"], weight: ["400", "500", "600", "700", "800", "900"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "أستاذ لحوني", template: "%s | أستاذ لحوني" },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#073b45", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><body className={tajawal.className}>
+  return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
