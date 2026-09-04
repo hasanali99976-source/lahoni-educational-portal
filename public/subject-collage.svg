@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none">
+  <defs>
+    <linearGradient id="navyGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#163A61" stop-opacity=".30"/>
+      <stop offset="1" stop-color="#315C83" stop-opacity=".12"/>
+    </linearGradient>
+    <linearGradient id="goldGlass" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#B98532" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#E1C078" stop-opacity=".12"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation=".6"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="9" stdDeviation="16" flood-color="#0D315B" flood-opacity=".08"/>
+    </filter>
+  </defs>
+
+  <!-- geography -->
+  <g transform="translate(72 214)" opacity=".28" stroke="#173B61" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#soft)">
+    <circle cx="110" cy="100" r="82"/>
+    <path d="M29 92c25-8 43-2 57 14 18 21 39 25 61 8 17-13 34-13 49 0M87 25c-17 31-21 62-11 93 8 25 22 46 42 64M152 29c13 26 15 50 6 72-9 23-11 47-4 73M33 63c47 20 97 21 151 2M34 139c47-17 98-17 151 1"/>
+    <path d="M94 183v25M63 212h92"/>
+  </g>
+
+  <!-- science lab flask -->
+  <g transform="translate(282 305) rotate(-5)" opacity=".27" filter="url(#softShadow)">
+    <path d="M66 0h54v27l-11 17v58l54 82c11 18-2 41-23 41H41c-21 0-34-23-23-41l54-82V44L61 27V0h5Z" fill="url(#navyGlass)" stroke="#173B61" stroke-opacity=".55" stroke-width="3"/>
+    <path d="M45 156h82c12 0 23 7 28 18l6 14c5 12-4 25-17 25H40c-14 0-23-15-16-27l8-15c3-9 7-15 13-15Z" fill="#C89D52" fill-opacity=".13"/>
+    <circle cx="73" cy="177" r="8" fill="#C89D52" fill-opacity=".40"/><circle cx="106" cy="191" r="5" fill="#173B61" fill-opacity=".28"/><circle cx="121" cy="166" r="4" fill="#C89D52" fill-opacity=".35"/>
+  </g>
+
+  <!-- mathematics geometry -->
+  <g transform="translate(350 160) rotate(7)" opacity=".24" stroke="#173B61" stroke-width="3" stroke-linejoin="round">
+    <path d="M6 118 76 0l71 118H6Z" fill="url(#navyGlass)"/>
+    <path d="M54 91 77 51l24 40H54Z"/>
+    <path d="M16 105h18M27 86h15M38 67h15M50 48h13"/>
+  </g>
+
+  <!-- language/open book -->
+  <g transform="translate(450 365) rotate(4)" opacity=".26" filter="url(#softShadow)">
+    <path d="M0 22C45 3 84 6 116 31v126c-31-21-70-24-116-5V22Z" fill="url(#goldGlass)" stroke="#B98532" stroke-opacity=".55" stroke-width="3"/>
+    <path d="M232 22c-45-19-84-16-116 9v126c31-21 70-24 116-5V22Z" fill="url(#navyGlass)" stroke="#173B61" stroke-opacity=".45" stroke-width="3"/>
+    <path d="M116 31v126M24 51h64M24 72h76M24 93h59M145 51h63M145 72h73M145 93h55" stroke="#173B61" stroke-opacity=".34" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- history scroll -->
+  <g transform="translate(1470 260) rotate(6)" opacity=".25" filter="url(#softShadow)">
+    <path d="M35 0h164c30 0 45 30 28 50-10 12-26 16-41 13v123c17-3 34 3 44 17 14 20-1 47-26 47H35c-26 0-42-28-26-49 10-13 26-18 41-15V64c-16 3-33-2-43-15C-9 28 7 0 35 0Z" fill="url(#goldGlass)" stroke="#B98532" stroke-opacity=".55" stroke-width="3"/>
+    <path d="M50 64h136M50 186h136M75 94h88M75 119h104M75 144h72" stroke="#173B61" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- computer science laptop -->
+  <g transform="translate(1450 555) rotate(-4)" opacity=".27" filter="url(#softShadow)">
+    <rect x="20" y="0" width="255" height="154" rx="14" fill="url(#navyGlass)" stroke="#173B61" stroke-opacity=".55" stroke-width="3"/>
+    <rect x="39" y="20" width="217" height="112" rx="7" fill="#fff" fill-opacity=".22"/>
+    <path d="m96 61-24 18 24 18M180 61l24 18-24 18M151 48l-31 62" stroke="#173B61" stroke-opacity=".55" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M0 166h294l-23 32H23L0 166Z" fill="url(#goldGlass)" stroke="#B98532" stroke-opacity=".45" stroke-width="3"/>
+  </g>
+
+  <!-- creativity/light bulb -->
+  <g transform="translate(1685 185)" opacity=".24" stroke="#173B61" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M71 18c-43 0-72 31-72 69 0 27 14 48 35 60 11 7 16 15 17 27h40c1-12 6-20 17-27 21-12 35-33 35-60 0-38-29-69-72-69Z" fill="url(#navyGlass)"/>
+    <path d="M51 188h40M55 202h32M61 216h20M48 93l20 18 26-38M71 0v-20M19 17 4 2M123 17l15-15M0 68h-22M144 68h22"/>
+  </g>
+
+  <!-- foreground academic books, lower left -->
+  <g transform="translate(-20 800)" opacity=".46" filter="url(#softShadow)">
+    <rect x="0" y="80" width="350" height="68" rx="15" fill="#0D315B" fill-opacity=".28"/>
+    <rect x="20" y="15" width="310" height="64" rx="14" fill="#C89D52" fill-opacity=".19" stroke="#B98532" stroke-opacity=".28" stroke-width="2"/>
+    <rect x="45" y="-42" width="268" height="58" rx="13" fill="#173B61" fill-opacity=".22"/>
+    <path d="M35 46h264M25 113h292M64-12h210" stroke="#fff" stroke-opacity=".45" stroke-width="3"/>
+    <path d="M245 15v64M88 80v68" stroke="#C89D52" stroke-opacity=".34" stroke-width="5"/>
+  </g>
+
+  <!-- stationery / art, lower right -->
+  <g transform="translate(1695 735)" opacity=".40" filter="url(#softShadow)">
+    <path d="M0 84h122l-10 184H11L0 84Z" fill="#173B61" fill-opacity=".22" stroke="#173B61" stroke-opacity=".38" stroke-width="3"/>
+    <path d="M25 78 8-86M58 77 52-111M88 78l27-158" stroke="#173B61" stroke-opacity=".60" stroke-width="10" stroke-linecap="round"/>
+    <path d="M25-91 3-108l5 27M53-116l-11 21 19 0M117-85l-19-15-1 25" fill="#C89D52" fill-opacity=".45" stroke="#B98532" stroke-opacity=".45" stroke-width="2"/>
+  </g>
+
+  <!-- decorative gold arcs -->
+  <path d="M-120 80C90 225 250 455 570 502" stroke="#C89D52" stroke-opacity=".28" stroke-width="3"/>
+  <path d="M2030 95c-220 128-343 327-492 443" stroke="#C89D52" stroke-opacity=".26" stroke-width="3"/>
+</svg>
