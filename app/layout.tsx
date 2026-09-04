@@ -13,6 +13,7 @@ import "./attendance-students-v31.css";
 import "./mobile-complete-v36.css";
 import "./teacher/teacher-mobile-complete-v7.css";
 import "./portal-entry-theme.css";
+import "./portal-identity-v103.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
