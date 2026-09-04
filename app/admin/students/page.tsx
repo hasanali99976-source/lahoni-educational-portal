@@ -167,16 +167,16 @@ export default function AdminStudentsPage() {
       const { jsPDF } = await import("jspdf");
       const canvas = await html2canvas(sheet, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageW = 210, pageH = 297, margin = 8, usableH = pageH - margin * 2, imgW = pageW - margin * 2;
-      const imgH = canvas.height * imgW / canvas.width;
-      const pages = Math.max(1, Math.ceil(imgH / usableH));
+      const pageW = 210, pageH = 297, margin = 8, usableW = pageW - margin * 2, usableH = pageH - margin * 2;
+      const naturalH = canvas.height * usableW / canvas.width;
+      const fitScale = Math.min(1, usableH / naturalH);
+      const renderW = usableW * fitScale;
+      const renderH = naturalH * fitScale;
+      const x = (pageW - renderW) / 2;
       const data = canvas.toDataURL("image/png");
-      for (let page = 0; page < pages; page++) {
-        if (page) pdf.addPage();
-        pdf.addImage(data, "PNG", margin, margin - page * usableH, imgW, imgH);
-      }
+      pdf.addImage(data, "PNG", x, margin, renderW, renderH);
       pdf.save(`كشف_${selectedClass.name}.pdf`);
-      setMessage("تم تجهيز كشف الطلاب PDF من البوابة.");
+      setMessage("تم تجهيز كشف الفصل كاملًا في صفحة A4 واحدة.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر إنشاء PDF"); }
     finally { setBusy(false); }
   }
@@ -212,6 +212,6 @@ export default function AdminStudentsPage() {
 
     {editing && <div className="roster-v3-modal"><section><header><div><small>الكود ثابت: {editing.code}</small><h2>تعديل أو نقل الطالب</h2></div><button type="button" onClick={() => setEditing(null)}>×</button></header><label>اسم الطالب<input value={editing.name} onChange={event => setEditing({ ...editing, name: event.target.value })} /></label><label>الصف<select value={editing.grade} onChange={event => setEditing({ ...editing, grade: Number(event.target.value) })}>{GRADES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><label>رقم الفصل<input value={editing.section} onChange={event => setEditing({ ...editing, section: event.target.value.replace(/[^0-9٠-٩]/g, "") })} /></label><footer><button onClick={() => setEditing(null)}>إلغاء</button><button className="primary" onClick={() => void saveEdit()} disabled={busy}>حفظ</button></footer></section></div>}
 
-    <div id="roster-pdf-sheet" className="roster-pdf-sheet" aria-hidden="true"><div className="pdf-brand">بوابة أستاذ لحوني التعليمية</div><h1>كشف الطلاب</h1><h2>{selectedClass?.name || ""}</h2><p>عدد الطلاب: {ar(classStudents.length)}</p><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الكود</th></tr></thead><tbody>{classStudents.map((student,index) => <tr key={student.id}><td>{ar(index+1)}</td><td>{student.name}</td><td>{student.code}</td></tr>)}</tbody></table></div>
+    <div id="roster-pdf-sheet" className="roster-pdf-sheet" aria-hidden="true"><div className="pdf-brand">بوابة أستاذ لحوني التعليمية</div><h1>كشف الطلاب</h1><h2>{selectedClass ? `${GRADES.find(item => item.value === selectedClass.grade)?.label || ""} • الفصل ${ar(selectedClass.section)}` : ""}</h2><p>عدد الطلاب: {ar(classStudents.length)}</p><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الصف والفصل</th><th>الكود</th></tr></thead><tbody>{classStudents.map((student,index) => <tr key={student.id}><td>{ar(index+1)}</td><td>{student.name}</td><td>{GRADES.find(item => item.value === student.grade)?.label || ""} • فصل {ar(student.section)}</td><td>{student.code}</td></tr>)}</tbody></table></div>
   </section>;
 }
