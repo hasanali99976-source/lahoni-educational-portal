@@ -3,15 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import StudentBulkUploader from "./student-bulk-uploader";
 import "./admin-privacy.css";
 
 const tabs = [
-  { href: "/admin", label: "المعلمون", note: "الحسابات والنشاط", icon: "م" },
-  { href: "/admin/students", label: "الطلاب", note: "القوائم والفصول", icon: "ط" },
+  { href: "/admin", label: "المعلمون", note: "الحسابات والتحدي", icon: "م" },
+  { href: "/admin/students", label: "الطلاب", note: "القوائم والرفع", icon: "ط" },
 ] as const;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const studentsTab = pathname.startsWith("/admin/students");
   return <>
     <aside className="admin-workspace-sidebar" dir="rtl" aria-label="مركز قيادة الإدارة">
       <div className="admin-sidebar-brand">
@@ -31,11 +33,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </nav>
 
       <div className="admin-sidebar-smart-note">
-        <span>✦</span><div><b>إدارة أذكى</b><small>الترتيب يعتمد على العمل المحفوظ فعليًا، وليس عدد النقرات.</small></div>
+        <span>✦</span><div><b>إدارة أذكى</b><small>المعلم يتصدر بالعمل المحفوظ فعليًا، والطلاب يدارون بقوائم كاملة بدل الإدخال المرهق.</small></div>
       </div>
 
       <Link className="admin-sidebar-home" href="/">العودة للرئيسية</Link>
     </aside>
-    {children}
+    <div className={studentsTab ? "admin-students-workspace" : "admin-teachers-workspace"}>
+      {studentsTab && <StudentBulkUploader />}
+      {children}
+    </div>
   </>;
 }
