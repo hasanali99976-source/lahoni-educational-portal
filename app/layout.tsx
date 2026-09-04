@@ -2,6 +2,7 @@ import "./globals.css";
 import "./print.css";
 import "./attendance-students-v31.css";
 import "./approved-entry.css";
+import "./design-lab-v1.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#ffffff", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#073b45", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
