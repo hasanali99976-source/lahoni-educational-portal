@@ -9,9 +9,9 @@ import "./student-direct-qr.css";
 const PORTRAIT = "/icons/ostadh-lahooni-192.jpg";
 
 const portals = [
-  { href: "/admin", title: "إدارة البوابة", note: "الدخول إلى إدارة النظام", tone: "admin", icon: "admin" },
-  { href: "/teacher", title: "بوابة المعلم", note: "الدخول إلى مساحة عمل المعلم", tone: "teacher", icon: "teacher" },
-  { href: "/student", title: "الطالب وولي الأمر", note: "الدخول والمتابعة التعليمية", tone: "student", icon: "student" },
+  { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin" },
+  { href: "/teacher", title: "بوابة المعلم", text: "إدارة الاختبارات، الحضور، التقارير والأنشطة والمصادر التعليمية", tone: "teacher", icon: "teacher" },
+  { href: "/student", title: "الطالب وولي الأمر", text: "متابعة أداء الطالب، الاختبارات والتواصل المدرسي", tone: "student", icon: "student" },
 ];
 
 function PortalIcon({ type }: { type: string }) {
@@ -26,31 +26,54 @@ export default function ApprovedHomeClient() {
   if (!mounted) return null;
 
   return createPortal(
-    <main className="lah-gate-home" dir="rtl">
-      <section className="lah-gate-shell" aria-label="بوابة أستاذ لحوني التعليمية">
-        <div className="lah-gate-identity">
-          <img src={PORTRAIT} alt="هوية بوابة أستاذ لحوني التعليمية" loading="eager" decoding="sync" />
-        </div>
-        <span className="lah-gate-kicker">مرحباً بكم في</span>
-        <h1>بوابة أستاذ لحوني التعليمية</h1>
-        <p className="lah-gate-subtitle">بوابة موحدة للدخول إلى الإدارة والمعلم والطالب وولي الأمر</p>
-        <div className="lah-gate-rule" aria-hidden="true" />
+    <main className="academy-home" dir="rtl">
+      <div className="academy-page-frame" aria-hidden="true" />
+      <div className="academy-subject-art" aria-hidden="true" />
+      <div className="academy-light-sweep" aria-hidden="true" />
 
-        <nav className="lah-gate-tabs" aria-label="خيارات الدخول">
+      <header className="academy-top-band">
+        <div className="academy-brand-mini">
+          <img src={PORTRAIT} alt="هوية بوابة أستاذ لحوني التعليمية" />
+          <strong>بوابة أستاذ لحوني التعليمية</strong>
+        </div>
+      </header>
+
+      <section className="academy-hero">
+        <aside className="academy-motto" aria-hidden="true">معاً<br/>نصنع فرقاً<br/>في التعليم</aside>
+
+        <div className="academy-hero-copy">
+          <span>مرحباً بكم في</span>
+          <h1>بوابة أستاذ لحوني التعليمية</h1>
+          <p>مصادر موثوقة .. تحضير أسهل .. مستقبل أفضل</p>
+          <i aria-hidden="true" />
+        </div>
+
+        <div className="academy-portrait-wrap">
+          <div className="academy-portrait-ring">
+            <img src={PORTRAIT} alt="هوية أستاذ لحوني" />
+          </div>
+        </div>
+      </section>
+
+      <section className="academy-access" aria-label="خيارات الدخول">
+        <div className="academy-qr-panel" aria-label="الدخول السريع لبوابة الطالب وولي الأمر">
+          <StudentDirectQr />
+        </div>
+
+        <nav className="academy-portal-grid" aria-label="بوابات الدخول">
           {portals.map(portal => (
-            <Link key={portal.href} href={portal.href} className={`lah-gate-tab ${portal.tone}`}>
-              <span className="lah-gate-tab-icon"><PortalIcon type={portal.icon} /></span>
-              <span className="lah-gate-tab-copy"><strong>{portal.title}</strong><small>{portal.note}</small></span>
-              <span className="lah-gate-tab-enter" aria-hidden="true">←</span>
+            <Link key={portal.href} href={portal.href} className={`academy-portal-card ${portal.tone}`}>
+              <span className="academy-card-icon"><PortalIcon type={portal.icon} /></span>
+              <h2>{portal.title}</h2>
+              <p>{portal.text}</p>
+              <span className="academy-card-enter" aria-hidden="true">←</span>
             </Link>
           ))}
         </nav>
-
-        <div className="lah-gate-lower">
-          <div className="lah-gate-qr" aria-label="الدخول السريع للطالب وولي الأمر"><StudentDirectQr /></div>
-          <footer className="lah-gate-credit">إعداد البوابة: <b>الأستاذ حسن علي الطويل</b></footer>
-        </div>
       </section>
+
+      <footer className="academy-credit">إعداد البوابة: <b>الأستاذ حسن علي الطويل</b><span aria-hidden="true">✎</span></footer>
+      <div className="academy-bottom-band" aria-hidden="true" />
     </main>,
     document.body,
   );
