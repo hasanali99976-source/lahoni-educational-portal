@@ -9,22 +9,24 @@ import "./student-direct-qr.css";
 const PORTRAIT = "/icons/lahooni-identity-320.jpg";
 
 const portals = [
-  { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin" },
-  { href: "/teacher", title: "بوابة المعلم", text: "إدارة الاختبارات، الحضور، التقارير والأنشطة والمصادر التعليمية", tone: "teacher", icon: "teacher" },
-  { href: "/student", title: "الطالب وولي الأمر", text: "متابعة أداء الطالب، الاختبارات والتواصل المدرسي", tone: "student", icon: "student" },
+  { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الصفوف، الإعدادات والتقارير", tone: "admin", icon: "admin" },
+  { href: "/teacher", title: "بوابة المعلم", text: "إدارة الصفوف، الحضور، الدرجات والمتابعة الذكية", tone: "teacher", icon: "teacher" },
+  { href: "/student", title: "بوابة الطالب", text: "التحصيل، الاختبارات، الحضور والتوجيه الذكي", tone: "student", icon: "student" },
+  { href: "/parent", title: "بوابة ولي الأمر", text: "متابعة الأبناء، الملاحظات، الحضور والتقارير", tone: "parent", icon: "parent" },
 ];
 
 const features = [
   { icon: "target", title: "تصنع جيلاً", text: "لمستقبل أفضل" },
-  { icon: "idea", title: "بيئة تعليمية", text: "محفزة" },
+  { icon: "idea", title: "بيئة تعليمية", text: "ذكية ومحفزة" },
   { icon: "people", title: "شراكة فاعلة", text: "بين المدرسة والأسرة" },
-  { icon: "chart", title: "متابعة مستمرة", text: "للمستوى الدراسي" },
+  { icon: "chart", title: "متابعة مستمرة", text: "للتحصيل والأداء" },
 ];
 
 function PortalIcon({ type }: { type: string }) {
   if (type === "admin") return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l5 3 6-.5 2 5.5 5 3-2 5.8 2 5.7-5 3-2 5.5-6-.5-5 3-5-3-6 .5-2-5.5-5-3 2-5.7-2-5.8 5-3 2-5.5 6 .5 5-3Z"/><path d="m18.5 24 4 4 8-9"/></svg>;
   if (type === "teacher") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="15" cy="14" r="5.5"/><path d="M6 38v-9c0-5 4-9 9-9s9 4 9 9v9"/><rect x="27" y="9" width="15" height="20" rx="2"/><path d="M24 25l9-6m-5 9 7-5"/></svg>;
-  return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="15" r="6.5"/><circle cx="32" cy="19" r="5"/><path d="M6 39c1.6-8 6.2-12 11-12s9.5 4 11 12M27 39c1.2-5.4 4.2-8.3 7.5-8.3S40.8 33.6 42 39"/></svg>;
+  if (type === "parent") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="14" r="6"/><circle cx="33" cy="18" r="4.5"/><path d="M7 39c1.2-8 5.8-13 11-13s9.8 5 11 13M29 39c.8-5.2 3.4-8.3 6.5-8.3S41 33.8 42 39"/><path d="M24 29c2.5-4.8 6.5-7.2 11-7.2"/></svg>;
+  return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="15" r="7"/><path d="M11 39c1.7-9 7-14 13-14s11.3 5 13 14"/><path d="M10 12 24 5l14 7-14 7-14-7Z"/><path d="M35 14v8"/></svg>;
 }
 
 function FeatureIcon({ type }: { type: string }) {
@@ -53,20 +55,20 @@ export default function ApprovedHomeClient() {
       </header>
 
       <section className="academy-hero">
-        <aside className="academy-motto" aria-hidden="true">معاً<br/>نصنع فرقاً<br/>في التعليم</aside>
+        <aside className="academy-motto" aria-hidden="true">تعليم ذكي<br/>تواصل أفضل<br/>مستقبل واعد</aside>
         <div className="academy-hero-copy">
           <span>مرحباً بكم في</span>
           <h1>بوابة أستاذ لحوني التعليمية</h1>
-          <p>مصادر موثوقة .. تحضير أسهل .. مستقبل أفضل</p>
+          <p>منصة مدرسية ذكية تربط الإدارة والمعلم والطالب وولي الأمر</p>
           <i aria-hidden="true" />
         </div>
         <div className="academy-portrait-wrap"><div className="academy-portrait-ring"><img src={PORTRAIT} alt="هوية أستاذ لحوني" /></div></div>
       </section>
 
-      <aside className="academy-side-quote" aria-hidden="true">العلم<br/>بناء القيم<br/>وصناعة<br/>المستقبل</aside>
+      <aside className="academy-side-quote" aria-hidden="true">المعرفة<br/>والتحليل<br/>والتواصل<br/>في مكان واحد</aside>
 
       <section className="academy-access" aria-label="خيارات الدخول">
-        <div className="academy-qr-panel" aria-label="الدخول السريع لبوابة الطالب وولي الأمر"><StudentDirectQr /></div>
+        <div className="academy-qr-panel" aria-label="الدخول السريع لبوابة الطالب"><StudentDirectQr /></div>
         <nav className="academy-portal-grid" aria-label="بوابات الدخول">
           {portals.map(portal => <Link key={portal.href} href={portal.href} className={`academy-portal-card ${portal.tone}`}>
             <span className="academy-card-icon"><PortalIcon type={portal.icon} /></span>
