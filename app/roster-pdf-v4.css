@@ -1,147 +1,182 @@
-/* DESIGN LAB V4 — A4 roster PDF: one selected class per page */
+/* DESIGN LAB V5 — premium educational roster PDF, one class per A4 */
 .roster-pdf-sheet{
   position:fixed!important;
   right:-5000px!important;
   top:0!important;
   width:794px!important;
+  height:1123px!important;
   min-height:1123px!important;
-  height:auto!important;
-  max-height:none!important;
-  overflow:visible!important;
-  padding:34px 38px 42px!important;
-  background:
-    radial-gradient(circle at 12% 7%,rgba(17,148,128,.10),transparent 22%),
-    linear-gradient(180deg,#ffffff 0,#fbfdfc 100%)!important;
-  color:#163b42!important;
-  direction:rtl!important;
+  max-height:1123px!important;
+  overflow:hidden!important;
+  padding:28px 34px 28px!important;
   box-sizing:border-box!important;
-  border:1px solid #d9e7e3!important;
+  direction:rtl!important;
+  color:#153c43!important;
+  background:
+    linear-gradient(rgba(10,112,106,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(10,112,106,.028) 1px,transparent 1px),
+    radial-gradient(circle at 8% 9%,rgba(28,168,142,.11),transparent 22%),
+    linear-gradient(180deg,#ffffff 0%,#fbfdfc 100%)!important;
+  background-size:34px 34px,34px 34px,auto,auto!important;
 }
 .roster-pdf-sheet:before{
   content:"";
   position:absolute;
-  inset:14px;
-  border:2px solid #0a706a;
-  border-radius:20px;
+  inset:12px;
+  border:2px solid #0b716a;
+  border-radius:22px;
   pointer-events:none;
 }
 .roster-pdf-sheet:after{
-  content:"كشف رسمي • بوابة أستاذ لحوني التعليمية";
+  content:"بوابة أستاذ لحوني التعليمية";
   position:absolute;
-  left:38px;
-  right:38px;
-  bottom:22px;
-  padding-top:8px;
-  border-top:1px solid #d9e7e3;
-  text-align:center;
-  color:#718789;
+  right:34px;
+  left:34px;
+  bottom:20px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-top:1px solid #d8e6e2;
+  color:#6d8385;
   font-size:10px;
-  font-weight:800;
-  letter-spacing:.1px;
+  font-weight:850;
 }
 .roster-pdf-sheet .pdf-brand{
   position:relative;
-  min-height:74px;
+  min-height:82px!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
-  padding:10px 88px 10px 24px!important;
-  border-radius:18px!important;
-  background:linear-gradient(120deg,#063f48,#0a726d)!important;
+  padding:12px 92px 12px 24px!important;
+  border:1px solid rgba(229,189,95,.7)!important;
+  border-radius:22px!important;
+  background:linear-gradient(120deg,#043a43 0%,#086660 58%,#0c8276 100%)!important;
   color:#fff!important;
   text-align:center!important;
-  font-size:19px!important;
+  font-size:20px!important;
   font-weight:950!important;
-  box-shadow:0 10px 24px rgba(5,70,73,.10)!important;
+  box-shadow:0 12px 28px rgba(5,70,73,.13)!important;
 }
 .roster-pdf-sheet .pdf-brand:before{
   content:"";
   position:absolute;
-  right:16px;
+  right:18px;
   top:50%;
   transform:translateY(-50%);
-  width:54px;
-  height:54px;
-  border-radius:15px;
+  width:58px;
+  height:58px;
+  border-radius:17px;
   background:#fff url('/icons/lahooni-identity-320.jpg') center/cover no-repeat;
-  border:2px solid #e4bc62;
-  box-shadow:0 5px 12px rgba(0,0,0,.14);
+  border:2px solid #f0ce78;
+  box-shadow:0 6px 15px rgba(0,0,0,.16);
+}
+.roster-pdf-sheet .pdf-brand:after{
+  content:"منصة تعليمية ذكية";
+  position:absolute;
+  left:18px;
+  top:50%;
+  transform:translateY(-50%);
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.09);
+  color:#e8f5f2;
+  font-size:9px;
+  font-weight:850;
 }
 .roster-pdf-sheet h1{
-  margin:18px 0 3px!important;
+  margin:15px 0 5px!important;
   text-align:center!important;
-  color:#0a5158!important;
-  font-size:27px!important;
-  line-height:1.1!important;
+  color:#0a5057!important;
+  font-size:26px!important;
+  line-height:1.08!important;
   font-weight:950!important;
 }
+.roster-pdf-sheet h1:after{
+  content:"";
+  display:block;
+  width:54px;
+  height:3px;
+  margin:7px auto 0;
+  border-radius:999px;
+  background:linear-gradient(90deg,#0c8a7d,#e1b85b);
+}
 .roster-pdf-sheet h2{
-  margin:5px auto 4px!important;
+  margin:6px auto 4px!important;
   width:max-content!important;
-  max-width:90%!important;
-  padding:7px 20px!important;
-  border:1px solid #e0bf74!important;
+  max-width:92%!important;
+  padding:7px 18px!important;
+  border:1px solid #dfc47e!important;
   border-radius:999px!important;
-  background:#fff9eb!important;
-  color:#8c651d!important;
+  background:linear-gradient(180deg,#fffaf0,#fff6df)!important;
+  color:#85601c!important;
   text-align:center!important;
-  font-size:15px!important;
-  line-height:1.1!important;
+  font-size:14px!important;
+  line-height:1.15!important;
   font-weight:950!important;
 }
 .roster-pdf-sheet p{
-  margin:5px 0 10px!important;
+  margin:4px 0 9px!important;
   text-align:center!important;
-  color:#718486!important;
-  font-size:11px!important;
+  color:#708588!important;
+  font-size:10px!important;
   font-weight:850!important;
 }
 .roster-pdf-sheet table{
+  --pdf-row:46px;
   width:100%!important;
-  margin-top:10px!important;
+  margin:8px 0 0!important;
   border-collapse:separate!important;
   border-spacing:0!important;
   table-layout:fixed!important;
   overflow:hidden!important;
-  border:1px solid #b9ceca!important;
-  border-radius:13px!important;
+  border:1px solid #b9cfca!important;
+  border-radius:16px!important;
   background:#fff!important;
+  box-shadow:0 8px 20px rgba(9,78,80,.045)!important;
 }
-.roster-pdf-sheet thead tr{height:27px!important}
-.roster-pdf-sheet tbody tr{height:17px!important}
+.roster-pdf-sheet table:has(tbody tr:nth-child(16)){--pdf-row:40px}
+.roster-pdf-sheet table:has(tbody tr:nth-child(21)){--pdf-row:34px}
+.roster-pdf-sheet table:has(tbody tr:nth-child(26)){--pdf-row:28px}
+.roster-pdf-sheet table:has(tbody tr:nth-child(31)){--pdf-row:24px}
+.roster-pdf-sheet table:has(tbody tr:nth-child(36)){--pdf-row:20px}
+.roster-pdf-sheet thead tr{height:35px!important}
+.roster-pdf-sheet tbody tr{height:var(--pdf-row)!important}
 .roster-pdf-sheet th,
 .roster-pdf-sheet td{
-  height:17px!important;
-  min-height:17px!important;
-  padding:2px 6px!important;
+  height:var(--pdf-row)!important;
+  padding:3px 8px!important;
   border:0!important;
-  border-bottom:1px solid #dce7e4!important;
-  border-left:1px solid #e4ece9!important;
+  border-bottom:1px solid #dce8e5!important;
+  border-left:1px solid #e7efed!important;
   text-align:right!important;
   vertical-align:middle!important;
-  line-height:1.05!important;
+  line-height:1.1!important;
   white-space:nowrap!important;
   overflow:hidden!important;
   text-overflow:ellipsis!important;
   font-size:11px!important;
-  color:#173d43!important;
+  color:#173e44!important;
 }
 .roster-pdf-sheet th{
-  height:27px!important;
-  background:linear-gradient(180deg,#eaf5f2,#e2f0ed)!important;
-  color:#0a5f5c!important;
-  font-size:10.8px!important;
+  height:35px!important;
+  padding-block:5px!important;
+  background:linear-gradient(180deg,#0a6f69,#095d5e)!important;
+  color:#fff!important;
+  font-size:10.5px!important;
   font-weight:950!important;
+  border-bottom:0!important;
 }
 .roster-pdf-sheet th:first-child,
-.roster-pdf-sheet td:first-child{width:42px!important;text-align:center!important}
+.roster-pdf-sheet td:first-child{width:46px!important;text-align:center!important;font-weight:900!important;color:#678083!important}
 .roster-pdf-sheet th:nth-child(2),
-.roster-pdf-sheet td:nth-child(2){width:auto!important;font-weight:850!important}
+.roster-pdf-sheet td:nth-child(2){width:auto!important;font-weight:900!important;color:#143f46!important}
 .roster-pdf-sheet th:nth-child(3),
-.roster-pdf-sheet td:nth-child(3){width:145px!important;text-align:center!important;color:#4d6a6d!important;font-weight:850!important}
+.roster-pdf-sheet td:nth-child(3){width:185px!important;text-align:center!important;color:#5b7477!important;font-weight:800!important}
 .roster-pdf-sheet th:nth-child(4),
-.roster-pdf-sheet td:nth-child(4){width:108px!important;text-align:center!important;direction:ltr!important;font-weight:900!important;color:#0b6e68!important}
-.roster-pdf-sheet tbody tr:nth-child(even) td{background:#f8fbfa!important}
+.roster-pdf-sheet td:nth-child(4){width:122px!important;text-align:center!important;direction:ltr!important;font-weight:950!important;color:#0b6e68!important}
+.roster-pdf-sheet th:first-child,.roster-pdf-sheet th:nth-child(3),.roster-pdf-sheet th:nth-child(4){color:#fff!important}
+.roster-pdf-sheet tbody tr:nth-child(even) td{background:#f5faf8!important}
+.roster-pdf-sheet tbody tr:nth-child(odd) td{background:#fff!important}
 .roster-pdf-sheet tbody tr:last-child td{border-bottom:0!important}
-.roster-pdf-sheet th:last-child,
-.roster-pdf-sheet td:last-child{border-left:0!important}
+.roster-pdf-sheet th:last-child,.roster-pdf-sheet td:last-child{border-left:0!important}
