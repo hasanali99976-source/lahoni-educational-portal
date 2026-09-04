@@ -7,12 +7,12 @@ import "./design-lab-home-3portals.css";
 import "./design-lab-ai-home.css";
 import "./design-lab-live-polish.css";
 import "./design-lab-refine-v2.css";
+import "./roster-pdf-v4.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
 import MobileAppEnhancer from "./mobile-app-enhancer";
 import MobileWindowBridge from "./mobile-window-bridge";
-import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
 import DesignLabSmartAssist from "./design-lab-smart-assist";
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-      <PortalIntelligence /><PortalCommandRuntime />
+      <PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
     <TeacherWorkActivityTracker />
