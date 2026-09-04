@@ -24,6 +24,7 @@ function dateKey(value:Date){
 function weekdayKey(value:Date){return new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",weekday:"long"}).format(value).toLowerCase();}
 function timeLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"}).format(value);}
 function dateLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(value);}
+function percentLabel(value:number){return value ? String(value)+"٪" : "—";}
 
 export default function TeacherDashboardPage(){
   const session=useTeacherClient();
@@ -74,10 +75,10 @@ export default function TeacherDashboardPage(){
   }),[students,activePlan]);
   const classStats=useMemo(()=>classes.map(name=>{
     const rows=studentStats.filter(student=>student.class===name);
-    const graded=rows.filter(student=>student.hasGrade);
-    const average=graded.length?Math.round(graded.reduce((sum,student)=>sum+student.average,0)/graded.length):0;
-    const support=graded.filter(student=>student.average<60).length;
-    return{name,students:rows.length,average,support,todayScheduled:lessons.some(lesson=>lesson.className===name),attendanceDone:savedToday.has(name),completion:graded.length?Math.round(graded.reduce((sum,student)=>sum+student.completion,0)/graded.length):0};
+    const gradedRows=rows.filter(student=>student.hasGrade);
+    const average=gradedRows.length?Math.round(gradedRows.reduce((sum,student)=>sum+student.average,0)/gradedRows.length):0;
+    const support=gradedRows.filter(student=>student.average<60).length;
+    return{name,students:rows.length,average,support,todayScheduled:lessons.some(lesson=>lesson.className===name),attendanceDone:savedToday.has(name),completion:gradedRows.length?Math.round(gradedRows.reduce((sum,student)=>sum+student.completion,0)/gradedRows.length):0};
   }),[classes,studentStats,lessons,savedToday]);
 
   const supportStudents=studentStats.filter(student=>student.hasGrade&&student.average<60).sort((a,b)=>a.average-b.average);
@@ -86,6 +87,13 @@ export default function TeacherDashboardPage(){
   const graded=studentStats.filter(student=>student.hasGrade);
   const overall=graded.length?Math.round(graded.reduce((sum,student)=>sum+student.average,0)/graded.length):0;
   const completedAttendance=lessons.length?Math.round(((lessons.length-incompleteClasses.length)/lessons.length)*100):0;
+  const nextLessonName=nextLesson?.className||"لا توجد حصة";
+  const nextLessonMeta=nextLesson?"الحصة "+String(nextLesson.period):"راجع الجدول الدراسي";
+  const attendanceValue=lessons.length?String(completedAttendance)+"٪":"—";
+  const attendanceMeta=lessons.length?String(lessons.length-incompleteClasses.length)+" من "+String(lessons.length)+" فصول":"لا توجد حصص اليوم";
+  const overallValue=percentLabel(overall);
+  const gradedMeta=graded.length?String(graded.length)+" طالب لديه رصد":"لم يبدأ الرصد";
+  const supportMeta="أقل من 60٪ بعد وجود رصد";
 
   const aiInsight=supportStudents.length
     ? {title:`${supportStudents.length} طالب يحتاجون دعمًا`,copy:`أولوية البدء: ${supportStudents[0].name} في ${supportStudents[0].class} بمتوسط ${supportStudents[0].average}٪.`,href:"/teacher/follow-up",action:"فتح خطة المتابعة"}
@@ -104,18 +112,18 @@ export default function TeacherDashboardPage(){
     </section>
 
     <section className="th10-kpis">
-      <article><small>الحصة الأقرب</small><b>{nextLesson?.className||"لا توجد حصة"}</b><span>{nextLesson?`الحصة ${nextLesson.period}`:"راجع الجدول الدراسي"}</span></article>
-      <article><small>إنجاز متابعة اليوم</small><b>{lessons.length?`${completedAttendance}٪`:"—"}</b><span>{lessons.length?`${lessons.length-incompleteClasses.length} من ${lessons.length} فصول":"لا توجد حصص اليوم"}</span></article>
-      <article><small>متوسط التحصيل</small><b>{overall?`${overall}٪`:"—"}</b><span>{graded.length?`${graded.length} طالب لديه رصد":"لم يبدأ الرصد"}</span></article>
-      <article><small>يحتاجون تدخلًا</small><b>{supportStudents.length}</b><span>{"أقل من 60٪ بعد وجود رصد"}</span></article>
+      <article><small>الحصة الأقرب</small><b>{nextLessonName}</b><span>{nextLessonMeta}</span></article>
+      <article><small>إنجاز متابعة اليوم</small><b>{attendanceValue}</b><span>{attendanceMeta}</span></article>
+      <article><small>متوسط التحصيل</small><b>{overallValue}</b><span>{gradedMeta}</span></article>
+      <article><small>يحتاجون تدخلًا</small><b>{supportStudents.length}</b><span>{supportMeta}</span></article>
     </section>
 
     <section className="th10-section-head"><div><small>مساحات العمل</small><h2>فصولك في نظرة أكاديمية واحدة</h2><p>ابدأ من الفصل، ثم انتقل للمتابعة أو التحصيل أو الملاحظة من نفس السياق.</p></div><Link href="/teacher/students">إدارة الفصول</Link></section>
     <section className="th10-classes">
       {classStats.map(item=><article key={item.name} className={item.todayScheduled?"today":""}>
         <header><div><small>{item.todayScheduled?"ضمن جدول اليوم":"فصل مسند"}</small><h3>{item.name}</h3></div><span>{item.students} طالب</span></header>
-        <div className="th10-class-progress"><div><span>التحصيل</span><b>{item.average?`${item.average}٪`:"—"}</b></div><i><u style={{width:`${item.average}%`}}/></i></div>
-        <div className="th10-class-meta"><span className={item.attendanceDone?"done":""}><b>{item.attendanceDone?"مكتمل":item.todayScheduled?"بانتظارك":"—"}</b><small>متابعة اليوم</small></span><span className={item.support?"warn":""}><b>{item.support}</b><small>يحتاج دعمًا</small></span><span><b>{item.completion?`${item.completion}٪`:"—"}</b><small>اكتمال الرصد</small></span></div>
+        <div className="th10-class-progress"><div><span>التحصيل</span><b>{percentLabel(item.average)}</b></div><i><u style={{width:String(item.average)+"%"}}/></i></div>
+        <div className="th10-class-meta"><span className={item.attendanceDone?"done":""}><b>{item.attendanceDone?"مكتمل":item.todayScheduled?"بانتظارك":"—"}</b><small>متابعة اليوم</small></span><span className={item.support?"warn":""}><b>{item.support}</b><small>يحتاج دعمًا</small></span><span><b>{percentLabel(item.completion)}</b><small>اكتمال الرصد</small></span></div>
         <footer><Link href="/teacher/attendance">سجل المتابعة</Link><Link href="/teacher/grades">التحصيل</Link><Link href="/teacher/notes">ملاحظة</Link></footer>
       </article>)}
       {!classStats.length?<div className="th10-empty"><b>لا توجد فصول مرتبطة بهذه المادة</b><span>ابدأ من إدارة الطلاب وحدد الفصول التي تدرسها.</span><Link href="/teacher/students">فتح إدارة الطلاب</Link></div>:null}
