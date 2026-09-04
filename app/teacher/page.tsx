@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
-import "./teacher-login-v10.css";
+import "./teacher-login-v11.css";
 
 export default function TeacherLoginPage(){
   const [name,setName]=useState("");
@@ -29,33 +29,52 @@ export default function TeacherLoginPage(){
     }catch{setError("تعذر تسجيل الدخول الآن");}finally{setLoading(false);}
   }
 
-  return <main className="teacher-login-v10" dir="rtl">
-    <header className="tl10-top">
-      <Link href="/" className="tl10-brand"><Image src="/icons/lahooni-identity-320.jpg" alt="بوابة أستاذ لحوني التعليمية" width={54} height={54} priority/><span><small>بوابة أستاذ لحوني التعليمية</small><b>مساحة المعلم الأكاديمية</b></span></Link>
-      <Link href="/" className="tl10-back">العودة للرئيسية</Link>
+  return <main className="academy-login-v11" dir="rtl">
+    <header className="al11-topbar">
+      <Link href="/" className="al11-brand">
+        <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={72} height={72} priority/>
+        <span><small>بوابة أستاذ لحوني التعليمية</small><b>أكاديمية المعلم</b></span>
+      </Link>
+      <Link href="/" className="al11-back">العودة للبوابة الرئيسية</Link>
     </header>
 
-    <section className="tl10-stage">
-      <article className="tl10-intro">
-        <small>بوابة تساعد المعلم، لا تزيد عليه العمل</small>
-        <h1>يومك التعليمي<br/><span>في مساحة واحدة</span></h1>
-        <p>الفصل هو نقطة البداية. بعدها المتابعة، التحصيل، الإتقان والملاحظات، والذكاء الاصطناعي يظهر لك عندما تكون له فائدة فعلية.</p>
-        <div className="tl10-pillars"><span><b>01</b><em>فصولك واضحة</em></span><span><b>02</b><em>عملك أسرع</em></span><span><b>03</b><em>القرار مبني على البيانات</em></span></div>
-        <div className="tl10-ai-preview"><span>AI</span><div><small>المساعد الأكاديمي</small><b>يربط بياناتك بالخطوة التالية</b><p>غياب متكرر، رصد ناقص، طالب متعثر أو فصل يحتاج متابعة — تظهر لك الأولوية بدل البحث عنها.</p></div></div>
-      </article>
+    <section className="al11-stage">
+      <div className="al11-story">
+        <span className="al11-kicker">Teacher Academic Workspace</span>
+        <h1>مساحتك التعليمية<br/><strong>تفهم يومك قبل أن تبدأه</strong></h1>
+        <p>فصولك، جدولك، المتابعة، التحصيل، الإتقان والتقارير في أكاديمية واحدة. المساعد الذكي يظهر عندما تحتاج قرارًا أو قراءة، لا كزر إضافي يشتتك.</p>
 
-      <section className="tl10-login-card">
-        <header><span>دخول آمن</span><h2>مرحبًا بك أستاذنا</h2><p>أدخل بيانات الحساب التي أنشأها مدير البوابة.</p></header>
+        <div className="al11-flow">
+          <article><b>01</b><span><strong>ابدأ من الفصل</strong><small>كل أدواتك مرتبطة بسياق الفصل والمادة</small></span></article>
+          <article><b>02</b><span><strong>أنجز بسرعة</strong><small>الرصد والمتابعة مصممان لأقل عدد من النقرات</small></span></article>
+          <article><b>03</b><span><strong>اتخذ قرارًا</strong><small>مؤشرات واقتراحات مبنية على بياناتك الفعلية</small></span></article>
+        </div>
+
+        <div className="al11-intelligence">
+          <span>AI</span>
+          <div><small>المساعد الأكاديمي</small><b>لا يغيّر بياناتك؛ يساعدك على قراءتها</b><p>ينبه للرصد الناقص، التراجع، الغياب المتكرر، والمهارات التي تحتاج تدخلًا — والقرار النهائي للمعلم.</p></div>
+        </div>
+      </div>
+
+      <section className="al11-login-panel">
+        <div className="al11-login-head">
+          <span>دخول المعلم</span>
+          <h2>أهلًا بك في أكاديميتك</h2>
+          <p>استخدم بيانات الحساب المعتمدة من إدارة البوابة.</p>
+        </div>
+
         <form onSubmit={submit}>
           <label><span>اسم المعلم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoFocus required placeholder="اكتب اسم المستخدم"/></label>
-          <label><span>الرقم السري</span><div className="tl10-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" required placeholder="كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
-          {error?<p className="tl10-error">{error}</p>:null}
-          <button className="tl10-submit" disabled={loading||!name||!password}>{loading?"جارٍ فتح مساحتك…":"دخول مساحة المعلم"}</button>
+          <label><span>الرقم السري</span><div className="al11-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" required placeholder="كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
+          {error?<p className="al11-error">{error}</p>:null}
+          <button className="al11-submit" disabled={loading||!name||!password}>{loading?"جارٍ فتح الأكاديمية…":"دخول أكاديمية المعلم"}</button>
         </form>
-        <footer><span><i/> حفظ سحابي</span><span><i/> خصوصية الحساب</span><span><i/> يعمل من الجوال والكمبيوتر</span></footer>
+
+        <div className="al11-trust"><span><i/> بيانات محفوظة</span><span><i/> وصول آمن</span><span><i/> يعمل على جميع الأجهزة</span></div>
+        <div className="al11-login-note">كل ما حفظته سابقًا من درجات، حضور، ملاحظات واختبارات يبقى كما هو.</div>
       </section>
     </section>
 
-    <footer className="tl10-credit">إعداد البوابة: <b>الأستاذ حسن علي الطويل</b></footer>
+    <footer className="al11-footer"><span>منصة تعليمية للمتابعة والتحصيل واتخاذ القرار</span><b>إعداد الأستاذ حسن علي الطويل</b></footer>
   </main>;
 }
