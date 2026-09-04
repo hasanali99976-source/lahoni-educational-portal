@@ -15,6 +15,7 @@ import "./teacher/teacher-mobile-complete-v7.css";
 import "./portal-entry-v107.css";
 import "./portal-entry-v107-fix.css";
 import "./portal-entry-v108.css";
+import "./portal-entry-v109.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
