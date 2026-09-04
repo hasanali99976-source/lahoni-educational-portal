@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { DragEvent, useMemo, useRef, useState } from "react";
 
 type PreviewRow = { name: string; grade?: number; section?: string };
 type PreviewResponse = { rows?: PreviewRow[]; total?: number; message?: string };
@@ -10,11 +10,13 @@ function ar(value: number) {
 }
 
 export default function StudentBulkUploader() {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PreviewRow[]>([]);
   const [grade, setGrade] = useState(1);
   const [section, setSection] = useState("1");
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [message, setMessage] = useState("");
 
   const rows = useMemo(() => preview.map(row => ({
@@ -22,6 +24,18 @@ export default function StudentBulkUploader() {
     grade: row.grade === 1 || row.grade === 2 || row.grade === 3 ? row.grade : grade,
     section: String(row.section || section).replace(/[^0-9]/g, "") || section,
   })), [preview, grade, section]);
+
+  function chooseFile(next: File | null) {
+    setFile(next);
+    setPreview([]);
+    setMessage(next ? `تم اختيار: ${next.name}` : "");
+  }
+
+  function dropFile(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    chooseFile(event.dataTransfer.files?.[0] || null);
+  }
 
   async function readFile() {
     if (!file) return setMessage("اختر ملف القائمة أولًا.");
@@ -71,12 +85,40 @@ export default function StudentBulkUploader() {
   }
 
   return <section className="admin-bulk-roster" dir="rtl">
-    <header><div><small>رفع ذكي للقوائم</small><h2>أضف القائمة كاملة بدل الإدخال طالبًا طالبًا</h2><p>Excel أو CSV أو PDF — نقرأ الأسماء أولًا، ثم تعرض لك معاينة قبل إضافة أي طالب.</p></div><div className="admin-file-types"><span>Excel</span><span>CSV</span><span>PDF</span></div></header>
+    <header><div><small>رفع ذكي للقوائم</small><h2>ارفع قائمة كاملة بضغطة واحدة</h2><p>ملف مدرسة كامل أو فصل محدد — Excel أو CSV أو PDF. نقرأ الأسماء أولًا ثم نعرض معاينة قبل إضافة أي طالب.</p></div><div className="admin-file-types"><span>Excel</span><span>CSV</span><span>PDF</span></div></header>
+
     <div className="admin-bulk-controls">
-      <label className="admin-bulk-drop"><input type="file" accept=".xlsx,.xls,.csv,.pdf,application/pdf" onChange={event => { setFile(event.target.files?.[0] || null); setPreview([]); setMessage(""); }} /><b>{file ? file.name : "اختر ملف القائمة"}</b><small>يمكن أن يحتوي الملف على الاسم فقط، أو الاسم مع الصف والفصل.</small></label>
-      <div className="admin-bulk-defaults"><label>الصف الافتراضي<select value={grade} onChange={event => setGrade(Number(event.target.value))}><option value={1}>الأول الثانوي</option><option value={2}>الثاني الثانوي</option><option value={3}>الثالث الثانوي</option></select></label><label>الفصل الافتراضي<select value={section} onChange={event => setSection(event.target.value)}>{[1,2,3,4,5,6,7,8].map(value => <option key={value} value={value}>{ar(value)}</option>)}</select></label><button type="button" onClick={() => void readFile()} disabled={!file || busy}>{busy ? "جارٍ القراءة…" : "قراءة الملف"}</button></div>
+      <div
+        className={`admin-bulk-drop ${dragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={event => { if (event.key === "Enter" || event.key === " ") inputRef.current?.click(); }}
+        onDragOver={event => { event.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={dropFile}
+      >
+        <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv,.pdf,application/pdf" onChange={event => chooseFile(event.target.files?.[0] || null)} />
+        <span className="admin-upload-icon">⬆</span>
+        <b>{file ? file.name : "اسحب القائمة هنا أو اضغط لاختيار الملف"}</b>
+        <small>{file ? "جاهز للقراءة والمعاينة" : "يقبل قائمة كاملة أو ملف فصل واحد، حتى لو كان فيه الاسم فقط."}</small>
+      </div>
+
+      <div className="admin-bulk-defaults">
+        <div className="admin-bulk-scope"><small>إذا لم يكن الصف والفصل مكتوبين داخل الملف</small><b>طبّق هذه القيم تلقائيًا</b></div>
+        <label>الصف الافتراضي<select value={grade} onChange={event => setGrade(Number(event.target.value))}><option value={1}>الأول الثانوي</option><option value={2}>الثاني الثانوي</option><option value={3}>الثالث الثانوي</option></select></label>
+        <label>الفصل الافتراضي<select value={section} onChange={event => setSection(event.target.value)}>{[1,2,3,4,5,6,7,8].map(value => <option key={value} value={value}>{ar(value)}</option>)}</select></label>
+        <button type="button" onClick={() => void readFile()} disabled={!file || busy}>{busy ? "جارٍ القراءة…" : "قراءة ومعاينة القائمة"}</button>
+      </div>
     </div>
+
     {message && <p className="admin-bulk-message">{message}</p>}
-    {!!rows.length && <div className="admin-bulk-preview"><header><b>معاينة القائمة</b><span>{ar(rows.length)} طالبًا</span></header><div>{rows.slice(0,20).map((row,index) => <article key={`${row.name}-${index}`}><span>{ar(index+1)}</span><strong>{row.name}</strong><small>صف {ar(row.grade)} • فصل {ar(Number(row.section))}</small></article>)}</div>{rows.length > 20 && <p>+ {ar(rows.length - 20)} اسمًا إضافيًا جاهزًا للاعتماد</p>}<button type="button" className="admin-bulk-approve" onClick={() => void approve()} disabled={busy}>{busy ? "جارٍ الاعتماد…" : `اعتماد وإضافة ${ar(rows.length)} طالبًا`}</button></div>}
+
+    {!!rows.length && <div className="admin-bulk-preview">
+      <header><div><small>قبل الحفظ</small><b>معاينة القائمة</b></div><span>{ar(rows.length)} طالبًا</span></header>
+      <div>{rows.slice(0,20).map((row,index) => <article key={`${row.name}-${index}`}><span>{ar(index+1)}</span><strong>{row.name}</strong><small>صف {ar(row.grade)} • فصل {ar(Number(row.section))}</small></article>)}</div>
+      {rows.length > 20 && <p>+ {ar(rows.length - 20)} اسمًا إضافيًا جاهزًا للاعتماد</p>}
+      <button type="button" className="admin-bulk-approve" onClick={() => void approve()} disabled={busy}>{busy ? "جارٍ الاعتماد…" : `اعتماد وإضافة ${ar(rows.length)} طالبًا`}</button>
+    </div>}
   </section>;
 }
