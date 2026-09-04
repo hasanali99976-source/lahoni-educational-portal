@@ -14,7 +14,7 @@ import "./mobile-complete-v36.css";
 import "./teacher/teacher-mobile-complete-v7.css";
 import "./portal-entry-theme.css";
 import "./portal-identity-v104.css";
-import "./portal-entry-v105.css";
+import "./portal-entry-v106.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -22,6 +22,7 @@ import MobileAppEnhancer from "./mobile-app-enhancer";
 import MobileWindowBridge from "./mobile-window-bridge";
 import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
+import PortalRuntimeGate from "./portal-runtime-gate";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -39,9 +40,12 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
-    <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime />
+    <PwaRegister />
+    <PortalRuntimeGate>
+      <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
+      <MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime />
+    </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
-    <div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div>
+    <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
   </body></html>;
 }
