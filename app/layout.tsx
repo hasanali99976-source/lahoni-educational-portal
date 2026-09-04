@@ -8,7 +8,6 @@ import "./design-lab-ai-home.css";
 import "./design-lab-live-polish.css";
 import "./design-lab-refine-v2.css";
 import "./roster-pdf-v4.css";
-import "./teacher/teacher-pages-v9.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
