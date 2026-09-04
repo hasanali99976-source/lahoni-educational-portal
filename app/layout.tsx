@@ -20,6 +20,7 @@ import DesignLabSmartAssist from "./design-lab-smart-assist";
 import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherWorkActivityTracker from "./teacher-work-activity-tracker";
 
+// Design Lab publish marker: teacher academy V12 cleanup is the active teacher visual system.
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
 export const metadata: Metadata = {
