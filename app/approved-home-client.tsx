@@ -8,8 +8,7 @@ import "./student-direct-qr.css";
 import "./approved-home.css";
 import "./approved-home-effects.css";
 
-const PORTRAIT = "/icons/lahooni-identity-clear.jpg";
-const PORTRAIT_FALLBACK = "/icons/ostadh-lahooni-192.jpg";
+const PORTRAIT = "/icons/ostadh-lahooni-192.jpg";
 
 const portals = [
   { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin" },
@@ -24,10 +23,7 @@ function PortalIcon({ type }: { type: string }) {
 }
 
 function IdentityImage({ alt }: { alt: string }) {
-  return <img src={PORTRAIT} alt={alt} loading="eager" decoding="sync" onError={(event) => {
-    const image = event.currentTarget;
-    if (!image.src.endsWith(PORTRAIT_FALLBACK)) image.src = PORTRAIT_FALLBACK;
-  }} />;
+  return <img src={PORTRAIT} alt={alt} loading="eager" decoding="sync" />;
 }
 
 export default function ApprovedHomeClient() {
