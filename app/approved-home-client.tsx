@@ -8,22 +8,26 @@ import "./student-direct-qr.css";
 import "./approved-home.css";
 import "./approved-home-effects.css";
 
-const PORTRAIT = "/icons/ostadh-lahooni-192.jpg";
+const PORTRAIT = "/icons/lahooni-identity-clear.jpg";
+const PORTRAIT_FALLBACK = "/icons/ostadh-lahooni-192.jpg";
 
 const portals = [
-  { href: "/admin", eyebrow: "إدارة وتنظيم", title: "إدارة البوابة", text: "المستخدمون، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin", number: "01" },
-  { href: "/teacher", eyebrow: "تعليم ومتابعة", title: "بوابة المعلم", text: "الاختبارات، الحضور، التقارير والمصادر التعليمية", tone: "teacher", icon: "teacher", number: "02" },
-  { href: "/student", eyebrow: "متابعة وتواصل", title: "الطالب وولي الأمر", text: "الأداء، الاختبارات والتواصل المدرسي", tone: "student", icon: "student", number: "03" },
+  { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin" },
+  { href: "/teacher", title: "بوابة المعلم", text: "إدارة الاختبارات، الحضور، التقارير والأنشطة والمصادر التعليمية", tone: "teacher", icon: "teacher" },
+  { href: "/student", title: "الطالب وولي الأمر", text: "متابعة أداء الطالب، الاختبارات والتواصل المدرسي", tone: "student", icon: "student" },
 ];
 
 function PortalIcon({ type }: { type: string }) {
-  if (type === "admin") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="7"/><path d="M10 39c1.8-8 7.2-12 14-12s12.2 4 14 12"/><circle cx="36" cy="14" r="4.5"/><path d="M36 6v3m0 10v3m8-8h-3m-10 0h-3m13.7-5.7-2.1 2.1m-7.2 7.2-2.1 2.1m11.4 0-2.1-2.1m-7.2-7.2-2.1-2.1"/></svg>;
-  if (type === "teacher") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="16" cy="15" r="6"/><path d="M7 38v-8c0-5 4-9 9-9s9 4 9 9v8"/><rect x="26" y="9" width="16" height="22" rx="2"/><path d="M23 24l8-6m-5 9 6-5"/></svg>;
-  return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="16" r="7"/><circle cx="33" cy="19" r="5"/><path d="M6 39c1.8-8 6.7-12 12-12s10.2 4 12 12M27 38c1.3-5.5 4.4-8.2 8-8.2 3.5 0 6.4 2.8 7.6 8.2"/></svg>;
+  if (type === "admin") return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l5 3 6-.5 2 5.5 5 3-2 5.8 2 5.7-5 3-2 5.5-6-.5-5 3-5-3-6 .5-2-5.5-5-3 2-5.7-2-5.8 5-3 2-5.5 6 .5 5-3Z"/><path d="m18.5 24 4 4 8-9"/></svg>;
+  if (type === "teacher") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="15" cy="14" r="5.5"/><path d="M6 38v-9c0-5 4-9 9-9s9 4 9 9v9"/><rect x="27" y="9" width="15" height="20" rx="2"/><path d="M24 25l9-6m-5 9 7-5"/></svg>;
+  return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="15" r="6.5"/><circle cx="32" cy="19" r="5"/><path d="M6 39c1.6-8 6.2-12 11-12s9.5 4 11 12M27 39c1.2-5.4 4.2-8.3 7.5-8.3S40.8 33.6 42 39"/></svg>;
 }
 
 function IdentityImage({ alt }: { alt: string }) {
-  return <img src={PORTRAIT} alt={alt} loading="eager" decoding="sync" />;
+  return <img src={PORTRAIT} alt={alt} loading="eager" decoding="sync" onError={(event) => {
+    const image = event.currentTarget;
+    if (!image.src.endsWith(PORTRAIT_FALLBACK)) image.src = PORTRAIT_FALLBACK;
+  }} />;
 }
 
 export default function ApprovedHomeClient() {
@@ -35,11 +39,12 @@ export default function ApprovedHomeClient() {
     <main className="lah-approved-home" dir="rtl">
       <div className="lah-subject-picture" aria-hidden="true" />
       <div className="lah-approved-sheen" aria-hidden="true" />
+      <div className="lah-twinkles" aria-hidden="true" />
 
       <header className="lah-approved-topbar">
         <div className="lah-approved-brand">
           <IdentityImage alt="هوية بوابة أستاذ لحوني التعليمية" />
-          <strong>بوابة أستاذ لحوني التعليمية</strong>
+          <strong><span>بوابة</span> أستاذ لحوني التعليمية</strong>
         </div>
       </header>
 
@@ -66,17 +71,15 @@ export default function ApprovedHomeClient() {
             <StudentDirectQr />
           </div>
 
-          <div className="lah-portal-gates">
+          <div className="lah-entry-panels">
             {portals.map((portal) => (
-              <Link key={portal.href} href={portal.href} className={`lah-portal-gate ${portal.tone}`}>
-                <span className="lah-gate-number">{portal.number}</span>
-                <span className="lah-gate-icon"><PortalIcon type={portal.icon}/></span>
-                <div className="lah-gate-copy">
-                  <small>{portal.eyebrow}</small>
-                  <h2>{portal.title}</h2>
-                  <p>{portal.text}</p>
-                </div>
-                <span className="lah-gate-action"><b>دخول</b><i>←</i></span>
+              <Link key={portal.href} href={portal.href} className={`lah-entry-panel ${portal.tone}`}>
+                <span className="lah-entry-halo" aria-hidden="true" />
+                <span className="lah-entry-icon"><PortalIcon type={portal.icon}/></span>
+                <h2>{portal.title}</h2>
+                <p>{portal.text}</p>
+                <span className="lah-entry-divider" aria-hidden="true" />
+                <span className="lah-entry-button"><b>دخول</b><i>←</i></span>
               </Link>
             ))}
           </div>
