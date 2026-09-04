@@ -1,22 +1,6 @@
 import "./globals.css";
 import "./print.css";
-import "./portal-v3.css";
-import "./login-v4.css";
-import "./subject-identities.css";
-import "./portal-experience-v4.css";
-import "./full-portal-redesign-v5.css";
-import "./portal-rebuild-v6.css";
-import "./education-intelligence-v17.css";
-import "./full-portal-overhaul-v18.css";
-import "./portal-intelligence.css";
 import "./attendance-students-v31.css";
-import "./mobile-complete-v36.css";
-import "./teacher/teacher-mobile-complete-v7.css";
-import "./portal-entry-v107.css";
-import "./portal-entry-v107-fix.css";
-import "./portal-entry-v108.css";
-import "./portal-entry-v109.css";
-import "./portal-entry-v109-final.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -25,7 +9,6 @@ import MobileWindowBridge from "./mobile-window-bridge";
 import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
-import PortalEntryOverlay from "./portal-entry-overlay";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -45,7 +28,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#082743", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#ffffff", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
@@ -54,7 +37,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
       <PortalIntelligence /><PortalCommandRuntime />
     </PortalRuntimeGate>
-    <PortalEntryOverlay />
     <div className="portal-stage">{children}</div>
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
   </body></html>;
