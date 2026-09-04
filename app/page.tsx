@@ -1,71 +1,106 @@
 import Image from "next/image";
 import Link from "next/link";
 import StudentDirectQr from "./student-direct-qr";
-import "./student-direct-qr.css";
-import "./crazy-school-home.css";
+import "./ostadh-lahooni-identity.css";
+import "./lahooni-home.css";
 
 const portals = [
-  { href: "/admin", icon: "🏫", title: "إدارة البوابة", text: "إدارة المعلمين والمواد والصلاحيات والتقارير من لوحة مدرسية ذكية ومترابطة.", tone: "admin" },
-  { href: "/teacher", icon: "👨‍🏫", title: "بوابة المعلم", text: "الطلاب والدرجات والحضور والاختبارات التشخيصية والخطط العلاجية في مساحة واحدة.", tone: "teacher" },
-  { href: "/student", icon: "🎒", title: "الطالب وولي الأمر", text: "متابعة الدرجات والحضور والانضباط والاختبارات والخطة العلاجية بسهولة ووضوح.", tone: "student" },
-];
-
-const smartFeatures = [
-  { icon: "🧠", title: "ذكاء تعليمي", text: "تحليل النتائج واقتراح الخطط العلاجية ومساعدة المعلم في اتخاذ القرار." },
-  { icon: "🎨", title: "هوية لكل مادة", text: "ألوان وحركات ورموز تتبدل تلقائيًا حسب المادة دون تغيير طريقة الاستخدام." },
-  { icon: "📊", title: "متابعة لحظية", text: "درجات وحضور واختبارات وتقارير مترابطة بين المعلم والطالب والإدارة." },
+  {
+    href: "/admin",
+    icon: "⚙️",
+    title: "إدارة البوابة",
+    text: "إدارة المستخدمين والإعدادات والتقارير والصلاحيات.",
+    tone: "admin",
+  },
+  {
+    href: "/teacher",
+    icon: "👨‍🏫",
+    title: "بوابة المعلم",
+    text: "إدارة الاختبارات والحضور والتقارير والأنشطة والمصادر التعليمية.",
+    tone: "teacher",
+  },
+  {
+    href: "/student",
+    icon: "👥",
+    title: "الطالب وولي الأمر",
+    text: "متابعة أداء الطالب والاختبارات والتواصل المدرسي.",
+    tone: "student",
+  },
 ];
 
 export default function HomePage() {
-  return <main className="crazy-school-home" dir="rtl">
-    <nav className="school-topbar">
-      <div className="school-brand">
-        <Image src="/icons/ostadh-lahooni-192.jpg" width={58} height={58} alt="شعار بوابة أستاذ لحوني التعليمية" priority />
-        <div><strong>بوابة أستاذ لحوني التعليمية</strong><span>منصة مدرسية ذكية لإدارة التعليم والمتابعة</span></div>
-      </div>
-      <div className="school-status"><i /> النظام يعمل الآن ✨</div>
-    </nav>
+  return (
+    <main className="lahooni-home" dir="rtl">
+      <header className="lahooni-topbar">
+        <div className="lahooni-brand">
+          <Image
+            src="/icons/ostadh-lahooni-192.jpg"
+            width={55}
+            height={55}
+            alt="هوية بوابة أستاذ لحوني التعليمية"
+            priority
+          />
+          <div>
+            <strong>بوابة أستاذ لحوني التعليمية</strong>
+            <span>بوابة مدرسية موحّدة للمتابعة والتعليم</span>
+          </div>
+        </div>
+        <div className="lahooni-top-mark">هوية تعليمية موحّدة لكل المواد</div>
+      </header>
 
-    <section className="school-hero">
-      <div className="school-copy">
-        <span className="school-kicker">🎓 جيل جديد من الإدارة التعليمية</span>
-        <h1>التعليم والمتابعة<br/><em>في بوابة واحدة ذكية</em></h1>
-        <p>تجربة تعليمية مدرسية حديثة تجمع الإدارة والمعلم والطالب وولي الأمر، وتحافظ على جميع بياناتك ووظائفك مع هوية متحركة ومميزة لكل مادة.</p>
-        <div className="school-chips"><span>🧠 ذكاء تعليمي</span><span>🎨 هوية لكل مادة</span><span>🔗 ربط مباشر</span><span>📱 جوال وكمبيوتر</span></div>
-      </div>
-      <div className="school-scene" aria-hidden="true">
-        <div className="school-board" />
-        <span className="school-float one">📚 المواد تتحرك بهويتها</span>
-        <span className="school-float two">📊 نتائج وتقارير فورية</span>
-        <span className="school-float three">🧠 اقتراحات ذكية</span>
-      </div>
-    </section>
+      <div className="lahooni-shell">
+        <section className="lahooni-hero" aria-label="التعريف بالبوابة">
+          <div className="lahooni-hero-copy">
+            <span className="lahooni-eyebrow">مرحباً بكم في</span>
+            <h1>
+              بوابة تعليمية تجمع
+              <span>الجميع في مكان واحد</span>
+            </h1>
+            <div className="lahooni-divider" />
+            <p>متابعة ودعم شامل لرحلتك التعليمية من المدرسة إلى المستقبل.</p>
+          </div>
 
-    <section className="school-portals" aria-label="مزايا البوابة الذكية">
-      <div className="school-section-head"><small>كيف تساعدك البوابة؟</small><h2>تعليم أوضح وقرار أذكى</h2><p>ستايل تعليمي جديد مع بقاء البوابات والوظائف والبيانات كما هي.</p></div>
-      <div className="school-grid">
-        {smartFeatures.map(feature => <article key={feature.title} className="school-card teacher">
-          <span className="school-card-icon">{feature.icon}</span><small>ميزة ذكية</small><h3>{feature.title}</h3><p>{feature.text}</p>
-        </article>)}
+          <div className="lahooni-portrait" aria-hidden="true">
+            <div className="lahooni-portrait-frame">
+              <Image
+                src="/icons/ostadh-lahooni-192.jpg"
+                width={250}
+                height={250}
+                alt=""
+                priority
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="lahooni-access-wrap" aria-label="خيارات الدخول">
+          <div className="lahooni-qr" aria-label="الباركود القديم للدخول إلى بوابة الطالب">
+            <StudentDirectQr />
+          </div>
+
+          <div className="lahooni-cards">
+            {portals.map((portal) => (
+              <Link
+                key={portal.href}
+                href={portal.href}
+                className={`lahooni-card ${portal.tone}`}
+              >
+                <span className="lahooni-card-icon" aria-hidden="true">{portal.icon}</span>
+                <h2>{portal.title}</h2>
+                <p>{portal.text}</p>
+                <span className="lahooni-enter" aria-hidden="true">←</span>
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
-    </section>
 
-    <StudentDirectQr />
-
-    <section className="school-portals" aria-label="بوابات الدخول">
-      <div className="school-section-head"><small>اختر بوابتك</small><h2>كل دور له تجربته الخاصة</h2><p>نفس النظام والبيانات، لكن بواجهة تعليمية مصممة لكل مستخدم.</p></div>
-      <div className="school-grid">
-        {portals.map(portal => <Link key={portal.href} href={portal.href} className={`school-card ${portal.tone}`}>
-          <span className="school-card-icon">{portal.icon}</span>
-          <small>دخول آمن وسريع</small>
-          <h3>{portal.title}</h3>
-          <p>{portal.text}</p>
-          <b>ابدأ الآن ←</b>
-        </Link>)}
-      </div>
-    </section>
-
-    <section className="school-ribbon"><span>🔒 حسابات آمنة</span><span>🔗 بيانات مترابطة</span><span>🎨 هويات تعليمية</span><span>✨ حركات خفيفة</span><span>🧠 ذكاء مساعد</span></section>
-    <footer className="school-signature">بوابة أستاذ لحوني التعليمية • تعليم أوضح، متابعة أذكى، وهوية أقرب لكل مادة</footer>
-  </main>;
+      <footer className="lahooni-footer">
+        <div className="lahooni-credit">
+          إعداد البوابة:
+          <b>الأستاذ حسن علي الطويل</b>
+        </div>
+      </footer>
+    </main>
+  );
 }
