@@ -8,6 +8,7 @@ import "./student-direct-qr.css";
 import "./approved-home.css";
 
 const PORTRAIT = "/icons/approved-portrait.jpg";
+const PORTRAIT_FALLBACK = "/icons/ostadh-lahooni-192.jpg";
 
 const portals = [
   { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات.", tone: "admin", icon: "admin" },
@@ -21,6 +22,24 @@ function PortalIcon({ type }: { type: string }) {
   return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="16" r="7"/><circle cx="33" cy="19" r="5"/><path d="M6 39c1.8-8 6.7-12 12-12s10.2 4 12 12M27 38c1.3-5.5 4.4-8.2 8-8.2 3.5 0 6.4 2.8 7.6 8.2"/></svg>;
 }
 
+function IdentityImage({ className = "", alt }: { className?: string; alt: string }) {
+  return <img className={className} src={PORTRAIT} alt={alt} onError={(event) => {
+    const image = event.currentTarget;
+    if (!image.src.endsWith(PORTRAIT_FALLBACK)) image.src = PORTRAIT_FALLBACK;
+  }} />;
+}
+
+function SubjectDecor() {
+  return <div className="lah-subject-decor" aria-hidden="true">
+    <span className="lah-subject-mark mark-book">📖</span>
+    <span className="lah-subject-mark mark-science">⚗</span>
+    <span className="lah-subject-mark mark-math">∑</span>
+    <span className="lah-subject-mark mark-earth">◎</span>
+    <span className="lah-subject-mark mark-art">✎</span>
+    <span className="lah-subject-mark mark-idea">✦</span>
+  </div>;
+}
+
 export default function ApprovedHomeClient() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -28,12 +47,14 @@ export default function ApprovedHomeClient() {
 
   return createPortal(
     <main className="lah-approved-home" dir="rtl">
+      <SubjectDecor />
+      <div className="lah-approved-sheen" aria-hidden="true" />
+
       <header className="lah-approved-topbar">
         <div className="lah-approved-brand">
-          <img src={PORTRAIT} alt="هوية بوابة أستاذ لحوني التعليمية" />
+          <IdentityImage alt="هوية بوابة أستاذ لحوني التعليمية" />
           <strong>بوابة أستاذ لحوني التعليمية</strong>
         </div>
-        <span className="lah-approved-school">مدرسة التهذيب الأهلية</span>
       </header>
 
       <div className="lah-approved-stage">
@@ -49,7 +70,7 @@ export default function ApprovedHomeClient() {
 
           <div className="lah-approved-portrait">
             <div className="lah-approved-portrait-frame">
-              <img src={PORTRAIT} alt="أستاذ لحوني" />
+              <IdentityImage alt="أستاذ لحوني" />
             </div>
           </div>
         </section>
