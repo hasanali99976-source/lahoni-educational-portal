@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { QRCodeSVG } from "qrcode.react";
 
 const IDENTITY = "/icons/lahooni-identity-320.jpg";
 
@@ -19,11 +18,6 @@ const subjects = [
 
 export default function DesignLabPortalAccent() {
   const pathname = usePathname();
-  const [studentUrl, setStudentUrl] = useState("/student");
-
-  useEffect(() => {
-    setStudentUrl(`${window.location.origin}/student`);
-  }, []);
 
   const portal = useMemo(() => {
     if (pathname.startsWith("/admin")) return { key: "admin", label: "بوابة الإدارة", note: "إدارة ذكية للبوابة" };
@@ -39,14 +33,10 @@ export default function DesignLabPortalAccent() {
       {subjects.map(([symbol, label], index) => <span key={label} style={{ "--i": index } as React.CSSProperties}><b>{symbol}</b><small>{label}</small></span>)}
     </div>
 
-    <aside className={`dl-identity-qr-dock dl-identity-qr-${portal.key}`} aria-label="هوية البوابة والدخول السريع">
+    <aside className={`dl-identity-qr-dock dl-identity-only dl-identity-${portal.key}`} aria-label="هوية البوابة">
       <div className="dl-approved-identity">
         <img src={IDENTITY} alt="الهوية المعتمدة لبوابة أستاذ لحوني التعليمية" />
-        <div><small>الهوية المعتمدة</small><strong>{portal.label}</strong><span>{portal.note}</span></div>
-      </div>
-      <div className="dl-old-qr">
-        <div className="dl-old-qr-code"><QRCodeSVG value={studentUrl} size={78} level="H" includeMargin={false} /></div>
-        <div><strong>الباركود القديم</strong><small>دخول الطالب وولي الأمر</small></div>
+        <div><small>بوابة أستاذ لحوني التعليمية</small><strong>{portal.label}</strong><span>{portal.note}</span></div>
       </div>
     </aside>
   </>;
