@@ -1,0 +1,107 @@
+@keyframes entrySheen{0%{transform:translateX(130%) skewX(-18deg);opacity:0}18%{opacity:.38}42%{opacity:.08}58%,100%{transform:translateX(-180%) skewX(-18deg);opacity:0}}
+@keyframes entryFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.015)}}
+@keyframes entryGlow{0%,100%{box-shadow:0 24px 70px rgba(9,33,57,.16),0 0 0 1px rgba(255,255,255,.55)}50%{box-shadow:0 30px 86px rgba(9,33,57,.22),0 0 34px color-mix(in srgb,var(--entry-accent) 14%,transparent),0 0 0 1px rgba(255,255,255,.75)}}
+@keyframes entryPortrait{0%,100%{box-shadow:0 18px 44px rgba(8,34,58,.2),0 0 0 1px rgba(235,200,118,.45),0 0 0 0 rgba(235,200,118,0)}50%{box-shadow:0 22px 54px rgba(8,34,58,.23),0 0 0 1px rgba(235,200,118,.8),0 0 34px 7px rgba(235,200,118,.22)}}
+@keyframes entrySpark{0%,100%{opacity:.18;transform:scale(.65) rotate(0)}50%{opacity:1;transform:scale(1.18) rotate(35deg)}}
+
+.admin2.admin2-login,.v3-login.v3-teacher-login,.portal-login.student-login-page{
+  --entry-accent:#346fa7;--entry-accent-2:#7fa8cf;--entry-deep:#0d315b;--entry-gold:#d2a652;--entry-paper:#f8f4ed;
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;z-index:2147482000!important;overflow:hidden!important;margin:0!important;padding:0!important;
+  display:grid!important;place-items:center!important;color:#102d4d!important;
+  background:
+    radial-gradient(circle at 80% 22%,color-mix(in srgb,var(--entry-accent) 14%,transparent),transparent 25%),
+    radial-gradient(circle at 18% 78%,rgba(210,166,82,.11),transparent 26%),
+    linear-gradient(180deg,rgba(255,255,255,.82),rgba(247,242,233,.92)),
+    url('/subject-collage.svg?v=5') center/cover no-repeat!important;
+  isolation:isolate;
+}
+.admin2.admin2-login{--entry-accent:#6d52a0;--entry-accent-2:#a78bc8}
+.v3-login.v3-teacher-login{--entry-accent:#176b9e;--entry-accent-2:#6fb3d5}
+.portal-login.student-login-page{--entry-accent:#2f8a68;--entry-accent-2:#76b69b}
+
+.admin2.admin2-login:before,.v3-login.v3-teacher-login:before,.portal-login.student-login-page:before{
+  content:"";position:absolute;right:7.2vw;top:13.5vh;width:clamp(180px,18vw,300px);aspect-ratio:1;border-radius:50%;z-index:2;pointer-events:none;
+  background:url('/icons/lahooni-identity-clear.jpg') center/cover no-repeat;border:7px solid rgba(255,251,243,.95);outline:3px solid rgba(221,178,91,.76);animation:entryPortrait 4.5s ease-in-out infinite;
+}
+.admin2.admin2-login:after,.v3-login.v3-teacher-login:after,.portal-login.student-login-page:after{
+  content:"";position:absolute;inset:0 -45% 0 auto;width:30%;z-index:6;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.76),rgba(238,203,127,.35),transparent);filter:blur(4px);mix-blend-mode:screen;animation:entrySheen 7s ease-in-out infinite;
+}
+
+/* الشريط العلوي الوهمي الموحد */
+.admin2.admin2-login .admin2-login-card:before,.v3-login.v3-teacher-login .v3-login-card:before,.student-login-page .student-login-shell:before{
+  content:"بوابة أستاذ لحوني التعليمية";position:fixed;top:16px;right:28px;left:28px;height:64px;border-radius:28px;z-index:20;display:flex;align-items:center;justify-content:flex-start;padding:0 24px;color:#fff;font-size:1.28rem;font-weight:900;letter-spacing:-.02em;
+  background:linear-gradient(100deg,#0d2d50,#193b5d);border:1px solid rgba(218,176,91,.78);box-shadow:0 12px 30px rgba(13,42,67,.14),inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+/* بطاقات الدخول */
+.admin2.admin2-login .admin2-login-card,.v3-login.v3-teacher-login .v3-login-card,.student-login-page .portal-login-form{
+  position:relative!important;z-index:12!important;width:min(520px,42vw)!important;max-width:520px!important;margin:8vh 36vw 0 0!important;padding:34px 34px 30px!important;border-radius:34px!important;
+  background:linear-gradient(155deg,rgba(255,255,255,.95),color-mix(in srgb,var(--entry-accent) 7%,#fffaf4))!important;border:1px solid color-mix(in srgb,var(--entry-accent) 26%,#fff)!important;border-top:3px solid color-mix(in srgb,var(--entry-accent) 72%,#d2a652)!important;
+  box-shadow:0 24px 70px rgba(9,33,57,.16)!important;backdrop-filter:blur(15px)!important;animation:entryGlow 5.6s ease-in-out infinite!important;
+}
+.admin2.admin2-login .admin2-login-card:hover,.v3-login.v3-teacher-login .v3-login-card:hover,.student-login-page .portal-login-form:hover{transform:translateY(-4px);transition:transform .25s ease}
+
+.admin2.admin2-login .admin2-login-card:after,.v3-login.v3-teacher-login .v3-login-card:after,.student-login-page .portal-login-form:after{
+  content:"✦";position:absolute;left:26px;top:22px;color:#e1b85f;font-size:1.05rem;text-shadow:0 0 14px rgba(225,184,95,.9);animation:entrySpark 2.7s ease-in-out infinite;
+}
+
+/* الهوية داخل البطاقة */
+.admin2.admin2-login .admin2-brand,.v3-login.v3-teacher-login .v3-login-icon,.student-login-page .portal-brand{position:relative;z-index:2}
+.admin2.admin2-login .admin2-brand{display:flex!important;align-items:center!important;gap:12px!important;margin-bottom:18px!important}
+.admin2.admin2-login .admin2-mark,.student-login-page .portal-brand-mark{
+  width:58px!important;height:58px!important;border-radius:20px!important;display:grid!important;place-items:center!important;color:var(--entry-accent)!important;background:linear-gradient(145deg,#fff,color-mix(in srgb,var(--entry-accent) 10%,white))!important;border:1px solid color-mix(in srgb,var(--entry-accent) 25%,white)!important;box-shadow:0 9px 20px rgba(22,48,75,.10)!important;font-size:1.3rem!important;font-weight:900!important;
+}
+.v3-login.v3-teacher-login .v3-login-icon{width:62px!important;height:62px!important;border-radius:22px!important;display:grid!important;place-items:center!important;margin:0 0 10px!important;color:var(--entry-accent)!important;background:linear-gradient(145deg,#fff,color-mix(in srgb,var(--entry-accent) 10%,white))!important;border:1px solid color-mix(in srgb,var(--entry-accent) 25%,white)!important;box-shadow:0 9px 20px rgba(22,48,75,.10)!important}
+
+.admin2.admin2-login h1,.v3-login.v3-teacher-login h1,.student-login-page h2{color:#102f55!important;font-size:clamp(2rem,2.8vw,3rem)!important;line-height:1.15!important;font-weight:950!important;letter-spacing:-.035em!important;margin-top:8px!important;text-shadow:0 1px 0 #fff!important}
+.admin2.admin2-login p,.v3-login.v3-teacher-login p,.student-login-page .student-login-help{color:#667483!important;line-height:1.75!important}
+
+.admin2.admin2-login label,.v3-login.v3-teacher-login label,.student-login-page .portal-field{color:#173957!important;font-weight:850!important}
+.admin2.admin2-login input,.v3-login.v3-teacher-login input,.student-login-page .portal-input{
+  border:1px solid color-mix(in srgb,var(--entry-accent) 18%,#d9e0e6)!important;border-radius:16px!important;background:rgba(255,255,255,.88)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 7px 18px rgba(17,48,76,.05)!important;
+}
+.admin2.admin2-login input:focus,.v3-login.v3-teacher-login input:focus,.student-login-page .portal-input:focus-within{outline:none!important;border-color:color-mix(in srgb,var(--entry-accent) 60%,#fff)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--entry-accent) 12%,transparent),0 8px 20px rgba(17,48,76,.08)!important}
+
+.admin2.admin2-login .admin2-btn.primary,.v3-login.v3-teacher-login .v3-primary,.student-login-page .portal-submit{
+  min-height:52px!important;border:0!important;border-radius:17px!important;color:#fff!important;font-weight:950!important;background:linear-gradient(105deg,color-mix(in srgb,var(--entry-accent) 86%,#102f55),var(--entry-accent))!important;box-shadow:0 12px 25px color-mix(in srgb,var(--entry-accent) 23%,transparent)!important;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease!important;position:relative!important;overflow:hidden!important;
+}
+.admin2.admin2-login .admin2-btn.primary:hover,.v3-login.v3-teacher-login .v3-primary:hover,.student-login-page .portal-submit:hover{transform:translateY(-3px)!important;filter:saturate(1.12) brightness(1.03)!important;box-shadow:0 16px 32px color-mix(in srgb,var(--entry-accent) 30%,transparent)!important}
+
+.admin2.admin2-login .admin2-back,.v3-login.v3-teacher-login .v3-back{color:#1a466d!important;font-weight:800!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;margin-bottom:14px!important}
+
+/* الجهة البصرية لكل بوابة */
+.v3-login.v3-teacher-login{grid-template-columns:1fr 1fr!important;gap:0!important;padding:0!important}
+.v3-login.v3-teacher-login .v3-login-card{grid-column:1!important;grid-row:1!important;justify-self:center!important;margin:8vh 0 0!important}
+.v3-login.v3-teacher-login aside{grid-column:2!important;grid-row:1!important;align-self:end!important;justify-self:center!important;width:min(430px,36vw)!important;margin:0 3vw 11vh 0!important;padding:24px 28px!important;border-radius:24px!important;background:rgba(14,47,82,.82)!important;border:1px solid rgba(219,179,93,.52)!important;color:#fff!important;backdrop-filter:blur(12px)!important;box-shadow:0 18px 44px rgba(9,35,61,.15)!important;position:relative!important;z-index:9!important}
+.v3-login.v3-teacher-login aside h2,.v3-login.v3-teacher-login aside p,.v3-login.v3-teacher-login aside b{color:#fff!important}
+.v3-login.v3-teacher-login aside b{color:#f1ce7e!important}
+
+.student-login-page .student-login-shell{position:relative!important;z-index:8!important;width:min(1180px,92vw)!important;height:auto!important;min-height:560px!important;display:grid!important;grid-template-columns:1fr 1fr!important;align-items:end!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;margin-top:7vh!important}
+.student-login-page .student-login-visual{grid-column:2!important;min-height:470px!important;padding:26px!important;display:flex!important;flex-direction:column!important;justify-content:flex-end!important;align-items:flex-start!important;background:transparent!important;color:#102f55!important;text-align:right!important;position:relative!important;z-index:8!important}
+.student-login-page .student-login-visual h1{max-width:420px!important;color:#102f55!important;font-size:clamp(2.25rem,3.5vw,4.1rem)!important;line-height:1.05!important;font-weight:950!important;margin:0 0 12px!important}
+.student-login-page .student-login-visual p{max-width:430px!important;color:#526579!important;font-size:1rem!important}
+.student-login-page .student-login-visual .eyebrow{color:#a9792d!important;font-weight:950!important}
+.student-login-page .student-login-benefits{display:flex!important;gap:10px!important;flex-wrap:wrap!important;margin-top:16px!important}.student-login-page .student-login-benefits span{padding:9px 13px!important;border-radius:999px!important;background:rgba(255,255,255,.72)!important;border:1px solid rgba(47,138,104,.17)!important;color:#245c4b!important;box-shadow:0 8px 18px rgba(15,52,70,.06)!important}
+.student-login-page .portal-login-form{grid-column:1!important;align-self:center!important;justify-self:center!important;margin:0!important;width:min(500px,90%)!important}
+
+/* تمييز الإدراة بنص بصري */
+.admin2.admin2-login .admin2-login-card{margin:8vh 34vw 0 0!important}
+.admin2.admin2-login .admin2-login-card .admin2-brand small{color:#8066aa!important;font-weight:900!important}
+
+@media(max-height:780px) and (min-width:901px){
+  .admin2.admin2-login:before,.v3-login.v3-teacher-login:before,.portal-login.student-login-page:before{top:12vh;width:clamp(150px,15vw,235px)}
+  .admin2.admin2-login .admin2-login-card,.v3-login.v3-teacher-login .v3-login-card,.student-login-page .portal-login-form{padding:25px 28px 22px!important;margin-top:7vh!important}
+  .student-login-page .student-login-shell{min-height:470px!important}.student-login-page .student-login-visual{min-height:390px!important}
+}
+
+@media(max-width:900px){
+  .admin2.admin2-login,.v3-login.v3-teacher-login,.portal-login.student-login-page{position:relative!important;min-height:100svh!important;height:auto!important;overflow:auto!important;padding:88px 14px 24px!important;display:block!important;background-position:center!important}
+  .admin2.admin2-login:before,.v3-login.v3-teacher-login:before,.portal-login.student-login-page:before{position:relative!important;right:auto!important;top:auto!important;display:block!important;width:138px!important;margin:10px auto 16px!important}
+  .admin2.admin2-login:after,.v3-login.v3-teacher-login:after,.portal-login.student-login-page:after{display:none!important}
+  .admin2.admin2-login .admin2-login-card:before,.v3-login.v3-teacher-login .v3-login-card:before,.student-login-page .student-login-shell:before{top:8px;right:8px;left:8px;height:60px;font-size:1rem;padding:0 16px}
+  .admin2.admin2-login .admin2-login-card,.v3-login.v3-teacher-login .v3-login-card,.student-login-page .portal-login-form{width:100%!important;max-width:560px!important;margin:0 auto!important;padding:24px 20px!important;border-radius:25px!important;animation:none!important}
+  .v3-login.v3-teacher-login{display:block!important}.v3-login.v3-teacher-login aside{width:100%!important;max-width:560px!important;margin:14px auto 0!important;padding:20px!important}
+  .student-login-page .student-login-shell{width:100%!important;display:flex!important;flex-direction:column!important;min-height:0!important;margin:0!important}.student-login-page .student-login-visual{min-height:0!important;order:1!important;padding:16px 8px 20px!important;text-align:center!important;align-items:center!important}.student-login-page .portal-login-form{order:2!important}.student-login-page .student-login-benefits{justify-content:center!important}
+}
+
+@media(prefers-reduced-motion:reduce){.admin2.admin2-login:before,.v3-login.v3-teacher-login:before,.portal-login.student-login-page:before,.admin2.admin2-login:after,.v3-login.v3-teacher-login:after,.portal-login.student-login-page:after,.admin2.admin2-login .admin2-login-card,.v3-login.v3-teacher-login .v3-login-card,.student-login-page .portal-login-form,.admin2.admin2-login .admin2-login-card:after,.v3-login.v3-teacher-login .v3-login-card:after,.student-login-page .portal-login-form:after{animation:none!important}}
