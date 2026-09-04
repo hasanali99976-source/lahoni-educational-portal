@@ -1,6 +1,6 @@
 "use client";
 
-import { DragEvent, useMemo, useRef, useState } from "react";
+import { DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import "./bulk-roster-import.css";
 
 type PreviewRow = { name: string; grade: number | null; section: string; code?: string; source?: string };
@@ -26,6 +26,11 @@ export default function BulkRosterImport() {
   const [message, setMessage] = useState("");
   const [dragging, setDragging] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    document.body.classList.remove("show-roster-advanced");
+    return () => document.body.classList.remove("show-roster-advanced");
+  }, []);
 
   const preparedRows = useMemo(() => rows.map(row => ({
     ...row,
