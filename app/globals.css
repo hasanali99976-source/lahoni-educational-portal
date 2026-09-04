@@ -1,3 +1,30 @@
+/* أساس موحد لكل صفحات البوابة — يمنع الهامش الأبيض الافتراضي أعلى الواجهات */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+html {
+  background: #eef7f4;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: #eef7f4;
+}
+
+.portal-stage {
+  display: block;
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
 /* تنسيق الطباعة الموحد في كامل البوابة */
 @media print {
   html,
