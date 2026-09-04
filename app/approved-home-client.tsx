@@ -8,13 +8,12 @@ import "./student-direct-qr.css";
 import "./approved-home.css";
 import "./approved-home-effects.css";
 
-const PORTRAIT = "/icons/approved-portrait.jpg";
-const PORTRAIT_FALLBACK = "/icons/ostadh-lahooni-192.jpg";
+const PORTRAIT = "/icons/ostadh-lahooni-192.jpg";
 
 const portals = [
-  { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات.", tone: "admin", icon: "admin" },
-  { href: "/teacher", title: "بوابة المعلم", text: "إدارة الاختبارات، الحضور، التقارير والأنشطة والمصادر التعليمية.", tone: "teacher", icon: "teacher" },
-  { href: "/student", title: "الطالب وولي الأمر", text: "متابعة أداء الطالب، الاختبارات والتواصل المدرسي.", tone: "student", icon: "student" },
+  { href: "/admin", eyebrow: "إدارة وتنظيم", title: "إدارة البوابة", text: "المستخدمون، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin", number: "01" },
+  { href: "/teacher", eyebrow: "تعليم ومتابعة", title: "بوابة المعلم", text: "الاختبارات، الحضور، التقارير والمصادر التعليمية", tone: "teacher", icon: "teacher", number: "02" },
+  { href: "/student", eyebrow: "متابعة وتواصل", title: "الطالب وولي الأمر", text: "الأداء، الاختبارات والتواصل المدرسي", tone: "student", icon: "student", number: "03" },
 ];
 
 function PortalIcon({ type }: { type: string }) {
@@ -23,22 +22,8 @@ function PortalIcon({ type }: { type: string }) {
   return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="16" r="7"/><circle cx="33" cy="19" r="5"/><path d="M6 39c1.8-8 6.7-12 12-12s10.2 4 12 12M27 38c1.3-5.5 4.4-8.2 8-8.2 3.5 0 6.4 2.8 7.6 8.2"/></svg>;
 }
 
-function IdentityImage({ className = "", alt }: { className?: string; alt: string }) {
-  return <img className={className} src={PORTRAIT} alt={alt} onError={(event) => {
-    const image = event.currentTarget;
-    if (!image.src.endsWith(PORTRAIT_FALLBACK)) image.src = PORTRAIT_FALLBACK;
-  }} />;
-}
-
-function SubjectDecor() {
-  return <div className="lah-subject-decor" aria-hidden="true">
-    <span className="lah-subject-mark mark-book">📖</span>
-    <span className="lah-subject-mark mark-science">⚗</span>
-    <span className="lah-subject-mark mark-math">∑</span>
-    <span className="lah-subject-mark mark-earth">◎</span>
-    <span className="lah-subject-mark mark-art">✎</span>
-    <span className="lah-subject-mark mark-idea">✦</span>
-  </div>;
+function IdentityImage({ alt }: { alt: string }) {
+  return <img src={PORTRAIT} alt={alt} loading="eager" decoding="sync" />;
 }
 
 export default function ApprovedHomeClient() {
@@ -48,7 +33,7 @@ export default function ApprovedHomeClient() {
 
   return createPortal(
     <main className="lah-approved-home" dir="rtl">
-      <SubjectDecor />
+      <div className="lah-subject-picture" aria-hidden="true" />
       <div className="lah-approved-sheen" aria-hidden="true" />
 
       <header className="lah-approved-topbar">
@@ -71,7 +56,7 @@ export default function ApprovedHomeClient() {
 
           <div className="lah-approved-portrait">
             <div className="lah-approved-portrait-frame">
-              <IdentityImage alt="أستاذ لحوني" />
+              <IdentityImage alt="هوية أستاذ لحوني" />
             </div>
           </div>
         </section>
@@ -81,13 +66,17 @@ export default function ApprovedHomeClient() {
             <StudentDirectQr />
           </div>
 
-          <div className="lah-approved-cards">
+          <div className="lah-portal-gates">
             {portals.map((portal) => (
-              <Link key={portal.href} href={portal.href} className={`lah-approved-card ${portal.tone}`}>
-                <span className="lah-approved-icon"><PortalIcon type={portal.icon}/></span>
-                <h2>{portal.title}</h2>
-                <p>{portal.text}</p>
-                <span className="lah-approved-enter">←</span>
+              <Link key={portal.href} href={portal.href} className={`lah-portal-gate ${portal.tone}`}>
+                <span className="lah-gate-number">{portal.number}</span>
+                <span className="lah-gate-icon"><PortalIcon type={portal.icon}/></span>
+                <div className="lah-gate-copy">
+                  <small>{portal.eyebrow}</small>
+                  <h2>{portal.title}</h2>
+                  <p>{portal.text}</p>
+                </div>
+                <span className="lah-gate-action"><b>دخول</b><i>←</i></span>
               </Link>
             ))}
           </div>
