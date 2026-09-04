@@ -1,6 +1,8 @@
 import "./globals.css";
 import "./print.css";
 import "./attendance-students-v31.css";
+import "./portal-entry-v109.css";
+import "./portal-entry-v109-final.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -9,6 +11,7 @@ import MobileWindowBridge from "./mobile-window-bridge";
 import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
+import PortalEntryOverlay from "./portal-entry-overlay";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -33,6 +36,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
+    <PortalEntryOverlay />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
       <PortalIntelligence /><PortalCommandRuntime />
