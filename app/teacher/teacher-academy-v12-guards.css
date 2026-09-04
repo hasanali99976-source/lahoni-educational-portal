@@ -1,0 +1,28 @@
+/* Teacher Academy V12 isolation guards — keep legacy design layers out of teacher portal */
+body:has(.teacher-academy-v12) :is(.dl-academic-motion,.dl-identity-qr-dock,.dl-smart-assist),
+body:has(.academy-login-v11) :is(.dl-academic-motion,.dl-identity-qr-dock,.dl-smart-assist){display:none!important}
+
+body:has(.teacher-academy-v12) .portal-stage,
+body:has(.academy-login-v11) .portal-stage{margin:0!important;padding:0!important;min-height:100vh!important;background:#f4f7f7!important}
+
+body:has(.teacher-academy-v12) .print-header,
+body:has(.teacher-academy-v12) .print-footer,
+body:has(.academy-login-v11) .print-header,
+body:has(.academy-login-v11) .print-footer{display:none!important}
+
+/* Strong type floor for all teacher interfaces. */
+body:has(.teacher-academy-v12) .teacher-academy-v12{font-size:15px!important}
+body:has(.teacher-academy-v12) .teacher-academy-v12 :where(button,input,select,textarea){font-family:inherit!important}
+body:has(.teacher-academy-v12) .academy-v12-nav-group a>b,
+body:has(.teacher-academy-v12) .academy-v12-home>b{font-size:15px!important;line-height:1.25!important}
+body:has(.teacher-academy-v12) .academy-v12-nav-group>small{font-size:11px!important}
+
+/* Login belongs to the academy, not the old animated portal layer. */
+body:has(.academy-login-v11){background:#eef3f2!important}
+body:has(.academy-login-v11) .academy-login-v11{font-family:Tajawal,"Segoe UI",Tahoma,Arial,sans-serif!important;background:linear-gradient(135deg,#f8fbfa 0%,#eef4f2 55%,#f7f1e6 100%)!important}
+body:has(.academy-login-v11) .academy-login-v11 :where(p,span,label,input,button){font-size:14px!important}
+body:has(.academy-login-v11) .academy-login-v11 small{font-size:12px!important}
+body:has(.academy-login-v11) .academy-login-v11 h1{font-size:clamp(36px,4.3vw,64px)!important;line-height:1.16!important}
+body:has(.academy-login-v11) .academy-login-v11 h2{font-size:28px!important}
+body:has(.academy-login-v11) .academy-login-v11 input{min-height:52px!important;font-size:15px!important}
+body:has(.academy-login-v11) .academy-login-v11 button{min-height:48px!important;font-weight:900!important}
