@@ -118,9 +118,12 @@ export async function GET() {
     ]);
 
     const teachers = usersSnapshot.docs
-      .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }))
-      .filter(row => row.role === "teacher" && row.active !== false)
-      .map(row => ({ id: String(row.id), name: String(row.name || "المعلم") }));
+      .map(document => {
+        const data = document.data() as Record<string, unknown>;
+        return { id: document.id, data };
+      })
+      .filter(row => String(row.data.role || "") === "teacher" && row.data.active !== false)
+      .map(row => ({ id: String(row.id), name: String(row.data.name || "المعلم") }));
 
     const trackedByTeacher = new Map<string, Record<string, unknown>>();
     trackedSnapshot?.docs.forEach(document => {
