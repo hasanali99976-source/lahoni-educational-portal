@@ -1,0 +1,146 @@
+/* DESIGN LAB V4 — A4 roster PDF: one selected class per page */
+.roster-pdf-sheet{
+  position:fixed!important;
+  right:-5000px!important;
+  top:0!important;
+  width:794px!important;
+  height:1123px!important;
+  min-height:0!important;
+  max-height:1123px!important;
+  overflow:hidden!important;
+  padding:34px 38px 30px!important;
+  background:
+    radial-gradient(circle at 12% 7%,rgba(17,148,128,.10),transparent 22%),
+    linear-gradient(180deg,#ffffff 0,#fbfdfc 100%)!important;
+  color:#163b42!important;
+  direction:rtl!important;
+  box-sizing:border-box!important;
+  border:1px solid #d9e7e3!important;
+}
+.roster-pdf-sheet:before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  border:2px solid #0a706a;
+  border-radius:20px;
+  pointer-events:none;
+}
+.roster-pdf-sheet:after{
+  content:"كشف رسمي • بوابة أستاذ لحوني التعليمية";
+  position:absolute;
+  left:38px;
+  right:38px;
+  bottom:22px;
+  padding-top:8px;
+  border-top:1px solid #d9e7e3;
+  text-align:center;
+  color:#718789;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.1px;
+}
+.roster-pdf-sheet .pdf-brand{
+  position:relative;
+  min-height:74px;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:10px 88px 10px 24px!important;
+  border-radius:18px!important;
+  background:linear-gradient(120deg,#063f48,#0a726d)!important;
+  color:#fff!important;
+  text-align:center!important;
+  font-size:19px!important;
+  font-weight:950!important;
+  box-shadow:0 10px 24px rgba(5,70,73,.10)!important;
+}
+.roster-pdf-sheet .pdf-brand:before{
+  content:"";
+  position:absolute;
+  right:16px;
+  top:50%;
+  transform:translateY(-50%);
+  width:54px;
+  height:54px;
+  border-radius:15px;
+  background:#fff url('/icons/lahooni-identity-320.jpg') center/cover no-repeat;
+  border:2px solid #e4bc62;
+  box-shadow:0 5px 12px rgba(0,0,0,.14);
+}
+.roster-pdf-sheet h1{
+  margin:18px 0 3px!important;
+  text-align:center!important;
+  color:#0a5158!important;
+  font-size:27px!important;
+  line-height:1.1!important;
+  font-weight:950!important;
+}
+.roster-pdf-sheet h2{
+  margin:5px auto 4px!important;
+  width:max-content!important;
+  max-width:90%!important;
+  padding:7px 20px!important;
+  border:1px solid #e0bf74!important;
+  border-radius:999px!important;
+  background:#fff9eb!important;
+  color:#8c651d!important;
+  text-align:center!important;
+  font-size:15px!important;
+  line-height:1.1!important;
+  font-weight:950!important;
+}
+.roster-pdf-sheet p{
+  margin:5px 0 10px!important;
+  text-align:center!important;
+  color:#718486!important;
+  font-size:11px!important;
+  font-weight:850!important;
+}
+.roster-pdf-sheet table{
+  width:100%!important;
+  margin-top:10px!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+  table-layout:fixed!important;
+  overflow:hidden!important;
+  border:1px solid #b9ceca!important;
+  border-radius:13px!important;
+  background:#fff!important;
+}
+.roster-pdf-sheet thead tr{height:27px!important}
+.roster-pdf-sheet tbody tr{height:16px!important}
+.roster-pdf-sheet th,
+.roster-pdf-sheet td{
+  height:16px!important;
+  min-height:16px!important;
+  max-height:16px!important;
+  padding:1px 7px!important;
+  border:0!important;
+  border-bottom:1px solid #dce7e4!important;
+  border-left:1px solid #e4ece9!important;
+  text-align:right!important;
+  vertical-align:middle!important;
+  line-height:1.05!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  font-size:11.2px!important;
+  color:#173d43!important;
+}
+.roster-pdf-sheet th{
+  height:27px!important;
+  background:linear-gradient(180deg,#eaf5f2,#e2f0ed)!important;
+  color:#0a5f5c!important;
+  font-size:11px!important;
+  font-weight:950!important;
+}
+.roster-pdf-sheet th:first-child,
+.roster-pdf-sheet td:first-child{width:48px!important;text-align:center!important}
+.roster-pdf-sheet th:nth-child(2),
+.roster-pdf-sheet td:nth-child(2){width:auto!important;font-weight:850!important}
+.roster-pdf-sheet th:nth-child(3),
+.roster-pdf-sheet td:nth-child(3){width:120px!important;text-align:center!important;direction:ltr!important;font-weight:900!important;color:#0b6e68!important}
+.roster-pdf-sheet tbody tr:nth-child(even) td{background:#f8fbfa!important}
+.roster-pdf-sheet tbody tr:last-child td{border-bottom:0!important}
+.roster-pdf-sheet th:last-child,
+.roster-pdf-sheet td:last-child{border-left:0!important}
