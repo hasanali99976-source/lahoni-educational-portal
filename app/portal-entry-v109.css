@@ -1,0 +1,61 @@
+/* v109 — final approved academic visual pass */
+:root{--v109-navy:#071f37;--v109-navy2:#0a2c4d;--v109-gold:#c99538;--v109-gold2:#efd17d;--v109-paper:#fbf6ec;--v109-ink:#082743}
+
+/* ===== Main academic landing ===== */
+.academy-home{background:radial-gradient(circle at 50% 40%,#fff 0 24%,#fbf6ec 59%,#f1e5d4 100%)!important}
+.academy-page-frame{inset:9px!important;border:2px solid var(--v109-gold)!important;border-radius:31px!important;box-shadow:inset 0 0 0 1px rgba(255,240,190,.55)!important}
+.academy-subject-art{inset:82px 0 66px!important;opacity:.48!important;filter:saturate(.72) contrast(1.03)!important}
+.academy-top-band{top:14px!important;left:22px!important;right:22px!important;height:78px!important;border-radius:39px!important;background:linear-gradient(100deg,#071f37,#0a2948 58%,#102f50)!important;border:1.5px solid #d2a14b!important;box-shadow:0 12px 28px rgba(7,28,47,.21)!important}
+.academy-top-band:after{display:none!important}
+.academy-brand-mini{height:78px!important;margin:0 12px 0 auto!important;padding:0 20px!important;gap:14px!important}
+.academy-brand-mini img{width:60px!important;height:60px!important;border-radius:19px!important;object-fit:cover!important;filter:none!important;opacity:1!important;border:2px solid var(--v109-gold2)!important;box-shadow:0 6px 18px rgba(0,0,0,.23)!important}
+.academy-brand-mini strong{font-size:25px!important;color:#fff!important;font-weight:900!important}
+.academy-hero{top:100px!important;height:284px!important;grid-template-columns:220px minmax(620px,1fr) 286px!important;gap:28px!important;max-width:1510px!important;left:4.8%!important;right:4.8%!important;padding:0 42px!important}
+.academy-motto{font-size:23px!important;line-height:1.5!important;color:#183450!important;font-weight:700!important;transform:rotate(-4deg)!important}
+.academy-hero-copy span{font-size:35px!important;color:#a4741a!important;font-weight:900!important}
+.academy-hero-copy h1{font-size:52px!important;line-height:1.15!important;margin:4px 0 8px!important;color:#061f46!important;font-weight:900!important;letter-spacing:-1px!important}
+.academy-hero-copy p{font-size:24px!important;color:#17304c!important}
+.academy-hero-copy i{width:230px!important;height:2px!important;margin-top:13px!important;background:linear-gradient(90deg,transparent,var(--v109-gold),transparent)!important}
+.academy-portrait-ring{width:264px!important;height:264px!important;padding:8px!important;background:linear-gradient(145deg,#ffe59b,#9b6917,#fff0b7,#9c6e1b)!important;box-shadow:0 13px 34px rgba(102,70,12,.25),0 0 28px rgba(236,192,97,.24)!important}
+.academy-portrait-ring img{width:100%!important;height:100%!important;border-radius:50%!important;object-fit:cover!important;filter:none!important;opacity:1!important;background:#0b2c50!important}
+.academy-access{left:72px!important;right:72px!important;top:392px!important;bottom:100px!important;grid-template-columns:210px minmax(0,1fr)!important;gap:28px!important;max-width:1510px!important}
+.academy-portal-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important}
+.academy-portal-card{min-height:320px!important;border-radius:20px!important;padding:27px 24px 22px!important;box-shadow:0 13px 27px rgba(42,43,46,.15)!important}
+.academy-portal-card.admin{background:linear-gradient(180deg,#f3effa,#f9f5fb)!important;border-top:4px solid #69459c!important}
+.academy-portal-card.teacher{background:linear-gradient(180deg,#eef7ff,#f7fbff)!important;border-top:4px solid #4d86bb!important}
+.academy-portal-card.student{background:linear-gradient(180deg,#fff8ea,#fffdf7)!important;border-top:4px solid #bd8b2b!important}
+.academy-card-icon{width:84px!important;height:84px!important;margin-bottom:18px!important}
+.academy-portal-card h2{font-size:28px!important}.academy-portal-card p{font-size:17px!important;line-height:1.7!important}.academy-card-enter{width:55px!important;height:55px!important;font-size:31px!important}
+.academy-bottom-band{height:76px!important;bottom:0!important;background:linear-gradient(180deg,#0b2c4c,#071f37)!important;border-top:2px solid #c99538!important}
+.academy-credit{bottom:16px!important;min-width:400px!important;background:#082743!important;border:1.5px solid #c99538!important;color:#fff!important}
+
+/* ===== Unified entry screens ===== */
+body:has(.v3-teacher-login),body:has(.student-login-page),body:has(.admin2-login){overflow:hidden!important;background:radial-gradient(circle at 50% 43%,#fff 0,#fbf6ec 60%,#f0e4d2 100%)!important}
+body:has(.v3-teacher-login)::before,body:has(.student-login-page)::before,body:has(.admin2-login)::before{content:"";position:fixed;inset:0;z-index:-2;background:url('/subject-collage.svg?v=13') center/cover no-repeat;opacity:.42!important;filter:saturate(.64) contrast(.99)!important}
+body:has(.v3-teacher-login)::after,body:has(.student-login-page)::after,body:has(.admin2-login)::after{content:"";position:fixed;inset:9px;z-index:1000;pointer-events:none;border:2px solid rgba(207,153,54,.94);border-radius:29px;box-shadow:inset 0 0 0 1px rgba(255,238,180,.55)}
+.v3-teacher-login>aside,.student-login-visual,.student-login-benefits,.admin-quick-nav{display:none!important;width:0!important;min-width:0!important;max-width:0!important;flex:0 0 0!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important}
+.v3-teacher-login,.student-login-page,.admin2-login{position:fixed!important;inset:0!important;display:grid!important;grid-template-columns:1fr!important;place-items:center!important;padding:164px 20px 62px!important;background:transparent!important;min-height:100dvh!important;overflow:hidden!important}
+.v3-teacher-login{width:100vw!important;max-width:none!important;margin:0!important}
+.v3-teacher-login>.v3-login-card{grid-column:1!important;justify-self:center!important;align-self:center!important}
+.student-login-shell{display:block!important;width:auto!important;max-width:none!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+.academy-entry-header{top:16px!important;width:min(1000px,calc(100vw - 110px))!important;gap:5px!important}
+.academy-entry-header::before{top:12px!important;left:24px!important;right:24px!important;height:82px!important;border-radius:41px!important;background:linear-gradient(100deg,#071f37,#0a2948 58%,#102f50)!important;border:1.5px solid #d3a24a!important}
+.academy-entry-identity{width:90px!important;height:90px!important;border-radius:27px!important;padding:3px!important;background:linear-gradient(145deg,#f1d078,#9c6c18,#fff1bd)!important;box-shadow:0 8px 20px rgba(20,31,43,.24)!important}
+.academy-entry-identity img{width:100%!important;height:100%!important;border-radius:24px!important;object-fit:cover!important;filter:none!important;opacity:1!important}
+.academy-entry-header h1{font-size:31px!important;background:rgba(251,246,236,.95)!important;color:#082743!important;padding:5px 23px 3px!important}
+.academy-entry-header span{font-size:17px!important;padding:5px 22px!important}
+.student-login-form,.v3-login-card,.admin2-login-card{width:min(570px,calc(100vw - 48px))!important;max-width:570px!important;margin:0!important;border-radius:22px!important;background:rgba(255,252,246,.97)!important;border:1.5px solid #d0a252!important;box-shadow:0 18px 40px rgba(23,39,54,.18)!important;padding:30px 34px!important;position:relative!important;overflow:visible!important;text-align:center!important}
+.v3-login-card::before,.student-login-form::before,.admin2-login-card::before{content:"";position:absolute;inset:9px;border:1px solid rgba(205,155,65,.38);border-radius:15px;pointer-events:none}
+.v3-login-card>.v3-back,.admin2-back{position:fixed!important;top:36px!important;right:51px!important;z-index:25!important;color:#fff!important;background:transparent!important;border:0!important;font-size:14px!important;text-decoration:none!important}
+.v3-login-card>small,.v3-login-icon,.v3-login-note,.portal-brand,.admin2-brand{display:none!important}
+.v3-login-card h1,.student-login-form h2,.admin2-login-card h1,.admin2-login-card h2{font-size:34px!important;color:#09284d!important;margin:4px 0 8px!important;font-weight:900!important}
+.v3-login-card>p,.student-login-help,.admin2-login-card>p{font-size:16px!important;color:#52606d!important;margin:0 0 22px!important}
+.v3-login-card form,.student-login-form form,.admin2-login-card form{position:relative!important;z-index:2!important;text-align:right!important}
+.v3-login-card label,.student-login-form .portal-field,.admin2-login-card label{display:block!important;font-size:15px!important;color:#203c56!important;font-weight:700!important;margin:12px 0 6px!important}
+.v3-login-card input,.student-login-form input,.admin2-login-card input{width:100%!important;height:54px!important;border-radius:12px!important;border:1.5px solid #bda8c8!important;background:rgba(255,255,255,.92)!important;padding:0 16px!important;font-size:16px!important;outline:none!important}
+.v3-primary,.portal-submit,.admin2-login-card button[type='submit']{width:100%!important;height:58px!important;margin-top:18px!important;border-radius:29px!important;border:1.5px solid #d4a042!important;background:linear-gradient(180deg,#0d416d,#062d50)!important;color:#fff!important;font-size:21px!important;font-weight:900!important;box-shadow:0 8px 20px rgba(8,45,78,.25)!important}
+.portal-input{border:0!important;background:transparent!important;padding:0!important}.portal-input>span{display:none!important}
+.academy-student-qr-overlay{left:70px!important;top:50%!important;transform:translateY(-30%)!important;width:185px!important}
+
+@media(max-height:760px){.v3-teacher-login,.student-login-page,.admin2-login{padding-top:145px!important;padding-bottom:28px!important}.student-login-form,.v3-login-card,.admin2-login-card{padding:22px 30px!important}.academy-entry-identity{width:70px!important;height:70px!important}.academy-entry-header h1{font-size:26px!important}.v3-login-card h1,.student-login-form h2,.admin2-login-card h1{font-size:29px!important}.v3-login-card input,.student-login-form input,.admin2-login-card input{height:48px!important}.v3-primary,.portal-submit,.admin2-login-card button[type='submit']{height:52px!important;margin-top:12px!important}}
+@media(max-width:760px){body:has(.v3-teacher-login),body:has(.student-login-page),body:has(.admin2-login){overflow:auto!important}.academy-entry-header{width:calc(100vw - 34px)!important;top:15px!important}.academy-entry-header::before{left:11px!important;right:11px!important;height:68px!important}.academy-entry-identity{width:68px!important;height:68px!important}.academy-entry-header h1{font-size:22px!important}.academy-entry-header span{font-size:14px!important}.v3-teacher-login,.student-login-page,.admin2-login{position:relative!important;min-height:100dvh!important;padding:138px 16px 36px!important}.student-login-form,.v3-login-card,.admin2-login-card{width:100%!important;padding:24px 20px!important}.academy-student-qr-overlay{display:none!important}.v3-login-card>.v3-back,.admin2-back{top:29px!important;right:26px!important;font-size:12px!important}}
