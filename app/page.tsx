@@ -62,19 +62,15 @@ export default function HomePage() {
     <main className="lhv2-home" dir="rtl">
       <header className="lhv2-topbar">
         <div className="lhv2-brand">
-          <img src="/icons/ostadh-lahooni-192.jpg?v=2" alt="هوية بوابة أستاذ لحوني التعليمية" />
+          <img src="/icons/ostadh-lahooni-192.jpg?v=4" alt="هوية بوابة أستاذ لحوني التعليمية" />
           <strong>بوابة أستاذ لحوني التعليمية</strong>
-        </div>
-        <div className="lhv2-login">
-          <span className="lhv2-login-icon">⌕</span>
-          <span className="lhv2-login-icon">♢</span>
-          <Link href="/teacher" className="lhv2-login-pill">تسجيل الدخول</Link>
         </div>
       </header>
 
       <div className="lhv2-main">
         <section className="lhv2-hero">
           <div className="lhv2-copy">
+            <span className="lhv2-welcome">مرحباً بكم في</span>
             <h1>
               بوابة تعليمية تجمع
               <span>الجميع في مكان واحد</span>
@@ -85,12 +81,20 @@ export default function HomePage() {
 
           <div className="lhv2-portrait">
             <div className="lhv2-portrait-ring">
-              <img src="/icons/ostadh-lahooni-192.jpg?v=2" alt="هوية أستاذ لحوني" />
+              <img src="/icons/ostadh-lahooni-192.jpg?v=4" alt="هوية أستاذ لحوني" />
             </div>
+          </div>
+
+          <div className="lhv2-motto" aria-hidden="true">
+            معاً<br />نصنع فرقاً<br />في التعليم
           </div>
         </section>
 
         <section className="lhv2-access" aria-label="خيارات الدخول">
+          <div className="lhv2-qr" aria-label="الدخول السريع لبوابة الطالب وولي الأمر">
+            <StudentDirectQr />
+          </div>
+
           <div className="lhv2-cards">
             {portals.map((portal) => (
               <Link key={portal.href} href={portal.href} className={`lhv2-card ${portal.tone}`}>
@@ -100,10 +104,6 @@ export default function HomePage() {
                 <span className="lhv2-enter">←</span>
               </Link>
             ))}
-          </div>
-
-          <div className="lhv2-qr" aria-label="الدخول السريع لبوابة الطالب وولي الأمر">
-            <StudentDirectQr />
           </div>
         </section>
       </div>
