@@ -13,6 +13,7 @@ import MobileWindowBridge from "./mobile-window-bridge";
 import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
+import DesignLabSmartAssist from "./design-lab-smart-assist";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <PortalIntelligence /><PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
+    <DesignLabSmartAssist />
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
   </body></html>;
 }
