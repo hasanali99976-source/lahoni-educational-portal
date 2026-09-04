@@ -17,6 +17,7 @@ import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
 import DesignLabSmartAssist from "./design-lab-smart-assist";
 import DesignLabPortalAccent from "./design-lab-portal-accent";
+import TeacherWorkActivityTracker from "./teacher-work-activity-tracker";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <PortalIntelligence /><PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
+    <TeacherWorkActivityTracker />
     <DesignLabPortalAccent />
     <DesignLabSmartAssist />
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
