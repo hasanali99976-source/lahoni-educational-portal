@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import StudentDirectQr from "./student-direct-qr";
 import "./student-direct-qr.css";
 
-const PORTRAIT = "/icons/lahooni-identity-v109.jpg";
+const PORTRAIT = "/icons/ostadh-lahooni-192.jpg";
 
 const portals = [
   { href: "/admin", title: "إدارة البوابة", text: "إدارة المستخدمين، الإعدادات، التقارير والصلاحيات", tone: "admin", icon: "admin" },
