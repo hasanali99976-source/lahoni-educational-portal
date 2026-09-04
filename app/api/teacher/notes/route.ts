@@ -18,12 +18,16 @@ function clean(value: unknown, limit = 500) {
 }
 
 async function findStudentDoc(teacherId: string, subjectId: string, code: string) {
-  const collection = adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`);
-  const direct = await collection.doc(code).get();
-  if (direct.exists) return direct;
+  const students = adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`);
+  const directRef = students.doc(code);
+  const direct = await directRef.get();
+  if (direct.exists) return { snapshot: direct, reference: directRef };
   for (const field of ["code", "accessCode", "studentCode"] as const) {
-    const snapshot = await collection.where(field, "==", code).limit(1).get();
-    if (!snapshot.empty) return snapshot.docs[0]!;
+    const snapshot = await students.where(field, "==", code).limit(1).get();
+    if (!snapshot.empty) {
+      const found = snapshot.docs[0]!;
+      return { snapshot: found, reference: students.doc(found.id) };
+    }
   }
   return null;
 }
@@ -72,7 +76,7 @@ export async function POST(request: Request) {
 
     const student = await findStudentDoc(session.userId, subjectId, studentCode);
     if (!student) return NextResponse.json({ ok: false, message: "تعذر العثور على سجل الطالب." }, { status: 404 });
-    const current = student.data() as Record<string, unknown>;
+    const current = student.snapshot.data() as Record<string, unknown>;
     const previous = Array.isArray(current.teacherNotes) ? current.teacherNotes as NoteEntry[] : [];
     const createdAt = new Date().toISOString();
     const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -85,7 +89,7 @@ export async function POST(request: Request) {
     }, {});
     counts[type] = (counts[type] || 0) + 1;
 
-    await student.ref.set({
+    await student.reference.set({
       teacherNotes: next,
       teacherNote: message,
       teacherNoteCount: next.length,
@@ -120,7 +124,7 @@ export async function DELETE(request: Request) {
     const noteId = clean(body.noteId, 80);
     const student = await findStudentDoc(session.userId, subjectId, studentCode);
     if (!student) return NextResponse.json({ ok: false, message: "تعذر العثور على الطالب." }, { status: 404 });
-    const current = student.data() as Record<string, unknown>;
+    const current = student.snapshot.data() as Record<string, unknown>;
     const previous = Array.isArray(current.teacherNotes) ? current.teacherNotes as NoteEntry[] : [];
     const next = previous.filter(note => String(note.id || "") !== noteId);
     const counts = next.reduce<Record<string, number>>((acc, note) => {
@@ -128,7 +132,7 @@ export async function DELETE(request: Request) {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
-    await student.ref.set({
+    await student.reference.set({
       teacherNotes: next,
       teacherNote: next[0]?.message || "",
       teacherNoteCount: next.length,
