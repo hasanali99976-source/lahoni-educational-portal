@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import StudentDirectQr from "./student-direct-qr";
 import "./student-direct-qr.css";
 import "./approved-home.css";
+import "./approved-home-effects.css";
 
 const PORTRAIT = "/icons/approved-portrait.jpg";
 const PORTRAIT_FALLBACK = "/icons/ostadh-lahooni-192.jpg";
