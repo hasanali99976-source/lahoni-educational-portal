@@ -29,6 +29,10 @@ function starter(mode: GradePlanMode, method: GradePlanMethod, unitCount: number
 }
 function nextItemId(sectionId: string) { return `${sectionId}-item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`; }
 function total(items: GradePlanItem[]) { return roundGrade(items.reduce((sum,item) => sum + Number(item.max || 0),0)); }
+function planLabel(value: unknown) {
+  const key = String(value || "") as GradePlanMode;
+  return GRADE_PLAN_MODE_LABELS[key] || String(value || "خطة درجات");
+}
 
 export default function GradePlanPage() {
   const session = useTeacherClient();
@@ -107,7 +111,7 @@ export default function GradePlanPage() {
 
       {activePlan ? <>
         <section className="gpv9-current">
-          <header><div><small>الخطة الحالية</small><h2>{GRADE_PLAN_MODE_LABELS[activePlan.mode]}</h2><p>نسخة {activePlan.version} • {activePlan.method === "automatic" ? "بدأت باقتراح آلي ثم اعتمدها المعلم" : "إعداد يدوي"}</p></div><strong>100 درجة</strong></header>
+          <header><div><small>الخطة الحالية</small><h2>{planLabel(activePlan.mode)}</h2><p>نسخة {activePlan.version} • {activePlan.method === "automatic" ? "بدأت باقتراح آلي ثم اعتمدها المعلم" : "إعداد يدوي"}</p></div><strong>100 درجة</strong></header>
           <div className="gpv9-section-grid">{activePlan.sections.map(section => <article key={section.id}><header><b>{section.label}</b><span>{section.max}</span></header><div>{section.items.map(item => <span key={item.id}><b>{item.label}</b><small>{item.max} درجة</small></span>)}</div></article>)}</div>
         </section>
         <section className="gpv9-permission"><div><span>🔒</span><h2>التعديل مقفل حاليًا</h2><p>هذا يمنع تغيير هيكلة الدرجات بالخطأ أثناء الرصد. إذا كنت تريد نسخة جديدة افتح التعديل بإذن صريح.</p></div><div><button className="primary" type="button" onClick={loadActiveForEdit}>السماح بالتعديل</button><button type="button" onClick={() => setSuggestionsOpen(value => !value)}>{suggestionsOpen ? "إخفاء المقترحات" : "أحتاج مقترحات"}</button></div></section>
@@ -115,7 +119,7 @@ export default function GradePlanPage() {
 
       {suggestionsOpen ? <section className="gpv9-suggestions"><header><small>مقترحات اختيارية</small><h2>اختر نقطة بداية فقط</h2><p>كل مقترح قابل للتعديل قبل الاعتماد.</p></header><div>{modes.map(item => <button type="button" key={item} onClick={() => chooseSuggestion(item)}><b>{GRADE_PLAN_MODE_LABELS[item]}</b><small>{planModeDescription(item)}</small><span>استخدام المقترح ←</span></button>)}</div></section> : null}
 
-      {history.length > 1 ? <details className="gpv9-history"><summary>عرض النسخ السابقة ({history.length})</summary><div>{history.map(plan => <span key={plan.id}><b>نسخة {plan.version}</b><small>{GRADE_PLAN_MODE_LABELS[plan.mode]}</small></span>)}</div></details> : null}
+      {history.length > 1 ? <details className="gpv9-history"><summary>عرض النسخ السابقة ({history.length})</summary><div>{history.map(plan => <span key={plan.id}><b>نسخة {plan.version}</b><small>{planLabel(plan.mode)}</small></span>)}</div></details> : null}
     </main>;
   }
 
