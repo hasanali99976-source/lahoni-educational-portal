@@ -107,7 +107,7 @@ export default function TeacherDashboardPage(){
       <article><small>الحصة الأقرب</small><b>{nextLesson?.className||"لا توجد حصة"}</b><span>{nextLesson?`الحصة ${nextLesson.period}`:"راجع الجدول الدراسي"}</span></article>
       <article><small>إنجاز متابعة اليوم</small><b>{lessons.length?`${completedAttendance}٪`:"—"}</b><span>{lessons.length?`${lessons.length-incompleteClasses.length} من ${lessons.length} فصول":"لا توجد حصص اليوم"}</span></article>
       <article><small>متوسط التحصيل</small><b>{overall?`${overall}٪`:"—"}</b><span>{graded.length?`${graded.length} طالب لديه رصد":"لم يبدأ الرصد"}</span></article>
-      <article><small>يحتاجون تدخلًا</small><b>{supportStudents.length}</b><span>أقل من 60٪ بعد وجود رصد</span></article>
+      <article><small>يحتاجون تدخلًا</small><b>{supportStudents.length}</b><span>{"أقل من 60٪ بعد وجود رصد"}</span></article>
     </section>
 
     <section className="th10-section-head"><div><small>مساحات العمل</small><h2>فصولك في نظرة أكاديمية واحدة</h2><p>ابدأ من الفصل، ثم انتقل للمتابعة أو التحصيل أو الملاحظة من نفس السياق.</p></div><Link href="/teacher/students">إدارة الفصول</Link></section>
