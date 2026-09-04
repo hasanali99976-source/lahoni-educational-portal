@@ -1,0 +1,8 @@
+/* ضبط نهائي لمحاذاة هوية v107 */
+.academy-brand-mini{margin-right:8px!important;margin-left:auto!important}
+.academy-hero{direction:ltr!important}
+.academy-motto{grid-column:1!important;direction:rtl!important}
+.academy-hero-copy{grid-column:2!important;direction:rtl!important}
+.academy-portrait-wrap{grid-column:3!important;direction:rtl!important}
+html body .admin2-brand,html body .portal-brand{position:static!important}
+@media (max-width:900px){.academy-hero{direction:rtl!important}.academy-motto,.academy-hero-copy,.academy-portrait-wrap{grid-column:auto!important}}
