@@ -4,6 +4,7 @@ import "./attendance-students-v31.css";
 import "./approved-entry.css";
 import "./design-lab-v1.css";
 import "./design-lab-home-3portals.css";
+import "./design-lab-ai-home.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
