@@ -40,10 +40,10 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
-    <PwaRegister />
+    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
-      <MobileWindowBridge /><MobileAppEnhancer /><PortalIntelligence /><PortalCommandRuntime />
+      <PortalIntelligence /><PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
