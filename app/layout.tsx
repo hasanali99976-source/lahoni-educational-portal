@@ -5,6 +5,7 @@ import "./approved-entry.css";
 import "./design-lab-v1.css";
 import "./design-lab-home-3portals.css";
 import "./design-lab-ai-home.css";
+import "./design-lab-live-polish.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -14,6 +15,7 @@ import PortalIntelligence from "./portal-intelligence";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
 import DesignLabSmartAssist from "./design-lab-smart-assist";
+import DesignLabPortalAccent from "./design-lab-portal-accent";
 
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
@@ -43,6 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <PortalIntelligence /><PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
+    <DesignLabPortalAccent />
     <DesignLabSmartAssist />
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
   </body></html>;
