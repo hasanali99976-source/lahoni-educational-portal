@@ -9,114 +9,116 @@ const IDENTITY = "/icons/lahooni-identity-320.jpg";
 const portals = [
   {
     href: "/admin",
-    kind: "admin",
-    eyebrow: "إدارة وتشغيل",
-    title: "بوابة الإدارة",
-    text: "إدارة المستخدمين والصفوف والصلاحيات والتقارير من مركز واحد.",
-    bullets: ["المستخدمون والصلاحيات", "التقارير العامة", "إدارة الصفوف والمواد"],
+    key: "admin",
+    eyebrow: "مركز القرار",
+    title: "الإدارة",
+    text: "قيادة المعلمين والطلاب والفصول والتقارير من مساحة واحدة واضحة.",
+    accent: "إدارة وتشغيل",
   },
   {
     href: "/teacher",
-    kind: "teacher",
-    eyebrow: "تعليم ومتابعة",
-    title: "بوابة المعلم",
-    text: "مساحة عمل ذكية للحضور والدرجات والمتابعة والتحليل والمهام اليومية.",
-    bullets: ["الحضور والدرجات", "تحليل مستوى الطلاب", "المتابعة والخطط"],
+    key: "teacher",
+    eyebrow: "مساحة العمل",
+    title: "المعلم",
+    text: "الحضور والدرجات والمتابعة والتحليل والخطط اليومية بواجهة ذكية.",
+    accent: "تعليم ومتابعة",
   },
   {
     href: "/student",
-    kind: "student",
-    eyebrow: "تحصيل وتواصل",
+    key: "student",
+    eyebrow: "متابعة التحصيل",
     title: "الطالب وولي الأمر",
-    text: "متابعة التحصيل والحضور والاختبارات وملاحظات المعلم في بوابة واحدة.",
-    bullets: ["التحصيل والاختبارات", "الحضور والانضباط", "الملاحظات والتوجيه"],
+    text: "التحصيل والاختبارات والحضور وملاحظات المعلم في بوابة واحدة.",
+    accent: "تحصيل وتواصل",
   },
 ] as const;
 
-function PortalGlyph({ kind }: { kind: (typeof portals)[number]["kind"] }) {
+const subjects = [
+  ["📜", "التاريخ"],
+  ["🧠", "التفكير الناقد"],
+  ["➗", "الرياضيات"],
+  ["🔬", "العلوم"],
+  ["🧪", "الكيمياء"],
+  ["🌍", "الجغرافيا"],
+  ["📖", "اللغة العربية"],
+  ["🇬🇧", "اللغة الإنجليزية"],
+  ["🕌", "الدراسات الإسلامية"],
+] as const;
+
+function PortalIcon({ kind }: { kind: (typeof portals)[number]["key"] }) {
   if (kind === "admin") return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l5 3 6-.5 2 5.5 5 3-2 5.8 2 5.7-5 3-2 5.5-6-.5-5 3-5-3-6 .5-2-5.5-5-3 2-5.7-2-5.8 5-3 2-5.5 6 .5 5-3Z"/><path d="m18.5 24 4 4 8-9"/></svg>;
-  if (kind === "teacher") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="15" cy="14" r="5.5"/><path d="M6 38v-9c0-5 4-9 9-9s9 4 9 9v9"/><rect x="27" y="9" width="15" height="20" rx="2"/><path d="M30 15h9M30 20h7M24 26l8-5"/></svg>;
+  if (kind === "teacher") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="15" cy="14" r="5.5"/><path d="M6 39v-9c0-5 4-9 9-9s9 4 9 9v9"/><rect x="27" y="9" width="15" height="21" rx="3"/><path d="M30 15h9M30 20h7M24 27l8-6"/></svg>;
   return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="15" r="6.5"/><circle cx="32" cy="19" r="5"/><path d="M6 39c1.6-8 6.2-12 11-12s9.5 4 11 12M27 39c1.2-5.4 4.2-8.3 7.5-8.3S40.8 33.6 42 39"/></svg>;
 }
 
 const styles = `
-:root{--dlx-950:#042e36;--dlx-900:#073b45;--dlx-800:#0a5861;--dlx-emerald:#159a84;--dlx-gold:#d9a43e;--dlx-gold2:#f1cf78;--dlx-bg:#eef7f4;--dlx-card:#ffffff;--dlx-ink:#103f47;--dlx-muted:#6b8083;--dlx-line:#d8e7e3}
-html:has(.dlx-home),body:has(.dlx-home){margin:0!important;overflow:auto!important;background:var(--dlx-bg)!important}
-body:has(.dlx-home) .portal-stage{min-height:100dvh!important;background:transparent!important}
-.dlx-home{position:relative;min-height:100dvh;overflow:hidden;background:linear-gradient(180deg,#042d35 0,#06424a 39%,#edf7f4 39%,#edf7f4 100%);color:var(--dlx-ink);padding:18px 22px 30px}
-.dlx-home *{box-sizing:border-box}.dlx-home:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 10% 8%,rgba(37,185,159,.2),transparent 25%),radial-gradient(circle at 88% 9%,rgba(217,164,62,.16),transparent 23%);pointer-events:none}
-.dlx-home:after{content:"∑   DNA   E=mc²   ⚛   ١٢٣   ✎   ◌   📚";position:absolute;top:138px;left:3%;right:3%;font-size:27px;letter-spacing:20px;color:rgba(255,255,255,.08);white-space:nowrap;text-align:center;pointer-events:none}
-.dlx-frame{position:relative;z-index:2;max-width:1500px;margin:auto}
-.dlx-topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:74px;padding:11px 14px 11px 18px;border:1px solid rgba(240,203,116,.45);border-radius:24px;background:rgba(3,36,42,.72);backdrop-filter:blur(18px);box-shadow:0 16px 45px rgba(0,0,0,.16)}
-.dlx-brand{display:flex;align-items:center;gap:12px}.dlx-brand img{width:52px;height:52px;border-radius:15px;object-fit:cover;border:2px solid var(--dlx-gold2);box-shadow:0 7px 20px rgba(0,0,0,.24)}.dlx-brand-copy{display:grid}.dlx-brand-copy strong{color:#fff;font-size:19px;font-weight:900}.dlx-brand-copy small{color:#e7c86f;font-weight:800;margin-top:2px}
-.dlx-top-tools{display:flex;align-items:center;gap:9px}.dlx-pill{border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:9px 13px;background:rgba(255,255,255,.06);color:#cce6e1;font-size:12px;font-weight:800}.dlx-ai-pill{color:#fff;background:linear-gradient(110deg,rgba(21,154,132,.82),rgba(11,103,105,.82));border-color:rgba(255,255,255,.16)}
-.dlx-hero{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(390px,.82fr);gap:28px;align-items:center;min-height:330px;padding:32px 22px 36px}.dlx-hero-copy{padding:8px 8px}.dlx-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--dlx-gold2);font-size:14px;font-weight:900}.dlx-kicker:before{content:"";width:28px;height:2px;background:linear-gradient(90deg,var(--dlx-gold2),transparent)}.dlx-hero h1{margin:9px 0 12px;color:#fff;font-size:clamp(38px,4vw,61px);line-height:1.12;letter-spacing:-1.4px;font-weight:950;max-width:850px}.dlx-hero h1 span{color:#f0ce79}.dlx-hero p{margin:0;max-width:820px;color:#cbe5e0;font-size:17px;line-height:1.9}.dlx-hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:19px}.dlx-hero-tags span{padding:8px 12px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055);border-radius:999px;color:#e5f3f0;font-size:12px;font-weight:800}
-.dlx-smart-preview{position:relative;overflow:hidden;border:1px solid rgba(240,203,116,.42);border-radius:30px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(235,248,244,.94));box-shadow:0 25px 70px rgba(0,0,0,.24);padding:22px}.dlx-smart-preview:after{content:"AI";position:absolute;left:-8px;bottom:-42px;font-size:150px;font-weight:950;color:rgba(9,112,105,.055)}.dlx-preview-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.dlx-preview-head span{font-size:12px;color:#9a6c19;font-weight:900}.dlx-preview-head b{font-size:13px;color:#0b6f6c;background:#e0f4ef;padding:7px 10px;border-radius:999px}.dlx-smart-preview h2{margin:10px 0 5px;color:#073b45;font-size:24px}.dlx-smart-preview>p{margin:0;color:#6a7f82;line-height:1.7;font-size:13px}.dlx-preview-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:17px}.dlx-mini{min-height:92px;border:1px solid #dceae7;border-radius:18px;background:#fff;padding:13px;display:grid;align-content:space-between;box-shadow:0 8px 22px rgba(5,71,77,.06)}.dlx-mini i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#e4f6f1,#fff4d8);font-style:normal}.dlx-mini strong{display:block;color:#164b51;font-size:14px}.dlx-mini small{color:#7b8e90;font-size:11px}.dlx-preview-note{position:relative;z-index:2;margin-top:12px;padding:12px 13px;border-radius:16px;background:linear-gradient(110deg,#073b45,#0b756f);color:#fff;font-size:12px;line-height:1.7}.dlx-preview-note b{color:#f3d27f}
-.dlx-entry-wrap{margin-top:-4px;padding:0 8px}.dlx-section-title{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:13px}.dlx-section-title div small{color:#b57d20;font-weight:900}.dlx-section-title h2{margin:4px 0 0;color:#fff;font-size:25px}.dlx-section-title>span{color:#cbe1de;font-size:12px}
-.dlx-portal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.dlx-card{position:relative;overflow:hidden;min-height:278px;padding:22px;border:1px solid var(--dlx-line);border-radius:28px;background:rgba(255,255,255,.98);box-shadow:0 19px 50px rgba(3,55,62,.13);text-decoration:none;color:var(--dlx-ink);transition:.22s ease}.dlx-card:before{content:"";position:absolute;top:0;right:0;left:0;height:5px;background:linear-gradient(90deg,#149a84,#d9a43e)}.dlx-card:after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;left:-65px;bottom:-80px;background:radial-gradient(circle,rgba(21,154,132,.13),transparent 68%)}.dlx-card:hover{transform:translateY(-6px);box-shadow:0 25px 60px rgba(3,55,62,.18)}.dlx-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.dlx-icon{width:68px;height:68px;border-radius:21px;display:grid;place-items:center;background:linear-gradient(145deg,#e8f7f3,#fff);border:1px solid #d6e9e4;color:#0b716c;box-shadow:0 9px 22px rgba(6,93,89,.11)}.dlx-card.student .dlx-icon{background:linear-gradient(145deg,#fff7df,#fff);color:#9b6b18}.dlx-icon svg{width:39px;height:39px;fill:none;stroke:currentColor;stroke-width:2}.dlx-card-eyebrow{padding:7px 10px;border-radius:999px;background:#f1f7f6;color:#607778;font-size:11px;font-weight:900}.dlx-card h3{margin:15px 0 7px;font-size:25px;color:#0a4f57}.dlx-card.student h3{color:#856018}.dlx-card>p{margin:0;color:#6b7e80;font-size:13px;line-height:1.75;min-height:46px}.dlx-card ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:7px}.dlx-card li{display:flex;align-items:center;gap:8px;color:#557174;font-size:12px;font-weight:700}.dlx-card li:before{content:"✓";width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#e2f5ef;color:#0b806f;font-size:11px;font-weight:900}.dlx-enter{position:absolute;left:18px;bottom:17px;width:43px;height:43px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#073b45,#159a84);color:#fff;font-size:22px;box-shadow:0 9px 21px rgba(6,89,86,.18)}
-.dlx-lower{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;margin-top:16px}.dlx-feature-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.dlx-feature{min-height:92px;padding:15px;border:1px solid #d9e7e4;border-radius:20px;background:rgba(255,255,255,.88);box-shadow:0 10px 26px rgba(5,67,73,.07)}.dlx-feature span{display:block;color:#0b776f;font-weight:900;font-size:13px}.dlx-feature small{display:block;margin-top:5px;color:#75888a;font-size:11px;line-height:1.6}.dlx-qr{position:relative;overflow:hidden;border:1px solid #d8e6e3;border-radius:22px;background:#fff;padding:10px;display:grid;place-items:center;box-shadow:0 10px 26px rgba(5,67,73,.07)}.dlx-qr:before{content:"دخول سريع للطالب وولي الأمر";display:block;color:#0b665f;font-size:11px;font-weight:900;margin-bottom:4px}.dlx-qr .v3-student-quick{margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important;display:block!important}.dlx-qr .v3-student-quick-copy{display:none!important}.dlx-qr .v3-student-qr-wrap{width:auto!important;padding:8px!important;border:0!important;box-shadow:none!important}.dlx-qr .v3-student-qr-wrap svg{width:118px!important;height:118px!important}.dlx-qr .v3-student-qr-wrap small{display:none!important}.dlx-qr .v3-student-qr-wrap strong{font-size:11px!important}
-.dlx-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding:12px 16px;border-top:1px solid #d8e5e2;color:#6e8284;font-size:11px}.dlx-footer b{color:#0a655f}.dlx-footer span{color:#9a6a18;font-weight:800}
-@media(max-width:1050px){.dlx-hero{grid-template-columns:1fr;min-height:auto;padding-bottom:26px}.dlx-smart-preview{max-width:720px}.dlx-portal-grid{grid-template-columns:1fr 1fr}.dlx-card.student{grid-column:1/-1}.dlx-lower{grid-template-columns:1fr}.dlx-qr{display:none}.dlx-feature-strip{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){.dlx-home{padding:10px;background:linear-gradient(180deg,#042d35 0,#06424a 46%,#edf7f4 46%)}.dlx-topbar{align-items:flex-start}.dlx-top-tools{display:none}.dlx-brand-copy strong{font-size:15px}.dlx-brand-copy small{font-size:10px}.dlx-hero{padding:24px 6px}.dlx-hero h1{font-size:34px}.dlx-hero p{font-size:14px}.dlx-smart-preview{border-radius:23px;padding:17px}.dlx-preview-grid{grid-template-columns:1fr 1fr}.dlx-entry-wrap{padding:0}.dlx-section-title>span{display:none}.dlx-section-title h2{color:#0a4650;font-size:22px}.dlx-section-title div small{color:#a87520}.dlx-portal-grid{grid-template-columns:1fr}.dlx-card.student{grid-column:auto}.dlx-card{min-height:250px;border-radius:22px}.dlx-feature-strip{grid-template-columns:1fr 1fr}.dlx-feature{min-height:80px}.dlx-footer{flex-direction:column;text-align:center}}
+:root{--lh-deep:#032f37;--lh-deep2:#07515a;--lh-teal:#0d7f77;--lh-mint:#20ad92;--lh-gold:#d9aa47;--lh-gold2:#f2d27e;--lh-paper:#f2f8f6;--lh-ink:#123f47;--lh-muted:#6f8385;--lh-line:#d7e6e2}
+html:has(.lh-home),body:has(.lh-home){margin:0!important;padding:0!important;background:var(--lh-paper)!important;overflow-x:hidden!important}
+body:has(.lh-home) .portal-stage{min-height:100dvh!important;background:transparent!important}
+.lh-home{min-height:100dvh;position:relative;overflow:hidden;background:linear-gradient(180deg,#032d35 0,#07525a 49%,#eff7f5 49%,#eff7f5 100%);color:var(--lh-ink);padding:16px 20px 24px}
+.lh-home *{box-sizing:border-box}.lh-home:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 10% 6%,rgba(32,173,146,.2),transparent 26%),radial-gradient(circle at 88% 10%,rgba(217,170,71,.16),transparent 24%);pointer-events:none}
+.lh-shell{position:relative;z-index:2;width:min(1480px,100%);margin:auto}
+.lh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px;padding:8px 12px;border:1px solid rgba(242,210,126,.38);border-radius:22px;background:rgba(2,37,43,.72);backdrop-filter:blur(18px);box-shadow:0 16px 42px rgba(0,0,0,.16)}
+.lh-brand{display:flex;align-items:center;gap:11px}.lh-brand img{width:50px;height:50px;border-radius:15px;object-fit:cover;border:2px solid var(--lh-gold2);box-shadow:0 7px 18px rgba(0,0,0,.22)}.lh-brand div{display:grid}.lh-brand strong{color:#fff;font-size:18px;font-weight:950}.lh-brand small{margin-top:2px;color:#ebca72;font-size:10px;font-weight:850}
+.lh-top-status{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#d7eae6;font-size:11px;font-weight:850}.lh-top-status i{width:8px;height:8px;border-radius:50%;background:#52d6a9;box-shadow:0 0 14px #52d6a9}
+.lh-hero{display:grid;grid-template-columns:minmax(0,1.2fr) 320px;gap:24px;align-items:center;min-height:270px;padding:25px 18px 18px}.lh-copy{padding:8px}.lh-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--lh-gold2);font-size:12px;font-weight:950}.lh-kicker:before{content:"";width:30px;height:2px;background:linear-gradient(90deg,var(--lh-gold2),transparent)}.lh-copy h1{margin:8px 0 10px;color:#fff;font-size:clamp(36px,4vw,58px);line-height:1.08;font-weight:950;letter-spacing:-1.2px}.lh-copy h1 span{color:var(--lh-gold2)}.lh-copy p{margin:0;max-width:810px;color:#cce5e1;font-size:16px;line-height:1.85}.lh-copy p b{color:#fff}.lh-hero-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}.lh-hero-tags span{padding:7px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#e4f2ef;font-size:10px;font-weight:850}
+.lh-quick{position:relative;overflow:hidden;display:grid;place-items:center;align-content:center;min-height:215px;padding:14px;border:1px solid rgba(242,210,126,.52);border-radius:26px;background:linear-gradient(155deg,rgba(255,255,255,.98),rgba(240,249,246,.96));box-shadow:0 23px 55px rgba(0,0,0,.2)}.lh-quick:before{content:"الدخول السريع";display:block;margin-bottom:4px;color:#9b6e1d;font-size:11px;font-weight:950}.lh-quick>strong{color:#0a5e61;font-size:16px}.lh-quick>small{margin:3px 0 6px;color:#7b8d8f;font-size:9px}.lh-quick .v3-student-quick{margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.lh-quick .v3-student-quick-copy{display:none!important}.lh-quick .v3-student-qr-wrap{padding:6px!important;border:0!important;background:#fff!important;box-shadow:none!important}.lh-quick .v3-student-qr-wrap svg{width:104px!important;height:104px!important}.lh-quick .v3-student-qr-wrap small{display:none!important}.lh-quick .v3-student-qr-wrap strong{font-size:9px!important;color:#0c6863!important}
+.lh-subject-zone{position:relative;margin:0 4px 16px;overflow:hidden;border:1px solid rgba(231,207,143,.28);border-radius:20px;background:rgba(3,45,52,.68);box-shadow:inset 0 1px rgba(255,255,255,.06)}.lh-subject-zone:before,.lh-subject-zone:after{content:"";position:absolute;top:0;bottom:0;width:70px;z-index:3;pointer-events:none}.lh-subject-zone:before{right:0;background:linear-gradient(90deg,transparent,#06444c)}.lh-subject-zone:after{left:0;background:linear-gradient(270deg,transparent,#06444c)}.lh-subject-track{display:flex;width:max-content;gap:9px;padding:9px;animation:lhSubjects 30s linear infinite}.lh-subject-zone:hover .lh-subject-track{animation-play-state:paused}.lh-subject{display:flex;align-items:center;gap:8px;min-width:150px;padding:9px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.075);color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.08)}.lh-subject b{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,rgba(32,173,146,.23),rgba(217,170,71,.18));font-size:18px}.lh-subject span{font-size:11px;font-weight:900;white-space:nowrap}.lh-subject small{display:block;color:#a9c9c4;font-size:7px}.lh-subject-copy{display:grid}.lh-subject-label{padding:8px 12px;color:#f0cf78;font-size:9px;font-weight:950;white-space:nowrap;align-self:center}
+@keyframes lhSubjects{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.lh-access{position:relative;margin-top:0;padding:18px;border:1px solid rgba(210,229,224,.95);border-radius:30px;background:rgba(247,252,250,.97);box-shadow:0 22px 58px rgba(4,62,68,.13)}.lh-access-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;padding:0 3px}.lh-access-head div small{color:#aa7822;font-size:9px;font-weight:950}.lh-access-head h2{margin:2px 0 0;color:#0b5359;font-size:22px}.lh-access-head>span{color:#728789;font-size:10px}
+.lh-portals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lh-portal{position:relative;overflow:hidden;display:grid;grid-template-columns:58px minmax(0,1fr) 40px;align-items:center;gap:13px;min-height:128px;padding:16px;border:1px solid #d8e6e2;border-radius:21px;background:#fff;text-decoration:none;color:var(--lh-ink);box-shadow:0 11px 27px rgba(5,71,76,.065);transition:.2s}.lh-portal:before{content:"";position:absolute;right:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--lh-mint),var(--lh-gold))}.lh-portal:hover{transform:translateY(-4px);border-color:#bedbd4;box-shadow:0 18px 38px rgba(5,71,76,.12)}.lh-portal-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#e7f6f2,#fff);color:#0b716c;border:1px solid #d6e9e4}.lh-portal.student .lh-portal-icon{background:linear-gradient(145deg,#fff6db,#fff);color:#926619}.lh-portal-icon svg{width:33px;height:33px;fill:none;stroke:currentColor;stroke-width:2}.lh-portal-copy small{color:#a87922;font-size:8px;font-weight:950}.lh-portal-copy h3{margin:3px 0 5px;color:#0b5259;font-size:20px}.lh-portal-copy p{margin:0;color:#748689;font-size:10px;line-height:1.65}.lh-portal-arrow{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#073e47,#0d8177);color:#fff;font-size:20px;box-shadow:0 8px 18px rgba(5,96,91,.16)}
+.lh-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:13px;padding:10px 14px;color:#728486;font-size:9px}.lh-bottom b{color:#0c6963}.lh-bottom span{color:#9a6c1d;font-weight:850}
+@media(max-width:980px){.lh-hero{grid-template-columns:1fr}.lh-quick{min-height:190px}.lh-portals{grid-template-columns:1fr}.lh-access-head>span{display:none}}
+@media(max-width:640px){.lh-home{padding:10px}.lh-top{border-radius:18px}.lh-top-status{display:none}.lh-brand strong{font-size:15px}.lh-brand img{width:45px;height:45px}.lh-hero{padding:20px 4px 12px}.lh-copy h1{font-size:35px}.lh-copy p{font-size:14px}.lh-quick{min-height:180px}.lh-subject{min-width:132px}.lh-access{padding:12px;border-radius:23px}.lh-portal{grid-template-columns:50px minmax(0,1fr) 36px;padding:13px}.lh-portal-icon{width:48px;height:48px}.lh-bottom{display:block;text-align:center}.lh-bottom span{display:block;margin-top:4px}}
+@media(prefers-reduced-motion:reduce){.lh-subject-track{animation:none}}
 `;
 
 export default function ApprovedHomeClient() {
-  return <main className="dlx-home" dir="rtl">
+  return <main className="lh-home" dir="rtl">
     <style>{styles}</style>
-    <div className="dlx-frame">
-      <header className="dlx-topbar">
-        <div className="dlx-brand">
+    <div className="lh-shell">
+      <header className="lh-top">
+        <div className="lh-brand">
           <img src={IDENTITY} alt="هوية بوابة أستاذ لحوني التعليمية" />
-          <div className="dlx-brand-copy"><strong>بوابة أستاذ لحوني التعليمية</strong><small>بيئة مدرسية ذكية للمتابعة والتحصيل</small></div>
+          <div><strong>بوابة أستاذ لحوني التعليمية</strong><small>تعليم • متابعة • تواصل</small></div>
         </div>
-        <div className="dlx-top-tools"><span className="dlx-pill">مدرسة • أسرة • طالب</span><span className="dlx-pill dlx-ai-pill">✦ مدعومة بالمساعدة الذكية</span></div>
+        <div className="lh-top-status"><i /> منصة تعليمية متصلة</div>
       </header>
 
-      <section className="dlx-hero">
-        <div className="dlx-hero-copy">
-          <span className="dlx-kicker">منصة تعليمية مدرسية متكاملة</span>
-          <h1>تعليم أوضح، متابعة أذكى، <span>وتواصل أقرب.</span></h1>
-          <p>بوابة واحدة تجمع الإدارة والمعلم والطالب وولي الأمر، وتحول الدرجات والحضور والملاحظات والمتابعة إلى تجربة تعليمية واضحة تساعد على اتخاذ القرار وتحسين التحصيل.</p>
-          <div className="dlx-hero-tags"><span>متابعة التحصيل</span><span>تحليل الأداء</span><span>الحضور والانضباط</span><span>التواصل المدرسي</span><span>مساعدة ذكية</span></div>
+      <section className="lh-hero">
+        <div className="lh-copy">
+          <span className="lh-kicker">منصة مدرسية ذكية</span>
+          <h1>كل العملية التعليمية<br/><span>في بوابة واحدة.</span></h1>
+          <p>تجمع <b>الإدارة والمعلم والطالب وولي الأمر</b> في تجربة واضحة، وتحوّل الدرجات والحضور والملاحظات والمتابعة إلى صورة تعليمية أسهل وأقرب.</p>
+          <div className="lh-hero-tags"><span>متابعة التحصيل</span><span>الحضور والانضباط</span><span>تقارير تعليمية</span><span>تواصل أقرب</span></div>
         </div>
-
-        <aside className="dlx-smart-preview" aria-label="مزايا الذكاء في البوابة">
-          <div className="dlx-preview-head"><span>المركز الذكي</span><b>● متصل بالبوابة</b></div>
-          <h2>المعلومة المهمة تظهر أولاً</h2>
-          <p>واجهة تساعد كل مستخدم على الوصول لما يحتاجه بسرعة، بدل البحث بين الصفحات والبيانات.</p>
-          <div className="dlx-preview-grid">
-            <article className="dlx-mini"><i>◎</i><div><strong>تحليل الأداء</strong><small>قراءة أوضح للتحصيل</small></div></article>
-            <article className="dlx-mini"><i>✓</i><div><strong>متابعة الحضور</strong><small>حالة الطالب مباشرة</small></div></article>
-            <article className="dlx-mini"><i>✦</i><div><strong>مساعد ذكي</strong><small>اقتراح الخطوة التالية</small></div></article>
-            <article className="dlx-mini"><i>↗</i><div><strong>تقارير مختصرة</strong><small>قرارات أسرع وأوضح</small></div></article>
-          </div>
-          <div className="dlx-preview-note"><b>هوية البوابة:</b> تعليم مدرسي حديث، إنساني وذكي — يخدم المعلم والطالب والأسرة.</div>
+        <aside className="lh-quick">
+          <strong>الطالب وولي الأمر</strong>
+          <small>امسح الباركود للدخول مباشرة</small>
+          <StudentDirectQr />
         </aside>
       </section>
 
-      <section className="dlx-entry-wrap" aria-label="بوابات الدخول">
-        <div className="dlx-section-title"><div><small>اختر مساحة العمل</small><h2>ثلاث بوابات، تجربة واحدة متكاملة</h2></div><span>نفس الهوية • أدوات مختلفة حسب المستخدم</span></div>
-        <nav className="dlx-portal-grid">
-          {portals.map(portal => <Link className={`dlx-card ${portal.kind}`} href={portal.href} key={portal.href}>
-            <div className="dlx-card-top"><span className="dlx-icon"><PortalGlyph kind={portal.kind} /></span><span className="dlx-card-eyebrow">{portal.eyebrow}</span></div>
-            <h3>{portal.title}</h3><p>{portal.text}</p>
-            <ul>{portal.bullets.map(item => <li key={item}>{item}</li>)}</ul>
-            <span className="dlx-enter" aria-hidden="true">←</span>
-          </Link>)}
-        </nav>
-      </section>
-
-      <section className="dlx-lower">
-        <div className="dlx-feature-strip">
-          <article className="dlx-feature"><span>✦ مساعدة ذكية</span><small>توجيه مناسب حسب دور المستخدم والبيانات المتاحة.</small></article>
-          <article className="dlx-feature"><span>◉ متابعة مستمرة</span><small>التحصيل والحضور والملاحظات في مسار واحد.</small></article>
-          <article className="dlx-feature"><span>↗ قرارات أوضح</span><small>مؤشرات مختصرة تساعد الإدارة والمعلم والأسرة.</small></article>
-          <article className="dlx-feature"><span>⌁ هوية مدرسية</span><small>تصميم حي يعكس التعليم والمواد والمعرفة.</small></article>
+      <section className="lh-subject-zone" aria-label="المواد الدراسية">
+        <div className="lh-subject-track">
+          {[...subjects, ...subjects].map(([icon, name], index) => <div className="lh-subject" key={`${name}-${index}`}>
+            <b>{icon}</b><div className="lh-subject-copy"><span>{name}</span><small>مادة دراسية</small></div>
+          </div>)}
         </div>
-        <aside className="dlx-qr"><StudentDirectQr /></aside>
       </section>
 
-      <footer className="dlx-footer"><span>منصة تعليمية مدرسية ذكية</span><div>إعداد البوابة: <b>الأستاذ حسن علي الطويل</b></div></footer>
+      <section className="lh-access">
+        <header className="lh-access-head"><div><small>اختر مساحتك</small><h2>الدخول إلى البوابة</h2></div><span>ثلاثة مسارات واضحة بدون تبويبات زائدة</span></header>
+        <div className="lh-portals">
+          {portals.map(portal => <Link className={`lh-portal ${portal.key}`} href={portal.href} key={portal.href}>
+            <span className="lh-portal-icon"><PortalIcon kind={portal.key} /></span>
+            <div className="lh-portal-copy"><small>{portal.eyebrow}</small><h3>{portal.title}</h3><p>{portal.text}</p></div>
+            <span className="lh-portal-arrow">←</span>
+          </Link>)}
+        </div>
+      </section>
+
+      <footer className="lh-bottom"><b>بوابة أستاذ لحوني التعليمية</b><span>إعداد البوابة: الأستاذ حسن علي الطويل</span></footer>
     </div>
   </main>;
 }
