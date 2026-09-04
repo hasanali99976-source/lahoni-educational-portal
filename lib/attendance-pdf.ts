@@ -42,14 +42,25 @@ function statusColors(status:string){
   if(status==="مستأذن")return{bg:"#eaf0fb",fg:"#365b94"};
   return{bg:"#f0eafd",fg:"#71509a"};
 }
-function drawHeader(ctx:CanvasRenderingContext2D,options:AttendancePdfDocumentOptions,report:AttendancePdfClass,accent:string,classIndex:number){
+async function loadPortalLogo(){
+  return new Promise<HTMLImageElement|null>(resolve=>{
+    const image=new Image();
+    image.onload=()=>resolve(image);
+    image.onerror=()=>resolve(null);
+    image.src="/icons/lahooni-identity-320.jpg";
+  });
+}
+function drawHeader(ctx:CanvasRenderingContext2D,options:AttendancePdfDocumentOptions,report:AttendancePdfClass,accent:string,classIndex:number,logo:HTMLImageElement|null){
   rounded(ctx,34,30,WIDTH-68,126,24,"#ffffff","#dce8e4");
   rounded(ctx,WIDTH-360,30,326,126,24,accent);
   txt(ctx,"بوابة تعليمية ذكية",WIDTH-332,62,{size:15,weight:900,color:"#dcefeb",maxWidth:270});
   txt(ctx,"سجل المتابعة الأكاديمي",WIDTH-332,101,{size:27,min:20,weight:900,color:"#ffffff",maxWidth:275});
-  txt(ctx,options.portalName,62,65,{size:18,weight:900,color:"#6a8286",align:"left",maxWidth:650});
-  txt(ctx,"تقرير الحضور والانضباط اليومي",62,108,{size:32,min:23,weight:900,color:"#173d45",align:"left",maxWidth:720});
-  rounded(ctx,62,130,190,24,12,"#f3f7f6");txt(ctx,`الفصل ${classIndex+1} من ${options.classes.length}`,157,142,{size:12,weight:900,color:accent,align:"center"});
+
+  rounded(ctx,50,45,92,92,20,"#ffffff","#d6e3df");
+  if(logo)ctx.drawImage(logo,58,53,76,76);
+  txt(ctx,options.portalName,158,64,{size:18,weight:900,color:"#6a8286",align:"left",maxWidth:500});
+  txt(ctx,"تقرير الحضور والانضباط اليومي",158,107,{size:31,min:22,weight:900,color:"#173d45",align:"left",maxWidth:690});
+  rounded(ctx,158,130,190,24,12,"#f3f7f6");txt(ctx,`الفصل ${classIndex+1} من ${options.classes.length}`,253,142,{size:12,weight:900,color:accent,align:"center"});
 
   const meta=[["المعلم",options.teacherName],["المادة",options.subject],["الفصل",report.className],["التاريخ",options.date],["الهجري",options.hijriDate]];
   const gap=10,margin=34,top=172,boxW=(WIDTH-margin*2-gap*4)/5;
@@ -81,13 +92,14 @@ function drawFooter(ctx:CanvasRenderingContext2D,options:AttendancePdfDocumentOp
   txt(ctx,"اعتماد الإدارة: __________________________",WIDTH/2,y,{size:12,weight:800,color:"#647b80",align:"center",maxWidth:450});
   txt(ctx,`${options.portalName} • ${report.className}`,34,y,{size:11.5,weight:900,color:accent,align:"left",maxWidth:480});
 }
-function render(options:AttendancePdfDocumentOptions,report:AttendancePdfClass,index:number){
-  const {canvas,ctx}=canvasPage();const accent=report.accentColor||CLASS_ACCENTS[index%CLASS_ACCENTS.length]||DEFAULT_ACCENT;drawHeader(ctx,options,report,accent,index);drawTable(ctx,report.rows,accent);drawFooter(ctx,options,report,accent);return canvas;
+function render(options:AttendancePdfDocumentOptions,report:AttendancePdfClass,index:number,logo:HTMLImageElement|null){
+  const {canvas,ctx}=canvasPage();const accent=report.accentColor||CLASS_ACCENTS[index%CLASS_ACCENTS.length]||DEFAULT_ACCENT;drawHeader(ctx,options,report,accent,index,logo);drawTable(ctx,report.rows,accent);drawFooter(ctx,options,report,accent);return canvas;
 }
 
 export async function downloadAttendancePdfDocument(options:AttendancePdfDocumentOptions){
   const classes=options.classes.filter(item=>item.rows.length>0);if(!classes.length)throw new Error("attendance_pdf_no_students");if(document.fonts?.ready)await document.fonts.ready;
+  const logo=await loadPortalLogo();
   const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4",compress:true});let pageCount=0,studentCount=0;
-  classes.forEach((report,index)=>{const canvas=render(options,report,index);if(pageCount)pdf.addPage("a4","landscape");pdf.addImage(canvas.toDataURL("image/jpeg",.96),"JPEG",0,0,297,210,undefined,"FAST");pageCount+=1;studentCount+=report.rows.length;});
+  classes.forEach((report,index)=>{const canvas=render(options,report,index,logo);if(pageCount)pdf.addPage("a4","landscape");pdf.addImage(canvas.toDataURL("image/jpeg",.96),"JPEG",0,0,297,210,undefined,"FAST");pageCount+=1;studentCount+=report.rows.length;});
   pdf.save(options.fileName);return{pageCount,studentCount,classCount:classes.length};
 }
