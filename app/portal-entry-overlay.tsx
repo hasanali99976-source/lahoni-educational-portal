@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import StudentDirectQr from "./student-direct-qr";
 import "./student-direct-qr.css";
 
-const PORTRAIT = "/icons/lahooni-identity-v109.jpg";
+const PORTRAIT = "/icons/ostadh-lahooni-192.jpg";
 
 const ENTRY_META: Record<string, { label: string; tone: string }> = {
   "/admin": { label: "إدارة البوابة", tone: "admin" },
