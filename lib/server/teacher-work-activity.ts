@@ -26,6 +26,17 @@ type RecordTeacherWorkInput = {
   meta?: Record<string, unknown>;
 };
 
+const REPEAT_COOLDOWN_MS: Record<TeacherWorkKind, number> = {
+  attendance: 12 * 60 * 60 * 1000,
+  grades: 15 * 60 * 1000,
+  note: 5 * 60 * 1000,
+  referral: 10 * 60 * 1000,
+  diagnostic: 10 * 60 * 1000,
+  remedial: 15 * 60 * 1000,
+  gradePlan: 60 * 60 * 1000,
+  timetable: 15 * 60 * 1000,
+};
+
 function riyadhDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Riyadh",
@@ -56,6 +67,7 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
   const database = adminDb();
   const ref = database.collection(TEACHER_WORK_ACTIVITY_COLLECTION).doc(`${teacherId}__${period}`);
   const signature = compactSignature(input.kind, String(input.signature || `${day}:${input.kind}`));
+  const cooldown = REPEAT_COOLDOWN_MS[input.kind];
 
   let counted = false;
   await database.runTransaction(async transaction => {
@@ -64,7 +76,7 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
     const recent = Array.isArray(current.recentActions)
       ? (current.recentActions as Array<{ key?: string; at?: string }>).filter(item => item?.key && item?.at)
       : [];
-    const duplicate = recent.some(item => item.key === signature && now.getTime() - new Date(String(item.at)).getTime() < 120_000);
+    const duplicate = recent.some(item => item.key === signature && now.getTime() - new Date(String(item.at)).getTime() < cooldown);
     if (duplicate) return;
 
     const counts = current.counts && typeof current.counts === "object"
@@ -79,7 +91,7 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
 
     const nextRecent = [{ key: signature, at: nowIso }, ...recent]
       .filter((item, index, array) => array.findIndex(other => other.key === item.key) === index)
-      .slice(0, 60);
+      .slice(0, 120);
 
     transaction.set(ref, {
       teacherId,
@@ -94,7 +106,7 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
       updatedAt: nowIso,
       recentActions: nextRecent,
       lastMeta: input.meta || {},
-      scoringVersion: 1,
+      scoringVersion: 2,
     }, { merge: true });
     counted = true;
   });
