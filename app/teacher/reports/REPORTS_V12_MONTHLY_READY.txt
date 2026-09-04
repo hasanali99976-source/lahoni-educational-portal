@@ -1,4 +1,5 @@
 Teacher reports V12 monthly range release marker.
 Attendance: daily or date range up to 31 days, single/multiple/all classes.
 Grade reports: selected unit/period or full plan.
-PDF: higher-resolution PNG canvas and improved portal identity.
+PDF: higher-resolution PNG canvas, active academy font and clearer portal identity.
+UI: compact attendance register, compact grade unit tabs and reduced repeated page chrome.
