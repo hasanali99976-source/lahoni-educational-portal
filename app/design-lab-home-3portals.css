@@ -1,0 +1,4 @@
+/* design-lab: three entry portals — admin / teacher / student+parent */
+.academy-portal-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important}
+.academy-portal-card{padding:20px 16px 16px!important}
+@media(max-width:720px){.academy-portal-grid{grid-template-columns:1fr!important}.academy-access{overflow:auto!important}}
