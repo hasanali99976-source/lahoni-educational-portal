@@ -3,8 +3,8 @@ const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",
   "/icon.svg",
-  "/icons/ostadh-lahooni-192.jpg",
-  "/subject-collage.svg?v=13",
+  "/icons/lahooni-identity-320.jpg",
+  "/subject-collage.svg?v=12",
   "/portal-cover.webp",
 ];
 
