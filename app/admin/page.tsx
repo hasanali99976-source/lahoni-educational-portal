@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { SUBJECT_CONFIG } from "../../lib/subject-config";
+import TeacherActivityLeaderboard from "./teacher-activity-leaderboard";
 import "./admin-rebuild.css";
 
 type Assignment = { id?: string; subjectId: string; grade: string; section: string; label?: string };
@@ -25,14 +26,19 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
 function AssignmentEditor({ rows, setRows }: { rows: Assignment[]; setRows: (rows: Assignment[]) => void }) {
   const update = (index: number, key: keyof Assignment, value: string) => setRows(rows.map((row, i) => i === index ? { ...row, [key]: value } : row));
   return <div className="admin2-assignment-box">
+    <div className="admin2-assignment-title"><span>ربط العمل الدراسي</span><small>يمكن للمعلم أن يكون مرتبطًا بأكثر من مادة أو مرحلة.</small></div>
     {rows.map((row, index) => <div className="admin2-assignment-row" key={index}>
       <label>المادة<select required value={row.subjectId} onChange={event => update(index, "subjectId", event.target.value)}><option value="">اختر المادة</option>{SUBJECTS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
       <label>الصف<select required value={row.grade} onChange={event => update(index, "grade", event.target.value)}><option value="">اختر الصف</option>{GRADES.map(item => <option key={item}>{item}</option>)}</select></label>
       <label>الفصل<select required value={row.section} onChange={event => update(index, "section", event.target.value)}><option value="">اختر الفصل</option>{SECTIONS.map(item => <option key={item}>{item === "الكل" ? "جميع الفصول" : item}</option>)}</select></label>
-      {rows.length > 1 && <button type="button" className="admin2-btn danger" onClick={() => setRows(rows.filter((_, i) => i !== index))}>حذف التكليف</button>}
+      {rows.length > 1 && <button type="button" className="admin2-btn danger compact" onClick={() => setRows(rows.filter((_, i) => i !== index))}>حذف</button>}
     </div>)}
-    <button type="button" className="admin2-btn soft" onClick={() => setRows([...rows, emptyAssignment()])}>+ إضافة مادة أو صف أو فصل</button>
+    <button type="button" className="admin2-btn soft admin2-add-assignment" onClick={() => setRows([...rows, emptyAssignment()])}>+ إضافة تكليف آخر</button>
   </div>;
+}
+
+function arabicNumber(value: number) {
+  return new Intl.NumberFormat("ar-SA-u-nu-arab").format(value || 0);
 }
 
 export default function AdminPage() {
@@ -48,6 +54,8 @@ export default function AdminPage() {
   const [deleteSubjectData, setDeleteSubjectData] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [search, setSearch] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -89,7 +97,7 @@ export default function AdminPage() {
       const response = await fetch("/api/admin/teachers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, password: teacherPassword, assignments }), cache: "no-store" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setMessage(data.message || "تعذر إضافة المعلم"); return; }
-      setName(""); setTeacherPassword(""); setAssignments([emptyAssignment()]);
+      setName(""); setTeacherPassword(""); setAssignments([emptyAssignment()]); setShowCreate(false);
       setMessage("تمت إضافة المعلم وربطه بالمواد والصفوف والفصول."); await load();
     } catch { setMessage("تعذر إضافة المعلم الآن."); }
     finally { setBusy(false); }
@@ -124,8 +132,9 @@ export default function AdminPage() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setMessage(data.message || "تعذر حذف الحساب"); return; }
       const teacherName = deleting.name;
+      const removeData = deleteSubjectData;
       setDeleting(null); setDeleteSubjectData(false);
-      setMessage(deleteSubjectData
+      setMessage(removeData
         ? `تم حذف حساب ${teacherName} وبيانات مواده وفتح فصوله للمعلمين الآخرين.`
         : `تم حذف حساب ${teacherName} مع حفظ بيانات المواد والدرجات القديمة، وفتح فصوله للمعلمين الآخرين.`);
       await load();
@@ -136,26 +145,65 @@ export default function AdminPage() {
   const subjectLabel = (id: string) => SUBJECTS.find(([key]) => key === id)?.[1] || id;
   const assignmentLabel = (assignment: Assignment) => assignment.label || `${subjectLabel(assignment.subjectId)} — ${assignment.grade}${assignment.section ? ` — ${assignment.section === "الكل" ? "جميع الفصول" : `فصل ${assignment.section}`}` : ""}`;
   const uniqueSubjectCount = useMemo(() => new Set(teachers.flatMap(item => item.subjectIds || [])).size, [teachers]);
+  const assignmentCount = useMemo(() => teachers.reduce((sum, item) => sum + (item.assignments?.length || 0), 0), [teachers]);
+  const activeCount = useMemo(() => teachers.filter(item => item.active).length, [teachers]);
+  const inactiveCount = teachers.length - activeCount;
+  const filteredTeachers = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("ar");
+    if (!term) return teachers;
+    return teachers.filter(teacher => teacher.name.toLocaleLowerCase("ar").includes(term) || teacher.assignments?.some(assignment => assignmentLabel(assignment).toLocaleLowerCase("ar").includes(term)));
+  }, [teachers, search]);
 
-  if (authenticated === null) return <main className="admin2 admin2-login" dir="rtl"><section className="admin2-login-card"><div className="admin2-brand"><span className="admin2-mark">إ</span><div><strong>بوابة أستاذ لحوني</strong><small>إدارة النظام</small></div></div><p>جارٍ تجهيز لوحة الإدارة…</p></section></main>;
+  if (authenticated === null) return <main className="admin2 admin2-login" dir="rtl"><section className="admin2-login-card"><div className="admin2-brand"><span className="admin2-mark">إ</span><div><strong>بوابة أستاذ لحوني</strong><small>مركز قيادة الإدارة</small></div></div><p>جارٍ تجهيز لوحة الإدارة الذكية…</p></section></main>;
 
   if (!authenticated) return <main className="admin2 admin2-login" dir="rtl"><section className="admin2-login-card">
     <Link className="admin2-back" href="/">← العودة إلى البوابة الرئيسية</Link>
-    <div className="admin2-brand"><span className="admin2-mark">إ</span><div><strong>بوابة أستاذ لحوني</strong><small>إدارة النظام</small></div></div>
-    <h1>دخول الإدارة</h1><p>اكتب اسم المدير مرة واحدة، وستبقى الجلسة محفوظة على هذا الجهاز لمدة 30 يومًا.</p>
-    <form onSubmit={login}><label>اسم المدير<input value={username} onChange={event => setUsername(event.target.value)} placeholder="حسن علي" autoComplete="username" required /></label>{message && <p className="admin2-message">{message}</p>}<button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الدخول…" : "دخول الإدارة"}</button></form>
+    <div className="admin2-brand"><span className="admin2-mark">إ</span><div><strong>بوابة أستاذ لحوني</strong><small>مركز قيادة الإدارة</small></div></div>
+    <h1>دخول الإدارة</h1><p>دخول مباشر وآمن إلى مركز إدارة المعلمين والطلاب ومتابعة العمل الفعلي داخل البوابة.</p>
+    <form onSubmit={login}><label>اسم المدير<input value={username} onChange={event => setUsername(event.target.value)} placeholder="اسم المدير" autoComplete="username" required /></label>{message && <p className="admin2-message">{message}</p>}<button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الدخول…" : "دخول الإدارة"}</button></form>
   </section></main>;
 
-  return <main className="admin2" dir="rtl"><div className="admin2-shell">
-    <header className="admin2-head"><div><small>لوحة الإدارة</small><h1>إدارة بوابة أستاذ لحوني</h1><p>المعلمون وجميع المواد والصفوف والفصول في مكان واحد.</p></div><div className="admin2-head-actions"><Link className="admin2-btn soft" href="/">الرئيسية</Link><Link className="admin2-btn soft" href="/admin/students">الطلاب والفصول</Link><button className="admin2-btn danger" onClick={logout}>تسجيل الخروج</button></div></header>
-    <section className="admin2-stats"><article><span>عدد المعلمين</span><strong>{teachers.length}</strong></article><article><span>الحسابات المفعلة</span><strong>{teachers.filter(item => item.active).length}</strong></article><article><span>التكليفات الدراسية</span><strong>{teachers.reduce((sum, item) => sum + (item.assignments?.length || 0), 0)}</strong></article><article><span>المواد المشغلة</span><strong>{uniqueSubjectCount}</strong></article></section>
-    {message && <p className="admin2-message">{message}</p>}
-    <div className="admin2-grid">
-      <section className="admin2-panel"><h2>إضافة معلم</h2><p>جميع مواد البوابة متاحة. اربط المعلم بالمادة والصف، ثم يحدد فصوله من بوابته.</p><form className="admin2-form" onSubmit={createTeacher}><label>اسم المعلم<input value={name} onChange={event => setName(event.target.value)} placeholder="اسم المعلم" required /></label><label>الرقم السري للمعلم<input type="password" value={teacherPassword} onChange={event => setTeacherPassword(event.target.value)} minLength={8} placeholder="٨ خانات فأكثر" required /></label><AssignmentEditor rows={assignments} setRows={setAssignments} /><button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الحفظ…" : "إضافة المعلم"}</button></form></section>
-      <section className="admin2-panel"><h2>المعلمون الحاليون</h2><p>التعديل يحدّث المواد، والحذف يتيح لك اختيار حفظ بيانات المادة أو حذفها.</p><div className="admin2-list">{teachers.length === 0 ? <div className="admin2-empty">لا توجد حسابات معلمين.</div> : teachers.map(teacher => <article className="admin2-teacher" key={teacher.id}><span className="admin2-avatar">{teacher.name.trim().charAt(0) || "م"}</span><div><strong>{teacher.name}</strong><p>{teacher.assignments?.map(assignmentLabel).join(" • ") || "لا توجد تكليفات"}</p><span className={`admin2-state ${teacher.active ? "on" : "off"}`}>{teacher.active ? "مفعل" : "متوقف"}</span></div><div className="admin2-actions"><button className="admin2-btn soft" onClick={() => { setEditing({ ...teacher, assignments: teacher.assignments?.length ? teacher.assignments : [emptyAssignment()] }); setResetPassword(""); }}>تعديل</button><button className="admin2-btn soft" onClick={() => void toggle(teacher)} disabled={busy}>{teacher.active ? "إيقاف" : "تفعيل"}</button><button className="admin2-btn danger" onClick={() => { setDeleting(teacher); setDeleteSubjectData(false); }}>حذف</button></div></article>)}</div></section>
-    </div>
+  return <main className="admin2 admin-smart-command" dir="rtl"><div className="admin2-shell">
+    <header className="admin2-head">
+      <div><small>تبويب المعلمين</small><h1>مركز قيادة المعلمين</h1><p>إدارة الحسابات والتكليفات ومتابعة الاستخدام الحقيقي للبوابة من شاشة واحدة.</p></div>
+      <div className="admin2-head-actions"><button className="admin2-btn soft" onClick={() => void load()} disabled={busy}>تحديث البيانات</button><button className="admin2-btn danger" onClick={logout}>تسجيل الخروج</button></div>
+    </header>
 
-    {editing && <div className="admin2-modal"><section className="admin2-modal-card"><header className="admin2-modal-head"><h2>تعديل {editing.name}</h2><button className="admin2-btn soft" onClick={() => setEditing(null)}>إغلاق</button></header><div className="admin2-form"><label>اسم المعلم<input value={editing.name} onChange={event => setEditing({ ...editing, name: event.target.value })} /></label><label>تغيير الرقم السري <small>اتركه فارغًا إذا لم ترغب بتغييره</small><input type="password" minLength={8} value={resetPassword} onChange={event => setResetPassword(event.target.value)} /></label><AssignmentEditor rows={editing.assignments} setRows={rows => setEditing({ ...editing, assignments: rows })} /></div><div className="admin2-modal-actions"><button className="admin2-btn soft" onClick={() => setEditing(null)}>إلغاء</button><button className="admin2-btn primary" disabled={busy} onClick={() => void saveTeacher()}>حفظ التعديلات</button></div></section></div>}
+    <section className="admin2-stats">
+      <article><span>عدد المعلمين</span><strong>{arabicNumber(teachers.length)}</strong><small>حسابات مسجلة</small></article>
+      <article><span>الحسابات المفعلة</span><strong>{arabicNumber(activeCount)}</strong><small>{inactiveCount ? `${arabicNumber(inactiveCount)} متوقفة` : "جميعها فعالة"}</small></article>
+      <article><span>التكليفات الدراسية</span><strong>{arabicNumber(assignmentCount)}</strong><small>مادة / صف / فصل</small></article>
+      <article><span>المواد المشغلة</span><strong>{arabicNumber(uniqueSubjectCount)}</strong><small>ضمن البوابة</small></article>
+    </section>
+
+    <TeacherActivityLeaderboard />
+
+    {message && <p className="admin2-message admin2-global-message">{message}</p>}
+
+    <section className="admin-teacher-commandbar">
+      <div className="admin-teacher-search"><span>⌕</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="ابحث باسم المعلم أو المادة أو الصف…" /><small>{arabicNumber(filteredTeachers.length)} نتيجة</small></div>
+      <button type="button" className="admin2-btn primary admin-create-trigger" onClick={() => setShowCreate(value => !value)}>{showCreate ? "إغلاق إضافة معلم" : "+ إضافة معلم"}</button>
+    </section>
+
+    {showCreate && <section className="admin2-panel admin-create-panel">
+      <header className="admin-panel-heading"><div><small>حساب جديد</small><h2>إضافة معلم وربط عمله</h2><p>أنشئ الحساب ثم اربطه بالمادة والمرحلة المطلوبة. يمكن تعديل الربط لاحقًا بدون فقد البيانات.</p></div><button type="button" className="admin2-btn soft" onClick={() => setShowCreate(false)}>إغلاق</button></header>
+      <form className="admin2-form admin-create-form" onSubmit={createTeacher}>
+        <div className="admin-create-credentials"><label>اسم المعلم<input value={name} onChange={event => setName(event.target.value)} placeholder="اسم المعلم" required /></label><label>الرقم السري للمعلم<input type="password" value={teacherPassword} onChange={event => setTeacherPassword(event.target.value)} minLength={8} placeholder="٨ خانات فأكثر" required /></label></div>
+        <AssignmentEditor rows={assignments} setRows={setAssignments} />
+        <div className="admin-create-submit"><span>سيظهر الحساب مباشرة في بوابة المعلم بعد الحفظ.</span><button className="admin2-btn primary" disabled={busy}>{busy ? "جارٍ الحفظ…" : "حفظ وإضافة المعلم"}</button></div>
+      </form>
+    </section>}
+
+    <section className="admin2-panel admin-teachers-panel">
+      <header className="admin-panel-heading"><div><small>إدارة الحسابات</small><h2>المعلمون الحاليون</h2><p>التعديل والتفعيل والحذف من نفس القائمة، مع إبقاء البيانات القديمة آمنة عند الحاجة.</p></div><span className="admin-live-indicator"><i /> بيانات حية</span></header>
+      <div className="admin2-list">{filteredTeachers.length === 0 ? <div className="admin2-empty">{search ? "لا توجد نتائج مطابقة للبحث." : "لا توجد حسابات معلمين."}</div> : filteredTeachers.map(teacher => <article className="admin2-teacher" key={teacher.id}>
+        <span className="admin2-avatar">{teacher.name.trim().charAt(0) || "م"}</span>
+        <div className="admin-teacher-copy"><div className="admin-teacher-name-row"><strong>{teacher.name}</strong><span className={`admin2-state ${teacher.active ? "on" : "off"}`}>{teacher.active ? "مفعل" : "متوقف"}</span></div><p>{teacher.assignments?.map(assignmentLabel).join(" • ") || "لا توجد تكليفات"}</p><small>{arabicNumber(teacher.assignments?.length || 0)} تكليفات دراسية</small></div>
+        <div className="admin2-actions"><button className="admin2-btn soft" onClick={() => { setEditing({ ...teacher, assignments: teacher.assignments?.length ? teacher.assignments : [emptyAssignment()] }); setResetPassword(""); }}>تعديل</button><button className="admin2-btn soft" onClick={() => void toggle(teacher)} disabled={busy}>{teacher.active ? "إيقاف" : "تفعيل"}</button><button className="admin2-btn danger" onClick={() => { setDeleting(teacher); setDeleteSubjectData(false); }}>حذف</button></div>
+      </article>)}</div>
+    </section>
+
+    {editing && <div className="admin2-modal"><section className="admin2-modal-card"><header className="admin2-modal-head"><div><small>تعديل الحساب</small><h2>{editing.name}</h2></div><button className="admin2-btn soft" onClick={() => setEditing(null)}>إغلاق</button></header><div className="admin2-form"><label>اسم المعلم<input value={editing.name} onChange={event => setEditing({ ...editing, name: event.target.value })} /></label><label>تغيير الرقم السري <small>اتركه فارغًا إذا لم ترغب بتغييره</small><input type="password" minLength={8} value={resetPassword} onChange={event => setResetPassword(event.target.value)} /></label><AssignmentEditor rows={editing.assignments} setRows={rows => setEditing({ ...editing, assignments: rows })} /></div><div className="admin2-modal-actions"><button className="admin2-btn soft" onClick={() => setEditing(null)}>إلغاء</button><button className="admin2-btn primary" disabled={busy} onClick={() => void saveTeacher()}>حفظ التعديلات</button></div></section></div>}
 
     {deleting && <div className="admin2-modal"><section className="admin2-modal-card"><header className="admin2-modal-head"><div><small>صلاحيات الحذف</small><h2>حذف حساب {deleting.name}</h2></div><button className="admin2-btn soft" onClick={() => setDeleting(null)}>إغلاق</button></header><p>اختر هل تُحفظ درجات وبيانات مواد المعلم القديمة أم تُحذف معها. في الحالتين ستُفتح فصوله للمعلمين الآخرين.</p><label className="admin2-delete-choice"><input type="checkbox" checked={deleteSubjectData} onChange={event => setDeleteSubjectData(event.target.checked)} /><span><strong>حذف بيانات المواد والدرجات التابعة لهذا المعلم</strong><small>اترك الخيار غير محدد لحذف الحساب فقط مع حفظ البيانات القديمة.</small></span></label><div className="admin2-modal-actions"><button className="admin2-btn soft" onClick={() => setDeleting(null)}>إلغاء</button><button className="admin2-btn danger" disabled={busy} onClick={() => void confirmDelete()}>{busy ? "جارٍ الحذف…" : deleteSubjectData ? "حذف الحساب والمواد" : "حذف الحساب وحفظ المواد"}</button></div></section></div>}
   </div></main>;
