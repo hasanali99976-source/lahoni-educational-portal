@@ -40,41 +40,26 @@ export default function ApprovedHomeClient() {
 
       <section className="academy-hero">
         <aside className="academy-motto" aria-hidden="true">معاً<br/>نصنع فرقاً<br/>في التعليم</aside>
-
         <div className="academy-hero-copy">
           <span>مرحباً بكم في</span>
           <h1>بوابة أستاذ لحوني التعليمية</h1>
           <p>مصادر موثوقة .. تحضير أسهل .. مستقبل أفضل</p>
           <i aria-hidden="true" />
         </div>
-
         <div className="academy-portrait-wrap">
-          <div className="academy-portrait-ring">
-            <img src={PORTRAIT} alt="هوية أستاذ لحوني" />
-          </div>
+          <div className="academy-portrait-ring"><img src={PORTRAIT} alt="هوية أستاذ لحوني" /></div>
         </div>
       </section>
 
       <section className="academy-access" aria-label="خيارات الدخول">
-        <div className="academy-qr-panel" aria-label="الدخول السريع لبوابة الطالب وولي الأمر">
-          <StudentDirectQr />
-        </div>
-
+        <div className="academy-qr-panel" aria-label="الدخول السريع لبوابة الطالب وولي الأمر"><StudentDirectQr /></div>
         <nav className="academy-portal-grid" aria-label="بوابات الدخول">
-          {portals.map(portal => (
-            <Link key={portal.href} href={portal.href} className={`academy-portal-card ${portal.tone}`}>
-              <span className="academy-card-icon"><PortalIcon type={portal.icon} /></span>
-              <h2>{portal.title}</h2>
-              <p>{portal.text}</p>
-              <span className="academy-card-enter" aria-hidden="true">←</span>
-            </Link>
-          ))}
+          {portals.map(portal => <Link key={portal.href} href={portal.href} className={`academy-portal-card ${portal.tone}`}><span className="academy-card-icon"><PortalIcon type={portal.icon} /></span><h2>{portal.title}</h2><p>{portal.text}</p><span className="academy-card-enter" aria-hidden="true">←</span></Link>)}
         </nav>
       </section>
 
       <footer className="academy-credit">إعداد البوابة: <b>الأستاذ حسن علي الطويل</b><span aria-hidden="true">✎</span></footer>
       <div className="academy-bottom-band" aria-hidden="true" />
-    </main>,
-    document.body,
+    </main>, document.body,
   );
 }
