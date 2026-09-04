@@ -1,0 +1,155 @@
+/* Teacher Academy V11 — professional educational workspace */
+:root{
+  --academy-bg:#f3f6f6;
+  --academy-surface:#ffffff;
+  --academy-ink:#182b31;
+  --academy-muted:#667b80;
+  --academy-line:#dfe7e7;
+  --academy-deep:#102f39;
+  --academy-brand:#0d7772;
+  --academy-gold:#c8a65a;
+  --academy-soft:#edf6f4;
+  --academy-shadow:0 18px 46px rgba(15,48,57,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--academy-bg)}
+.teacher-academy-loading{min-height:100vh;display:grid;place-items:center;background:#f4f7f6;color:#17343c;font:800 18px Tajawal,"Segoe UI",Tahoma,Arial,sans-serif}
+
+.teacher-academy-v11{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:310px minmax(0,1fr);
+  background:var(--academy-bg);
+  color:var(--academy-ink);
+  font-family:Tajawal,"Segoe UI",Tahoma,Arial,sans-serif;
+  --subject:#0d7772;
+  --subject-deep:#0b5958;
+  --subject-soft:#edf7f5;
+  --subject-faint:#f6fbfa;
+}
+.teacher-academy-v11.theme-history{--subject:#a06936;--subject-deep:#70431f;--subject-soft:#f8f1e8;--subject-faint:#fcf8f2}
+.teacher-academy-v11.theme-critical-thinking{--subject:#5b5fa8;--subject-deep:#3f427c;--subject-soft:#f0f1fb;--subject-faint:#f8f8fd}
+.teacher-academy-v11.theme-geography{--subject:#317487;--subject-deep:#225363;--subject-soft:#ecf6f8;--subject-faint:#f7fbfc}
+.teacher-academy-v11.theme-math{--subject:#3e64a5;--subject-deep:#2f4c80;--subject-soft:#eef3fb;--subject-faint:#f8fafe}
+.teacher-academy-v11.theme-science,.teacher-academy-v11.theme-physics,.teacher-academy-v11.theme-chemistry,.teacher-academy-v11.theme-biology{--subject:#287c68;--subject-deep:#1d594a;--subject-soft:#ecf7f2;--subject-faint:#f7fbf9}
+.teacher-academy-v11.theme-arabic{--subject:#8f5360;--subject-deep:#693d47;--subject-soft:#f9eef1;--subject-faint:#fdf8f9}
+.teacher-academy-v11.theme-english{--subject:#386797;--subject-deep:#294b70;--subject-soft:#edf4fa;--subject-faint:#f8fbfd}
+.teacher-academy-v11.theme-digital,.teacher-academy-v11.theme-compsci{--subject:#376773;--subject-deep:#264954;--subject-soft:#eef6f7;--subject-faint:#f8fbfc}
+.teacher-academy-v11.theme-islamic,.teacher-academy-v11.theme-quran{--subject:#49755f;--subject-deep:#345443;--subject-soft:#eff7f2;--subject-faint:#f8fbf9}
+.teacher-academy-v11.theme-art{--subject:#8a5978;--subject-deep:#624056;--subject-soft:#f7f0f5;--subject-faint:#fcf9fb}
+.teacher-academy-v11.theme-pe{--subject:#3f7a63;--subject-deep:#2d5948;--subject-soft:#eef7f3;--subject-faint:#f8fbf9}
+
+/* Integrated academic rail */
+.academy-rail{
+  position:sticky;top:0;align-self:start;height:100vh;z-index:80;
+  display:flex;flex-direction:column;
+  padding:20px 16px 14px;
+  background:linear-gradient(180deg,#12313b 0%,#102d36 52%,#0d252d 100%);
+  border-left:1px solid rgba(255,255,255,.07);
+  box-shadow:-14px 0 38px rgba(7,28,35,.08);
+}
+.academy-brand{display:flex;align-items:center;gap:12px;padding:3px 3px 17px;border-bottom:1px solid rgba(255,255,255,.11)}
+.academy-brand img{width:58px;height:58px;border-radius:16px;object-fit:cover;background:#fff;border:1px solid rgba(255,255,255,.24);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.academy-brand small{display:block;color:#a9bdc1;font-size:12px;font-weight:700;line-height:1.5}
+.academy-brand strong{display:block;color:#fff;font-size:21px;font-weight:900;margin-top:2px;letter-spacing:-.2px}
+
+.academy-teacher-card{position:relative;display:grid;grid-template-columns:48px 1fr;gap:11px;align-items:center;margin-top:15px;padding:13px;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10)}
+.academy-teacher-avatar{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--subject),color-mix(in srgb,var(--subject) 70%,#fff));color:#fff;font-size:22px;font-weight:950;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+.academy-teacher-card small{display:block;color:#9fb3b8;font-size:11px;font-weight:700}
+.academy-teacher-card h2{margin:1px 0 2px;color:#fff;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.academy-teacher-card p{margin:0;color:#c2d0d3;font-size:12px;font-weight:700}
+.academy-online{position:absolute;left:11px;top:10px;color:#9ec5b4;font-size:10px;font-weight:800}.academy-online i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#67d19f;margin-left:4px;box-shadow:0 0 0 4px rgba(103,209,159,.11)}
+
+.academy-subject-space{margin-top:13px;padding-bottom:13px;border-bottom:1px solid rgba(255,255,255,.09)}
+.academy-subject-space>header{display:flex;align-items:center;justify-content:space-between;padding:0 5px 8px;color:#9eb2b7;font-size:11px;font-weight:800}
+.academy-subject-space>header b{display:grid;place-items:center;min-width:24px;height:24px;border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-size:11px}
+.academy-subject-list{display:grid;gap:7px;max-height:142px;overflow:auto;padding-left:2px}.academy-subject-list::-webkit-scrollbar{width:4px}.academy-subject-list::-webkit-scrollbar-thumb{background:#ffffff2b;border-radius:99px}
+.academy-subject-list button{display:grid;grid-template-columns:6px 1fr auto;gap:10px;align-items:center;width:100%;padding:10px 10px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.045);color:#d8e3e5;text-align:right;cursor:pointer;transition:.18s}
+.academy-subject-list button:hover{background:rgba(255,255,255,.085);transform:translateX(-2px)}
+.academy-subject-list button.active{background:#fff;color:#1b363e;border-color:#fff;box-shadow:0 10px 25px rgba(0,0,0,.16)}
+.subject-ribbon{width:6px;height:38px;border-radius:99px;background:var(--subject)}
+.academy-subject-list button b{display:block;font-size:14px;font-weight:900}.academy-subject-list button em{display:block;margin-top:2px;font-style:normal;font-size:11px;color:inherit;opacity:.7}.academy-subject-list button>i{font-style:normal;font-size:10px;font-weight:800;opacity:.72}
+
+.academy-home{display:flex;align-items:center;gap:12px;margin-top:13px;padding:12px 13px;border-radius:14px;text-decoration:none;color:#c9d6d9;border:1px solid rgba(255,255,255,.06);transition:.18s}.academy-home:hover{background:rgba(255,255,255,.06)}.academy-home.active{background:linear-gradient(135deg,var(--subject),var(--subject-deep));color:#fff;border-color:transparent;box-shadow:0 11px 24px color-mix(in srgb,var(--subject) 26%,transparent)}
+.academy-home b,.academy-home small{display:block}.academy-home b{font-size:15px;font-weight:900}.academy-home small{margin-top:1px;font-size:11px;opacity:.72}
+
+.academy-nav-scroll{flex:1;overflow:auto;margin-top:10px;padding-left:3px}.academy-nav-scroll::-webkit-scrollbar{width:4px}.academy-nav-scroll::-webkit-scrollbar-thumb{background:#ffffff20;border-radius:99px}
+.academy-nav-group{margin-bottom:13px}.academy-nav-group>small{display:block;padding:6px 9px;color:#718b92;font-size:10px;font-weight:900;letter-spacing:.1px}
+.academy-nav-group nav{display:grid;gap:3px}
+.academy-nav-group a{display:grid;grid-template-columns:35px 1fr auto;gap:9px;align-items:center;min-height:51px;padding:7px 9px;border-radius:12px;text-decoration:none;color:#bac9cc;border:1px solid transparent;transition:.17s}
+.academy-nav-group a:hover{background:rgba(255,255,255,.055);color:#fff}
+.academy-nav-group a.active{background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.12);box-shadow:inset -3px 0 0 var(--subject)}
+.academy-nav-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:#9eb2b7}.academy-nav-group a.active .academy-nav-icon{background:color-mix(in srgb,var(--subject) 72%,#fff);color:#fff}
+.academy-nav-copy b,.academy-nav-copy em{display:block}.academy-nav-copy b{font-size:14px;font-weight:900}.academy-nav-copy em{margin-top:1px;color:#789096;font-size:10.5px;font-style:normal;font-weight:700}.academy-nav-group a.active .academy-nav-copy em{color:#b8c8cb}
+.academy-nav-group a>i{font-style:normal;font-size:9px;font-weight:900;padding:4px 6px;border-radius:99px;background:rgba(200,166,90,.16);color:#f1d894}
+
+.academy-race{padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}.academy-race .teacher-race-card.compact{margin:0!important;background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:none!important;color:#fff!important}.academy-race .teacher-race-card.compact *{font-size:11px!important}.academy-race .teacher-race-card.compact small{color:#8fa8ad!important}
+.academy-rail-footer{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding-top:9px}.academy-rail-footer a,.academy-rail-footer button{border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(255,255,255,.04);color:#a9bcc0;text-align:center;text-decoration:none;padding:9px;font:800 11px inherit;cursor:pointer}.academy-rail-footer a:hover,.academy-rail-footer button:hover{background:rgba(255,255,255,.08);color:#fff}
+
+/* Main academic stage */
+.academy-stage{min-width:0;min-height:100vh;background:radial-gradient(circle at 95% 0%,color-mix(in srgb,var(--subject) 7%,transparent),transparent 28%),linear-gradient(180deg,#f9fbfb 0,#f3f6f6 240px)}
+.academy-topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:18px;min-height:88px;padding:13px 26px;background:rgba(249,251,251,.94);backdrop-filter:blur(18px);border-bottom:1px solid #e1e8e8}
+.academy-menu{display:none;width:44px;height:44px;border:0;border-radius:12px;background:var(--academy-deep);color:#fff;font-size:21px;cursor:pointer}
+.academy-page-identity{min-width:0}.academy-page-identity small{display:block;color:var(--subject);font-size:12px;font-weight:900}.academy-page-identity h1{margin:2px 0 1px;color:#172e35;font-size:28px;line-height:1.15;font-weight:950;letter-spacing:-.3px}.academy-page-identity p{margin:0;color:#718489;font-size:13px;font-weight:700}
+.academy-top-actions{margin-right:auto;display:flex;align-items:center;gap:10px}.academy-date{color:#6d8085;font-size:12px;font-weight:800;white-space:nowrap}.academy-report-button{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:12px;background:#173b45;color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 10px 22px rgba(23,59,69,.14);transition:.18s}.academy-report-button:hover{transform:translateY(-1px);background:var(--subject-deep)}
+
+.academy-guide{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(420px,1.2fr);gap:12px;padding:18px 26px 0}
+.academy-guide-question,.academy-guide-ai{border-radius:18px;background:#fff;border:1px solid #dfe8e7;box-shadow:0 10px 28px rgba(17,50,58,.05)}
+.academy-guide-question{padding:16px 18px;border-right:4px solid var(--subject)}.academy-guide-question small{display:block;color:#73878b;font-size:11px;font-weight:800}.academy-guide-question h2{margin:4px 0 0;font-size:20px;color:#1b343b;line-height:1.35}
+.academy-guide-ai{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:linear-gradient(110deg,#fff,var(--subject-faint))}.academy-ai-mark{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--subject);color:#fff;font-size:14px;font-weight:950;box-shadow:0 8px 18px color-mix(in srgb,var(--subject) 22%,transparent)}.academy-guide-ai small{display:block;color:var(--subject);font-size:11px;font-weight:900}.academy-guide-ai p{margin:2px 0 0;color:#4d676d;font-size:13px;font-weight:700;line-height:1.65}.academy-guide-ai a{padding:9px 11px;border-radius:10px;background:#fff;border:1px solid color-mix(in srgb,var(--subject) 24%,white);color:var(--subject-deep);text-decoration:none;font-size:12px;font-weight:900;white-space:nowrap}
+.academy-canvas{padding:18px 26px 44px;max-width:1680px;width:100%;margin:0 auto}.academy-canvas>main{width:100%!important;max-width:none!important;margin:0!important;background:transparent!important;min-height:auto!important;color:var(--academy-ink)}
+.academy-canvas :is(button,input,select,textarea){font-family:inherit;font-size:14px}.academy-canvas input,.academy-canvas select,.academy-canvas textarea{min-height:42px}
+.academy-canvas h1{font-size:28px!important}.academy-canvas h2{font-size:22px!important}.academy-canvas h3{font-size:18px!important}.academy-canvas p,.academy-canvas label,.academy-canvas td,.academy-canvas th{font-size:14px!important}.academy-canvas small{font-size:11px!important}
+
+/* High-level academic treatment across all teacher pages */
+.academy-canvas :is(.attendance-card,.gradebook-card,.follow-card,.teacher-notes-compose,.teacher-notes-history,.teacher-report-toolbar,.teacher-report-print,.timetable-board,.gpv9-current,.gpv9-permission,.gpv9-suggestions,.student-report-wrap,.sv9-roster,.sv9-overview,.sv9-class-grid,.gv10-command,.gv10-overview,.gv10-ai,.gv10-register,.tn10-selector,.tn10-workspace,.ttv9-today,.ttv9-week>article,.trv9-toolbar,.trv9-chart-card,.trv9-kpi,.diagnostic-builder,.diagnostic-list){border:1px solid #dfe7e7!important;border-radius:18px!important;background:#fff!important;box-shadow:0 12px 32px rgba(17,50,58,.055)!important}
+
+/* Attendance — one clear academic register */
+.academy-canvas .attendance-card{overflow:hidden!important}.academy-canvas .attendance-hero{display:none!important}.academy-canvas .attendance-setup-panel{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:14px!important;align-items:end!important;padding:17px 18px!important;background:#fff!important;border-bottom:1px solid #e3eaea!important}.academy-canvas .attendance-primary-controls{display:flex!important;flex-wrap:wrap!important;gap:12px!important;align-items:end!important}.academy-canvas .attendance-primary-controls label{min-width:200px!important}.academy-canvas .attendance-primary-controls label>span{font-size:12px!important;font-weight:900!important;color:#506b70!important}.academy-canvas .attendance-primary-controls select,.academy-canvas .attendance-primary-controls input{height:44px!important;border:1px solid #d8e3e2!important;border-radius:11px!important;background:#fafcfc!important;color:#213e45!important;padding:0 12px!important;font-size:14px!important;font-weight:800!important}.academy-canvas .attendance-summary{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:8px!important;padding:13px 18px!important;background:#f8faf9!important;border-bottom:1px solid #e3eaea!important}.academy-canvas .attendance-summary article{padding:10px!important;border-radius:12px!important;background:#fff!important;border:1px solid #e2e9e8!important;text-align:center!important}.academy-canvas .attendance-summary strong{font-size:20px!important}.academy-canvas .attendance-summary span{font-size:11px!important}.academy-canvas .attendance-student-list{display:grid!important;gap:6px!important;padding:14px 18px 18px!important}.academy-canvas .attendance-row{display:grid!important;grid-template-columns:48px minmax(190px,1fr) minmax(470px,auto)!important;gap:12px!important;align-items:center!important;min-height:58px!important;padding:7px 9px!important;border:1px solid #e4ebea!important;border-radius:12px!important;background:#fff!important}.academy-canvas .attendance-row:hover{border-color:color-mix(in srgb,var(--subject) 26%,white)!important;background:var(--subject-faint)!important}.academy-canvas .attendance-row .student-name,.academy-canvas .attendance-row strong{font-size:14px!important}.academy-canvas .attendance-status-buttons{display:flex!important;gap:5px!important;justify-content:flex-end!important;flex-wrap:wrap!important}.academy-canvas .attendance-status-buttons button{min-width:72px!important;height:37px!important;border-radius:9px!important;font-size:12px!important;font-weight:900!important}.academy-canvas .attendance-actions button{min-height:42px!important;border-radius:11px!important;font-size:13px!important;font-weight:900!important}
+
+/* Grades — unit first, then focused gradebook */
+.academy-canvas .grades-v10{display:grid!important;gap:14px!important}.academy-canvas .gv10-command{padding:15px 16px!important;display:flex!important;justify-content:space-between!important;gap:14px!important;align-items:flex-end!important}.academy-canvas .gv10-selectors{display:flex!important;flex-wrap:wrap!important;gap:10px!important}.academy-canvas .gv10-selectors label>span{font-size:12px!important;font-weight:900!important;color:#526c71!important}.academy-canvas .gv10-selectors select,.academy-canvas .gv10-selectors input{height:44px!important;min-width:190px!important;border:1px solid #d8e3e2!important;border-radius:11px!important;background:#fbfdfd!important;padding:0 12px!important;font-size:14px!important;font-weight:800!important;color:#223e45!important}.academy-canvas .gv10-command-actions{display:flex!important;gap:8px!important;align-items:center!important}.academy-canvas .gv10-command-actions button,.academy-canvas .gv10-command-actions summary{min-height:42px!important;border-radius:11px!important;font-size:13px!important;font-weight:900!important}.academy-canvas .gv10-overview{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:10px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}.academy-canvas .gv10-overview article{padding:15px!important;border:1px solid #e0e8e7!important;border-radius:15px!important;background:#fff!important;box-shadow:0 8px 20px rgba(18,51,59,.04)!important}.academy-canvas .gv10-overview article small{font-size:11px!important;color:#71858a!important}.academy-canvas .gv10-overview article b{display:block!important;margin:4px 0!important;font-size:24px!important;color:#18363e!important}.academy-canvas .gv10-ai{display:grid!important;grid-template-columns:46px 1fr auto!important;gap:12px!important;align-items:center!important;padding:13px 15px!important;background:linear-gradient(100deg,#fff,var(--subject-faint))!important;border-color:color-mix(in srgb,var(--subject) 20%,white)!important}.academy-canvas .gv10-ai>span{width:44px!important;height:44px!important;display:grid!important;place-items:center!important;border-radius:13px!important;background:var(--subject)!important;color:#fff!important;font-size:13px!important;font-weight:950!important}.academy-canvas .gv10-ai p{font-size:13px!important;line-height:1.6!important}.academy-canvas .gv10-register{overflow:hidden!important}.academy-canvas .gv10-register>header{padding:16px 18px!important;background:#fff!important;border-bottom:1px solid #e3eaea!important}.academy-canvas .gv10-register>header h2{font-size:22px!important;margin:2px 0!important}.academy-canvas .gv10-table-wrap{overflow:auto!important;max-height:68vh!important}.academy-canvas .gv10-register table{width:100%!important;border-collapse:separate!important;border-spacing:0!important}.academy-canvas .gv10-register th{position:sticky!important;top:0!important;z-index:3!important;background:#183b45!important;color:#fff!important;padding:11px 8px!important;font-size:12px!important;min-width:110px!important}.academy-canvas .gv10-register th.name{min-width:235px!important;text-align:right!important}.academy-canvas .gv10-register td{padding:7px 8px!important;border-bottom:1px solid #e7ecec!important;background:#fff!important;font-size:13px!important}.academy-canvas .gv10-register tbody tr:nth-child(even) td{background:#fafcfc!important}.academy-canvas .gv10-register td.name{position:sticky!important;right:0!important;z-index:2!important;min-width:235px!important}.academy-canvas .gv10-register td.name b{font-size:14px!important}.academy-canvas .gv10-register td.name small{font-size:10px!important}.academy-canvas .gv10-register td input{width:78px!important;height:38px!important;border:1px solid #d6e1e0!important;border-radius:9px!important;text-align:center!important;font-size:15px!important;font-weight:900!important;color:#173c45!important;background:#fbfdfd!important}.academy-canvas .gv10-register td input:focus{outline:2px solid color-mix(in srgb,var(--subject) 24%,transparent)!important;border-color:var(--subject)!important}.academy-canvas .gv10-register footer{padding:11px 16px!important;background:#f8faf9!important;font-size:12px!important;color:#687c81!important}
+
+/* Notes — students column + focused writing workspace */
+.academy-canvas .teacher-notes-page,.academy-canvas .teacher-notes-v10{font-size:14px!important}.academy-canvas .teacher-notes-compose textarea,.academy-canvas .tn10-workspace textarea{min-height:130px!important;font-size:15px!important;line-height:1.8!important}.academy-canvas .teacher-notes-compose button,.academy-canvas .tn10-workspace button{min-height:42px!important;font-size:13px!important;font-weight:900!important;border-radius:11px!important}.academy-canvas .tn10-student-list button{min-height:52px!important;font-size:13px!important}.academy-canvas .tn10-template-grid button{padding:10px 12px!important;font-size:12px!important;line-height:1.5!important}
+
+/* Timetable — academic planner */
+.academy-canvas .timetable-v9{gap:14px!important}.academy-canvas .ttv9-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:15px 17px!important;border-radius:18px!important;background:#fff!important;color:#193840!important;border:1px solid #dfe7e7!important;box-shadow:0 10px 28px rgba(17,50,58,.05)!important}.academy-canvas .ttv9-hero h1{font-size:24px!important;color:#18343c!important}.academy-canvas .ttv9-hero p{font-size:13px!important;color:#6c8185!important}.academy-canvas .ttv9-hero-actions button{min-height:41px!important;border:1px solid #d9e3e2!important;background:#fff!important;color:#254850!important;font-size:13px!important}.academy-canvas .ttv9-hero-actions button:first-child{background:var(--subject)!important;color:#fff!important;border-color:var(--subject)!important}.academy-canvas .ttv9-today{padding:15px 16px!important}.academy-canvas .ttv9-today article{min-width:200px!important;padding:11px 12px!important}.academy-canvas .ttv9-today article strong{font-size:14px!important}.academy-canvas .ttv9-today article small{font-size:11px!important}.academy-canvas .ttv9-week{grid-template-columns:repeat(5,minmax(185px,1fr))!important;gap:9px!important}.academy-canvas .ttv9-week>article{padding:11px!important}.academy-canvas .ttv9-week article>header h3{font-size:17px!important}.academy-canvas .ttv9-periods button{min-height:54px!important;padding:7px 8px!important}.academy-canvas .ttv9-periods button strong{font-size:12px!important}.academy-canvas .ttv9-periods button small{font-size:10px!important}
+
+/* Students, follow-up, diagnostics, summary */
+.academy-canvas .sv9-hero,.academy-canvas .follow-hero,.academy-canvas .diagnostic-hero,.academy-canvas .trv9-hero{padding:17px 18px!important;border-radius:18px!important;background:#fff!important;color:#193840!important;border:1px solid #dfe7e7!important;box-shadow:0 10px 28px rgba(17,50,58,.05)!important}.academy-canvas .sv9-hero h1,.academy-canvas .follow-hero h1,.academy-canvas .diagnostic-hero h1,.academy-canvas .trv9-hero h1{font-size:25px!important;color:#173740!important}.academy-canvas .sv9-hero p,.academy-canvas .follow-hero p,.academy-canvas .diagnostic-hero p,.academy-canvas .trv9-hero p{font-size:13px!important;color:#6f8387!important;line-height:1.7!important}.academy-canvas .sv9-overview{grid-template-columns:repeat(4,1fr)!important;gap:10px!important;background:transparent!important;border:0!important;box-shadow:none!important}.academy-canvas .sv9-overview article{padding:14px!important;border:1px solid #e1e8e8!important;border-radius:14px!important;background:#fff!important}.academy-canvas .sv9-overview b{font-size:23px!important}.academy-canvas .sv9-class-grid button{min-height:78px!important;padding:12px 13px!important}.academy-canvas .sv9-class-grid button b{font-size:15px!important}.academy-canvas .sv9-student-list article{min-height:56px!important;padding:8px 11px!important}.academy-canvas .sv9-student-list strong{font-size:14px!important}
+
+/* Grade plan — read first, edit deliberately */
+.academy-canvas .gpv9-current,.academy-canvas .gpv9-permission,.academy-canvas .gpv9-suggestions{padding:18px!important}.academy-canvas .gpv9-current h2,.academy-canvas .gpv9-permission h2{font-size:22px!important}.academy-canvas .gpv9-current p,.academy-canvas .gpv9-permission p{font-size:13px!important;line-height:1.7!important}.academy-canvas .gpv9-current button,.academy-canvas .gpv9-permission button,.academy-canvas .gpv9-suggestions button{min-height:42px!important;font-size:13px!important;border-radius:11px!important}
+
+/* Printing controls inside old pages look secondary; report center is primary */
+.academy-canvas :is(.print-sheet-button,.research-link,.report-print-button){border-radius:10px!important;font-size:12px!important;font-weight:900!important}.academy-canvas details>summary{cursor:pointer!important}
+
+.academy-backdrop{display:none}.academy-switching{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:rgba(11,31,37,.42);backdrop-filter:blur(5px)}.academy-switching section{width:min(440px,88vw);padding:24px 26px;border-radius:20px;background:#fff;border:1px solid #dfe7e7;box-shadow:0 28px 80px rgba(7,28,34,.25);text-align:center}.academy-switching small{display:block;color:#7b8d91;font-size:12px;font-weight:800}.academy-switching strong{display:block;margin:5px 0;color:var(--subject-deep);font-size:26px;font-weight:950}.academy-switching span{display:block;color:#657a7f;font-size:13px}
+
+@media(max-width:1350px){
+  .teacher-academy-v11{grid-template-columns:286px minmax(0,1fr)}
+  .academy-guide{grid-template-columns:1fr}
+  .academy-guide-ai{grid-template-columns:44px 1fr auto}
+  .academy-canvas .ttv9-week{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:980px){
+  .teacher-academy-v11{display:block}
+  .academy-rail{position:fixed;right:0;top:0;width:min(320px,88vw);height:100vh;transform:translateX(104%);transition:.24s;box-shadow:-20px 0 60px rgba(0,0,0,.22)}
+  .teacher-academy-v11.menu-open .academy-rail{transform:translateX(0)}
+  .academy-backdrop{display:block;position:fixed;inset:0;z-index:70;border:0;background:rgba(7,24,29,.42);opacity:0;pointer-events:none;transition:.22s}.teacher-academy-v11.menu-open .academy-backdrop{opacity:1;pointer-events:auto}
+  .academy-menu{display:grid;place-items:center}
+  .academy-topbar{padding:12px 16px;min-height:78px}.academy-page-identity h1{font-size:23px}.academy-date{display:none}
+  .academy-guide{padding:14px 16px 0}.academy-canvas{padding:14px 16px 34px}
+  .academy-canvas .attendance-row{grid-template-columns:42px 1fr!important}.academy-canvas .attendance-status-buttons{grid-column:1/-1!important;justify-content:flex-start!important;padding-right:50px!important}
+  .academy-canvas .gv10-overview,.academy-canvas .sv9-overview{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:680px){
+  .academy-top-actions{gap:5px}.academy-report-button span{display:none}.academy-report-button{width:44px;height:44px;padding:0;display:grid;place-items:center}
+  .academy-page-identity p{font-size:11px}.academy-page-identity h1{font-size:21px}
+  .academy-guide-ai{grid-template-columns:42px 1fr}.academy-guide-ai a{grid-column:1/-1;text-align:center}.academy-guide-question h2{font-size:18px}
+  .academy-canvas{padding:12px 10px 28px}.academy-canvas h1{font-size:24px!important}.academy-canvas h2{font-size:20px!important}
+  .academy-canvas .attendance-setup-panel{grid-template-columns:1fr!important}.academy-canvas .attendance-primary-controls{display:grid!important;grid-template-columns:1fr!important}.academy-canvas .attendance-primary-controls label{min-width:0!important}.academy-canvas .attendance-summary{grid-template-columns:repeat(2,1fr)!important}.academy-canvas .attendance-row{grid-template-columns:38px 1fr!important}.academy-canvas .attendance-status-buttons{padding-right:0!important}.academy-canvas .attendance-status-buttons button{min-width:60px!important;flex:1!important}
+  .academy-canvas .gv10-command{align-items:stretch!important;flex-direction:column!important}.academy-canvas .gv10-selectors{display:grid!important;grid-template-columns:1fr!important}.academy-canvas .gv10-selectors select,.academy-canvas .gv10-selectors input{width:100%!important;min-width:0!important}.academy-canvas .gv10-overview,.academy-canvas .sv9-overview{grid-template-columns:1fr 1fr!important}.academy-canvas .gv10-ai{grid-template-columns:42px 1fr!important}.academy-canvas .gv10-ai a{grid-column:1/-1!important;text-align:center!important}.academy-canvas .ttv9-week{grid-template-columns:1fr!important}.academy-canvas .ttv9-hero{align-items:flex-start!important;flex-direction:column!important}
+}
+@media print{.academy-rail,.academy-topbar,.academy-guide,.academy-backdrop{display:none!important}.teacher-academy-v11{display:block!important;background:#fff!important}.academy-stage,.academy-canvas{background:#fff!important;padding:0!important}.academy-canvas{max-width:none!important}}
