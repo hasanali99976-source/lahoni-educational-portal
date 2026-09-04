@@ -4,11 +4,11 @@
   right:-5000px!important;
   top:0!important;
   width:794px!important;
-  height:1123px!important;
-  min-height:0!important;
-  max-height:1123px!important;
-  overflow:hidden!important;
-  padding:34px 38px 30px!important;
+  min-height:1123px!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding:34px 38px 42px!important;
   background:
     radial-gradient(circle at 12% 7%,rgba(17,148,128,.10),transparent 22%),
     linear-gradient(180deg,#ffffff 0,#fbfdfc 100%)!important;
@@ -108,13 +108,12 @@
   background:#fff!important;
 }
 .roster-pdf-sheet thead tr{height:27px!important}
-.roster-pdf-sheet tbody tr{height:16px!important}
+.roster-pdf-sheet tbody tr{height:17px!important}
 .roster-pdf-sheet th,
 .roster-pdf-sheet td{
-  height:16px!important;
-  min-height:16px!important;
-  max-height:16px!important;
-  padding:1px 7px!important;
+  height:17px!important;
+  min-height:17px!important;
+  padding:2px 6px!important;
   border:0!important;
   border-bottom:1px solid #dce7e4!important;
   border-left:1px solid #e4ece9!important;
@@ -124,22 +123,24 @@
   white-space:nowrap!important;
   overflow:hidden!important;
   text-overflow:ellipsis!important;
-  font-size:11.2px!important;
+  font-size:11px!important;
   color:#173d43!important;
 }
 .roster-pdf-sheet th{
   height:27px!important;
   background:linear-gradient(180deg,#eaf5f2,#e2f0ed)!important;
   color:#0a5f5c!important;
-  font-size:11px!important;
+  font-size:10.8px!important;
   font-weight:950!important;
 }
 .roster-pdf-sheet th:first-child,
-.roster-pdf-sheet td:first-child{width:48px!important;text-align:center!important}
+.roster-pdf-sheet td:first-child{width:42px!important;text-align:center!important}
 .roster-pdf-sheet th:nth-child(2),
 .roster-pdf-sheet td:nth-child(2){width:auto!important;font-weight:850!important}
 .roster-pdf-sheet th:nth-child(3),
-.roster-pdf-sheet td:nth-child(3){width:120px!important;text-align:center!important;direction:ltr!important;font-weight:900!important;color:#0b6e68!important}
+.roster-pdf-sheet td:nth-child(3){width:145px!important;text-align:center!important;color:#4d6a6d!important;font-weight:850!important}
+.roster-pdf-sheet th:nth-child(4),
+.roster-pdf-sheet td:nth-child(4){width:108px!important;text-align:center!important;direction:ltr!important;font-weight:900!important;color:#0b6e68!important}
 .roster-pdf-sheet tbody tr:nth-child(even) td{background:#f8fbfa!important}
 .roster-pdf-sheet tbody tr:last-child td{border-bottom:0!important}
 .roster-pdf-sheet th:last-child,
