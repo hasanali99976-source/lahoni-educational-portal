@@ -14,6 +14,7 @@ import "./teacher-academy-v14.css";
 import "./teacher-academy-v15.css";
 import "./teacher-academy-v16.css";
 import "./teacher-academy-v17.css";
+import "./teacher-academy-v19.css";
 import "./global-font-v13.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
@@ -26,6 +27,7 @@ import PortalPrintRuntime from "./portal-print-runtime";
 import DesignLabSmartAssist from "./design-lab-smart-assist";
 import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherWorkActivityTracker from "./teacher-work-activity-tracker";
+import TeacherAttendanceScheduleNav from "./teacher-attendance-schedule-nav";
 
 const academyFont = Alexandria({ subsets: ["arabic"], weight: ["400", "500", "600", "700", "800", "900"], display: "swap" });
 
@@ -50,7 +52,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
-    <PortalPrintRuntime />
+    <PortalPrintRuntime /><TeacherAttendanceScheduleNav />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
       <PortalCommandRuntime />
