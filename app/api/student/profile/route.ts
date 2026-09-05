@@ -8,7 +8,6 @@ type AttendanceEntry = { status: AttendanceStatus; updatedAt: string };
 type TimetableLesson = { className?: unknown; subject?: unknown; notes?: unknown };
 
 const ATTENDANCE_START_DATE = "2026-08-23";
-const SCHOOL_DAY_END_HOUR = 15;
 const SCHOOL_WEEKDAYS = [0, 1, 2, 3, 4] as const;
 const DAY_INDEX: Record<string, number> = {
   sunday: 0,
@@ -36,23 +35,8 @@ function riyadhDateInput(date: Date) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-function riyadhHour(date: Date) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Riyadh",
-    hour: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
-  return Number(parts.find(part => part.type === "hour")?.value || 0);
-}
-
 function dateObject(value: string) {
   return new Date(`${value}T12:00:00Z`);
-}
-
-function shiftDate(value: string, amount: number) {
-  const date = dateObject(value);
-  date.setUTCDate(date.getUTCDate() + amount);
-  return date.toISOString().slice(0, 10);
 }
 
 function validStatus(value: unknown): value is AttendanceStatus {
@@ -122,8 +106,8 @@ export async function GET(request: Request) {
     ? timetableWeekdays
     : new Set<number>(SCHOOL_WEEKDAYS);
   const attendanceSource = timetableWeekdays.size
-    ? "timetable_with_manual_overrides"
-    : "school_days_default_with_manual_overrides";
+    ? "timetable_automatic_until_teacher_override"
+    : "school_days_automatic_until_teacher_override";
 
   const counts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0 };
   let latestDate = "";
@@ -135,11 +119,15 @@ export async function GET(request: Request) {
     if (date > latestDate) latestDate = date;
   });
 
-  const now = new Date();
-  const today = riyadhDateInput(now);
-  const lastCompletedDay = riyadhHour(now) >= SCHOOL_DAY_END_HOUR ? today : shiftDate(today, -1);
+  /*
+   * V21 attendance rule:
+   * From 12:00 AM Riyadh time, a scheduled lesson day is treated as automatic "present"
+   * until the teacher records attendance. Any teacher record immediately overrides the
+   * automatic value because explicitByDate always wins for that date.
+   */
+  const today = riyadhDateInput(new Date());
   const cursor = dateObject(ATTENDANCE_START_DATE);
-  const end = dateObject(lastCompletedDay);
+  const end = dateObject(today);
   while (cursor <= end) {
     const date = cursor.toISOString().slice(0, 10);
     if (expectedWeekdays.has(cursor.getUTCDay()) && !explicitByDate.has(date)) {
@@ -166,6 +154,8 @@ export async function GET(request: Request) {
         automaticPresent,
         disciplineRate,
         latestDate,
+        automaticThrough: today,
+        attendanceMode: "automatic_until_teacher_override",
         attendanceSource,
       },
       timetableLessons,
