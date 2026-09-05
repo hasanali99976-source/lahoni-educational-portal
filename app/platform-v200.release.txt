@@ -1,1 +1,1 @@
-Platform V200 release marker — unified portal redesign, mobile polish, admin shell modernization, and exact attendance class routing.
+Platform V200 release — consolidated visual redesign, mobile polish, admin command shell, and exact teacher dashboard-to-attendance class routing. Final production trigger.
