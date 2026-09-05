@@ -20,6 +20,7 @@ import "./teacher-academy-v20.css";
 import "./teacher-attendance-calendar-v21.css";
 import "./student/academic-record/academic-record-v2.css";
 import "./portal-modern-v110.css";
+import "./portal-modern-v111.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
