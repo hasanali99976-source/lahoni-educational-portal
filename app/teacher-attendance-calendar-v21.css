@@ -1,0 +1,36 @@
+/* V21 — schedule-aware attendance calendar + clearer print actions */
+.teacher-academy-v12:has(.attendance-page) .attendance-day-nav{display:none!important}
+.teacher-academy-v12 .attendance-calendar-v21{position:relative;display:flex;align-items:center;justify-content:flex-end;gap:10px;grid-column:1/-1}
+.teacher-academy-v12 .attendance-calendar-v21-trigger{min-width:238px;min-height:50px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:10px;padding:7px 10px;border:1px solid #bfdad7;border-radius:14px;background:linear-gradient(135deg,#fff,#eff9f7);color:#164854;box-shadow:0 8px 20px rgba(8,66,78,.08);cursor:pointer;font:850 12px inherit;text-align:right}
+.teacher-academy-v12 .attendance-calendar-v21-trigger:hover{border-color:#0aa39b;transform:translateY(-1px)}
+.teacher-academy-v12 .attendance-calendar-v21-trigger .cal-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,#0aa39b,#087778);color:#fff;box-shadow:0 7px 16px rgba(10,163,155,.22)}
+.teacher-academy-v12 .attendance-calendar-v21-trigger svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9}
+.teacher-academy-v12 .attendance-calendar-v21-trigger b,.teacher-academy-v12 .attendance-calendar-v21-trigger small{display:block}
+.teacher-academy-v12 .attendance-calendar-v21-trigger b{font-size:13px;color:#164854}
+.teacher-academy-v12 .attendance-calendar-v21-trigger small{margin-top:2px;font-size:10px;color:#6e8790}
+.teacher-academy-v12 .attendance-calendar-v21-trigger .chev{font-size:16px;color:#0a8d85}
+.teacher-academy-v12 .attendance-calendar-v21-popover{position:absolute;top:58px;left:0;z-index:70;width:min(390px,92vw);padding:12px;border:1px solid #cfe0e3;border-radius:18px;background:#fff;box-shadow:0 20px 54px rgba(8,49,65,.20)}
+.teacher-academy-v12 .attendance-calendar-v21-popover[hidden]{display:none!important}
+.teacher-academy-v12 .attendance-calendar-v21-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 3px 10px;border-bottom:1px solid #e2ecee}
+.teacher-academy-v12 .attendance-calendar-v21-head div b{display:block;font-size:13px;color:#163f4e}.teacher-academy-v12 .attendance-calendar-v21-head div small{display:block;margin-top:2px;font-size:10px;color:#71858e}
+.teacher-academy-v12 .attendance-calendar-v21-head span{padding:6px 9px;border-radius:999px;background:#e8f6f3;color:#0a766f;font-size:9.5px;font-weight:900}
+.teacher-academy-v12 .attendance-calendar-v21-options{display:grid;gap:8px;padding-top:10px}
+.teacher-academy-v12 .attendance-calendar-v21-option{--op:#0aa39b;display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:9px;min-height:57px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--op) 24%,#d8e6e9);border-radius:13px;background:color-mix(in srgb,var(--op) 7%,#fff);color:#234b57;text-align:right;cursor:pointer;font:800 11px inherit}
+.teacher-academy-v12 .attendance-calendar-v21-option:nth-child(1){--op:#2f6ec7}.teacher-academy-v12 .attendance-calendar-v21-option:nth-child(2){--op:#0aa39b}.teacher-academy-v12 .attendance-calendar-v21-option:nth-child(3){--op:#c99232}
+.teacher-academy-v12 .attendance-calendar-v21-option:hover:not(:disabled){background:color-mix(in srgb,var(--op) 13%,#fff);transform:translateX(-2px)}
+.teacher-academy-v12 .attendance-calendar-v21-option>span:first-child{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--op);color:#fff;font-size:17px;font-weight:900}
+.teacher-academy-v12 .attendance-calendar-v21-option b,.teacher-academy-v12 .attendance-calendar-v21-option small{display:block}.teacher-academy-v12 .attendance-calendar-v21-option b{font-size:12px}.teacher-academy-v12 .attendance-calendar-v21-option small{margin-top:2px;font-size:9.5px;color:#72868f}.teacher-academy-v12 .attendance-calendar-v21-option>strong{font-size:11px;color:var(--op);white-space:nowrap}
+.teacher-academy-v12 .attendance-calendar-v21-option:disabled{opacity:.52;cursor:not-allowed;filter:grayscale(.12)}
+.teacher-academy-v12 .attendance-calendar-v21-lock{margin-top:9px;padding:9px 11px;border-radius:11px;background:#fff6e5;border:1px solid #efd9a9;color:#76561b;font-size:9.8px;font-weight:800;line-height:1.6}
+.teacher-academy-v12 .attendance-calendar-v21-status{padding:7px 9px;border-radius:10px;background:#f3f8fa;color:#55717b;font-size:10px;font-weight:800;border:1px solid #dce7ea}
+
+/* Strong, consistent print/export actions */
+.teacher-academy-v12 :is(.attendance-pdf,.attendance-range-pdf,.attendance-range-excel,.attendance-excel),
+.student-academy-v3 :is(.sa3-top-actions .print,.sa3-report-hero button),
+.student-academy-v4 :is(.sa3-top-actions .print,.sa3-report-hero button){min-height:44px!important;border-radius:12px!important;font-size:12px!important;font-weight:900!important;letter-spacing:0!important}
+.teacher-academy-v12 .attendance-pdf{background:linear-gradient(135deg,#0b7c74,#075e62)!important;color:#fff!important;border:1px solid #0b7c74!important;box-shadow:0 8px 18px rgba(11,124,116,.18)!important}
+.teacher-academy-v12 .attendance-all-pdf{background:linear-gradient(135deg,#2457a1,#173f75)!important;border-color:#2457a1!important}
+.teacher-academy-v12 .attendance-range-pdf{background:#f5ead4!important;color:#73541c!important;border:1px solid #e2c995!important}
+.teacher-academy-v12 .attendance-excel,.teacher-academy-v12 .attendance-range-excel{background:#eaf6ef!important;color:#236846!important;border:1px solid #cbe4d5!important}
+
+@media(max-width:760px){.teacher-academy-v12 .attendance-calendar-v21{justify-content:stretch}.teacher-academy-v12 .attendance-calendar-v21-trigger{width:100%;min-width:0}.teacher-academy-v12 .attendance-calendar-v21-popover{right:0;left:auto;width:100%}}
