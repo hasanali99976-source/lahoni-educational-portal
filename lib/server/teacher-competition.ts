@@ -9,6 +9,9 @@ type PersistedAction = { kind: WorkKind; key: string; at: string };
 const KINDS: WorkKind[] = ["attendance", "grades", "note", "diagnostic", "remedial", "referral", "timetable", "gradePlan"];
 const CACHE_MS = 30 * 1000;
 const SOURCE_TIMEOUT_MS = 7000;
+// أكد صاحب البوابة أن الرصد لم يكتمل وأنه لم تُرسل إحالات فعلية قبل تفعيل هذا التحقق.
+// لذلك أي سجل إحالة أقدم من هذه اللحظة يعد بيانات قديمة/تجريبية ولا يدخل المنافسة.
+const VERIFIED_REFERRAL_START_MS = Date.parse("2026-09-05T20:34:00.000Z");
 
 export type TeacherCompetitionRow = {
   teacherId: string;
@@ -31,7 +34,7 @@ export type TeacherCompetitionResult = {
   period: string;
   scope: "lifetime";
   rows: TeacherCompetitionRow[];
-  source: "persisted-lifetime-v6-strict";
+  source: "persisted-lifetime-v7-referral-cutoff";
   rule: string;
   generatedAt: string;
   coverageStartAt: string;
@@ -269,7 +272,7 @@ async function persistedSubjectActions(teacherId: string, subjectId: string, fai
     const studentId = String(data.studentId || "").trim();
     const reason = String(data.reason || "").trim();
     const status = String(data.status || "").trim();
-    if (!at || !studentId || !reason || !status) return;
+    if (!at || !studentId || !reason || !status || sortTime(at) < VERIFIED_REFERRAL_START_MS) return;
 
     // شاشة الإحالة تنشئ وثيقة لكل طالب في الدفعة الواحدة بنفس createdAt.
     // لذلك نحسب ضغطة الإرسال نفسها مرة واحدة مهما كان عدد الطلاب المختارين.
@@ -397,8 +400,8 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
     period: "منذ تأسيس البوابة",
     scope: "lifetime",
     rows: ranked,
-    source: "persisted-lifetime-v6-strict",
-    rule: "الترتيب حسب عدد الأعمال الموثقة أولًا، ثم أيام النشاط، ثم تنوع العمل، ثم أحدث نشاط. لا تُحسب عملية بلا تاريخ إثبات، ولا أي عمل سابق لتاريخ إنشاء الحساب عند توفره. دفعة الإحالة الواحدة تُحسب عملية واحدة مهما كان عدد الطلاب فيها، والحضور التلقائي والبيانات الافتراضية لا تُحتسب.",
+    source: "persisted-lifetime-v7-referral-cutoff",
+    rule: "الترتيب حسب عدد الأعمال الموثقة أولًا، ثم أيام النشاط، ثم تنوع العمل، ثم أحدث نشاط. لا تُحسب عملية بلا تاريخ إثبات، ولا أي عمل سابق لتاريخ إنشاء الحساب عند توفره. سجلات الإحالة القديمة/التجريبية قبل تفعيل التحقق لا تدخل المنافسة، ومن الآن تُحسب دفعة الإحالة الفعلية الواحدة عملية واحدة مهما كان عدد الطلاب فيها. الحضور التلقائي والبيانات الافتراضية لا تُحتسب.",
     generatedAt,
     coverageStartAt,
     totalTeachers: ranked.length,
