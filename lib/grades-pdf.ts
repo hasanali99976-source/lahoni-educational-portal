@@ -8,11 +8,12 @@ export type GradebookPdfSection={id:string;label:string;max:number;columns:Grade
 export type GradebookPdfClass={className:string;sections:GradebookPdfSection[];accentColor?:string};
 export type GradebookPdfDocumentOptions={portalName:string;teacherName:string;subject:string;gradeLabel?:string;planLabel:string;planVersion:number;classes:GradebookPdfClass[];fileName:string};
 
-const WIDTH=1680,HEIGHT=1188,FONT="Alexandria, Arial, sans-serif",MAX_COLUMNS=6,MAX_ROWS_PER_PAGE=36;
+const WIDTH=1680,HEIGHT=1188,MAX_COLUMNS=6,MAX_ROWS_PER_PAGE=36;
 const ACCENTS=["#0b675f","#365b94","#71509a","#9a5c39","#3b785d","#8a681e","#8b4560","#4a6689"];
+function portalFont(){if(typeof window!=="undefined"&&document?.body)return getComputedStyle(document.body).fontFamily||"Arial, sans-serif";return"Arial, sans-serif";}
 function chunks<T>(items:T[],size:number){if(!items.length)return[[]] as T[][];return Array.from({length:Math.ceil(items.length/size)},(_,i)=>items.slice(i*size,(i+1)*size));}
 function page(){const canvas=document.createElement("canvas");canvas.width=WIDTH;canvas.height=HEIGHT;const ctx=canvas.getContext("2d");if(!ctx)throw new Error("grades_pdf_canvas_unavailable");ctx.fillStyle="#fff";ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textBaseline="middle";ctx.direction="rtl";return{canvas,ctx};}
-function font(ctx:CanvasRenderingContext2D,size:number,weight=700){ctx.font=`${weight} ${size}px ${FONT}`;}
+function font(ctx:CanvasRenderingContext2D,size:number,weight=700){ctx.font=`${weight} ${size}px ${portalFont()}`;}
 function fit(ctx:CanvasRenderingContext2D,value:string,maxWidth:number,preferred:number,min:number,weight=700){let size=preferred;while(size>min){font(ctx,size,weight);if(ctx.measureText(value).width<=maxWidth)break;size-=.5;}return size;}
 function text(ctx:CanvasRenderingContext2D,value:unknown,x:number,y:number,o:{size?:number;min?:number;weight?:number;color?:string;align?:CanvasTextAlign;maxWidth?:number}={}){const raw=String(value??"");const weight=o.weight??700;const size=o.maxWidth?fit(ctx,raw,o.maxWidth,o.size??18,o.min??9,weight):(o.size??18);font(ctx,size,weight);ctx.fillStyle=o.color??"#173d45";ctx.textAlign=o.align??"right";ctx.fillText(raw,x,y);}
 function rounded(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,r:number,fill:string,stroke?:string){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.4;ctx.stroke();}}
