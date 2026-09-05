@@ -62,6 +62,8 @@ export default function TeacherAttendancePrintV21() {
 
   useEffect(() => {
     if (!session?.teacherId || !session?.subjectKey) return;
+    const teacherId = session.teacherId;
+    const subjectKey = session.subjectKey;
 
     async function buildPdf(mode: "range" | "week-all") {
       const classSelect = document.querySelector<HTMLSelectElement>("[data-attendance-class-select='true']");
@@ -74,14 +76,14 @@ export default function TeacherAttendancePrintV21() {
       if (to > riyadhToday()) to = riyadhToday();
       if (from > to) [from, to] = [to, from];
 
-      const params = new URLSearchParams({ subjectId: String(session.subjectKey) });
+      const params = new URLSearchParams({ subjectId: String(subjectKey) });
       if (session.activeGrade) params.set("grade", String(session.activeGrade));
       const rosterResponse = await fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", credentials: "same-origin" });
       const rosterPayload = await rosterResponse.json().catch(() => ({}));
       if (!rosterResponse.ok) throw new Error("تعذر تحميل طلاب الفصول للطباعة.");
       const students = (Array.isArray(rosterPayload.students) ? rosterPayload.students : []) as StudentRow[];
 
-      const path = tenantCollection(session.teacherId, session.subjectKey as never, "attendance");
+      const path = tenantCollection(teacherId, subjectKey as never, "attendance");
       const snapshot = await getDocs(collection(db, path));
       const allDocuments = snapshot.docs.map(item => item.data() as AttendanceDoc)
         .filter(item => item.date && item.date >= from && item.date <= to);
