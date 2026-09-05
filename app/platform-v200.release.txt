@@ -1,1 +1,1 @@
-Platform V200 release — consolidated visual redesign, mobile polish, admin command shell, and exact teacher dashboard-to-attendance class routing. Final production trigger.
+Platform V200 release — consolidated visual redesign, mobile polish, admin command shell, and exact teacher dashboard-to-attendance class routing. Final production trigger after rate-limit window.
