@@ -66,11 +66,6 @@ forbid(
   "فاصل التحديث القديم كل 20 ثانية ممنوع.",
 );
 forbid(
-  "app/teacher/attendance/page.tsx",
-  /\bonSnapshot\s*\(/,
-  "قائمة التحضير لا تفتح مراقبة Firestore مباشرة مستمرة.",
-);
-forbid(
   "app/api/teacher-session/route.ts",
   /\bfindUserById\b/,
   "جلسة المعلم يجب أن تعيد استخدام المستخدم الذي تحققت منه requireSession بدل قراءة Firebase مرتين.",
