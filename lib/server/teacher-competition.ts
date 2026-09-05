@@ -7,7 +7,7 @@ type WorkCounts = Partial<Record<WorkKind, number>>;
 type PersistedAction = { kind: WorkKind; key: string; at: string };
 
 const KINDS: WorkKind[] = ["attendance", "grades", "note", "diagnostic", "remedial", "referral", "timetable", "gradePlan"];
-const CACHE_MS = 2 * 60 * 1000;
+const CACHE_MS = 30 * 1000;
 const SOURCE_TIMEOUT_MS = 7000;
 
 export type TeacherCompetitionRow = {
@@ -31,7 +31,7 @@ export type TeacherCompetitionResult = {
   period: string;
   scope: "lifetime";
   rows: TeacherCompetitionRow[];
-  source: "persisted-lifetime-v5";
+  source: "persisted-lifetime-v6-strict";
   rule: string;
   generatedAt: string;
   coverageStartAt: string;
@@ -46,7 +46,12 @@ let lifetimeCache: { expiresAt: number; value: TeacherCompetitionResult } | null
 let lifetimeBuild: Promise<TeacherCompetitionResult> | null = null;
 
 export function riyadhCompetitionParts(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Riyadh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
   const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
   return { period: `${values.year}-${values.month}`, day: `${values.year}-${values.month}-${values.day}` };
 }
@@ -79,25 +84,16 @@ function asDateText(value: unknown): string {
   }
 }
 
-function dayFor(value: unknown) {
-  const text = asDateText(value);
-  if (!text) return "";
-  const date = new Date(text);
-  if (!Number.isNaN(date.getTime())) return riyadhCompetitionParts(date).day;
-  return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : "";
-}
-
-function minuteBucket(value: unknown) {
-  const text = asDateText(value);
-  if (!text) return "unknown";
-  const date = new Date(text);
-  if (Number.isNaN(date.getTime())) return text.slice(0, 16);
-  date.setSeconds(0, 0);
-  return date.toISOString();
+function stamp(data: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = asDateText(data[key]);
+    if (value) return value;
+  }
+  return "";
 }
 
 function sortTime(value: string) {
-  const time = new Date(value).getTime();
+  const time = value ? new Date(value).getTime() : 0;
   return Number.isNaN(time) ? 0 : time;
 }
 
@@ -109,26 +105,39 @@ function earliest(values: string[]) {
   return values.filter(Boolean).sort((a, b) => sortTime(a) - sortTime(b))[0] || "";
 }
 
-function subjectIdsOf(data: Record<string, unknown>) {
-  const ids = new Set<string>();
-  if (Array.isArray(data.subjectIds)) data.subjectIds.forEach(value => {
-    const id = String(value || "").split("--")[0];
-    if (id) ids.add(id);
-  });
-  if (Array.isArray(data.assignments)) data.assignments.forEach(value => {
-    if (!value || typeof value !== "object") return;
-    const id = String((value as Record<string, unknown>).subjectId || "").split("--")[0];
-    if (id) ids.add(id);
-  });
-  return [...ids].filter(Boolean);
+function dayFor(value: unknown) {
+  const text = asDateText(value);
+  if (!text) return "";
+  const date = new Date(text);
+  if (!Number.isNaN(date.getTime())) return riyadhCompetitionParts(date).day;
+  return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : "";
 }
 
-function stamp(data: Record<string, unknown>, keys: string[]) {
-  for (const key of keys) {
-    const value = asDateText(data[key]);
-    if (value) return value;
+function minuteBucket(value: unknown) {
+  const text = asDateText(value);
+  if (!text) return "";
+  const date = new Date(text);
+  if (Number.isNaN(date.getTime())) return text.slice(0, 16);
+  date.setSeconds(0, 0);
+  return date.toISOString();
+}
+
+function subjectIdsOf(data: Record<string, unknown>) {
+  const ids = new Set<string>();
+  if (Array.isArray(data.subjectIds)) {
+    data.subjectIds.forEach(value => {
+      const id = String(value || "").split("--")[0];
+      if (id) ids.add(id);
+    });
   }
-  return "";
+  if (Array.isArray(data.assignments)) {
+    data.assignments.forEach(value => {
+      if (!value || typeof value !== "object") return;
+      const id = String((value as Record<string, unknown>).subjectId || "").split("--")[0];
+      if (id) ids.add(id);
+    });
+  }
+  return [...ids].filter(Boolean);
 }
 
 async function withTimeout<T>(promise: Promise<T>, milliseconds = SOURCE_TIMEOUT_MS): Promise<T> {
@@ -155,18 +164,26 @@ async function safeCollection(path: string, failures: string[]) {
   }
 }
 
+function hasObjectContent(value: unknown) {
+  return Boolean(value && typeof value === "object" && Object.keys(value as Record<string, unknown>).length);
+}
+
 function dedupe(actions: PersistedAction[]) {
   const seen = new Set<string>();
   return actions.filter(action => {
     const signature = `${action.kind}:${action.key}`;
-    if (!action.key || seen.has(signature)) return false;
+    if (!action.at || !action.key || seen.has(signature)) return false;
     seen.add(signature);
     return true;
   });
 }
 
-function hasObjectContent(value: unknown) {
-  return Boolean(value && typeof value === "object" && Object.keys(value as Record<string, unknown>).length);
+function verifiedForAccount(action: PersistedAction, accountCreatedAt: string) {
+  const actionTime = sortTime(action.at);
+  if (!actionTime) return false;
+  const createdTime = sortTime(accountCreatedAt);
+  if (!createdTime) return true;
+  return actionTime >= createdTime;
 }
 
 async function persistedSubjectActions(teacherId: string, subjectId: string, failures: string[]) {
@@ -188,18 +205,17 @@ async function persistedSubjectActions(teacherId: string, subjectId: string, fai
 
     history.forEach(event => {
       const at = stamp(event, ["changedAt", "updatedAt", "createdAt"]);
+      if (!at) return;
       const plan = String(event.planId || "plan");
       const section = String(event.sectionId || event.sectionLabel || className || "section");
       const item = String(event.itemId || event.itemLabel || "item");
       actions.push({
         kind: "grades",
-        key: `${subjectId}|${plan}|${section}|${item}|${at || String(event.version || "saved")}`,
+        key: `${subjectId}|${plan}|${section}|${item}|${minuteBucket(at)}`,
         at,
       });
     });
 
-    // قبل إنشاء gradeHistory كانت عملية رصد الصف تظهر على عدة طلاب. تجميعها بالدقيقة يمنع
-    // تحويل حفظ واحد إلى عشرات النقاط بسبب عدد طلاب الفصل.
     if (!history.length) {
       const gradeAt = stamp(data, ["gradeHistoryUpdatedAt", "gradePlanUpdatedAt", "gradesUpdatedAt"]);
       if (gradeAt) {
@@ -214,48 +230,62 @@ async function persistedSubjectActions(teacherId: string, subjectId: string, fai
     const notes = Array.isArray(data.teacherNotes) ? data.teacherNotes as Array<Record<string, unknown>> : [];
     notes.forEach((note, index) => {
       const at = stamp(note, ["createdAt", "updatedAt"]);
-      const noteId = String(note.id || `${subjectId}|${document.id}|${at || "legacy"}|${index}`);
+      if (!at) return;
+      const noteId = String(note.id || `${subjectId}|${document.id}|${at}|${index}`);
       actions.push({ kind: "note", key: `${subjectId}|${document.id}|${noteId}`, at });
     });
   });
 
   attendance?.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
-    // الحضور الافتراضي التلقائي لا يعد عملاً للمعلم. السجلات اليدوية/المؤكدة، وكذلك السجلات
-    // التاريخية التي لم تكن تحمل وسم autoSaved، تبقى محتسبة مرة واحدة لليوم والفصل.
     if (data.autoSaved === true && data.manualEdited !== true && data.teacherConfirmed !== true) return;
     const at = stamp(data, ["manualEditedAt", "confirmedAt", "savedThroughApiAt", "updatedAt", "savedAt", "date"]);
-    const date = String(data.date || dayFor(at) || document.id || "date");
+    if (!at) return;
+    const date = String(data.date || dayFor(at));
     const className = String(data.className || data.class || "class");
+    if (!date) return;
     actions.push({ kind: "attendance", key: `${subjectId}|${className}|${date}`, at });
   });
 
   diagnostics?.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
     const at = stamp(data, ["publishedAt", "createdAt", "updatedAt"]);
+    if (!at) return;
     actions.push({ kind: "diagnostic", key: `${subjectId}|${document.id}`, at });
   });
 
   results?.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
-    const hasPlan = Boolean(String(data.teacherPlan || data.aiPlan || data.remedialPlan || "").trim());
-    if (!hasPlan) return;
-    const at = stamp(data, ["teacherPlanUpdatedAt", "aiPlanUpdatedAt", "updatedAt", "createdAt"]);
-    actions.push({ kind: "remedial", key: `${subjectId}|${document.id}`, at });
+    const teacherPlan = String(data.teacherPlan || data.remedialPlan || "").trim();
+    if (!teacherPlan) return;
+    const at = stamp(data, ["teacherPlanUpdatedAt", "updatedAt", "createdAt"]);
+    if (!at) return;
+    actions.push({ kind: "remedial", key: `${subjectId}|${document.id}|${minuteBucket(at)}`, at });
   });
 
   referrals?.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
-    const at = stamp(data, ["createdAt", "updatedAt"]);
-    actions.push({ kind: "referral", key: `${subjectId}|${document.id}`, at });
+    const at = stamp(data, ["createdAt"]);
+    const studentId = String(data.studentId || "").trim();
+    const reason = String(data.reason || "").trim();
+    const status = String(data.status || "").trim();
+    if (!at || !studentId || !reason || !status) return;
+
+    // شاشة الإحالة تنشئ وثيقة لكل طالب في الدفعة الواحدة بنفس createdAt.
+    // لذلك نحسب ضغطة الإرسال نفسها مرة واحدة مهما كان عدد الطلاب المختارين.
+    const teacherName = String(data.teacherName || "").trim();
+    actions.push({
+      kind: "referral",
+      key: `${subjectId}|batch|${at}|${teacherName}|${reason}`,
+      at,
+    });
   });
 
   timetable?.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
-    if (!hasObjectContent(data.lessons) && !hasObjectContent(data.schedule) && !data.savedThroughApiAt && !data.updatedAt) return;
+    if (!hasObjectContent(data.lessons) && !hasObjectContent(data.schedule)) return;
     const at = stamp(data, ["savedThroughApiAt", "updatedAt", "createdAt"]);
-    // الجدول وثيقة حالية قابلة للاستبدال؛ لذلك يحتسب وجود جدول محفوظ مرة واحدة لكل مادة
-    // بدل احتساب كل ضغط زر سابق لا يمكن التحقق منه من الوثيقة الحالية.
+    if (!at) return;
     actions.push({ kind: "timetable", key: `${subjectId}|${document.id}`, at });
   });
 
@@ -268,6 +298,7 @@ async function persistedTeacherActions(teacherId: string, subjectIds: string[], 
   planVersions?.docs.forEach(document => {
     const data = document.data() as Record<string, unknown>;
     const at = stamp(data, ["activatedAt", "createdAt", "updatedAt"]);
+    if (!at) return;
     actions.push({ kind: "gradePlan", key: document.id, at });
   });
   return dedupe(actions);
@@ -277,8 +308,6 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
   const database = adminDb();
   const usersSnapshot = await withTimeout(database.collection("portalV2Users").get());
 
-  // نضم تاريخ التكليفات القديمة إلى المواد الحالية حتى لا تختفي أعمال مادة سابقة بمجرد تعديل
-  // إسناد المعلم لاحقًا. فشل هذا المصدر لا يولد نقاطًا تقديرية بل يخفض حالة سلامة القراءة.
   const historicalSubjects = new Map<string, Set<string>>();
   let assignmentHistoryUnavailable = false;
   try {
@@ -307,7 +336,8 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
         id: String(row.id),
         name: String(row.data.name || row.data.username || "المعلم"),
         active: row.data.active !== false,
-        createdAt: stamp(row.data, ["createdAt", "updatedAt"]),
+        // لا نستخدم updatedAt كتاريخ إنشاء؛ لأن تعديل حساب قديم لاحقًا لا يجعله حسابًا جديدًا.
+        createdAt: stamp(row.data, ["createdAt"]),
         subjectIds: [...subjectIds],
       };
     });
@@ -315,7 +345,8 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
   const rows = await Promise.all(teachers.map(async teacher => {
     const failures: string[] = [];
     if (assignmentHistoryUnavailable) failures.push("portalV2Assignments");
-    const actions = await persistedTeacherActions(teacher.id, teacher.subjectIds, failures);
+    const storedActions = await persistedTeacherActions(teacher.id, teacher.subjectIds, failures);
+    const actions = dedupe(storedActions.filter(action => verifiedForAccount(action, teacher.createdAt)));
     const counts: WorkCounts = {};
     const days = new Set<string>();
     const timestamps: string[] = [];
@@ -324,11 +355,12 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
       counts[action.kind] = Number(counts[action.kind] || 0) + 1;
       const day = dayFor(action.at);
       if (day) days.add(day);
-      if (action.at) timestamps.push(action.at);
+      timestamps.push(action.at);
     });
 
     const meaningfulActions = KINDS.reduce((sum, kind) => sum + Number(counts[kind] || 0), 0);
     const diversity = KINDS.filter(kind => Number(counts[kind] || 0) > 0).length;
+
     return {
       teacherId: teacher.id,
       teacherName: teacher.name,
@@ -346,10 +378,13 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
     };
   }));
 
+  // الترتيب يطابق الأرقام الظاهرة في الشاشة حرفيًا:
+  // الأعمال الموثقة أولًا، ثم أيام النشاط، ثم تنوع العمل، ثم الأحدث نشاطًا.
   rows.sort((a, b) =>
-    b.score - a.score ||
+    b.meaningfulActions - a.meaningfulActions ||
     b.activeDays - a.activeDays ||
     b.diversity - a.diversity ||
+    sortTime(b.lastActivityAt) - sortTime(a.lastActivityAt) ||
     a.teacherName.localeCompare(b.teacherName, "ar"),
   );
 
@@ -362,8 +397,8 @@ async function buildLifetimeCompetition(): Promise<TeacherCompetitionResult> {
     period: "منذ تأسيس البوابة",
     scope: "lifetime",
     rows: ranked,
-    source: "persisted-lifetime-v5",
-    rule: "كل نقطة تمثل وحدة عمل تعليمية مميزة يمكن إثباتها من البيانات المحفوظة نفسها. لا نحسب الدخول أو فتح الصفحات أو النقرات، ولا نستخدم سجل التتبع القديم لرفع النقاط. رصد الصف الكامل يجمع كعملية واحدة بدل ضربه في عدد الطلاب، والحضور التلقائي لا يحتسب.",
+    source: "persisted-lifetime-v6-strict",
+    rule: "الترتيب حسب عدد الأعمال الموثقة أولًا، ثم أيام النشاط، ثم تنوع العمل، ثم أحدث نشاط. لا تُحسب عملية بلا تاريخ إثبات، ولا أي عمل سابق لتاريخ إنشاء الحساب عند توفره. دفعة الإحالة الواحدة تُحسب عملية واحدة مهما كان عدد الطلاب فيها، والحضور التلقائي والبيانات الافتراضية لا تُحتسب.",
     generatedAt,
     coverageStartAt,
     totalTeachers: ranked.length,
