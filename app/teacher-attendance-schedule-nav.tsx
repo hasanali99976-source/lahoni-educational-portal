@@ -93,11 +93,16 @@ export default function TeacherAttendanceScheduleNav() {
       const hasSchedule = Boolean(className && schedule.get(classKey(className))?.size);
 
       if (!hasSchedule) {
-        previous.dataset.dateLabel = className ? "لا توجد حصة" : "اختر الفصل";
-        next.dataset.dateLabel = className ? "لا توجد حصة" : "اختر الفصل";
-        current.dataset.dateLabel = "اليوم الحالي";
-        previous.disabled = false;
-        next.disabled = false;
+        const label = className ? "لا توجد حصة" : "اختر الفصل";
+        previous.dataset.dateLabel = label;
+        next.dataset.dateLabel = label;
+        current.dataset.dateLabel = className ? "لا توجد حصة" : "اختر الفصل";
+        previous.title = className ? "لا توجد حصة سابقة لهذا الفصل في الجدول" : "اختر الفصل أولًا";
+        next.title = className ? "لا توجد حصة لاحقة لهذا الفصل في الجدول" : "اختر الفصل أولًا";
+        current.title = className ? "لا توجد حصة لهذا الفصل في الجدول" : "اختر الفصل أولًا";
+        previous.disabled = true;
+        next.disabled = true;
+        current.disabled = true;
         return;
       }
 
@@ -113,6 +118,7 @@ export default function TeacherAttendanceScheduleNav() {
       current.title = nearestToday ? `أقرب حصة للفصل حتى اليوم: ${nearestToday}` : "لا توجد حصة للفصل في الجدول";
       previous.disabled = !previousDate;
       next.disabled = !nextDate;
+      current.disabled = !nearestToday;
     }
 
     function scheduleRefresh(delay = 0) {
