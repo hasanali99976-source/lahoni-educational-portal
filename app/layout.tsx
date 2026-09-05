@@ -18,6 +18,7 @@ import MobileAppEnhancer from "./mobile-app-enhancer";
 import MobileWindowBridge from "./mobile-window-bridge";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
+import PortalPrintRuntime from "./portal-print-runtime";
 import DesignLabSmartAssist from "./design-lab-smart-assist";
 import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherWorkActivityTracker from "./teacher-work-activity-tracker";
@@ -45,6 +46,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
+    <PortalPrintRuntime />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
       <PortalCommandRuntime />
