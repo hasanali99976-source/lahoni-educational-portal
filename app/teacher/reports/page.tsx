@@ -16,6 +16,7 @@ import {
 } from "../../../lib/grade-plan";
 import { useGradePlan } from "../../../lib/use-grade-plan";
 import { downloadAttendancePdfDocument, type AttendancePdfClass } from "../../../lib/attendance-pdf";
+import { downloadAttendanceRangePdfDocument, type AttendanceRangePdfClass } from "../../../lib/attendance-range-pdf";
 import { downloadGradebookPdfDocument, type GradebookPdfClass } from "../../../lib/grades-pdf";
 import "./reports-v11.css";
 
@@ -246,8 +247,10 @@ export default function ReportsPage() {
         const result = await downloadAttendancePdfDocument({ portalName: "بوابة أستاذ لحوني التعليمية", teacherName: session.teacherName || "المعلم", subject: session.subject || "المادة", date: selectedDate, hijriDate: hijri(selectedDate), classes: reports, fileName: `سجل-المتابعة-${selectedDate}.pdf` });
         setMessage(`تم إنشاء سجل المتابعة: ${result.classCount} فصل و${result.studentCount} طالب.`);
       } else {
-        printRangePdf();
-        setMessage(`تم تجهيز معاينة فترة ${rangeLength} يوم للفصول المختارة.`);
+        const reports = selectedClasses.map(rangeClass).filter((item): item is AttendanceRangePdfClass => item.rows.length > 0 && item.days.length > 0);
+        if (!reports.length) throw new Error("لا توجد سجلات حضور محفوظة للفصول المختارة في هذه الفترة.");
+        const result = await downloadAttendanceRangePdfDocument({ portalName: "بوابة أستاذ لحوني التعليمية", teacherName: session.teacherName || "المعلم", subject: session.subject || "المادة", from: reportFrom, to: reportTo, classes: reports, fileName: `سجل-المتابعة-${reportFrom}-إلى-${reportTo}.pdf` });
+        setMessage(`تم إنشاء تقرير الفترة كاملًا: ${result.classCount} فصل و${result.studentCount} طالب في ${result.pageCount} صفحة.`);
       }
     } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر إنشاء التقرير الآن."); }
     finally { setBusy(false); }
@@ -347,7 +350,7 @@ export default function ReportsPage() {
         <div className="sr12-preview-lines"><i/><i/><i/><i/></div>
         <footer><span>{previewPeriod}</span><b>{readyCount} فصل جاهز</b></footer>
       </div>
-      <aside className="sr12-actions"><small>3 • إنشاء الوثيقة</small><h3>جاهز للطباعة؟</h3><p>{reportType === "attendance" && attendanceMode === "range" ? "كل فصل يخرج في صفحة مستقلة وبلون تعريفي مختلف. Excel يضع كل فصل في ورقة مستقلة." : reportType === "grades" ? "الطباعة تلتزم بالوحدة أو الفترة التي اخترتها، ويمكن اختيار جميع الفصول دفعة واحدة." : "انتقل إلى لوحة التحليل لإنشاء ملخص العمل."}</p><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : reportType === "summary" ? "فتح لوحة التحليل" : "معاينة / إنشاء PDF"}</button>{reportType !== "summary" ? <button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button> : null}</div></aside>
+      <aside className="sr12-actions"><small>3 • إنشاء الوثيقة</small><h3>جاهز للطباعة؟</h3><p>{reportType === "attendance" && attendanceMode === "range" ? "كل فصل يخرج في صفحات مكتملة بدون فقد أي طالب، ولكل فصل لون تعريفي مختلف. Excel يضع كل فصل في ورقة مستقلة." : reportType === "grades" ? "الطباعة تلتزم بالوحدة أو الفترة التي اخترتها، ويمكن اختيار جميع الفصول دفعة واحدة." : "انتقل إلى لوحة التحليل لإنشاء ملخص العمل."}</p><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : reportType === "summary" ? "فتح لوحة التحليل" : "إنشاء PDF"}</button>{reportType !== "summary" ? <button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button> : null}</div></aside>
     </section>
   </main>;
 }
