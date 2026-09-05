@@ -1,6 +1,6 @@
 @page {
   size: A4 portrait;
-  margin: 14mm 12mm 16mm;
+  margin: 20mm 12mm 17mm;
 }
 
 .print-header,
@@ -17,14 +17,19 @@
     padding: 0 !important;
     overflow: visible !important;
     background: #fff !important;
-    color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    color: #17343a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body,
+  body * {
+    font-family: inherit !important;
   }
 
   body {
-    font-size: 10.5pt !important;
-    line-height: 1.45 !important;
+    font-size: 10pt !important;
+    line-height: 1.5 !important;
   }
 
   .portal-stage,
@@ -74,32 +79,39 @@
   }
 
   .print-header {
-    display: block !important;
+    display: flex !important;
     position: fixed !important;
-    top: -10mm !important;
+    top: -16mm !important;
     right: 0 !important;
     left: 0 !important;
-    text-align: center !important;
-    font-size: 9pt !important;
+    height: 13mm !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-right: 15mm !important;
+    border-bottom: .45mm solid #0b716a !important;
+    color: #173d45 !important;
+    font-size: 10pt !important;
     font-weight: 800 !important;
-    color: #333 !important;
+    background: #fff url('/icons/lahooni-identity-320.jpg') right center / 11mm 11mm no-repeat !important;
   }
 
   .print-footer {
     display: flex !important;
     position: fixed !important;
-    bottom: -11mm !important;
+    bottom: -13mm !important;
     right: 0 !important;
     left: 0 !important;
+    min-height: 8mm !important;
     justify-content: space-between !important;
     align-items: center !important;
-    font-size: 8pt !important;
-    color: #555 !important;
+    border-top: .25mm solid #cddbd8 !important;
+    font-size: 7.8pt !important;
+    font-weight: 600 !important;
+    color: #647b80 !important;
   }
 
-  .page-number::after {
-    content: counter(page);
-  }
+  .page-number::before { content: "صفحة "; }
+  .page-number::after { content: counter(page); }
 
   h1,
   h2,
@@ -111,41 +123,51 @@
   th,
   span,
   strong {
-    color: #000 !important;
     text-shadow: none !important;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    break-after: avoid-page;
-    page-break-after: avoid;
-  }
+  h1 { font-size: 18pt !important; }
+  h2 { font-size: 14pt !important; }
+  h3 { font-size: 12pt !important; }
+  h1,h2,h3,h4 { break-after: avoid-page; page-break-after: avoid; }
 
   table {
     width: 100% !important;
     max-width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
-    font-size: 8.5pt !important;
+    font-size: 9pt !important;
+    color: #17343a !important;
   }
 
-  thead {
-    display: table-header-group !important;
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
+  th {
+    background: #0b716a !important;
+    color: #fff !important;
+    font-size: 9pt !important;
+    font-weight: 800 !important;
+    vertical-align: middle !important;
   }
-
-  tfoot {
-    display: table-footer-group !important;
-  }
-
-  th,
   td {
-    padding: 5px 4px !important;
+    color: #17343a !important;
+    font-size: 9pt !important;
+    vertical-align: middle !important;
+  }
+  th,td {
+    padding: 5px 6px !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-    vertical-align: top !important;
+    word-break: normal !important;
+    border: 1px solid #d4e1de !important;
+  }
+  tbody tr:nth-child(even) td { background: #f7faf9 !important; }
+
+  /* Student names always use one fixed print size. */
+  :is(.student,.student-name,.sticky-name,.student-info strong,[data-student-name],td.name,td.student) {
+    font-size: 9.5pt !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
   }
 
   tr,
@@ -161,12 +183,12 @@
     page-break-inside: avoid;
   }
 
-  img,
-  svg,
-  canvas {
+  img {
     max-width: 100% !important;
     height: auto !important;
+    object-fit: contain !important;
   }
+  svg,canvas { max-width: 100% !important; height: auto !important; }
 
   .student-table-scroll,
   .teacher-table-scroll,
@@ -195,19 +217,11 @@
   .student-goal-card > *,
   .goal-numbers > * {
     width: 100% !important;
-    margin-bottom: 8mm !important;
+    margin-bottom: 6mm !important;
     break-inside: avoid-page;
     page-break-inside: avoid;
   }
 
-  a {
-    color: #000 !important;
-    text-decoration: none !important;
-  }
-
-  * {
-    box-shadow: none !important;
-    animation: none !important;
-    transition: none !important;
-  }
+  a { color: #17343a !important; text-decoration: none !important; }
+  * { box-shadow: none !important; animation: none !important; transition: none !important; }
 }
