@@ -1,11 +1,11 @@
-const CACHE_NAME = "ostadh-lahooni-v111-trust-release";
+const CACHE_NAME = "ostadh-lahooni-v112-stability";
 const STATIC_FILES = [
   "/",
   "/manifest.webmanifest",
   "/icon.svg",
   "/icons/lahooni-identity-320.jpg",
-  "/subject-collage.svg?v=12",
-  "/portal-cover.webp",
+  "/icons/ostadh-lahooni-192.jpg",
+  "/saudi-classroom.svg",
 ];
 
 self.addEventListener("message", event => {
@@ -34,8 +34,21 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // بيانات الطلاب والمعلمين وطلبات RSC يجب أن تبقى لحظية ولا تعتمد على كاش التطبيق.
   if (url.pathname.startsWith("/api/") || url.searchParams.has("_rsc")) {
     event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
+
+  // أسماء ملفات Next داخل immutable مرتبطة بالمحتوى نفسه؛ لذلك يمكن فتحها من الكاش بأمان
+  // لتسريع الجوال وWebView دون تعريض البيانات الأكاديمية للقدم.
+  if (url.pathname.startsWith("/_next/static/immutable/")) {
+    event.respondWith(
+      caches.match(request).then(cached => cached || fetch(request).then(response => {
+        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+        return response;
+      })),
+    );
     return;
   }
 
