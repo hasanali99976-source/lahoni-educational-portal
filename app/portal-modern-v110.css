@@ -1,0 +1,142 @@
+/* Portal Modern V110 — modern academic surfaces without changing data flows */
+:root{
+  --pm-ink:#123b49;
+  --pm-muted:#6f8791;
+  --pm-line:#dbe7eb;
+  --pm-soft:#f5f9fa;
+  --pm-panel:#ffffff;
+  --pm-deep:#073f52;
+  --pm-teal:#0b8f88;
+  --pm-gold:#d3a64a;
+  --pm-shadow:0 16px 38px rgba(10,52,69,.075);
+  --pm-shadow-soft:0 8px 24px rgba(10,52,69,.055);
+}
+
+/* ===== Platform polish ===== */
+.portal-stage :where(button,a,input,select,textarea){-webkit-tap-highlight-color:transparent}
+.portal-stage :where(button,a){transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease}
+.portal-stage :where(button,a):focus-visible,.portal-stage :where(input,select,textarea):focus-visible{outline:3px solid color-mix(in srgb,var(--subject,#0b8f88) 20%,transparent);outline-offset:2px}
+.portal-stage :where(input,select,textarea){border-radius:14px!important}
+
+/* ===== Teacher navigation: contemporary app rail ===== */
+.teacher-academy-v12 .academy-v12-rail{background:linear-gradient(180deg,#082f3d 0%,#0a3c49 52%,#072833 100%)!important;border-left:1px solid rgba(255,255,255,.09)!important;box-shadow:-18px 0 46px rgba(6,33,43,.12)!important}
+.teacher-academy-v12 .academy-v12-nav-group nav{gap:5px!important}
+.teacher-academy-v12 .academy-v12-home,.teacher-academy-v12 .academy-v12-nav-group a{min-height:50px!important;border-radius:16px!important;padding:6px 9px!important}
+.teacher-academy-v12 .academy-v12-home:hover,.teacher-academy-v12 .academy-v12-nav-group a:hover{transform:translateX(-2px);background:rgba(255,255,255,.085)!important}
+.teacher-academy-v12 .academy-v12-home.active,.teacher-academy-v12 .academy-v12-nav-group a.active{background:linear-gradient(110deg,#fff,#f0fbf9)!important;box-shadow:0 12px 26px rgba(0,0,0,.16),inset 0 0 0 1px rgba(255,255,255,.7)!important}
+.teacher-academy-v12 .academy-v12-nav-icon{border-radius:13px!important;background:rgba(255,255,255,.075)!important}
+.teacher-academy-v12 .academy-v12-home.active .academy-v12-nav-icon,.teacher-academy-v12 .academy-v12-nav-group a.active .academy-v12-nav-icon{background:linear-gradient(135deg,var(--subject-soft),#fff)!important;box-shadow:0 5px 14px color-mix(in srgb,var(--subject) 12%,transparent)}
+.teacher-academy-v12 .academy-v12-nav-group>small{padding:8px 10px 4px!important;letter-spacing:.15px;color:#8ba5ac!important}
+.teacher-academy-v12 .academy-v12-topbar{background:rgba(252,254,254,.9)!important;backdrop-filter:blur(22px) saturate(1.15)!important;box-shadow:0 9px 28px rgba(12,50,61,.055)!important}
+.teacher-academy-v12 .academy-v12-subjects button{border-radius:15px!important;min-height:50px;background:rgba(255,255,255,.76)!important;box-shadow:0 5px 15px rgba(12,50,61,.035)}
+.teacher-academy-v12 .academy-v12-subjects button.active{background:linear-gradient(115deg,var(--subject-soft),#fff)!important;box-shadow:0 9px 22px color-mix(in srgb,var(--subject) 11%,transparent)!important;transform:translateY(-1px)}
+.teacher-academy-v12 .academy-v12-headline>div:first-child,.teacher-academy-v12 .academy-v12-ai{border-radius:22px!important;box-shadow:var(--pm-shadow-soft)!important}
+
+/* ===== All academic tables: cleaner and more contemporary ===== */
+.teacher-academy-v12 .academy-v12-canvas :where(table),
+.admin-shell :where(table),
+.portal-stage .students-page :where(table),
+.portal-stage .reports-page :where(table){
+  width:100%;border-collapse:separate!important;border-spacing:0!important;background:#fff;color:var(--pm-ink);
+}
+.teacher-academy-v12 .academy-v12-canvas :where(table thead th),
+.admin-shell :where(table thead th),
+.portal-stage .students-page :where(table thead th),
+.portal-stage .reports-page :where(table thead th){
+  background:linear-gradient(180deg,#0a5266,#083f52)!important;color:#fff!important;border-color:rgba(255,255,255,.1)!important;font-weight:900!important;padding:12px 11px!important;white-space:nowrap;
+}
+.teacher-academy-v12 .academy-v12-canvas :where(table thead th:first-child),
+.admin-shell :where(table thead th:first-child){border-top-right-radius:14px}
+.teacher-academy-v12 .academy-v12-canvas :where(table thead th:last-child),
+.admin-shell :where(table thead th:last-child){border-top-left-radius:14px}
+.teacher-academy-v12 .academy-v12-canvas :where(table tbody td),
+.admin-shell :where(table tbody td),
+.portal-stage .students-page :where(table tbody td),
+.portal-stage .reports-page :where(table tbody td){
+  padding:11px 10px!important;border-bottom:1px solid #e5edf0!important;background:#fff;vertical-align:middle;
+}
+.teacher-academy-v12 .academy-v12-canvas :where(table tbody tr:nth-child(even) td),
+.admin-shell :where(table tbody tr:nth-child(even) td){background:#f8fbfc}
+.teacher-academy-v12 .academy-v12-canvas :where(table tbody tr:hover td),
+.admin-shell :where(table tbody tr:hover td){background:#eef8f7!important}
+.teacher-academy-v12 .academy-v12-canvas :where(table input,table select),
+.admin-shell :where(table input,table select){min-height:40px!important;border:1px solid #d5e3e8!important;background:#fff!important;box-shadow:inset 0 1px 2px rgba(13,53,68,.025)}
+
+/* ===== Scientific achievement / gradebook ===== */
+.gv11-controlbar,.gv11-planbar,.gv11-gradebook,.gv11-insight{border-radius:24px!important;box-shadow:var(--pm-shadow)!important}
+.gv11-controlbar{background:radial-gradient(circle at 7% 0%,rgba(47,125,244,.09),transparent 28%),linear-gradient(120deg,#fff,#f4fbfa)!important}
+.gv11-section-tabs{gap:10px!important}
+.gv11-section-tabs button{position:relative;overflow:hidden;min-height:72px!important;border-radius:18px!important;background:linear-gradient(180deg,#fff,#f7fafb)!important;box-shadow:0 6px 16px rgba(17,57,73,.045)!important}
+.gv11-section-tabs button:after{content:"";position:absolute;inset:auto 0 0;height:3px;background:transparent}
+.gv11-section-tabs button.active{transform:translateY(-2px);border-color:color-mix(in srgb,var(--subject) 48%,#dce7ed)!important;background:linear-gradient(125deg,var(--subject-soft),#fff)!important;box-shadow:0 12px 26px color-mix(in srgb,var(--subject) 12%,transparent)!important}
+.gv11-section-tabs button.active:after{background:var(--subject)}
+.gv11-kpis{gap:10px!important}.gv11-kpis article{border-radius:18px!important;box-shadow:0 8px 20px rgba(18,61,83,.055)!important;padding:13px 14px!important}
+.gv11-gradebook{border:1px solid #d6e4e9!important;overflow:hidden!important}
+.gv11-gradebook>header{padding:17px 19px!important;background:radial-gradient(circle at 5% 10%,rgba(255,255,255,.12),transparent 26%),linear-gradient(110deg,#073c52,#08716f)!important}
+.gv11-table-wrap{background:linear-gradient(180deg,#f2f7f9,#f8fbfc)!important;scrollbar-color:#9ebbc2 #edf3f5;scrollbar-width:thin}
+.gv11-gradebook table{border-spacing:0 7px!important;padding:0 7px 7px;background:transparent!important}
+.gv11-gradebook th{top:0!important;background:linear-gradient(180deg,#0a5368,#083f52)!important;padding:12px 9px!important}
+.gv11-gradebook tbody td{border-top:1px solid #e1ebef!important;border-bottom:1px solid #e1ebef!important;border-left:0!important;background:#fff!important;padding:9px!important}
+.gv11-gradebook tbody tr td:first-child{border-right:1px solid #e1ebef!important;border-radius:0 13px 13px 0}
+.gv11-gradebook tbody tr td:last-child{border-left:1px solid #e1ebef!important;border-radius:13px 0 0 13px}
+.gv11-gradebook tbody tr:hover td{background:#f0faf8!important;border-color:#cfe6e2!important;box-shadow:0 7px 16px rgba(14,82,92,.035)}
+.gv11-gradebook td.name{box-shadow:-8px 0 16px rgba(18,61,83,.035)!important}
+.gv11-gradebook td input{height:41px!important;border-radius:12px!important;background:#f8fbfc!important}
+.gv11-gradebook td input:focus{background:#fff!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--subject) 11%,transparent)!important}
+
+/* ===== Grade preparation / plan ===== */
+.gradeplan-v9{gap:18px!important}
+.gpv9-hero,.gpv9-edit-head{border-radius:28px!important;padding:25px 27px!important;background:radial-gradient(circle at 5% 15%,rgba(255,255,255,.13),transparent 25%),linear-gradient(125deg,var(--subject-deep),var(--subject))!important;box-shadow:0 22px 46px color-mix(in srgb,var(--subject) 17%,transparent)!important}
+.gpv9-current,.gpv9-permission,.gpv9-empty,.gpv9-suggestions,.gpv9-history,.gpv9-controls,.gpv9-validation{border-radius:24px!important;border-color:#d9e6e8!important;box-shadow:var(--pm-shadow-soft)!important}
+.gpv9-section-grid{gap:11px!important}.gpv9-section-grid>article{position:relative;overflow:hidden;border-radius:18px!important;background:linear-gradient(180deg,#fff,#f8fbfa)!important;box-shadow:0 7px 18px rgba(12,64,72,.04)}
+.gpv9-section-grid>article:before{content:"";position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--subject)}
+.gpv9-section-grid article>div>span{border:1px solid #e6efed;border-radius:11px!important;background:#fff!important;padding:9px 10px!important}
+.gpv9-suggestions button,.gpv9-mode-row button{border-radius:18px!important;background:linear-gradient(180deg,#fff,#f7faf9)!important;box-shadow:0 5px 16px rgba(12,64,72,.035)}
+.gpv9-suggestions button:hover,.gpv9-mode-row button:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(12,64,72,.075)}
+.gpv9-mode-row button.active{background:linear-gradient(125deg,var(--subject-soft),#fff)!important}
+.gpv9-sections>article{border-radius:22px!important;box-shadow:0 10px 26px rgba(10,70,72,.05)!important;padding:18px!important}
+.gpv9-items>div{border-radius:14px;padding:5px;background:#f5f9f8;border:1px solid #e2ece9}
+.gpv9-items input,.gpv9-items select{background:#fff!important;min-height:42px}
+
+/* ===== Student academic record: from flat rows to academic cards ===== */
+.sar,.sar-integrated{background:radial-gradient(circle at 92% 0%,rgba(11,143,136,.055),transparent 24%),#f3f7f8!important}
+.sar-top,.sar-integrated-top,.sar-updates,.sar-no-updates,.sar-certificate{border-radius:25px!important;box-shadow:var(--pm-shadow)!important}
+.sar-hero{border-radius:32px!important;background:radial-gradient(circle at 7% 12%,rgba(255,255,255,.14),transparent 24%),linear-gradient(125deg,#073b45,#08736f)!important;box-shadow:0 24px 52px rgba(7,59,69,.2)!important}
+.sar-subjects{gap:12px!important}.sar-subjects button{min-height:74px;border-radius:20px!important;background:linear-gradient(180deg,#fff,#f8fbfc)!important;box-shadow:0 8px 20px rgba(10,58,76,.05)!important}
+.sar-subjects button.active{transform:translateY(-2px);background:linear-gradient(125deg,#eaf9f6,#fff)!important;box-shadow:0 12px 26px rgba(10,155,145,.11)!important}
+.sar-certificate>header{background:radial-gradient(circle at 6% 0%,rgba(11,143,136,.06),transparent 25%),linear-gradient(180deg,#fff,#fbfdfd)!important;padding:28px 31px!important}
+.sar-sections{gap:18px!important}.sar-sections>article{border-radius:22px!important;box-shadow:0 9px 23px rgba(11,55,72,.045);background:#fff}
+.sar-section-head{padding:17px 19px!important;background:linear-gradient(110deg,#f1f8f8,#fafcfc)!important;border-right:4px solid #0b8f88}
+.sar-items{gap:9px!important;background:transparent!important;padding:10px!important}
+.sar-items>div{min-height:72px;border:1px solid #e0eaed;border-radius:16px!important;background:linear-gradient(180deg,#fff,#fafcfd)!important;padding:14px 16px!important;box-shadow:0 5px 14px rgba(11,55,72,.035)}
+.sar-items>div.recorded{border-color:#cce5df;background:linear-gradient(180deg,#fff,#f4fbf8)!important}
+.sar-items>div:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(11,55,72,.065)}
+
+/* ===== Mobile: app-like, touch-first ===== */
+@media(max-width:760px){
+  .teacher-academy-v12 .academy-v12-topbar{backdrop-filter:blur(16px)!important}
+  .teacher-academy-v12 .academy-v12-headline>div:first-child,.teacher-academy-v12 .academy-v12-ai{border-radius:18px!important}
+  .gv11-controlbar,.gv11-planbar,.gv11-gradebook,.gv11-insight,.gpv9-current,.gpv9-suggestions,.gpv9-validation,.sar-certificate{border-radius:19px!important}
+  .gv11-section-tabs{display:flex!important;overflow-x:auto!important;scroll-snap-type:x proximity;padding:2px 2px 8px!important;gap:8px!important}
+  .gv11-section-tabs button{flex:0 0 155px;scroll-snap-align:start;min-height:66px!important}
+  .gv11-table-wrap{max-height:none!important;margin-inline:-2px;padding-bottom:6px;overscroll-behavior-inline:contain}
+  .gv11-gradebook table{padding:0 4px 5px!important;border-spacing:0 6px!important}
+  .gv11-gradebook th.name,.gv11-gradebook td.name{min-width:165px!important;max-width:165px!important}
+  .gv11-gradebook th{min-width:92px!important;padding:10px 7px!important}
+  .gv11-gradebook td{padding:8px 6px!important}
+  .gv11-gradebook td input{width:68px!important;height:40px!important}
+  .gpv9-hero,.gpv9-edit-head{padding:20px!important;border-radius:22px!important}
+  .gpv9-section-grid{grid-template-columns:1fr!important}.gpv9-section-grid>article{border-radius:17px!important}
+  .sar-subjects{display:flex!important;overflow-x:auto!important;scroll-snap-type:x proximity;padding-bottom:7px}.sar-subjects button{flex:0 0 78%;scroll-snap-align:start}
+  .sar-items{grid-template-columns:1fr!important;padding:8px!important}.sar-items>div{min-height:68px;border-radius:15px!important}
+  .portal-stage :where(button,a,[role="button"]){touch-action:manipulation}
+}
+
+/* ===== Print / browser PDF: stronger institutional identity ===== */
+@media print{
+  .portal-stage table{border-collapse:separate!important;border-spacing:0!important;border:1px solid #cbdade!important;border-radius:10px!important;overflow:hidden}
+  .portal-stage table thead th{background:#073f52!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .portal-stage table tbody tr:nth-child(even) td{background:#f4f8f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .portal-stage table td{border-color:#dce7ea!important}
+  .gv11-gradebook,.sar-certificate,.gpv9-current{box-shadow:none!important;border:1px solid #cbdade!important}
+}
