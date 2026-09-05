@@ -1,6 +1,6 @@
 @page {
   size: A4 portrait;
-  margin: 20mm 12mm 17mm;
+  margin: 19mm 11mm 16mm;
 }
 
 .print-header,
@@ -28,8 +28,8 @@
   }
 
   body {
-    font-size: 10pt !important;
-    line-height: 1.5 !important;
+    font-size: 11.3pt !important;
+    line-height: 1.55 !important;
   }
 
   .portal-stage,
@@ -79,34 +79,44 @@
   }
 
   .print-header {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: 15mm 1fr auto !important;
+    gap: 4mm !important;
     position: fixed !important;
-    top: -16mm !important;
+    top: -15.5mm !important;
     right: 0 !important;
     left: 0 !important;
-    height: 13mm !important;
+    min-height: 12.5mm !important;
     align-items: center !important;
-    justify-content: center !important;
-    padding-right: 15mm !important;
-    border-bottom: .45mm solid #0b716a !important;
+    padding: 0 15mm 0 0 !important;
+    border-bottom: .55mm solid #0b716a !important;
     color: #173d45 !important;
-    font-size: 10pt !important;
+    font-size: 11.5pt !important;
     font-weight: 800 !important;
-    background: #fff url('/icons/lahooni-identity-320.jpg') right center / 11mm 11mm no-repeat !important;
+    background: #fff url('/icons/lahooni-identity-320.jpg') right center / 13mm 13mm no-repeat !important;
+    background-origin: content-box !important;
+  }
+
+  .print-header::after {
+    content: "وثيقة صادرة من البوابة";
+    font-size: 8.3pt !important;
+    font-weight: 600 !important;
+    color: #6d8186 !important;
+    white-space: nowrap !important;
   }
 
   .print-footer {
     display: flex !important;
     position: fixed !important;
-    bottom: -13mm !important;
+    bottom: -12.5mm !important;
     right: 0 !important;
     left: 0 !important;
     min-height: 8mm !important;
     justify-content: space-between !important;
     align-items: center !important;
-    border-top: .25mm solid #cddbd8 !important;
-    font-size: 7.8pt !important;
-    font-weight: 600 !important;
+    border-top: .3mm solid #cddbd8 !important;
+    font-size: 8.4pt !important;
+    font-weight: 650 !important;
     color: #647b80 !important;
   }
 
@@ -126,9 +136,9 @@
     text-shadow: none !important;
   }
 
-  h1 { font-size: 18pt !important; }
-  h2 { font-size: 14pt !important; }
-  h3 { font-size: 12pt !important; }
+  h1 { font-size: 19pt !important; }
+  h2 { font-size: 15pt !important; }
+  h3 { font-size: 12.8pt !important; }
   h1,h2,h3,h4 { break-after: avoid-page; page-break-after: avoid; }
 
   table {
@@ -136,7 +146,7 @@
     max-width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
-    font-size: 9pt !important;
+    font-size: 10.3pt !important;
     color: #17343a !important;
   }
 
@@ -145,17 +155,17 @@
   th {
     background: #0b716a !important;
     color: #fff !important;
-    font-size: 9pt !important;
+    font-size: 10.2pt !important;
     font-weight: 800 !important;
     vertical-align: middle !important;
   }
   td {
     color: #17343a !important;
-    font-size: 9pt !important;
+    font-size: 10.2pt !important;
     vertical-align: middle !important;
   }
   th,td {
-    padding: 5px 6px !important;
+    padding: 6px 7px !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
     word-break: normal !important;
@@ -163,11 +173,11 @@
   }
   tbody tr:nth-child(even) td { background: #f7faf9 !important; }
 
-  /* Student names always use one fixed print size. */
+  /* Student names stay visually equal; no auto-shrinking. */
   :is(.student,.student-name,.sticky-name,.student-info strong,[data-student-name],td.name,td.student) {
-    font-size: 9.5pt !important;
+    font-size: 11pt !important;
     font-weight: 800 !important;
-    line-height: 1.35 !important;
+    line-height: 1.4 !important;
   }
 
   tr,
