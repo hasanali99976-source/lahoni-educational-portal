@@ -46,6 +46,16 @@ forbid(
   "شريط الجوال يجب أن يعتمد على المسار الحالي لا على مراقبة DOM مستمرة.",
 );
 forbid(
+  "app/teacher-work-activity-tracker.tsx",
+  /new\s+MutationObserver\s*\(/,
+  "حساب أعمال المعلم لا يراقب DOM؛ النقاط تأتي من البيانات المحفوظة نفسها.",
+);
+forbid(
+  "app/teacher/competition-progress.tsx",
+  /setInterval\s*\(/,
+  "التنافس لا يعاد حسابه كل دقيقة؛ التحديث يكون عند الفتح أو الرجوع بعد مدة مناسبة.",
+);
+forbid(
   "app/student/page.tsx",
   /setInterval\s*\(/,
   "صفحة الطالب لا تستخدم تحديثًا دوريًا؛ التحديث يكون عند الفتح أو الرجوع للصفحة فقط.",

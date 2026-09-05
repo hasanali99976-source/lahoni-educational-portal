@@ -118,22 +118,31 @@ function forceLogout(pathname: string) {
   window.setTimeout(redirect, 900);
 }
 
-function decorateCommands() {
-  document.querySelectorAll<HTMLElement>("button, a").forEach(element => {
-    const text = (element.textContent || "").replace(/\s+/g, " ").trim();
-    const match = COMMANDS.find(item => item.pattern.test(text));
-    if (!match) return;
-    element.dataset.portalCommand = match.command;
-    element.dataset.portalIcon = match.icon;
-    if (element instanceof HTMLButtonElement && !element.getAttribute("type")) element.type = "button";
-    if (!element.getAttribute("aria-label")) element.setAttribute("aria-label", text);
-  });
+function decorateCommand(element: HTMLElement) {
+  const text = (element.textContent || "").replace(/\s+/g, " ").trim();
+  const match = COMMANDS.find(item => item.pattern.test(text));
+  if (!match) return;
+  element.dataset.portalCommand = match.command;
+  element.dataset.portalIcon = match.icon;
+  if (element instanceof HTMLButtonElement && !element.getAttribute("type")) element.type = "button";
+  if (!element.getAttribute("aria-label")) element.setAttribute("aria-label", text);
+}
+
+function decorateCommands(root: ParentNode | HTMLElement) {
+  if (root instanceof HTMLElement && root.matches("button, a")) decorateCommand(root);
+  root.querySelectorAll<HTMLElement>("button, a").forEach(decorateCommand);
 }
 
 export default function PortalCommandRuntime() {
   useEffect(() => {
-    decorateCommands();
-    const observer = new MutationObserver(decorateCommands);
+    decorateCommands(document);
+    const observer = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof HTMLElement) decorateCommands(node);
+        });
+      }
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     const handleClick = (event: MouseEvent) => {
