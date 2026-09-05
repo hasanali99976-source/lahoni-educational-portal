@@ -17,11 +17,14 @@ export type AttendancePdfDocumentOptions = {
 
 const WIDTH=1680;
 const HEIGHT=1188;
-const FONT="Alexandria, Arial, sans-serif";
 const DEFAULT_ACCENT="#0b675f";
 const CLASS_ACCENTS=["#0b675f","#365b94","#71509a","#9a5c39","#3b785d","#8a681e","#8b4560","#4a6689"];
 const MAX_ROWS_PER_PAGE=38;
 
+function portalFont(){
+  if(typeof window!=="undefined"&&document?.body)return getComputedStyle(document.body).fontFamily||"Arial, sans-serif";
+  return "Arial, sans-serif";
+}
 function chunks<T>(items:T[],size:number){
   return Array.from({length:Math.ceil(items.length/size)},(_,index)=>items.slice(index*size,(index+1)*size));
 }
@@ -30,7 +33,7 @@ function canvasPage(){
   const ctx=canvas.getContext("2d");if(!ctx)throw new Error("attendance_pdf_canvas_unavailable");
   ctx.fillStyle="#ffffff";ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textBaseline="middle";ctx.direction="rtl";return{canvas,ctx};
 }
-function font(ctx:CanvasRenderingContext2D,size:number,weight=700){ctx.font=`${weight} ${size}px ${FONT}`;}
+function font(ctx:CanvasRenderingContext2D,size:number,weight=700){ctx.font=`${weight} ${size}px ${portalFont()}`;}
 function fit(ctx:CanvasRenderingContext2D,value:string,maxWidth:number,preferred:number,min:number,weight=700){let size=preferred;while(size>min){font(ctx,size,weight);if(ctx.measureText(value).width<=maxWidth)break;size-=.5;}return size;}
 function txt(ctx:CanvasRenderingContext2D,value:unknown,x:number,y:number,options:{size?:number;min?:number;weight?:number;color?:string;align?:CanvasTextAlign;maxWidth?:number}={}){
   const raw=String(value??"");const weight=options.weight??700;const size=options.maxWidth?fit(ctx,raw,options.maxWidth,options.size??18,options.min??10,weight):(options.size??18);font(ctx,size,weight);ctx.fillStyle=options.color??"#173d45";ctx.textAlign=options.align??"right";ctx.fillText(raw,x,y);
