@@ -5,7 +5,7 @@ import { normalizeClass } from "../../../../lib/unified-roster";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
 type AttendanceEntry = { status: AttendanceStatus; updatedAt: string };
-type TimetableLesson = { className?: unknown };
+type TimetableLesson = { className?: unknown; subject?: unknown; notes?: unknown };
 
 const ATTENDANCE_START_DATE = "2026-08-23";
 const SCHOOL_DAY_END_HOUR = 15;
@@ -16,6 +16,13 @@ const DAY_INDEX: Record<string, number> = {
   tuesday: 2,
   wednesday: 3,
   thursday: 4,
+};
+const DAY_LABELS: Record<string, string> = {
+  sunday: "الأحد",
+  monday: "الاثنين",
+  tuesday: "الثلاثاء",
+  wednesday: "الأربعاء",
+  thursday: "الخميس",
 };
 
 function riyadhDateInput(date: Date) {
@@ -92,12 +99,24 @@ export async function GET(request: Request) {
   const lessons = timetable.exists && timetable.data()?.lessons && typeof timetable.data()?.lessons === "object"
     ? timetable.data()!.lessons as Record<string, TimetableLesson>
     : {};
+  const timetableLessons: Array<{ dayKey: string; dayLabel: string; dayIndex: number; period: number; className: string; subject: string; notes: string }> = [];
   Object.entries(lessons).forEach(([cell, lesson]) => {
-    const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/);
+    const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/);
     if (!match || !studentClass) return;
-    if (normalizeClass(lesson?.className) !== studentClass) return;
+    const lessonClass = normalizeClass(lesson?.className);
+    if (lessonClass !== studentClass) return;
     timetableWeekdays.add(DAY_INDEX[match[1]]);
+    timetableLessons.push({
+      dayKey: match[1],
+      dayLabel: DAY_LABELS[match[1]] || match[1],
+      dayIndex: DAY_INDEX[match[1]],
+      period: Number(match[2]),
+      className: lessonClass,
+      subject: String(lesson?.subject || "").trim(),
+      notes: String(lesson?.notes || "").trim(),
+    });
   });
+  timetableLessons.sort((a, b) => a.dayIndex - b.dayIndex || a.period - b.period);
 
   const expectedWeekdays = timetableWeekdays.size
     ? timetableWeekdays
@@ -149,10 +168,12 @@ export async function GET(request: Request) {
         latestDate,
         attendanceSource,
       },
+      timetableLessons,
       gradePlan: gradePlanSnapshot && gradePlanSnapshot.exists ? { id: gradePlanSnapshot.id, ...gradePlanSnapshot.data() } : null,
     },
     attendanceSource,
     expectedWeekdays: [...expectedWeekdays],
+    timetableLessons,
     updatedAt: new Date().toISOString(),
   }, { headers: { "Cache-Control": "no-store, max-age=0" } });
 }
