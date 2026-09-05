@@ -34,8 +34,8 @@ export default function DesignLabPortalAccent() {
   const pathname = usePathname();
 
   const portal = useMemo(() => {
+    if (pathname.startsWith("/teacher")) return null;
     if (pathname.startsWith("/admin")) return { key: "admin", label: "بوابة الإدارة", note: "إدارة ذكية للبوابة" };
-    if (pathname.startsWith("/teacher")) return { key: "teacher", label: "بوابة المعلم", note: "تعليم ومتابعة ذكية" };
     if (pathname.startsWith("/student") || pathname.startsWith("/parent")) return { key: "student", label: "الطالب وولي الأمر", note: "متابعة التحصيل والتواصل" };
     return null;
   }, [pathname]);
