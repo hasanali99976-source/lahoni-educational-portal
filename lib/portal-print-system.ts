@@ -2,11 +2,11 @@
 
 export const PRINT_WIDTH = 1680;
 export const PRINT_HEIGHT = 1188;
-export const PRINT_ACCENTS = ["#0b675f", "#365b94", "#71509a", "#9a5c39", "#3b785d", "#8a681e", "#8b4560", "#4a6689"];
-export const PRINT_INK = "#173d45";
+export const PRINT_ACCENTS = ["#0b7c74", "#2f6ec7", "#7854c6", "#b27a27", "#398564", "#9b6d22", "#a8495d", "#3d6d91"];
+export const PRINT_INK = "#153b49";
 export const PRINT_MUTED = "#647b80";
-export const STUDENT_NAME_FONT_SIZE = 13;
-export const STUDENT_NAME_FONT_WEIGHT = 800;
+export const STUDENT_NAME_FONT_SIZE = 20;
+export const STUDENT_NAME_FONT_WEIGHT = 850;
 
 export function portalPrintFont() {
   if (typeof window !== "undefined" && typeof document !== "undefined" && document.body) {
@@ -60,7 +60,7 @@ export function drawFixedText(
   options: { size?: number; weight?: number; color?: string; align?: CanvasTextAlign; maxWidth?: number; ellipsis?: boolean } = {},
 ) {
   const raw = String(value ?? "");
-  const size = options.size ?? 18;
+  const size = options.size ?? 20;
   const weight = options.weight ?? 700;
   setPrintFont(ctx, size, weight);
   ctx.fillStyle = options.color ?? PRINT_INK;
@@ -78,7 +78,7 @@ export function drawFittedText(
 ) {
   const raw = String(value ?? "");
   const weight = options.weight ?? 700;
-  const size = options.maxWidth ? fitPrintSize(ctx, raw, options.maxWidth, options.size ?? 18, options.min ?? 10, weight) : (options.size ?? 18);
+  const size = options.maxWidth ? fitPrintSize(ctx, raw, options.maxWidth, options.size ?? 20, options.min ?? 13, weight) : (options.size ?? 20);
   setPrintFont(ctx, size, weight);
   ctx.fillStyle = options.color ?? PRINT_INK;
   ctx.textAlign = options.align ?? "right";
@@ -98,7 +98,7 @@ export function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number,
   ctx.fill();
   if (stroke) {
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 1.4;
+    ctx.lineWidth = 1.6;
     ctx.stroke();
   }
 }
