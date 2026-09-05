@@ -12,6 +12,7 @@ import "./teacher/teacher-academy-v12-guards.css";
 import "./teacher-academy-v13.css";
 import "./teacher-academy-v14.css";
 import "./teacher-academy-v15.css";
+import "./teacher-academy-v16.css";
 import "./global-font-v13.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
