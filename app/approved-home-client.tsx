@@ -6,119 +6,55 @@ import "./student-direct-qr.css";
 
 const IDENTITY = "/icons/lahooni-identity-320.jpg";
 
-const portals = [
-  {
-    href: "/admin",
-    key: "admin",
-    eyebrow: "مركز القرار",
-    title: "الإدارة",
-    text: "قيادة المعلمين والطلاب والفصول والتقارير من مساحة واحدة واضحة.",
-    accent: "إدارة وتشغيل",
-  },
-  {
-    href: "/teacher",
-    key: "teacher",
-    eyebrow: "مساحة العمل",
-    title: "المعلم",
-    text: "الحضور والدرجات والمتابعة والتحليل والخطط اليومية بواجهة ذكية.",
-    accent: "تعليم ومتابعة",
-  },
-  {
-    href: "/student",
-    key: "student",
-    eyebrow: "متابعة التحصيل",
-    title: "الطالب وولي الأمر",
-    text: "التحصيل والاختبارات والحضور وملاحظات المعلم في بوابة واحدة.",
-    accent: "تحصيل وتواصل",
-  },
-] as const;
+type PortalKey = "admin" | "teacher" | "student";
+type SubjectKey = "history" | "critical" | "math" | "science" | "geography" | "arabic" | "english" | "islamic";
 
-const subjects = [
-  ["📜", "التاريخ"],
-  ["🧠", "التفكير الناقد"],
-  ["➗", "الرياضيات"],
-  ["🔬", "العلوم"],
-  ["🧪", "الكيمياء"],
-  ["🌍", "الجغرافيا"],
-  ["📖", "اللغة العربية"],
-  ["🇬🇧", "اللغة الإنجليزية"],
-  ["🕌", "الدراسات الإسلامية"],
-] as const;
+const portals: Array<{ href:string; key:PortalKey; eyebrow:string; title:string; text:string }> = [
+  { href:"/admin", key:"admin", eyebrow:"غرفة القيادة", title:"الإدارة", text:"إدارة المعلمين والطلاب والفصول والتقارير والصلاحيات من مساحة تشغيل واحدة." },
+  { href:"/teacher", key:"teacher", eyebrow:"الأكاديمية التعليمية", title:"المعلم", text:"الحضور، التحصيل، المتابعة، المهارات، الاختبارات والتقارير في مساحة عمل يومية ذكية." },
+  { href:"/student", key:"student", eyebrow:"رحلة الطالب", title:"الطالب وولي الأمر", text:"التحصيل والحضور والاختبارات وملاحظات المعلم والتواصل في بوابة موحدة وواضحة." },
+];
 
-function PortalIcon({ kind }: { kind: (typeof portals)[number]["key"] }) {
+const subjects: Array<{key:SubjectKey; label:string; hint:string}> = [
+  {key:"history",label:"التاريخ",hint:"أحداث • حضارات"},
+  {key:"critical",label:"التفكير الناقد",hint:"تحليل • استدلال"},
+  {key:"math",label:"الرياضيات",hint:"حل • منطق"},
+  {key:"science",label:"العلوم",hint:"تجربة • اكتشاف"},
+  {key:"geography",label:"الجغرافيا",hint:"مكان • إنسان"},
+  {key:"arabic",label:"اللغة العربية",hint:"لغة • تعبير"},
+  {key:"english",label:"اللغة الإنجليزية",hint:"تواصل • مهارة"},
+  {key:"islamic",label:"الدراسات الإسلامية",hint:"معرفة • قيم"},
+];
+
+function PortalIcon({ kind }: { kind: PortalKey }) {
   if (kind === "admin") return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l5 3 6-.5 2 5.5 5 3-2 5.8 2 5.7-5 3-2 5.5-6-.5-5 3-5-3-6 .5-2-5.5-5-3 2-5.7-2-5.8 5-3 2-5.5 6 .5 5-3Z"/><path d="m18.5 24 4 4 8-9"/></svg>;
   if (kind === "teacher") return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="15" cy="14" r="5.5"/><path d="M6 39v-9c0-5 4-9 9-9s9 4 9 9v9"/><rect x="27" y="9" width="15" height="21" rx="3"/><path d="M30 15h9M30 20h7M24 27l8-6"/></svg>;
   return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="15" r="6.5"/><circle cx="32" cy="19" r="5"/><path d="M6 39c1.6-8 6.2-12 11-12s9.5 4 11 12M27 39c1.2-5.4 4.2-8.3 7.5-8.3S40.8 33.6 42 39"/></svg>;
 }
 
+function SubjectIcon({ type }: { type: SubjectKey }) {
+  const props = { viewBox:"0 0 32 32", fill:"none", stroke:"currentColor", strokeWidth:1.8, strokeLinecap:"round" as const, strokeLinejoin:"round" as const };
+  if (type === "history") return <svg {...props}><path d="M5 26h22M7 12h18M9 12v13M15 12v13M21 12v13M6 9l10-5 10 5z"/></svg>;
+  if (type === "critical") return <svg {...props}><path d="M11 23h10M13 27h6M10.5 19.5C8.9 18.2 8 16.3 8 14a8 8 0 1 1 16 0c0 2.3-.9 4.2-2.5 5.5-1 .8-1.5 1.7-1.5 3h-8c0-1.3-.5-2.2-1.5-3Z"/><path d="m13 14 2 2 4-5"/></svg>;
+  if (type === "math") return <svg {...props}><rect x="5" y="5" width="22" height="22" rx="5"/><path d="M10 11h6M13 8v6M19 9l5 5M24 9l-5 5M10 21h6M20 19h4M20 23h4"/></svg>;
+  if (type === "science") return <svg {...props}><path d="M12 5h8M14 5v7L8 22a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 24 22l-6-10V5"/><path d="M10 20h12M13 16h6"/></svg>;
+  if (type === "geography") return <svg {...props}><circle cx="16" cy="16" r="11"/><path d="M5 16h22M16 5c3.6 3.2 5.4 6.9 5.4 11S19.6 23.8 16 27M16 5c-3.6 3.2-5.4 6.9-5.4 11S12.4 23.8 16 27"/></svg>;
+  if (type === "arabic") return <svg {...props}><path d="M8 24c4-1 9-4 13-9l3-4-3-3-4 3c-5 4-8 9-9 13z"/><path d="M8 24l-2 2M18 12l3 3M6 27h16"/></svg>;
+  if (type === "english") return <svg {...props}><path d="M6 8.5A4.5 4.5 0 0 1 10.5 4H16v23h-5.5A4.5 4.5 0 0 0 6 31z"/><path d="M26 8.5A4.5 4.5 0 0 0 21.5 4H16v23h5.5A4.5 4.5 0 0 1 26 31z"/><path d="M9 10h4M19 10h4M9 15h4M19 15h4"/></svg>;
+  return <svg {...props}><path d="M7 7.5A4.5 4.5 0 0 1 11.5 3H16v24h-4.5A4.5 4.5 0 0 0 7 31z"/><path d="M25 7.5A4.5 4.5 0 0 0 20.5 3H16v24h4.5A4.5 4.5 0 0 1 25 31z"/></svg>;
+}
+
 const styles = `
-:root{--lh-deep:#032f37;--lh-deep2:#07515a;--lh-teal:#0d7f77;--lh-mint:#20ad92;--lh-gold:#d9aa47;--lh-gold2:#f2d27e;--lh-paper:#f2f8f6;--lh-ink:#123f47;--lh-muted:#6f8385;--lh-line:#d7e6e2}
-html:has(.lh-home),body:has(.lh-home){margin:0!important;padding:0!important;background:var(--lh-paper)!important;overflow-x:hidden!important}
-body:has(.lh-home) .portal-stage{min-height:100dvh!important;background:transparent!important}
-.lh-home{min-height:100dvh;position:relative;overflow:hidden;background:linear-gradient(180deg,#032d35 0,#07525a 49%,#eff7f5 49%,#eff7f5 100%);color:var(--lh-ink);padding:16px 20px 24px}
-.lh-home *{box-sizing:border-box}.lh-home:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 10% 6%,rgba(32,173,146,.2),transparent 26%),radial-gradient(circle at 88% 10%,rgba(217,170,71,.16),transparent 24%);pointer-events:none}
-.lh-shell{position:relative;z-index:2;width:min(1480px,100%);margin:auto}
-.lh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px;padding:8px 12px;border:1px solid rgba(242,210,126,.38);border-radius:22px;background:rgba(2,37,43,.72);backdrop-filter:blur(18px);box-shadow:0 16px 42px rgba(0,0,0,.16)}
-.lh-brand{display:flex;align-items:center;gap:11px}.lh-brand img{width:50px;height:50px;border-radius:15px;object-fit:cover;border:2px solid var(--lh-gold2);box-shadow:0 7px 18px rgba(0,0,0,.22)}.lh-brand div{display:grid}.lh-brand strong{color:#fff;font-size:18px;font-weight:950}.lh-brand small{margin-top:2px;color:#ebca72;font-size:10px;font-weight:850}
-.lh-top-status{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#d7eae6;font-size:11px;font-weight:850}.lh-top-status i{width:8px;height:8px;border-radius:50%;background:#52d6a9;box-shadow:0 0 14px #52d6a9}
-.lh-hero{display:grid;grid-template-columns:minmax(0,1.2fr) 320px;gap:24px;align-items:center;min-height:270px;padding:25px 18px 18px}.lh-copy{padding:8px}.lh-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--lh-gold2);font-size:12px;font-weight:950}.lh-kicker:before{content:"";width:30px;height:2px;background:linear-gradient(90deg,var(--lh-gold2),transparent)}.lh-copy h1{margin:8px 0 10px;color:#fff;font-size:clamp(36px,4vw,58px);line-height:1.08;font-weight:950;letter-spacing:-1.2px}.lh-copy h1 span{color:var(--lh-gold2)}.lh-copy p{margin:0;max-width:810px;color:#cce5e1;font-size:16px;line-height:1.85}.lh-copy p b{color:#fff}.lh-hero-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}.lh-hero-tags span{padding:7px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#e4f2ef;font-size:10px;font-weight:850}
-.lh-quick{position:relative;overflow:hidden;display:grid;place-items:center;align-content:center;min-height:215px;padding:14px;border:1px solid rgba(242,210,126,.52);border-radius:26px;background:linear-gradient(155deg,rgba(255,255,255,.98),rgba(240,249,246,.96));box-shadow:0 23px 55px rgba(0,0,0,.2)}.lh-quick:before{content:"الدخول السريع";display:block;margin-bottom:4px;color:#9b6e1d;font-size:11px;font-weight:950}.lh-quick>strong{color:#0a5e61;font-size:16px}.lh-quick>small{margin:3px 0 6px;color:#7b8d8f;font-size:9px}.lh-quick .v3-student-quick{margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.lh-quick .v3-student-quick-copy{display:none!important}.lh-quick .v3-student-qr-wrap{padding:6px!important;border:0!important;background:#fff!important;box-shadow:none!important}.lh-quick .v3-student-qr-wrap svg{width:104px!important;height:104px!important}.lh-quick .v3-student-qr-wrap small{display:none!important}.lh-quick .v3-student-qr-wrap strong{font-size:9px!important;color:#0c6863!important}
-.lh-subject-zone{position:relative;margin:0 4px 16px;overflow:hidden;border:1px solid rgba(231,207,143,.28);border-radius:20px;background:rgba(3,45,52,.68);box-shadow:inset 0 1px rgba(255,255,255,.06)}.lh-subject-zone:before,.lh-subject-zone:after{content:"";position:absolute;top:0;bottom:0;width:70px;z-index:3;pointer-events:none}.lh-subject-zone:before{right:0;background:linear-gradient(90deg,transparent,#06444c)}.lh-subject-zone:after{left:0;background:linear-gradient(270deg,transparent,#06444c)}.lh-subject-track{display:flex;width:max-content;gap:9px;padding:9px;animation:lhSubjects 30s linear infinite}.lh-subject-zone:hover .lh-subject-track{animation-play-state:paused}.lh-subject{display:flex;align-items:center;gap:8px;min-width:150px;padding:9px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.075);color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.08)}.lh-subject b{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,rgba(32,173,146,.23),rgba(217,170,71,.18));font-size:18px}.lh-subject span{font-size:11px;font-weight:900;white-space:nowrap}.lh-subject small{display:block;color:#a9c9c4;font-size:7px}.lh-subject-copy{display:grid}.lh-subject-label{padding:8px 12px;color:#f0cf78;font-size:9px;font-weight:950;white-space:nowrap;align-self:center}
-@keyframes lhSubjects{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.lh-access{position:relative;margin-top:0;padding:18px;border:1px solid rgba(210,229,224,.95);border-radius:30px;background:rgba(247,252,250,.97);box-shadow:0 22px 58px rgba(4,62,68,.13)}.lh-access-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;padding:0 3px}.lh-access-head div small{color:#aa7822;font-size:9px;font-weight:950}.lh-access-head h2{margin:2px 0 0;color:#0b5359;font-size:22px}.lh-access-head>span{color:#728789;font-size:10px}
-.lh-portals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lh-portal{position:relative;overflow:hidden;display:grid;grid-template-columns:58px minmax(0,1fr) 40px;align-items:center;gap:13px;min-height:128px;padding:16px;border:1px solid #d8e6e2;border-radius:21px;background:#fff;text-decoration:none;color:var(--lh-ink);box-shadow:0 11px 27px rgba(5,71,76,.065);transition:.2s}.lh-portal:before{content:"";position:absolute;right:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--lh-mint),var(--lh-gold))}.lh-portal:hover{transform:translateY(-4px);border-color:#bedbd4;box-shadow:0 18px 38px rgba(5,71,76,.12)}.lh-portal-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#e7f6f2,#fff);color:#0b716c;border:1px solid #d6e9e4}.lh-portal.student .lh-portal-icon{background:linear-gradient(145deg,#fff6db,#fff);color:#926619}.lh-portal-icon svg{width:33px;height:33px;fill:none;stroke:currentColor;stroke-width:2}.lh-portal-copy small{color:#a87922;font-size:8px;font-weight:950}.lh-portal-copy h3{margin:3px 0 5px;color:#0b5259;font-size:20px}.lh-portal-copy p{margin:0;color:#748689;font-size:10px;line-height:1.65}.lh-portal-arrow{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#073e47,#0d8177);color:#fff;font-size:20px;box-shadow:0 8px 18px rgba(5,96,91,.16)}
-.lh-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:13px;padding:10px 14px;color:#728486;font-size:9px}.lh-bottom b{color:#0c6963}.lh-bottom span{color:#9a6c1d;font-weight:850}
-@media(max-width:980px){.lh-hero{grid-template-columns:1fr}.lh-quick{min-height:190px}.lh-portals{grid-template-columns:1fr}.lh-access-head>span{display:none}}
-@media(max-width:640px){.lh-home{padding:10px}.lh-top{border-radius:18px}.lh-top-status{display:none}.lh-brand strong{font-size:15px}.lh-brand img{width:45px;height:45px}.lh-hero{padding:20px 4px 12px}.lh-copy h1{font-size:35px}.lh-copy p{font-size:14px}.lh-quick{min-height:180px}.lh-subject{min-width:132px}.lh-access{padding:12px;border-radius:23px}.lh-portal{grid-template-columns:50px minmax(0,1fr) 36px;padding:13px}.lh-portal-icon{width:48px;height:48px}.lh-bottom{display:block;text-align:center}.lh-bottom span{display:block;margin-top:4px}}
-@media(prefers-reduced-motion:reduce){.lh-subject-track{animation:none}}
+:root{--hm-navy:#062f43;--hm-teal:#08a69a;--hm-gold:#d6a73e;--hm-bg:#eef5f9;--hm-ink:#123b4b;--hm-line:#dbe7ee}
+html:has(.hm-home),body:has(.hm-home){margin:0!important;padding:0!important;background:var(--hm-bg)!important;overflow-x:hidden!important}body:has(.hm-home) .portal-stage{min-height:100dvh!important;background:transparent!important}.hm-home{min-height:100dvh;background:linear-gradient(180deg,#062f43 0,#07475e 38%,#eaf3f8 38%,#eef5f9 100%);color:var(--hm-ink);padding:14px 18px 24px;position:relative;overflow:hidden}.hm-home *{box-sizing:border-box}.hm-home:before{content:"";position:absolute;width:460px;height:460px;border-radius:50%;right:-150px;top:-170px;background:radial-gradient(circle,rgba(42,194,194,.18),transparent 68%);pointer-events:none}.hm-home:after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;left:-180px;top:120px;background:radial-gradient(circle,rgba(215,169,62,.12),transparent 68%);pointer-events:none}.hm-shell{width:min(1480px,100%);margin:auto;position:relative;z-index:2}.hm-top{min-height:72px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid rgba(255,255,255,.13);border-radius:20px;background:rgba(5,42,57,.72);backdrop-filter:blur(18px);box-shadow:0 16px 40px rgba(0,0,0,.13)}.hm-brand{display:flex;align-items:center;gap:11px}.hm-brand img{width:54px;height:54px;border-radius:15px;object-fit:contain;background:#fff;padding:2px;border:2px solid rgba(241,208,124,.8);box-shadow:0 8px 22px rgba(0,0,0,.18)}.hm-brand strong{display:block;color:#fff;font-size:18px;font-weight:900}.hm-brand small{display:block;margin-top:2px;color:#e9c96e;font-size:10px;font-weight:800}.hm-status{display:flex;align-items:center;gap:10px}.hm-status span{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#d5e8ed;font-size:10px;font-weight:800}.hm-status i{width:8px;height:8px;border-radius:50%;background:#58d6a9;box-shadow:0 0 14px #58d6a9}.hm-hero{display:grid;grid-template-columns:minmax(0,1.25fr) 340px;gap:20px;align-items:stretch;padding:24px 4px 16px}.hm-hero-main{position:relative;overflow:hidden;min-height:250px;padding:30px;border-radius:28px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(120deg,rgba(5,45,61,.72),rgba(10,85,98,.55));box-shadow:0 24px 56px rgba(3,31,42,.18)}.hm-hero-main:after{content:"";position:absolute;inset:auto -40px -70px auto;width:270px;height:270px;border-radius:50%;background:radial-gradient(circle,rgba(12,181,171,.24),transparent 70%)}.hm-kicker{display:inline-flex;align-items:center;gap:8px;color:#f1d07c;font-size:12px;font-weight:900}.hm-kicker:before{content:"";width:34px;height:2px;background:linear-gradient(90deg,#f1d07c,transparent)}.hm-hero h1{margin:8px 0 10px;color:#fff;font-size:clamp(38px,4vw,62px);line-height:1.06;letter-spacing:-1px}.hm-hero h1 span{color:#64dfd0}.hm-hero p{max-width:820px;margin:0;color:#cce1e7;font-size:15px;line-height:1.9}.hm-hero p b{color:#fff}.hm-hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.hm-hero-pills span{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);color:#e7f2f4;font-size:10px;font-weight:800}.hm-hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}.hm-hero-stats article{padding:11px 12px;border-radius:15px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.1)}.hm-hero-stats strong{display:block;color:#fff;font-size:17px}.hm-hero-stats small{display:block;margin-top:2px;color:#a9c8cf;font-size:8.8px}.hm-quick{display:grid;place-items:center;align-content:center;min-height:250px;padding:18px;border-radius:28px;background:linear-gradient(160deg,#fff,#eef9f7);border:1px solid rgba(221,234,238,.95);box-shadow:0 22px 55px rgba(4,54,69,.15)}.hm-quick:before{content:"الدخول السريع";color:#9a6d1f;font-size:10px;font-weight:900}.hm-quick>strong{margin-top:4px;color:#0d5c68;font-size:17px}.hm-quick>small{margin:3px 0 7px;color:#7e929a;font-size:9px}.hm-quick .v3-student-quick{margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.hm-quick .v3-student-quick-copy{display:none!important}.hm-quick .v3-student-qr-wrap{padding:7px!important;border-radius:16px!important;background:#fff!important;box-shadow:0 9px 24px rgba(10,82,91,.08)!important}.hm-quick .v3-student-qr-wrap svg{width:112px!important;height:112px!important}.hm-quick .v3-student-qr-wrap small{display:none!important}.hm-quick .v3-student-qr-wrap strong{font-size:9px!important;color:#0c6863!important}.hm-subjects{margin:0 4px 14px;padding:12px;border-radius:22px;background:rgba(5,48,63,.9);border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 32px rgba(3,36,48,.14)}.hm-subject-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}.hm-subject-head strong{color:#fff;font-size:13px}.hm-subject-head small{color:#e9c96e;font-size:9px}.hm-subject-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px}.hm-subject{display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:center;min-height:58px;padding:7px 8px;border-radius:14px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.1);color:#fff;transition:.18s}.hm-subject:hover{transform:translateY(-2px);background:rgba(255,255,255,.12);border-color:rgba(99,222,208,.4)}.hm-subject-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(145deg,#0aa59b,#0b7c8b);color:#fff;box-shadow:0 7px 16px rgba(7,119,125,.24)}.hm-subject-icon svg{width:24px;height:24px}.hm-subject strong{display:block;font-size:10.5px}.hm-subject small{display:block;margin-top:2px;color:#aac7ce;font-size:7.4px}.hm-access{padding:18px;border-radius:28px;background:rgba(255,255,255,.97);border:1px solid var(--hm-line);box-shadow:0 20px 48px rgba(11,66,87,.1)}.hm-access-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:13px}.hm-access-head small{display:block;color:#a67622;font-size:9px;font-weight:900}.hm-access-head h2{margin:2px 0 0;color:#0c5063;font-size:23px}.hm-access-head p{margin:0;color:#718893;font-size:10px}.hm-portals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.hm-portal{position:relative;overflow:hidden;display:grid;grid-template-columns:64px minmax(0,1fr) 42px;align-items:center;gap:13px;min-height:142px;padding:17px;border-radius:21px;background:#fff;border:1px solid #dce7ed;text-decoration:none;color:var(--hm-ink);box-shadow:0 10px 26px rgba(14,69,89,.055);transition:.18s}.hm-portal:before{content:"";position:absolute;right:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#11b6aa,#29a3d4)}.hm-portal.teacher:before{background:linear-gradient(180deg,#0aa69a,#d6a73e)}.hm-portal.student:before{background:linear-gradient(180deg,#d8a83c,#f0c96c)}.hm-portal:hover{transform:translateY(-5px);border-color:#bdd9e2;box-shadow:0 18px 38px rgba(12,67,87,.12)}.hm-portal-icon{width:60px;height:60px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#e8f8f6,#f9fdff);color:#087c7a;border:1px solid #d7ece9}.hm-portal.teacher .hm-portal-icon{background:linear-gradient(145deg,#eaf7ff,#fff);color:#176fa2}.hm-portal.student .hm-portal-icon{background:linear-gradient(145deg,#fff7e6,#fff);color:#976a18}.hm-portal-icon svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:2}.hm-portal small{color:#a47727;font-size:8.5px;font-weight:900}.hm-portal h3{margin:3px 0 5px;font-size:21px;color:#0d5061}.hm-portal p{margin:0;color:#718691;font-size:10px;line-height:1.65}.hm-portal-arrow{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#073e54,#0aa69a);color:#fff;font-size:20px;box-shadow:0 8px 18px rgba(8,106,111,.18)}.hm-capabilities{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}.hm-capabilities article{padding:11px 12px;border-radius:15px;background:#f7fafc;border:1px solid #e2ebf0}.hm-capabilities b{display:block;color:#0c6170;font-size:11px}.hm-capabilities span{display:block;margin-top:3px;color:#7b8f98;font-size:8.5px;line-height:1.5}.hm-footer{display:flex;justify-content:space-between;gap:14px;padding:12px 6px 0;color:#758993;font-size:9px}.hm-footer b{color:#0d6d70}.hm-footer span{color:#9c6e1f;font-weight:800}@media(max-width:1180px){.hm-subject-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:980px){.hm-hero{grid-template-columns:1fr}.hm-portals{grid-template-columns:1fr}.hm-capabilities{grid-template-columns:1fr 1fr}.hm-quick{min-height:210px}}@media(max-width:640px){.hm-home{padding:9px}.hm-top{border-radius:17px}.hm-status{display:none}.hm-brand strong{font-size:15px}.hm-brand img{width:48px;height:48px}.hm-hero{padding:14px 0}.hm-hero-main{padding:22px 18px}.hm-hero h1{font-size:36px}.hm-hero p{font-size:13px}.hm-hero-stats{grid-template-columns:1fr}.hm-subject-grid{grid-template-columns:1fr 1fr}.hm-access{padding:12px;border-radius:22px}.hm-access-head{align-items:flex-start;flex-direction:column}.hm-portal{grid-template-columns:54px 1fr 38px;min-height:124px;padding:13px}.hm-portal-icon{width:52px;height:52px}.hm-capabilities{grid-template-columns:1fr}.hm-footer{display:block;text-align:center}.hm-footer span{display:block;margin-top:4px}}@media(prefers-reduced-motion:no-preference){.hm-portal,.hm-subject,.hm-hero-main,.hm-quick{animation:hmEnter .45s ease both}.hm-portal:nth-child(2){animation-delay:.06s}.hm-portal:nth-child(3){animation-delay:.12s}@keyframes hmEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
 `;
 
 export default function ApprovedHomeClient() {
-  return <main className="lh-home" dir="rtl">
-    <style>{styles}</style>
-    <div className="lh-shell">
-      <header className="lh-top">
-        <div className="lh-brand">
-          <img src={IDENTITY} alt="هوية بوابة أستاذ لحوني التعليمية" />
-          <div><strong>بوابة أستاذ لحوني التعليمية</strong><small>تعليم • متابعة • تواصل</small></div>
-        </div>
-        <div className="lh-top-status"><i /> منصة تعليمية متصلة</div>
-      </header>
-
-      <section className="lh-hero">
-        <div className="lh-copy">
-          <span className="lh-kicker">منصة مدرسية ذكية</span>
-          <h1>كل العملية التعليمية<br/><span>في بوابة واحدة.</span></h1>
-          <p>تجمع <b>الإدارة والمعلم والطالب وولي الأمر</b> في تجربة واضحة، وتحوّل الدرجات والحضور والملاحظات والمتابعة إلى صورة تعليمية أسهل وأقرب.</p>
-          <div className="lh-hero-tags"><span>متابعة التحصيل</span><span>الحضور والانضباط</span><span>تقارير تعليمية</span><span>تواصل أقرب</span></div>
-        </div>
-        <aside className="lh-quick">
-          <strong>الطالب وولي الأمر</strong>
-          <small>امسح الباركود للدخول مباشرة</small>
-          <StudentDirectQr />
-        </aside>
-      </section>
-
-      <section className="lh-subject-zone" aria-label="المواد الدراسية">
-        <div className="lh-subject-track">
-          {[...subjects, ...subjects].map(([icon, name], index) => <div className="lh-subject" key={`${name}-${index}`}>
-            <b>{icon}</b><div className="lh-subject-copy"><span>{name}</span><small>مادة دراسية</small></div>
-          </div>)}
-        </div>
-      </section>
-
-      <section className="lh-access">
-        <header className="lh-access-head"><div><small>اختر مساحتك</small><h2>الدخول إلى البوابة</h2></div><span>ثلاثة مسارات واضحة بدون تبويبات زائدة</span></header>
-        <div className="lh-portals">
-          {portals.map(portal => <Link className={`lh-portal ${portal.key}`} href={portal.href} key={portal.href}>
-            <span className="lh-portal-icon"><PortalIcon kind={portal.key} /></span>
-            <div className="lh-portal-copy"><small>{portal.eyebrow}</small><h3>{portal.title}</h3><p>{portal.text}</p></div>
-            <span className="lh-portal-arrow">←</span>
-          </Link>)}
-        </div>
-      </section>
-
-      <footer className="lh-bottom"><b>بوابة أستاذ لحوني التعليمية</b><span>إعداد البوابة: الأستاذ حسن علي الطويل</span></footer>
-    </div>
-  </main>;
+  return <main className="hm-home" dir="rtl"><style>{styles}</style><div className="hm-shell">
+    <header className="hm-top"><div className="hm-brand"><img src={IDENTITY} alt="هوية بوابة أستاذ لحوني التعليمية"/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>منصة مدرسية ذكية • تعليم • متابعة • تواصل</small></div></div><div className="hm-status"><span><i/> النظام يعمل</span><span>ثلاث بوابات • تجربة واحدة</span></div></header>
+    <section className="hm-hero"><div className="hm-hero-main"><span className="hm-kicker">منصة تعليمية ذكية</span><h1>كل العملية التعليمية<br/><span>في بوابة واحدة.</span></h1><p>من الإدارة إلى المعلم ثم الطالب وولي الأمر؛ <b>بيانات مترابطة، متابعة واضحة، وتقارير ذكية</b> تساعد المدرسة على اتخاذ القرار بسرعة ووضوح.</p><div className="hm-hero-pills"><span>متابعة لحظية</span><span>تحصيل وإتقان</span><span>تقارير أكاديمية</span><span>اختبارات تشخيصية</span></div><div className="hm-hero-stats"><article><strong>3</strong><small>بوابات مترابطة</small></article><article><strong>1</strong><small>هوية تعليمية موحدة</small></article><article><strong>24/7</strong><small>الوصول للبيانات والمتابعة</small></article></div></div><aside className="hm-quick"><strong>دخول الطالب مباشرة</strong><small>امسح الرمز بالكاميرا للانتقال للبوابة</small><StudentDirectQr/></aside></section>
+    <section className="hm-subjects" aria-label="المواد التعليمية"><div className="hm-subject-head"><strong>المواد داخل المنصة</strong><small>كل مادة بهوية تعليمية واضحة</small></div><div className="hm-subject-grid">{subjects.map(subject=><article className="hm-subject" key={subject.key}><span className="hm-subject-icon"><SubjectIcon type={subject.key}/></span><div><strong>{subject.label}</strong><small>{subject.hint}</small></div></article>)}</div></section>
+    <section className="hm-access"><header className="hm-access-head"><div><small>اختر مساحة الدخول</small><h2>ثلاث بوابات. تجربة واحدة.</h2></div><p>كل مستخدم يصل مباشرة إلى الأدوات التي يحتاجها.</p></header><div className="hm-portals">{portals.map(portal=><Link href={portal.href} key={portal.key} className={`hm-portal ${portal.key}`}><span className="hm-portal-icon"><PortalIcon kind={portal.key}/></span><div><small>{portal.eyebrow}</small><h3>{portal.title}</h3><p>{portal.text}</p></div><span className="hm-portal-arrow">←</span></Link>)}</div><div className="hm-capabilities"><article><b>متابعة أكاديمية</b><span>الحضور والتحصيل والإتقان في صورة واحدة.</span></article><article><b>تقارير ذكية</b><span>تقارير واضحة تساعد المعلم والإدارة على القرار.</span></article><article><b>تواصل أقرب</b><span>ملاحظات المعلم تصل للطالب وولي الأمر بوضوح.</span></article><article><b>هوية موحدة</b><span>نفس اللغة البصرية من الدخول حتى التقرير.</span></article></div></section>
+    <footer className="hm-footer"><b>بوابة أستاذ لحوني التعليمية</b><span>إعداد البوابة: الأستاذ حسن علي الطويل</span></footer>
+  </div></main>;
 }
