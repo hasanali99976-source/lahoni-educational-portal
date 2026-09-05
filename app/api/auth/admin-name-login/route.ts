@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  ADMIN_AUTH_VERSION,
   ADMIN_SESSION_MAX_AGE,
   createSessionToken,
   normalizeUsername,
@@ -9,7 +10,6 @@ import {
 export const dynamic = "force-dynamic";
 
 const ADMIN_NAME = "حسن علي";
-const ADMIN_AUTH_VERSION = "local-admin-session-v1";
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const expiresAt = Date.now() + ADMIN_SESSION_MAX_AGE * 1000;
     const response = NextResponse.json(
-      { ok: true, role: "admin", name: ADMIN_NAME, expiresAt },
+      { ok: true, role: "admin", name: ADMIN_NAME, expiresAt, trustedDays: 10 },
       { headers: { "Cache-Control": "no-store" } },
     );
 

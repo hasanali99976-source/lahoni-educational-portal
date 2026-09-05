@@ -7,7 +7,8 @@ import { adminDb } from "./firebase-admin";
 
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
 export const SESSION_MAX_AGE = 60 * 60 * 8;
-export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 10;
+export const ADMIN_AUTH_VERSION = "local-admin-session-v2-10d";
 const FIRESTORE_AUTH_TIMEOUT_MS = 4500;
 
 export type PortalRole = "admin" | "teacher";
@@ -52,10 +53,7 @@ function sign(payload: string) {
   return createHmac("sha256", secret()).update(payload).digest("base64url");
 }
 
-async function withFirestoreAuthTimeout<T>(
-  promise: Promise<T>,
-  milliseconds = FIRESTORE_AUTH_TIMEOUT_MS,
-): Promise<T> {
+async function withFirestoreAuthTimeout<T>(promise: Promise<T>, milliseconds = FIRESTORE_AUTH_TIMEOUT_MS): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
@@ -175,11 +173,8 @@ export async function requireSession(role?: PortalRole): Promise<VerifiedPortalS
   const session = await currentSession();
   if (!session || (role && session.role !== role)) return null;
 
-  // The administrator session is signed by the portal and must not depend on
-  // a Firestore read. This keeps the admin panel reachable during quota or
-  // temporary database outages while teacher accounts stay database-backed.
   if (session.role === "admin") {
-    if (session.userId !== "primary-admin") return null;
+    if (session.userId !== "primary-admin" || session.authVersion !== ADMIN_AUTH_VERSION) return null;
     return { ...session, name: session.name || "حسن علي" };
   }
 
@@ -225,8 +220,6 @@ export async function findUserByUsername(username: string): Promise<PortalUser |
 }
 
 export async function findUserById(id: string): Promise<PortalUser | null> {
-  const document = await withFirestoreAuthTimeout(
-    adminDb().collection("portalV2Users").doc(id).get(),
-  );
+  const document = await withFirestoreAuthTimeout(adminDb().collection("portalV2Users").doc(id).get());
   return normalizePortalUser(document);
 }

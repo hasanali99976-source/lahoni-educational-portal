@@ -45,26 +45,26 @@ export default function TeacherActivityLeaderboard() {
 
   return <section className="admin-race-v3" aria-label="تحدي المعلمين بالعمل الفعلي">
     <header className="admin-race-v3-head">
-      <div className="admin-race-v3-title"><span>🏆</span><div><small>{period ? `تحدي ${period}` : "تحدي الشهر"}</small><h2>سباق العمل الفعلي</h2><p>يتحرك الترتيب مع الأعمال المحفوظة فعليًا داخل البوابة، وليس مع النقرات.</p></div></div>
+      <div className="admin-race-v3-title"><span>🏆</span><div><small>{period ? `تحدي ${period}` : "تحدي الشهر"}</small><h2>سباق العمل الموثق</h2><p>كل عمل تعليمي موثق = نقطة واحدة. التكرار والنقر وفتح الصفحات لا يرفع الترتيب.</p></div></div>
       <button type="button" onClick={() => void load()} disabled={loading}>{loading ? "يتم الحساب…" : "تحديث السباق"}</button>
     </header>
 
-    {error ? <div className="admin-race-empty">{error}</div> : loading && !rows.length ? <div className="admin-race-empty">جارٍ حساب النشاط الحقيقي للمعلمين…</div> : !top.length ? <div className="admin-race-empty">يبدأ السباق تلقائيًا مع أول عمل فعلي محفوظ للمعلمين.</div> : <div className="admin-race-v3-stage">
+    {error ? <div className="admin-race-empty">{error}</div> : loading && !rows.length ? <div className="admin-race-empty">جارٍ حساب الأعمال المحفوظة فعليًا…</div> : !top.length ? <div className="admin-race-empty">يبدأ السباق تلقائيًا مع أول عمل تعليمي موثق.</div> : <div className="admin-race-v3-stage">
       {top.map((row, index) => {
         const pct = Math.max(5, Math.round((row.score / maxScore) * 100));
         const initial = row.teacherName.trim().charAt(0) || "م";
         return <article className="admin-race-lane" key={row.teacherId}>
           <span className="admin-race-rank">{index === 0 ? "👑" : ar(index + 1)}</span>
-          <div className="admin-race-name"><b>{row.teacherName}</b><small>{ar(row.meaningfulActions)} عمل • {ar(row.activeDays)} أيام</small></div>
+          <div className="admin-race-name"><b>{row.teacherName}</b><small>{ar(row.meaningfulActions)} عمل موثق • {ar(row.activeDays)} أيام</small></div>
           <div className="admin-race-track">
             <motion.div className="admin-race-progress" initial={{ width: "4%" }} animate={{ width: `${pct}%` }} transition={{ duration: .9, delay: index * .12, ease: "easeOut" }} />
             <motion.span className="admin-race-runner" initial={{ right: "0%" }} animate={{ right: `calc(${pct}% - 12px)` }} transition={{ duration: 1.05, delay: index * .12, ease: "easeOut" }}>{initial}</motion.span>
           </div>
-          <div className="admin-race-score"><b>{ar(row.score)}</b><small>نقطة عمل</small></div>
+          <div className="admin-race-score"><b>{ar(row.score)}</b><small>نقطة موثقة</small></div>
         </article>;
       })}
     </div>}
 
-    <footer className="admin-race-v3-foot"><span>✓ الدرجات</span><span>✓ الحضور</span><span>✓ الملاحظات</span><span>✓ الخطط والمتابعة</span><span>✕ لا نحسب فتح الصفحة أو تكرار النقر</span></footer>
+    <footer className="admin-race-v3-foot"><span>✓ نقطة لكل عمل موثق</span><span>✓ الدرجات والحضور</span><span>✓ الملاحظات والاختبارات</span><span>✓ الخطط والجدول</span><span>✕ لا نقاط للتكرار أو النقر</span></footer>
   </section>;
 }

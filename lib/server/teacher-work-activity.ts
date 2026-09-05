@@ -5,15 +5,18 @@ import { adminDb } from "./firebase-admin";
 
 export const TEACHER_WORK_ACTIVITY_COLLECTION = "teacherWorkActivity";
 
+// Competition v3: every verified educational work unit is worth exactly one point.
+// The leaderboard itself is rebuilt from persisted portal data; this tracker is only
+// a lightweight audit trail and never has authority to inflate the ranking.
 export const TEACHER_WORK_WEIGHTS = {
-  attendance: 5,
-  grades: 6,
-  note: 3,
-  referral: 4,
-  diagnostic: 6,
-  remedial: 6,
-  gradePlan: 5,
-  timetable: 3,
+  attendance: 1,
+  grades: 1,
+  note: 1,
+  referral: 1,
+  diagnostic: 1,
+  remedial: 1,
+  gradePlan: 1,
+  timetable: 1,
 } as const;
 
 export type TeacherWorkKind = keyof typeof TEACHER_WORK_WEIGHTS;
@@ -28,13 +31,13 @@ type RecordTeacherWorkInput = {
 
 const REPEAT_COOLDOWN_MS: Record<TeacherWorkKind, number> = {
   attendance: 12 * 60 * 60 * 1000,
-  grades: 15 * 60 * 1000,
-  note: 5 * 60 * 1000,
-  referral: 10 * 60 * 1000,
-  diagnostic: 10 * 60 * 1000,
-  remedial: 15 * 60 * 1000,
-  gradePlan: 60 * 60 * 1000,
-  timetable: 15 * 60 * 1000,
+  grades: 60 * 60 * 1000,
+  note: 10 * 60 * 1000,
+  referral: 60 * 60 * 1000,
+  diagnostic: 60 * 60 * 1000,
+  remedial: 60 * 60 * 1000,
+  gradePlan: 12 * 60 * 60 * 1000,
+  timetable: 12 * 60 * 60 * 1000,
 };
 
 function riyadhDateParts(date = new Date()) {
@@ -58,8 +61,7 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
   if (!teacherId) return { counted: false, scoreAdded: 0 };
 
   const teacherName = String(input.teacherName || "المعلم").trim() || "المعلم";
-  const weight = TEACHER_WORK_WEIGHTS[input.kind];
-  if (!weight) return { counted: false, scoreAdded: 0 };
+  if (!(input.kind in TEACHER_WORK_WEIGHTS)) return { counted: false, scoreAdded: 0 };
 
   const now = new Date();
   const nowIso = now.toISOString();
@@ -97,8 +99,7 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
       teacherId,
       teacherName,
       period,
-      score: Number(current.score || 0) + weight,
-      meaningfulActions: Number(current.meaningfulActions || 0) + 1,
+      auditActions: Number(current.auditActions || 0) + 1,
       counts,
       days,
       activeDays: Object.keys(days).length,
@@ -106,10 +107,11 @@ export async function recordTeacherWork(input: RecordTeacherWorkInput) {
       updatedAt: nowIso,
       recentActions: nextRecent,
       lastMeta: input.meta || {},
-      scoringVersion: 2,
+      scoringVersion: 3,
+      rankingAuthority: "persisted-work-only",
     }, { merge: true });
     counted = true;
   });
 
-  return { counted, scoreAdded: counted ? weight : 0 };
+  return { counted, scoreAdded: counted ? 1 : 0 };
 }

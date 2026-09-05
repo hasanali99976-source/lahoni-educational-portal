@@ -2,9 +2,8 @@
 
 import { useEffect } from "react";
 
-// v109 unified academic identity release — Netlify preview sync
-const CURRENT_CACHE = "ostadh-lahooni-v109-approved-academic";
-const RELOAD_KEY = "ostadh-lahooni-v109-approved-academic";
+const CURRENT_CACHE = "ostadh-lahooni-v110-academic-release";
+const RELOAD_KEY = "ostadh-lahooni-v110-academic-release";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -32,7 +31,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        registration = await navigator.serviceWorker.register("/sw.js?v=109-approved-academic", {
+        registration = await navigator.serviceWorker.register("/sw.js?v=110-academic-release", {
           scope: "/",
           updateViaCache: "none",
         });
