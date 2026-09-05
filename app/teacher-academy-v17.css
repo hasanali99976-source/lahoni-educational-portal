@@ -1,0 +1,110 @@
+/* Teacher Academy V17 — unified premium LMS language */
+:root{
+  --v17-navy:#06364b;
+  --v17-navy-2:#0a5368;
+  --v17-teal:#0aa899;
+  --v17-blue:#2f7df4;
+  --v17-gold:#d9aa42;
+  --v17-purple:#7a59d9;
+  --v17-green:#13a878;
+  --v17-red:#e35c69;
+  --v17-bg:#edf4f8;
+  --v17-panel:#fff;
+  --v17-line:#dbe7ed;
+  --v17-ink:#133746;
+  --v17-muted:#6e8590;
+  --v17-shadow:0 14px 36px rgba(17,59,81,.07);
+}
+
+@keyframes v17PageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes v17Glow{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--subject) 0%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--subject) 5%,transparent)}}
+@keyframes v17Bar{from{transform:scaleX(.2);opacity:.45}to{transform:scaleX(1);opacity:1}}
+
+body:has(.teacher-academy-v12){background:linear-gradient(180deg,#e9f2f7 0,#f3f7fa 340px,#edf4f8 100%)!important}
+.teacher-academy-v12 .academy-v12-canvas>main{animation:v17PageIn .28s ease both}
+.teacher-academy-v12 .academy-v12-canvas{padding-top:14px!important}
+
+/* Sidebar: richer and more interactive, still calm */
+.academy-v12-rail{background:linear-gradient(180deg,#06394f 0%,#07364a 45%,#052d40 100%)!important}
+.academy-v12-brand{background:linear-gradient(135deg,rgba(16,168,153,.18),rgba(255,255,255,.07))!important;border-color:rgba(255,255,255,.13)!important}
+.academy-v12-home,.academy-v12-nav-group a{transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease!important}
+.academy-v12-home:hover,.academy-v12-nav-group a:hover{transform:translateX(-3px)!important;background:rgba(255,255,255,.08)!important}
+.academy-v12-home.active,.academy-v12-nav-group a.active{background:linear-gradient(100deg,#12b6a7,#0b8795)!important;box-shadow:0 10px 24px rgba(4,37,53,.24),inset 0 1px 0 rgba(255,255,255,.16)!important;animation:v17Glow 3.4s ease-in-out infinite}
+.academy-v12-home.active .academy-v12-nav-icon,.academy-v12-nav-group a.active .academy-v12-nav-icon{background:rgba(255,255,255,.2)!important}
+
+/* Top workspace */
+.academy-v12-topbar{border-color:#d7e4eb!important;box-shadow:0 12px 34px rgba(17,59,81,.085)!important;background:rgba(255,255,255,.96)!important}
+.academy-v12-subjects button{transition:.18s ease!important}.academy-v12-subjects button:hover{transform:translateY(-2px)!important;box-shadow:0 9px 20px rgba(17,59,81,.08)!important}.academy-v12-subjects button.active{border-color:color-mix(in srgb,var(--subject) 45%,#d6e3ea)!important;box-shadow:0 10px 22px color-mix(in srgb,var(--subject) 11%,transparent)!important}.academy-v12-subjects button.active .subject-ribbon{transform:scale(1.04);box-shadow:0 8px 18px color-mix(in srgb,var(--subject) 24%,transparent)!important}
+.academy-v12-headline{border-color:#d7e4eb!important;box-shadow:0 13px 32px rgba(17,59,81,.07)!important}.academy-v12-headline>div:first-child{background:linear-gradient(105deg,#fff,#f7fbfd)!important}.academy-v12-ai{background:linear-gradient(115deg,color-mix(in srgb,var(--subject) 10%,white),#fff)!important}.academy-v12-ai>span{animation:v17Glow 3.8s ease-in-out infinite}
+
+/* Shared modern surfaces for all remaining teacher modules */
+.teacher-academy-v12 .academy-v12-canvas :where(
+  .teacher-students-v9>section,
+  .students-v9-shell,
+  .follow-page>section,
+  .follow-head,
+  .follow-filters,
+  .follow-overview>article,
+  .students-follow-card,
+  .notes-v10-panel,
+  .notes-workspace,
+  .diagnostics-page>section,
+  .diagnostics-hero,
+  .diagnostic-builder,
+  .questions-editor,
+  .diagnostic-list,
+  .trv9-scope,
+  .trv9-report,
+  .smart-reports-v12>section,
+  .grade-plan-v9>section,
+  .grade-plan-v10>section,
+  .portfolio-page>section,
+  .portfolio-v9>section,
+  .teacher-report-v9>section
+){
+  border:1px solid var(--v17-line)!important;
+  border-radius:19px!important;
+  background:#fff!important;
+  box-shadow:0 10px 28px rgba(17,59,81,.05)!important;
+}
+
+.teacher-academy-v12 .academy-v12-canvas :where(
+  .teacher-students-v9>section,
+  .follow-page>section,
+  .notes-v10-panel,
+  .diagnostics-page>section,
+  .smart-reports-v12>section,
+  .trv9-scope,
+  .trv9-report
+){transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important}
+
+/* Inputs and controls */
+.teacher-academy-v12 .academy-v12-canvas :where(input,select,textarea){border-radius:12px!important;border-color:#d6e3e9!important;background:#fbfdfe!important;min-height:42px!important;color:#173b49!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)!important}
+.teacher-academy-v12 .academy-v12-canvas :where(input,select,textarea):focus{border-color:var(--subject)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--subject) 10%,transparent)!important;outline:0!important;background:#fff!important}
+.teacher-academy-v12 .academy-v12-canvas :where(button,a){transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease!important}
+.teacher-academy-v12 .academy-v12-canvas :where(button,a):hover{transform:translateY(-1px)}
+
+/* Student management */
+.teacher-academy-v12 .teacher-students-v9 .tsv9-overview article,.teacher-academy-v12 .students-v9-overview article{background:linear-gradient(135deg,#fff,#f4f9fc)!important;border:1px solid #dce8ed!important;border-radius:16px!important}.teacher-academy-v12 .teacher-students-v9 .tsv9-class-card,.teacher-academy-v12 .students-v9-class-card{border-radius:16px!important;border-color:#dce7ed!important;box-shadow:0 8px 20px rgba(17,59,81,.045)!important}.teacher-academy-v12 .teacher-students-v9 .tsv9-class-card:hover,.teacher-academy-v12 .students-v9-class-card:hover{transform:translateY(-3px)!important;box-shadow:0 13px 28px rgba(17,59,81,.075)!important;border-color:color-mix(in srgb,var(--subject) 30%,#dce7ed)!important}
+
+/* Mastery / follow-up */
+.teacher-academy-v12 .follow-overview{gap:9px!important}.teacher-academy-v12 .follow-overview article{position:relative;overflow:hidden!important;padding:13px!important}.teacher-academy-v12 .follow-overview article:before{content:"";position:absolute;right:0;top:0;width:4px;height:100%;background:var(--subject)}.teacher-academy-v12 .follow-table-wrap{border:1px solid #dbe7ed!important;border-radius:18px!important;overflow:auto!important;background:#fff!important;box-shadow:0 10px 28px rgba(17,59,81,.05)!important}.teacher-academy-v12 .follow-table-wrap table{border-collapse:separate!important;border-spacing:0!important}.teacher-academy-v12 .follow-table-wrap th{position:sticky!important;top:0!important;background:#0b5368!important;color:#fff!important;padding:11px!important}.teacher-academy-v12 .follow-table-wrap td{padding:9px 10px!important;border-bottom:1px solid #e5edf1!important}.teacher-academy-v12 .follow-table-wrap tbody tr:hover td{background:#f1f8fb!important}.teacher-academy-v12 .level.mastered{background:#e6f7ef!important;color:#147452!important}.teacher-academy-v12 .level.support{background:#fff0d7!important;color:#8b641c!important}.teacher-academy-v12 .level.incomplete{background:#fdecef!important;color:#a13f4e!important}
+
+/* Notes */
+.teacher-academy-v12 .notes-v10-panel,.teacher-academy-v12 .notes-workspace{overflow:hidden!important}.teacher-academy-v12 .notes-v10-panel>header,.teacher-academy-v12 .notes-workspace>header{background:linear-gradient(110deg,#073b50,#0a6070)!important;color:#fff!important;border-bottom:0!important}.teacher-academy-v12 .notes-v10-panel>header :where(h2,h3,strong),.teacher-academy-v12 .notes-workspace>header :where(h2,h3,strong){color:#fff!important}.teacher-academy-v12 .notes-v10-panel>header :where(p,small,span),.teacher-academy-v12 .notes-workspace>header :where(p,small,span){color:#c7dce3!important}.teacher-academy-v12 .notes-v10-panel button,.teacher-academy-v12 .notes-workspace button{border-radius:11px!important}.teacher-academy-v12 .notes-v10-panel button:hover,.teacher-academy-v12 .notes-workspace button:hover{box-shadow:0 6px 14px rgba(17,59,81,.06)!important}
+
+/* Diagnostics */
+.teacher-academy-v12 .diagnostics-hero{background:linear-gradient(115deg,#fff,#f2f6ff 55%,#f1faf7)!important}.teacher-academy-v12 .diagnostic-builder>header,.teacher-academy-v12 .diag-results>header{background:linear-gradient(110deg,#073b50,#0a6070)!important;color:#fff!important;border-radius:18px 18px 0 0!important}.teacher-academy-v12 .answer-option{border-radius:12px!important;border-color:#dce7ed!important;background:#f9fbfc!important}.teacher-academy-v12 .answer-option:has(input:checked){border-color:color-mix(in srgb,var(--subject) 38%,#dce7ed)!important;background:var(--subject-faint)!important}.teacher-academy-v12 .diagnostic-list article{border-radius:15px!important;border-color:#dce7ed!important;transition:.17s!important}.teacher-academy-v12 .diagnostic-list article:hover{transform:translateY(-2px)!important;box-shadow:0 9px 22px rgba(17,59,81,.06)!important}
+
+/* Reports */
+.teacher-academy-v12 .smart-reports-v12{gap:12px!important}.teacher-academy-v12 .smart-reports-v12>section:first-of-type{background:linear-gradient(115deg,#fff,#eef7ff 56%,#eefaf6)!important}.teacher-academy-v12 .trv9-report table,.teacher-academy-v12 .smart-reports-v12 table{border-collapse:separate!important;border-spacing:0!important;border:1px solid #dbe7ed!important;border-radius:15px!important;overflow:hidden!important}.teacher-academy-v12 .trv9-report th,.teacher-academy-v12 .smart-reports-v12 th{background:#0b5368!important;color:#fff!important;padding:10px!important}.teacher-academy-v12 .trv9-report td,.teacher-academy-v12 .smart-reports-v12 td{padding:9px!important;border-bottom:1px solid #e5edf1!important}.teacher-academy-v12 .trv9-report tbody tr:hover td,.teacher-academy-v12 .smart-reports-v12 tbody tr:hover td{background:#f1f8fb!important}
+
+/* Grade-plan / setup */
+.teacher-academy-v12 .grade-plan-v9 button,.teacher-academy-v12 .grade-plan-v10 button{border-radius:11px!important}.teacher-academy-v12 .grade-plan-v9 .locked,.teacher-academy-v12 .grade-plan-v10 .locked{background:linear-gradient(110deg,#fff8e9,#fff)!important;border-color:#ead9a7!important}.teacher-academy-v12 .grade-plan-v9 table,.teacher-academy-v12 .grade-plan-v10 table{border-radius:15px!important;overflow:hidden!important;border:1px solid #dbe7ed!important}.teacher-academy-v12 .grade-plan-v9 th,.teacher-academy-v12 .grade-plan-v10 th{background:#0b5368!important;color:#fff!important}
+
+/* Progress and motion only where it communicates state */
+.teacher-academy-v12 :where(.td11-class-bars>i>u,.teacher-race-card progress,.teacher-race-card .bar span,.completion span){transform-origin:right center;animation:v17Bar .55s ease both}
+.teacher-academy-v12 :where(.attendance-overview article,.gv11-kpis article,.td11-metric,.td11-subject,.td11-class-card){will-change:transform}
+
+@media(prefers-reduced-motion:reduce){.teacher-academy-v12 *{animation:none!important;transition:none!important}}
+@media(max-width:760px){.academy-v12-home.active,.academy-v12-nav-group a.active{animation:none}.teacher-academy-v12 .academy-v12-canvas{padding-left:10px!important;padding-right:10px!important}}
