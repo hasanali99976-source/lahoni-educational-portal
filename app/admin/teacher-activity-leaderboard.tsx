@@ -42,7 +42,7 @@ const LABELS: Array<[string,string]> = [
   ["note","ملاحظات"],
   ["diagnostic","اختبارات"],
   ["remedial","خطط علاجية"],
-  ["referral","إحالات"],
+  ["referral","دفعات إحالة"],
   ["timetable","جدول"],
   ["gradePlan","خطة دراسية"],
 ];
@@ -104,7 +104,7 @@ export default function TeacherActivityLeaderboard() {
       <div>
         <small>{meta.period || "منذ تأسيس البوابة"}</small>
         <h2>التنافس الموثق بين المعلمين</h2>
-        <p>التصنيف مبني على الأعمال التعليمية المحفوظة التي يمكن إثباتها من قاعدة البوابة، وليس على الدخول أو النقر أو مدة فتح الصفحة.</p>
+        <p>المركز يطابق الأرقام الظاهرة: الأعمال الموثقة أولًا، ثم أيام النشاط، ثم تنوع العمل، ثم أحدث نشاط. لا يدخل في الترتيب أي سجل بلا تاريخ إثبات.</p>
       </div>
       <button type="button" onClick={() => void load(true)} disabled={loading}>{loading ? "جارٍ التحقق…" : "تحقق وأعد الحساب"}</button>
     </header>
@@ -120,12 +120,12 @@ export default function TeacherActivityLeaderboard() {
 
     {error ? <div className="race4-empty">{error}</div> : loading && !rows.length ? <div className="race4-empty">نجمع جميع الأعمال المحفوظة لكل معلم منذ تأسيس البوابة…</div> : !rows.length ? <div className="race4-empty">لا توجد حسابات معلمين مسجلة حاليًا.</div> : <>
       <div className="race4-podium">
-        {topThree.map((row,index) => <article key={row.teacherId} className={`race4-podium-card place-${index+1}`}>
-          <div className="race4-medal">{ar(index + 1)}</div>
+        {topThree.map(row => <article key={row.teacherId} className={`race4-podium-card place-${row.rank}`}>
+          <div className="race4-medal">{ar(row.rank)}</div>
           <div className="race4-avatar">{row.teacherName.trim().charAt(0) || "م"}</div>
           <div className="race4-account-state"><i className={row.active ? "on" : "off"}/>{row.active ? "حساب نشط" : "حساب متوقف"}</div>
           <h3>{row.teacherName}</h3>
-          <strong>{ar(row.score)} <small>وحدة عمل موثقة</small></strong>
+          <strong>{ar(row.meaningfulActions)} <small>عمل موثق</small></strong>
           <p>{ar(row.activeDays)} أيام نشاط • {ar(row.diversity)} أنواع عمل</p>
           <span>{topCategory(row)}</span>
           <div className="race4-meter"><i style={{ width: `${Math.max(7,Math.round(row.score/leaderScore*100))}%` }}/></div>
@@ -141,10 +141,10 @@ export default function TeacherActivityLeaderboard() {
             <b className="race4-rank">{ar(row.rank)}</b>
             <div className="race4-name">
               <strong>{row.teacherName}</strong>
-              <small>{row.active ? "نشط" : "حساب متوقف"} • {ar(row.activeDays)} أيام نشاط • {ar(row.diversity)} أنواع • آخر عمل {row.lastActivityAt ? timeLabel(row.lastActivityAt) : "غير متوفر"}</small>
+              <small>{row.active ? "نشط" : "حساب متوقف"} • {ar(row.meaningfulActions)} عمل موثق • {ar(row.activeDays)} أيام نشاط • {ar(row.diversity)} أنواع • آخر عمل {row.lastActivityAt ? timeLabel(row.lastActivityAt) : "غير متوفر"}</small>
             </div>
             <div className="race4-chips">{visibleCounts.length ? visibleCounts.map(([key,label]) => <span key={key}>{label} {ar(Number(row.counts[key] || 0))}</span>) : <span className="empty-chip">لا توجد أعمال محفوظة قابلة للاحتساب</span>}</div>
-            <div className="race4-score-wrap"><strong className="race4-score">{ar(row.score)}<small>عمل</small></strong><em className={row.dataComplete ? "ok" : "partial"}>{row.dataComplete ? "موثق" : "جزئي"}</em></div>
+            <div className="race4-score-wrap"><strong className="race4-score">{ar(row.meaningfulActions)}<small>عمل</small></strong><em className={row.dataComplete ? "ok" : "partial"}>{row.dataComplete ? "موثق" : "جزئي"}</em></div>
           </article>;
         })}
       </div>}
@@ -152,7 +152,7 @@ export default function TeacherActivityLeaderboard() {
 
     <footer className="race4-rule">
       <b>معيار المصداقية</b>
-      <span>{meta.rule || "كل عمل تعليمي محفوظ ومميز يحتسب مرة واحدة، ولا تحتسب زيارات الصفحات أو النقرات."}</span>
+      <span>{meta.rule || "الترتيب بحسب الأعمال الموثقة ثم أيام النشاط. دفعة الإحالة الواحدة تحتسب مرة واحدة مهما كان عدد الطلاب فيها."}</span>
       {meta.generatedAt ? <small>آخر تحقق: {timeLabel(meta.generatedAt)}</small> : null}
     </footer>
   </section>;
