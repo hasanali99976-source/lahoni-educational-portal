@@ -6,12 +6,13 @@ import { usePathname } from "next/navigation";
 import "./admin-privacy.css";
 import "./admin-command-v3.css";
 import "./admin-command-v4.css";
+import "./admin-clarity-v5.css";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const students = pathname.startsWith("/admin/students");
 
-  return <div className="admin-v3-frame admin-v4-frame" dir="rtl">
+  return <div className="admin-v3-frame admin-v4-frame admin-v5-frame" dir="rtl">
     <header className="admin-v3-topbar admin-v4-topbar">
       <div className="admin-v3-brand admin-v4-brand">
         <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={50} height={50} priority />
