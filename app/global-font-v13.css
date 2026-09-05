@@ -1,0 +1,21 @@
+/* Global Portal Typography V13 — one Arabic type system across all portals */
+html,body{font-family:inherit!important}
+body,
+.portal-stage,
+.portal-stage :where(h1,h2,h3,h4,h5,h6,p,span,strong,b,small,em,i,label,a,button,input,select,textarea,table,thead,tbody,tr,th,td,ul,ol,li,nav,header,footer,section,article,aside,form,div){
+  font-family:inherit!important;
+}
+button,input,select,textarea{font:inherit!important}
+::placeholder{font-family:inherit!important}
+
+/* Keep technical identifiers readable without reintroducing old UI fonts. */
+.portal-stage :where(code,kbd,pre){font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace!important}
+
+/* Common legacy portal shells that previously hard-coded Tajawal/Segoe/Tahoma. */
+:is(.approved-home,.approved-entry,.design-lab-home,.admin-shell,.admin-command,.roster-v3,.teacher-academy-v12,.academy-login-v11,.student-page,.parent-page,.family-page,.smart-reports-v12,.smart-reports-v11,.attendance-page,.grades-v11,.notes-v10,.diagnostics-page),
+:is(.approved-home,.approved-entry,.design-lab-home,.admin-shell,.admin-command,.roster-v3,.teacher-academy-v12,.academy-login-v11,.student-page,.parent-page,.family-page,.smart-reports-v12,.smart-reports-v11,.attendance-page,.grades-v11,.notes-v10,.diagnostics-page) *{
+  font-family:inherit!important;
+}
+
+/* Print surfaces inherit the same Arabic font when captured to PDF/canvas. */
+.print-header,.print-footer,.roster-pdf-sheet,.roster-pdf-sheet *{font-family:inherit!important}
