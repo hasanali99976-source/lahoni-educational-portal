@@ -1,0 +1,87 @@
+/* Portal Modern V111 — student/admin navigation and data surfaces */
+
+/* ===== Student portal navigation ===== */
+.student-portal-tabs{
+  border-radius:24px!important;
+  padding:11px!important;
+  gap:11px!important;
+  background:rgba(255,255,255,.9)!important;
+  backdrop-filter:blur(22px) saturate(1.15)!important;
+  border:1px solid color-mix(in srgb,var(--subject-primary,#1768c5) 16%,#d9e5eb)!important;
+  box-shadow:0 16px 38px rgba(12,53,73,.08)!important;
+}
+.student-portal-tabs button{
+  position:relative;overflow:hidden;min-height:76px!important;border-radius:19px!important;
+  background:linear-gradient(180deg,#fff,var(--subject-soft,#f6f9fb))!important;
+  border:1px solid #e1eaee!important;box-shadow:0 6px 16px rgba(13,54,73,.04)!important;
+}
+.student-portal-tabs button:after{content:"";position:absolute;right:13px;left:13px;bottom:0;height:3px;border-radius:99px;background:transparent}
+.student-portal-tabs button:hover{transform:translateY(-3px)!important;box-shadow:0 12px 24px rgba(13,54,73,.08)!important}
+.student-portal-tabs button.active{
+  background:radial-gradient(circle at 10% 0%,rgba(255,255,255,.15),transparent 30%),linear-gradient(135deg,var(--subject-deep,#123f63),var(--subject-primary,#1c72c9))!important;
+  border-color:transparent!important;box-shadow:0 14px 30px color-mix(in srgb,var(--subject-primary,#1768c5) 24%,transparent)!important;
+}
+.student-portal-tabs button.active:after{background:#fff9}
+.student-portal-tabs button>span{border-radius:14px!important;box-shadow:0 5px 14px rgba(16,55,73,.08)}
+.student-home-grid article,.student-ai-grid article,.student-goal-panel,.student-teacher-alerts{
+  border-radius:22px!important;box-shadow:0 10px 28px rgba(13,54,73,.055)!important;
+}
+.student-home-grid article{background:linear-gradient(180deg,#fff,#f9fbfc)!important}
+.student-ai-hub{border-radius:28px!important;box-shadow:0 16px 36px rgba(13,54,73,.075)!important}
+.student-ai-hub>header{background:radial-gradient(circle at 7% 0%,rgba(255,255,255,.12),transparent 28%),linear-gradient(135deg,var(--subject-deep,#0f3552),var(--subject-primary,#1768c5))!important}
+.student-portal-v2 .student-table-scroll{border-radius:22px;overflow:auto;background:#fff;box-shadow:0 12px 30px rgba(13,54,73,.06)}
+.student-portal-v2 .student-table-scroll table{border-collapse:separate!important;border-spacing:0!important;width:100%}
+.student-portal-v2 .student-table-scroll thead th{padding:13px 12px!important;background:linear-gradient(180deg,#0a5266,#083f52)!important;color:#fff!important;border-color:rgba(255,255,255,.1)!important}
+.student-portal-v2 .student-table-scroll tbody td{padding:12px!important;border-bottom:1px solid #e4ecef!important}
+.student-portal-v2 .student-table-scroll tbody tr:nth-child(even) td{background:#f8fbfc}
+.student-portal-v2 .student-table-scroll tbody tr:hover td{background:#eef8f7!important}
+
+/* ===== Admin command center ===== */
+.admin-smart-shell{min-height:100dvh;background:radial-gradient(circle at 90% 0%,rgba(31,124,154,.07),transparent 28%),#f3f7f8!important}
+.admin-smart-sidebar{
+  background:linear-gradient(180deg,#082f3d,#0a3c49 55%,#072833)!important;
+  border-left:1px solid rgba(255,255,255,.08)!important;
+  box-shadow:-18px 0 46px rgba(6,33,43,.12)!important;
+}
+.admin-smart-brand{padding:16px!important;border-radius:20px!important;background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.08)!important}
+.admin-smart-brand>span{border-radius:15px!important;background:linear-gradient(135deg,#12a99e,#08746f)!important;box-shadow:0 9px 20px rgba(0,0,0,.18)!important}
+.admin-smart-sidebar nav{gap:7px!important}
+.admin-smart-sidebar nav a{min-height:66px!important;border-radius:18px!important;border:1px solid transparent!important;background:rgba(255,255,255,.035)!important}
+.admin-smart-sidebar nav a:hover{transform:translateX(-2px);background:rgba(255,255,255,.075)!important}
+.admin-smart-sidebar nav a.active{background:linear-gradient(110deg,#fff,#eefaf8)!important;color:#143b47!important;border-color:#fff!important;box-shadow:0 12px 28px rgba(0,0,0,.16)!important}
+.admin-smart-sidebar nav a>span{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;border-radius:13px!important;background:rgba(255,255,255,.08)!important}
+.admin-smart-sidebar nav a.active>span{background:#e8f7f4!important}
+.admin-smart-tip{border-radius:18px!important;background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.075)!important}
+.admin-smart-home{border-radius:14px!important}
+.admin-smart-content{padding:22px!important}
+.admin-smart-content>main,.admin-smart-content>.admin-bulk-roster{border-radius:26px!important}
+.admin-bulk-roster{background:#fff!important;border:1px solid #dbe7eb!important;box-shadow:0 16px 38px rgba(10,52,69,.075)!important;padding:22px!important}
+.admin-bulk-roster>header{padding-bottom:15px!important;border-bottom:1px solid #e5edef!important}
+.admin-drop-zone{border-radius:22px!important;border:2px dashed #bdd8dd!important;background:linear-gradient(180deg,#fbfefe,#f1f8f7)!important;transition:.16s}
+.admin-drop-zone:hover{transform:translateY(-2px);border-color:#0b8f88!important;box-shadow:0 12px 24px rgba(11,143,136,.08)!important}
+.admin-default-class{border-radius:20px!important;background:#f7fafb!important;border:1px solid #e0eaed!important;padding:15px!important}
+.admin-preview-box{border-radius:22px!important;overflow:hidden!important;border:1px solid #dce7eb!important;box-shadow:0 10px 26px rgba(10,52,69,.055)!important}
+.admin-preview-box>header{background:linear-gradient(110deg,#073f52,#08716f)!important;color:#fff!important;padding:14px 16px!important}
+.admin-preview-box article{border-radius:14px!important;background:#fff!important;border:1px solid #e2ebee!important;box-shadow:0 4px 12px rgba(10,52,69,.03)!important}
+.admin-import-approve{border-radius:14px!important;background:linear-gradient(110deg,#0b8f88,#08716f)!important;box-shadow:0 9px 20px rgba(11,143,136,.16)!important}
+.admin-manual-toggle{border-radius:14px!important}
+
+.admin-smart-content :where(table){width:100%;border-collapse:separate!important;border-spacing:0 7px!important;background:transparent!important}
+.admin-smart-content :where(table thead th){padding:13px 11px!important;background:linear-gradient(180deg,#0a5266,#083f52)!important;color:#fff!important;border:0!important;white-space:nowrap}
+.admin-smart-content :where(table thead th:first-child){border-radius:0 13px 13px 0!important}.admin-smart-content :where(table thead th:last-child){border-radius:13px 0 0 13px!important}
+.admin-smart-content :where(table tbody td){padding:11px 10px!important;background:#fff!important;border-top:1px solid #e1eaed!important;border-bottom:1px solid #e1eaed!important;border-right:0!important;border-left:0!important}
+.admin-smart-content :where(table tbody td:first-child){border-right:1px solid #e1eaed!important;border-radius:0 13px 13px 0!important}.admin-smart-content :where(table tbody td:last-child){border-left:1px solid #e1eaed!important;border-radius:13px 0 0 13px!important}
+.admin-smart-content :where(table tbody tr:hover td){background:#eff9f7!important;border-color:#cfe5e1!important}
+
+@media(max-width:760px){
+  .student-portal-tabs{right:7px!important;left:7px!important;bottom:max(7px,env(safe-area-inset-bottom))!important;padding:6px!important;gap:4px!important;border-radius:22px!important;background:rgba(255,255,255,.94)!important;box-shadow:0 18px 42px rgba(10,44,62,.22)!important}
+  .student-portal-tabs button{min-height:60px!important;border-radius:15px!important;border:0!important;box-shadow:none!important;background:transparent!important}
+  .student-portal-tabs button.active{background:linear-gradient(135deg,var(--subject-deep,#123f63),var(--subject-primary,#1c72c9))!important;box-shadow:0 8px 18px color-mix(in srgb,var(--subject-primary,#1768c5) 22%,transparent)!important}
+  .student-portal-tabs button>span{width:32px!important;height:32px!important;border-radius:10px!important;box-shadow:none!important}
+  .student-portal-v2 .student-table-scroll{overflow:visible!important;background:transparent!important;box-shadow:none!important}
+  .student-portal-v2 .student-table-scroll tr{border-radius:18px!important;box-shadow:0 8px 20px rgba(13,54,73,.055)!important;background:linear-gradient(180deg,#fff,#fafcfd)!important}
+  .student-portal-v2 .student-table-scroll td{background:transparent!important}
+  .admin-smart-content{padding:10px!important}
+  .admin-bulk-roster{padding:14px!important;border-radius:20px!important}
+  .admin-smart-content :where(table){border-spacing:0 6px!important}
+}
