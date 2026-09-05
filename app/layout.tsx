@@ -16,6 +16,7 @@ import "./teacher-academy-v16.css";
 import "./teacher-academy-v17.css";
 import "./teacher-academy-v19.css";
 import "./global-font-v13.css";
+import "./teacher-academy-v20.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
