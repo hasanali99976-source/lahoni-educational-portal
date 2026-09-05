@@ -5,7 +5,7 @@ export const PRINT_HEIGHT = 1188;
 export const PRINT_ACCENTS = ["#0b7c74", "#2f6ec7", "#7854c6", "#b27a27", "#398564", "#9b6d22", "#a8495d", "#3d6d91"];
 export const PRINT_INK = "#153b49";
 export const PRINT_MUTED = "#647b80";
-export const STUDENT_NAME_FONT_SIZE = 20;
+export const STUDENT_NAME_FONT_SIZE = 24;
 export const STUDENT_NAME_FONT_WEIGHT = 850;
 
 export function portalPrintFont() {
@@ -60,7 +60,7 @@ export function drawFixedText(
   options: { size?: number; weight?: number; color?: string; align?: CanvasTextAlign; maxWidth?: number; ellipsis?: boolean } = {},
 ) {
   const raw = String(value ?? "");
-  const size = options.size ?? 20;
+  const size = options.size ?? 22;
   const weight = options.weight ?? 700;
   setPrintFont(ctx, size, weight);
   ctx.fillStyle = options.color ?? PRINT_INK;
@@ -69,6 +69,11 @@ export function drawFixedText(
   ctx.fillText(shown, x, y);
 }
 
+/*
+ * Historical callers use drawFittedText, but V20 intentionally keeps the preferred
+ * typography size fixed. Long values are ellipsized instead of silently shrinking
+ * to a different font size, so names, dates and headings stay visually consistent.
+ */
 export function drawFittedText(
   ctx: CanvasRenderingContext2D,
   value: unknown,
@@ -78,11 +83,12 @@ export function drawFittedText(
 ) {
   const raw = String(value ?? "");
   const weight = options.weight ?? 700;
-  const size = options.maxWidth ? fitPrintSize(ctx, raw, options.maxWidth, options.size ?? 20, options.min ?? 13, weight) : (options.size ?? 20);
+  const size = options.size ?? 22;
   setPrintFont(ctx, size, weight);
   ctx.fillStyle = options.color ?? PRINT_INK;
   ctx.textAlign = options.align ?? "right";
-  ctx.fillText(raw, x, y);
+  const shown = options.maxWidth ? ellipsizeFixed(ctx, raw, options.maxWidth, size, weight) : raw;
+  ctx.fillText(shown, x, y);
 }
 
 export function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string, stroke?: string) {
