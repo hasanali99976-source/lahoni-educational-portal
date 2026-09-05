@@ -1,0 +1,17 @@
+/* Global Portal Typography V13 — Alexandria across the entire portal */
+html,body{font-family:inherit!important}
+body,
+.portal-stage,
+.portal-stage :where(h1,h2,h3,h4,h5,h6,p,span,strong,b,small,em,i,label,a,button,input,select,textarea,table,thead,tbody,tr,th,td,ul,ol,li,nav,header,footer,section,article,aside,form,div){font-family:inherit!important}
+
+/* Final global override: every portal surface, including mobile navigation, login shells and overlays. */
+html[dir="rtl"] body[class] *:not(code):not(pre):not(kbd){font-family:inherit!important}
+
+button,input,select,textarea{font:inherit!important}
+::placeholder{font-family:inherit!important}
+
+/* Keep technical identifiers readable. */
+html[dir="rtl"] body[class] :where(code,kbd,pre){font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace!important}
+
+/* Print surfaces use the same Arabic type system. */
+.print-header,.print-footer,.roster-pdf-sheet,.roster-pdf-sheet *{font-family:inherit!important}

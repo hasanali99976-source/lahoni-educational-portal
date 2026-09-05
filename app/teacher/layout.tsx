@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
@@ -13,38 +13,17 @@ import {
   type TeacherClientAssignment,
   type TeacherClientSubject,
 } from "../../lib/teacher-client";
+import TeacherCompetitionProgress from "./competition-progress";
 import "./print-theme.css";
-import "./teacher-v3.css";
-import "./teacher-navigation-v4.css";
-import "./subject-themes-v5.css";
-import "./mobile-card-tables.css";
-import "./teacher-mobile-ux-v6.css";
-import "./teacher-daily-v70.css";
-import "./teacher-professional-v71.css";
-import "./attendance-professional-v71.css";
+import "./teacher-academy-v12.css";
 
 type TeacherTab = {
   href: string;
   key: string;
   label: string;
-  note: string;
+  group: "daily" | "learning" | "insight" | "setup";
   badge?: string;
 };
-
-const primaryTabs: TeacherTab[] = [
-  { href: "/teacher/dashboard", key: "dashboard", label: "يومي", note: "مركز العمل اليومي" },
-  { href: "/teacher/attendance", key: "attendance", label: "الحضور", note: "التحضير والمتابعة" },
-  { href: "/teacher/grades", key: "grades", label: "الدرجات", note: "الرصد والحفظ" },
-  { href: "/teacher/students", key: "students", label: "الطلاب", note: "الفصول وبيانات الدخول" },
-];
-
-const moreTabs: TeacherTab[] = [
-  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
-  { href: "/teacher/timetable", key: "timetable", label: "جدولي الدراسي", note: "حصص الأسبوع" },
-  { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
-  { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
-  { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
-];
 
 type TeacherSession = {
   teacherId?: string;
@@ -58,20 +37,52 @@ type TeacherSession = {
   assignments?: TeacherClientAssignment[];
 };
 
-function TabIcon({ type }: { type: string }) {
-  const common = { width: 23, height: 23, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (type === "dashboard") return <svg {...common}><path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/></svg>;
-  if (type === "grades") return <svg {...common}><path d="M4 19.5h16M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
-  if (type === "gradeplan") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M8 8h8M8 12h5M8 16h3"/><path d="m15.5 15 1.5 1.5 3-3"/></svg>;
-  if (type === "attendance") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
+const tabs: TeacherTab[] = [
+  { href: "/teacher/students", key: "students", label: "إدارة الطلاب", group: "daily" },
+  { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", group: "daily" },
+  { href: "/teacher/attendance", key: "attendance", label: "سجل المتابعة", group: "daily" },
+  { href: "/teacher/grades", key: "grades", label: "التحصيل العلمي", group: "daily" },
+  { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمهارة", group: "learning" },
+  { href: "/teacher/notes", key: "notes", label: "الملاحظات", group: "learning" },
+  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", group: "learning" },
+  { href: "/teacher/report", key: "report", label: "ملخص عمل المعلم", group: "insight" },
+  { href: "/teacher/reports", key: "reports", label: "مركز التقارير", group: "insight", badge: "جديد" },
+  { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", group: "insight" },
+  { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", group: "insight", badge: "AI" },
+  { href: "/teacher/grade-plan", key: "gradeplan", label: "الخطة الدراسية", group: "setup" },
+];
+
+function NavIcon({ type }: { type: string }) {
+  const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (type === "dashboard") return <svg {...common}><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>;
+  if (type === "students") return <svg {...common}><circle cx="8.5" cy="8" r="3"/><path d="M3.5 19v-1.2A4.8 4.8 0 0 1 8.3 13h.4a4.8 4.8 0 0 1 4.8 4.8V19M16 7a2.5 2.5 0 1 1 0 5M16.5 14.5c2.6.4 4 2 4 4.5"/></svg>;
   if (type === "timetable") return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 9.5h17M8 13h2M14 13h2M8 17h2M14 17h2"/></svg>;
-  if (type === "diagnostics") return <svg {...common}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8"/></svg>;
-  if (type === "evaluation") return <svg {...common}><rect x="4" y="4.5" width="16" height="16" rx="2"/><path d="M8 2.8v3.4M16 2.8v3.4M7.5 10h9M8 14h3M14 14h2M8 17h3"/></svg>;
-  if (type === "portfolio") return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;
+  if (type === "attendance") return <svg {...common}><path d="M5 4h14v16H5zM8 8h8M8 12h5"/><path d="m13.5 16 1.7 1.7 3.3-3.7"/></svg>;
+  if (type === "grades") return <svg {...common}><path d="M4 20h16M6.5 16V10M12 16V5M17.5 16v-4"/><path d="m5 7 4-3 3 2 6-3"/></svg>;
   if (type === "follow") return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;
-  if (type === "ai") return <svg {...common}><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>;
-  if (type === "more") return <svg {...common}><circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>;
-  return <svg {...common}><path d="M16 20v-1.8a4.2 4.2 0 0 0-4.2-4.2H7.2A4.2 4.2 0 0 0 3 18.2V20"/><circle cx="9.5" cy="7" r="3.5"/><path d="M17 10.5a3.3 3.3 0 0 0 0-6.4M20.5 20v-1.8a4.2 4.2 0 0 0-3.1-4"/></svg>;
+  if (type === "notes") return <svg {...common}><path d="M5 4h14v13H9l-4 3z"/><path d="M8 8h8M8 12h6"/></svg>;
+  if (type === "diagnostics") return <svg {...common}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8"/></svg>;
+  if (type === "report") return <svg {...common}><path d="M5 3.5h14v17H5z"/><path d="M8 16v-3M12 16V9M16 16v-6"/></svg>;
+  if (type === "reports") return <svg {...common}><path d="M7 3.5h10v4H7zM5 8h14v8H5zM8 16h8v4H8z"/><path d="M8 11h8"/></svg>;
+  if (type === "portfolio") return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;
+  if (type === "ai") return <svg {...common}><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m6 6 2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>;
+  if (type === "gradeplan") return <svg {...common}><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/></svg>;
+  return <svg {...common}><path d="M5 5h14v14H5z"/></svg>;
+}
+
+function pageContext(pathname: string) {
+  if (pathname.startsWith("/teacher/students")) return { eyebrow: "الفصول والطلاب", title: "إدارة الطلاب", question: "اختر الفصل، والباقي يظهر لك في نفس المساحة.", ai: "أرتب لك الفصل كمساحة عمل واحدة بدل القوائم المتفرقة.", href: "/teacher/report", action: "تحليل الفصول" };
+  if (pathname.startsWith("/teacher/timetable")) return { eyebrow: "أسبوعك الدراسي", title: "الجدول الدراسي", question: "شاهد أسبوعك كاملًا وعدّل فقط عندما تحتاج.", ai: "أقرأ ضغط الحصص وتوزيع الفصول وأقترح تنظيمًا أبسط عند الحاجة.", href: "/teacher/ai", action: "اسأل المساعد" };
+  if (pathname.startsWith("/teacher/attendance")) return { eyebrow: "المتابعة اليومية", title: "سجل المتابعة", question: "عدّل الاستثناء فقط؛ البقية حاضر تلقائيًا.", ai: "أراقب تكرار الغياب والتأخر وأبرز الحالات التي تستحق المتابعة.", href: "/teacher/follow-up", action: "الحالات المتكررة" };
+  if (pathname.startsWith("/teacher/grades")) return { eyebrow: "الرصد الأكاديمي", title: "التحصيل العلمي", question: "اختر الوحدة أو الفترة ثم ابدأ الرصد مباشرة.", ai: "أقرأ اكتمال الرصد ومتوسط الفصل وأبرز النقص أو التراجع دون تغيير درجاتك.", href: "/teacher/report", action: "فتح التحليل" };
+  if (pathname.startsWith("/teacher/follow-up")) return { eyebrow: "مهارات الطلاب", title: "الإتقان والمهارة", question: "حوّل الرصد إلى قرار تعليمي واضح.", ai: "أربط النتيجة بالمهارة وأقترح دعمًا أو إثراءً مناسبًا.", href: "/teacher/ai", action: "تحليل أعمق" };
+  if (pathname.startsWith("/teacher/notes")) return { eyebrow: "التواصل التربوي", title: "الملاحظات", question: "اختر الطالب، اختر نوع الملاحظة، ثم راجع النص.", ai: "أقترح صياغة تربوية واضحة وتبقى الموافقة والحفظ بيدك.", href: "/teacher/ai", action: "صياغة ذكية" };
+  if (pathname.startsWith("/teacher/diagnostics")) return { eyebrow: "القياس والتشخيص", title: "الاختبارات التشخيصية", question: "من النتيجة إلى المهارة ثم خطة التدخل.", ai: "أربط نتيجة الاختبار بالمهارة والخطة العلاجية أو الإثرائية دون تغيير أي اختبار محفوظ.", href: "/teacher/ai", action: "تحليل النتائج" };
+  if (pathname.startsWith("/teacher/reports")) return { eyebrow: "الوثائق الأكاديمية", title: "مركز التقارير", question: "اختر التقرير والفصول والفترة ثم أنشئه.", ai: "أجهز لك التقرير بالمعلومات المناسبة فقط وبهوية موحدة للمنصة.", href: "/teacher/reports", action: "ابدأ التقرير" };
+  if (pathname.startsWith("/teacher/report")) return { eyebrow: "قراءة الأداء", title: "ملخص عمل المعلم", question: "قارن الفصول أو اقرأ أداء مجموعة طلاب.", ai: "أجمع الحضور والتحصيل والإتقان والملاحظات في قراءة واحدة.", href: "/teacher/ai", action: "تفسير المؤشرات" };
+  if (pathname.startsWith("/teacher/portfolio")) return { eyebrow: "التوثيق المهني", title: "ملف الإنجاز", question: "وثّق الشاهد في مكانه الصحيح.", ai: "أرتب الشواهد حسب النوع والفترة حتى يبقى الملف جاهزًا للعرض.", href: "/teacher/portfolio", action: "فتح الإنجاز" };
+  if (pathname.startsWith("/teacher/grade-plan")) return { eyebrow: "إعداد الخطة", title: "الخطة الدراسية", question: "الخطة للعرض أولًا، والتعديل بإذن منك فقط.", ai: "أقدم مقترحات عند الطلب فقط، ولا أعتمد أي تغيير دون مراجعتك.", href: "/teacher/ai", action: "اقتراح خطة" };
+  return { eyebrow: "أكاديمية المعلم", title: "مركز اليوم", question: "ابدأ بما يحتاج انتباهك الآن، وليس بما هو موجود في القائمة.", ai: "أربط جدولك وفصولك والتحصيل والمتابعة لأقترح الخطوة التالية.", href: "/teacher/ai", action: "افتح المساعد" };
 }
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
@@ -90,9 +101,10 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const [subjects, setSubjects] = useState<TeacherClientSubject[]>([]);
   const [assignments, setAssignments] = useState<TeacherClientAssignment[]>([]);
   const [switchingSubject, setSwitchingSubject] = useState(false);
+  const [switchingLabel, setSwitchingLabel] = useState("");
   const [todayLabel, setTodayLabel] = useState("");
   const subjectConfig = getSubjectConfig(subjectKey);
-  const moreActive = moreTabs.some(tab => pathname.startsWith(tab.href));
+  const context = useMemo(() => pageContext(pathname), [pathname]);
 
   function applySession(session: TeacherSession) {
     const nextSubjectKey = session.subjectKey || "history";
@@ -136,62 +148,35 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
-
   useEffect(() => {
-    setTodayLabel(new Intl.DateTimeFormat("ar-SA", {
-      timeZone: "Asia/Riyadh",
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }).format(new Date()));
+    setTodayLabel(new Intl.DateTimeFormat("ar-SA", { timeZone: "Asia/Riyadh", weekday: "long", day: "numeric", month: "long" }).format(new Date()));
   }, []);
 
   useEffect(() => {
-    if (isLoginPage) {
-      setReady(false);
-      clearSessionState();
-      return;
-    }
+    if (isLoginPage) { setReady(false); clearSessionState(); return; }
     setReady(false);
-    clearSessionState();
     let active = true;
     fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
       .then(async (session: TeacherSession) => {
-        if (!active) return;
-        if (!session.teacherId) throw new Error("missing_teacher_identity");
+        if (!active || !session.teacherId) throw new Error("missing_teacher_identity");
         applySession(session);
-
         const planResponse = await fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" });
         const planData = planResponse.ok ? await planResponse.json().catch(() => ({})) : {};
-        const nextHasGradePlan = Boolean(planData?.activePlan || planData?.hasActivePlan || readLocalGradePlan(session.teacherId));
         if (!active) return;
-        setHasGradePlan(nextHasGradePlan);
-
-        const onGradePlanPage = pathname.startsWith("/teacher/grade-plan");
-        const editRequested = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("edit") === "1";
-        if (!nextHasGradePlan && !onGradePlanPage) {
-          window.location.replace("/teacher/grade-plan?setup=1");
-          return;
-        }
-        if (nextHasGradePlan && onGradePlanPage && !editRequested) {
-          window.location.replace("/teacher/grades");
-          return;
-        }
+        setHasGradePlan(Boolean(planData?.activePlan || planData?.hasActivePlan || readLocalGradePlan(session.teacherId)));
         setReady(true);
       })
-      .catch(() => {
-        if (!active) return;
-        clearSessionState();
-        window.location.replace("/teacher");
-      });
+      .catch(() => { if (active) window.location.replace("/teacher"); });
     return () => { active = false; };
   }, [isLoginPage]);
 
   async function changeSubject(nextWorkspaceKey: string) {
     if (nextWorkspaceKey === workspaceKey || switchingSubject) return;
+    const selected = subjects.find(subject => subject.workspaceKey === nextWorkspaceKey);
     try {
       setSwitchingSubject(true);
+      setSwitchingLabel(selected?.subjectName || "المادة");
       const response = await fetch("/api/teacher-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,7 +184,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         cache: "no-store",
       });
       if (!response.ok) throw new Error();
-      const selected = subjects.find(subject => subject.workspaceKey === nextWorkspaceKey);
       if (selected) {
         setWorkspaceKey(selected.workspaceKey);
         setSubjectKey(selected.subjectId as SubjectKey);
@@ -207,15 +191,14 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         setActiveGrade(selected.grade || null);
         setActiveGradeLabel(selected.gradeLabel || "");
       }
-      setMenuOpen(false);
-      window.location.assign("/teacher/dashboard");
+      window.setTimeout(() => window.location.assign("/teacher/dashboard"), 140);
     } finally {
-      setSwitchingSubject(false);
+      window.setTimeout(() => { setSwitchingSubject(false); setSwitchingLabel(""); }, 320);
     }
   }
 
   if (isLoginPage) return <>{children}</>;
-  if (!ready) return <main className="teacher-shell-loading">جارٍ تجهيز بوابة المعلم…</main>;
+  if (!ready) return <main className="teacher-academy-loading">جارٍ فتح أكاديمية المعلم…</main>;
 
   const contextValue = {
     authenticated: true,
@@ -231,65 +214,89 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     setSubject: changeSubject,
     refresh: async () => {
       const response = await fetch("/api/teacher-session", { cache: "no-store" });
-      if (!response.ok) return;
-      applySession(await response.json());
+      if (response.ok) applySession(await response.json());
     },
   };
 
-  const renderHeaderTab = (tab: TeacherTab) => {
-    const active = pathname.startsWith(tab.href);
-    return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>;
-  };
+  const availableSubjects = subjects.length
+    ? subjects
+    : [{ workspaceKey, subjectId: subjectKey, subjectName, grade: activeGrade || undefined, gradeLabel: activeGradeLabel } as TeacherClientSubject];
 
-  const renderCommandTab = (tab: TeacherTab) => {
-    const active = pathname.startsWith(tab.href);
-    return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}>
-      <TabIcon type={tab.key}/>
-      <span className="teacher-command-link-copy"><b>{tab.label}</b><small>{tab.note}</small></span>
-    </Link>;
-  };
+  const renderGroup = (group: TeacherTab["group"], title: string) => <section className="academy-v12-nav-group">
+    <small>{title}</small>
+    <nav>{tabs.filter(tab => tab.group === group).map(tab => {
+      const active = pathname.startsWith(tab.href);
+      const badge = tab.key === "gradeplan" && hasGradePlan ? "✓" : tab.badge;
+      return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}>
+        <span className="academy-v12-nav-icon"><NavIcon type={tab.key}/></span>
+        <b>{tab.label}</b>
+        {badge ? <i>{badge}</i> : null}
+      </Link>;
+    })}</nav>
+  </section>;
 
   return <TeacherClientContext.Provider key={teacherId} value={contextValue}>
-    <div className={`teacher-app-shell ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
-      <header className="teacher-pro-header">
-        <div className="teacher-pro-brand">
-          <Image className="teacher-pro-logo" src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={43} height={43} priority/>
-          <div className="teacher-pro-brand-copy"><strong>بوابة أستاذ لحوني التعليمية</strong><small>{teacherName}</small></div>
+    <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
+      <aside className="academy-v12-rail">
+        <Link href="/teacher/dashboard" className="academy-v12-brand">
+          <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority />
+          <span><small>بوابة أستاذ لحوني التعليمية</small><strong>أكاديمية المعلم</strong></span>
+        </Link>
+
+        <Link href="/teacher/dashboard" className={`academy-v12-home ${pathname.startsWith("/teacher/dashboard") ? "active" : ""}`}>
+          <span className="academy-v12-nav-icon"><NavIcon type="dashboard"/></span><b>مركز اليوم</b><i>الرئيسية</i>
+        </Link>
+
+        <div className="academy-v12-nav-list">
+          {renderGroup("daily", "العمل اليومي")}
+          {renderGroup("learning", "التعليم والمتابعة")}
+          {renderGroup("insight", "التحليل والتقارير")}
+          {renderGroup("setup", "الإعداد")}
         </div>
 
-        <div className="teacher-pro-subject">
-          <span className="teacher-pro-subject-mark">{subjectConfig.shortMark}</span>
-          {subjects.length > 1 ? <select aria-label="تغيير المادة أو المرحلة" value={workspaceKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}</option>)}</select> : <div className="teacher-pro-subject-copy"><small>المادة والمرحلة</small><strong>{subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</strong></div>}
-        </div>
-
-        <nav className="teacher-pro-nav" aria-label="أعمال المعلم اليومية">{primaryTabs.map(renderHeaderTab)}</nav>
-
-        <div className="teacher-pro-actions">
-          <Link className="teacher-pro-action ai" href="/teacher/ai"><TabIcon type="ai"/><span>المساعد</span></Link>
-          {hasGradePlan ? <Link className="teacher-pro-action grade-plan-mini-action" href="/teacher/grade-plan?edit=1" title="تعديل خطة توزيع الدرجات" aria-label="تعديل خطة توزيع الدرجات"><TabIcon type="gradeplan"/></Link> : null}
-          <button className="teacher-pro-action" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><TabIcon type="more"/><span>المزيد</span></button>
-        </div>
-      </header>
-
-      {menuOpen ? <button className="teacher-command-backdrop" type="button" aria-label="إغلاق لوحة الأدوات" onClick={() => setMenuOpen(false)}/> : null}
-      <aside className="teacher-command-panel" aria-label="لوحة أدوات المعلم">
-        <div className="teacher-command-head"><div><small>أدوات إضافية</small><strong>مركز أوامر المعلم</strong></div><button className="teacher-command-close" type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق">×</button></div>
-        <section className="teacher-command-section"><span className="teacher-command-title">التعليم والمتابعة</span><nav className="teacher-command-links">{moreTabs.map(renderCommandTab)}</nav></section>
-        <div className="teacher-command-footer"><Link href="/">الصفحة الرئيسية</Link><button type="button" onClick={() => void logout()}>تسجيل الخروج</button></div>
+        <footer className="academy-v12-footer"><Link href="/">الرئيسية العامة</Link><button type="button" onClick={() => void logout()}>خروج</button></footer>
       </aside>
 
-      <main className="teacher-main">
-        <header className="teacher-context-strip">
-          <div className="teacher-context-main"><span className="teacher-context-pulse"/><div><small>الحفظ السحابي متصل</small><strong>{teacherName} — {subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</strong></div></div>
-          <span className="teacher-context-date">{todayLabel}</span>
-        </header>
-        <div className="teacher-page-content">{children}</div>
-      </main>
+      <button type="button" className="academy-v12-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/>
 
-      <nav className="teacher-mobile-nav" aria-label="التنقل اليومي">
-        {primaryTabs.map(tab => <Link key={tab.href} href={tab.href} className={pathname.startsWith(tab.href) ? "active" : ""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>)}
-        <button type="button" className={moreActive || menuOpen ? "active" : ""} onClick={() => setMenuOpen(true)}><TabIcon type="more"/><span>المزيد</span></button>
-      </nav>
+      <section className="academy-v12-stage">
+        <header className="academy-v12-topbar">
+          <button className="academy-v12-menu" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة">☰</button>
+
+          <section className="academy-v12-profile">
+            <div className="academy-v12-avatar">{teacherName.trim().charAt(0) || "م"}</div>
+            <div className="academy-v12-profile-copy"><small>المعلم</small><h2>{teacherName}</h2><p>{activeGradeLabel || "المرحلة الثانوية"}</p></div>
+            <span className="academy-v12-online"><i/> متصل</span>
+          </section>
+
+          <section className="academy-v12-subjects" aria-label="المواد المسندة">
+            <small>المواد المسندة</small>
+            <div>{availableSubjects.map(subject => {
+              const active = subject.workspaceKey === workspaceKey;
+              return <button type="button" key={subject.workspaceKey} className={active ? "active" : ""} disabled={switchingSubject} onClick={() => void changeSubject(subject.workspaceKey)}>
+                <span className="subject-ribbon" data-subject={subject.subjectId}/>
+                <span><b>{subject.subjectName}</b><em>{subject.gradeLabel || ""}</em></span>
+              </button>;
+            })}</div>
+          </section>
+
+          <div className="academy-v12-top-actions">
+            <span className="academy-v12-date">{todayLabel}</span>
+            <Link href="/teacher/reports" className="academy-v12-report"><NavIcon type="reports"/><span>مركز التقارير</span></Link>
+          </div>
+        </header>
+
+        <section className="academy-v12-headline">
+          <div><small>{context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
+          <div className="academy-v12-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href}>{context.action}</Link></div>
+        </section>
+
+        <div className="academy-v12-competition"><TeacherCompetitionProgress compact/></div>
+
+        <main className="academy-v12-canvas">{children}</main>
+      </section>
+
+      {switchingLabel ? <div className="academy-v12-switching"><span>فتح مادة</span><b>{switchingLabel}</b></div> : null}
     </div>
   </TeacherClientContext.Provider>;
 }

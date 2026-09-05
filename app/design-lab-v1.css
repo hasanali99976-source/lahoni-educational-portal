@@ -1,0 +1,108 @@
+/* DESIGN LAB V1 — unified smart educational identity. Scoped to design-lab branch. */
+:root{
+  --dl-teal-950:#062c34;
+  --dl-teal-900:#073b45;
+  --dl-teal-800:#0a5660;
+  --dl-teal-700:#0c6f73;
+  --dl-emerald:#159a84;
+  --dl-mint:#dff5ef;
+  --dl-gold:#d8a23d;
+  --dl-gold-soft:#f6e6bd;
+  --dl-paper:#f8fbfa;
+  --dl-ink:#0c3a43;
+  --dl-muted:#647a7d;
+  --dl-line:#d8e7e5;
+  --dl-shadow:0 18px 55px rgba(3,53,61,.14);
+}
+
+/* HOME — four independent portals */
+.academy-access{right:58px!important;left:58px!important;grid-template-columns:160px minmax(0,1fr)!important;gap:18px!important}
+.academy-portal-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+.academy-portal-card{padding:18px 13px 14px!important;border-radius:22px!important;min-width:0!important;overflow:hidden!important}
+.academy-portal-card.parent{--ac:#13927f;--dark:#0c6d63;background:linear-gradient(180deg,#fff,#edf9f6)!important}
+.academy-card-icon{width:64px!important;height:64px!important}.academy-card-icon svg{width:37px!important;height:37px!important}
+.academy-portal-card h2{font-size:20px!important;margin:10px 0 5px!important}.academy-portal-card p{font-size:12px!important;line-height:1.55!important;max-width:220px!important}
+.academy-card-enter{width:36px!important;height:36px!important;bottom:10px!important;font-size:20px!important}
+
+/* Shared interior atmosphere */
+body:has(.admin2:not(.admin2-login)),
+body:has(.teacher-daily-dashboard),
+body:has(.student-clean){
+  background:
+    radial-gradient(circle at 92% 8%,rgba(216,162,61,.11),transparent 28%),
+    radial-gradient(circle at 8% 14%,rgba(21,154,132,.10),transparent 30%),
+    linear-gradient(180deg,#f7fbfa 0%,#eef7f5 100%)!important;
+  color:var(--dl-ink)!important;
+}
+body:has(.admin2:not(.admin2-login)) .portal-stage,
+body:has(.teacher-daily-dashboard) .portal-stage,
+body:has(.student-clean) .portal-stage{background:transparent!important}
+
+/* ADMIN */
+.admin2:not(.admin2-login){min-height:100dvh!important;padding:20px!important;background:transparent!important}
+.admin2:not(.admin2-login) .admin2-shell{max-width:1540px!important;margin:auto!important;padding:0 0 28px!important}
+.admin2:not(.admin2-login) .admin2-head{
+  position:relative!important;overflow:hidden!important;
+  min-height:190px!important;padding:34px 38px!important;border-radius:32px!important;
+  background:
+    linear-gradient(115deg,rgba(5,55,64,.97),rgba(8,95,100,.92)),
+    radial-gradient(circle at 16% 28%,rgba(255,255,255,.12),transparent 20%)!important;
+  color:#fff!important;border:1px solid rgba(216,162,61,.7)!important;box-shadow:var(--dl-shadow)!important;
+}
+.admin2:not(.admin2-login) .admin2-head:before{content:"⚛   ∑   E=mc²   ◌   DNA   ⌁";position:absolute;inset:auto 28px 18px auto;color:rgba(255,255,255,.12);font-size:24px;letter-spacing:16px;white-space:nowrap;pointer-events:none}
+.admin2:not(.admin2-login) .admin2-head:after{content:"بوابة أستاذ لحوني التعليمية";position:absolute;top:28px;left:32px;color:rgba(255,255,255,.84);font-size:15px;font-weight:800}
+.admin2:not(.admin2-login) .admin2-head small{color:#f3cf7c!important;font-size:14px!important;font-weight:900!important;letter-spacing:.4px!important}
+.admin2:not(.admin2-login) .admin2-head h1{font-size:40px!important;color:#fff!important;margin:6px 0 5px!important;line-height:1.15!important}
+.admin2:not(.admin2-login) .admin2-head p{color:#d8eeeb!important;font-size:15px!important;max-width:680px!important}
+.admin2:not(.admin2-login) .admin2-head-actions{align-self:flex-end!important;gap:9px!important}
+.admin2:not(.admin2-login) .admin2-head-actions .admin2-btn{background:rgba(255,255,255,.10)!important;color:#fff!important;border-color:rgba(255,255,255,.22)!important;backdrop-filter:blur(12px)!important}
+.admin2:not(.admin2-login) .admin2-head-actions .admin2-btn:hover{background:rgba(255,255,255,.18)!important;transform:translateY(-2px)!important}
+.admin2:not(.admin2-login) .admin2-stats{margin-top:-30px!important;position:relative!important;z-index:3!important;grid-template-columns:repeat(4,1fr)!important;gap:14px!important;padding:0 28px!important}
+.admin2:not(.admin2-login) .admin2-stats article{min-height:118px!important;border-radius:22px!important;background:rgba(255,255,255,.96)!important;border:1px solid var(--dl-line)!important;box-shadow:0 12px 32px rgba(7,67,75,.10)!important;padding:20px!important;position:relative!important;overflow:hidden!important}
+.admin2:not(.admin2-login) .admin2-stats article:after{content:"";position:absolute;right:0;bottom:0;width:80px;height:80px;border-radius:80px 0 0 0;background:linear-gradient(145deg,transparent,rgba(21,154,132,.08))}
+.admin2:not(.admin2-login) .admin2-stats span{color:var(--dl-muted)!important;font-weight:800!important}.admin2:not(.admin2-login) .admin2-stats strong{color:var(--dl-teal-800)!important;font-size:36px!important;margin-top:8px!important}
+.admin2:not(.admin2-login) .admin2-grid{gap:18px!important;margin-top:18px!important;grid-template-columns:minmax(360px,.82fr) minmax(520px,1.18fr)!important}
+.admin2:not(.admin2-login) .admin2-panel{border-radius:28px!important;background:rgba(255,255,255,.94)!important;border:1px solid var(--dl-line)!important;box-shadow:0 16px 42px rgba(5,68,76,.09)!important;padding:24px!important}
+.admin2:not(.admin2-login) .admin2-panel h2{color:var(--dl-teal-900)!important;font-size:24px!important}.admin2:not(.admin2-login) .admin2-panel>p{color:var(--dl-muted)!important}
+.admin2:not(.admin2-login) input,.admin2:not(.admin2-login) select{border-radius:13px!important;border:1px solid #cfe0de!important;background:#fbfdfc!important;min-height:46px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)!important}
+.admin2:not(.admin2-login) .admin2-teacher{border-radius:18px!important;border:1px solid #dbe9e7!important;background:linear-gradient(180deg,#fff,#f7fbfa)!important;transition:.2s ease!important}.admin2:not(.admin2-login) .admin2-teacher:hover{transform:translateY(-2px)!important;box-shadow:0 12px 26px rgba(5,71,78,.09)!important}
+.admin2:not(.admin2-login) .admin2-avatar{background:linear-gradient(135deg,var(--dl-teal-800),var(--dl-emerald))!important;color:#fff!important;border:2px solid #fff!important;box-shadow:0 7px 18px rgba(10,92,91,.20)!important}
+.admin2:not(.admin2-login) .admin2-btn.primary{background:linear-gradient(110deg,var(--dl-teal-900),var(--dl-emerald))!important;border-color:#0b796d!important;color:#fff!important;box-shadow:0 9px 20px rgba(11,112,102,.18)!important}
+.admin2:not(.admin2-login) .admin2-btn.soft{background:#f5faf9!important;color:var(--dl-teal-800)!important;border-color:#d7e8e5!important}
+
+/* TEACHER DASHBOARD */
+.teacher-daily-dashboard{max-width:1540px!important;margin:0 auto!important;padding:20px!important;background:transparent!important;color:var(--dl-ink)!important}
+.teacher-daily-dashboard .daily-dashboard-hero{position:relative!important;overflow:hidden!important;min-height:210px!important;border-radius:32px!important;padding:34px 38px!important;background:linear-gradient(115deg,#073844 0%,#0b6f70 70%,#0b8075 100%)!important;border:1px solid rgba(216,162,61,.62)!important;box-shadow:var(--dl-shadow)!important;color:#fff!important}
+.teacher-daily-dashboard .daily-dashboard-hero:before{content:"📚   ✎   ∑   ⚗   DNA   E=mc²   ◌";position:absolute;left:32px;bottom:22px;font-size:27px;letter-spacing:12px;color:rgba(255,255,255,.16);filter:saturate(.8)}
+.teacher-daily-dashboard .daily-dashboard-hero:after{content:"بوابة المعلم";position:absolute;top:30px;left:34px;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font-weight:800;color:#f6d783}
+.teacher-daily-dashboard .daily-kicker{color:#f6d783!important;font-weight:900!important}.teacher-daily-dashboard .daily-hero-copy h1{font-size:42px!important;color:#fff!important;margin:5px 0!important}.teacher-daily-dashboard .daily-hero-copy p{color:#d8f0ec!important;font-size:16px!important}
+.teacher-daily-dashboard .daily-clock{background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:22px!important;padding:15px 20px!important;backdrop-filter:blur(10px)!important}.teacher-daily-dashboard .daily-clock b{color:#fff!important}.teacher-daily-dashboard .daily-clock span{color:#cfe9e5!important}
+.teacher-daily-dashboard .daily-view-switch{margin:-25px auto 16px!important;position:relative!important;z-index:4!important;width:max-content!important;background:#fff!important;border:1px solid var(--dl-line)!important;padding:6px!important;border-radius:999px!important;box-shadow:0 12px 30px rgba(5,69,77,.12)!important}.teacher-daily-dashboard .daily-view-switch button{border-radius:999px!important;padding:10px 25px!important}.teacher-daily-dashboard .daily-view-switch button.active{background:linear-gradient(110deg,var(--dl-teal-900),var(--dl-emerald))!important;color:#fff!important}
+.teacher-daily-dashboard .daily-stats,.teacher-daily-dashboard .analytics-stats{gap:14px!important;grid-template-columns:repeat(4,1fr)!important}.teacher-daily-dashboard .daily-stat,.teacher-daily-dashboard .analytics-stats article{border-radius:22px!important;background:rgba(255,255,255,.96)!important;border:1px solid var(--dl-line)!important;box-shadow:0 12px 30px rgba(6,74,81,.09)!important;padding:20px!important}.teacher-daily-dashboard .daily-stat b,.teacher-daily-dashboard .analytics-stats b{color:var(--dl-teal-800)!important;font-size:32px!important}
+.teacher-daily-dashboard .daily-actions{gap:12px!important;grid-template-columns:repeat(5,1fr)!important}.teacher-daily-dashboard .daily-action{border-radius:20px!important;background:linear-gradient(180deg,#fff,#f5faf9)!important;border:1px solid #d8e8e6!important;box-shadow:0 10px 24px rgba(5,71,77,.07)!important;padding:18px!important;transition:.2s ease!important}.teacher-daily-dashboard .daily-action:hover{transform:translateY(-3px)!important;box-shadow:0 16px 30px rgba(5,71,77,.12)!important}.teacher-daily-dashboard .daily-action>span{background:linear-gradient(135deg,var(--dl-teal-800),var(--dl-emerald))!important;color:#fff!important;border-radius:15px!important;box-shadow:0 8px 18px rgba(9,116,105,.18)!important}
+.teacher-daily-dashboard .daily-grid{gap:18px!important}.teacher-daily-dashboard .daily-panel,.teacher-daily-dashboard .analysis-card,.teacher-daily-dashboard .teacher-analysis-workspace{border-radius:28px!important;background:rgba(255,255,255,.96)!important;border:1px solid var(--dl-line)!important;box-shadow:0 15px 38px rgba(5,69,76,.08)!important}
+.teacher-daily-dashboard .daily-panel{padding:22px!important}.teacher-daily-dashboard .lesson-row,.teacher-daily-dashboard .check-item{border-radius:16px!important;border:1px solid #e1ecea!important;background:#f9fcfb!important}
+.teacher-daily-dashboard .smart-daily-insight{border-radius:28px!important;background:linear-gradient(115deg,#073a44,#0c746f)!important;border:1px solid rgba(216,162,61,.48)!important;color:#fff!important;box-shadow:var(--dl-shadow)!important;overflow:hidden!important;position:relative!important}.teacher-daily-dashboard .smart-daily-insight:after{content:"AI";position:absolute;left:26px;bottom:-28px;font-size:112px;font-weight:900;color:rgba(255,255,255,.05)}.teacher-daily-dashboard .smart-daily-insight h2,.teacher-daily-dashboard .smart-daily-insight p{color:#fff!important}.teacher-daily-dashboard .smart-insight-label{color:#f6d783!important}.teacher-daily-dashboard .smart-insight-actions a,.teacher-daily-dashboard .smart-insight-actions button{background:rgba(255,255,255,.10)!important;color:#fff!important;border:1px solid rgba(255,255,255,.20)!important;border-radius:14px!important}
+
+/* STUDENT */
+.student-clean.student-portal-v2{max-width:1540px!important;margin:0 auto!important;padding:20px!important;background:transparent!important;color:var(--dl-ink)!important}
+.student-clean .knowledge-header{position:relative!important;overflow:hidden!important;border-radius:32px!important;background:linear-gradient(120deg,#fdfefe 0%,#eef9f6 62%,#e8f5f1 100%)!important;border:1px solid #cfe3df!important;box-shadow:var(--dl-shadow)!important;padding:0 0 24px!important}.student-clean .knowledge-header:before{content:"🎓   📘   ⚛   DNA   E=mc²   ✎   ∑";position:absolute;left:30px;top:96px;color:rgba(7,77,83,.10);font-size:24px;letter-spacing:10px;white-space:nowrap}.student-clean .knowledge-topline{background:linear-gradient(110deg,var(--dl-teal-950),var(--dl-teal-800))!important;color:#fff!important;padding:17px 24px!important;border-radius:31px 31px 0 0!important}.student-clean .knowledge-brand small,.student-clean .knowledge-brand strong{color:#fff!important}.student-clean .knowledge-brand>span{background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:14px!important}
+.student-clean .knowledge-sync,.student-clean .knowledge-print-quick{background:rgba(255,255,255,.09)!important;color:#fff!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:15px!important}.student-clean .knowledge-sync b,.student-clean .knowledge-sync small,.student-clean .knowledge-print-quick b,.student-clean .knowledge-print-quick small{color:#fff!important}
+.student-clean .knowledge-hero{padding:28px 34px 18px!important}.student-clean .knowledge-subject-heading small{color:var(--dl-gold)!important;font-weight:900!important}.student-clean .knowledge-hero-copy h1{color:var(--dl-teal-900)!important;font-size:38px!important}.student-clean .knowledge-hero-copy h2{color:var(--dl-teal-800)!important;font-size:23px!important}.student-clean .knowledge-hero-copy p{color:var(--dl-muted)!important;max-width:850px!important}.student-clean .knowledge-meta span{background:#fff!important;border:1px solid var(--dl-line)!important;border-radius:999px!important;color:var(--dl-teal-800)!important}
+.student-clean .knowledge-score-pill{background:linear-gradient(145deg,#fff,#eef9f5)!important;border:1px solid #c8e3dc!important;box-shadow:0 12px 28px rgba(9,105,94,.10)!important;border-radius:26px!important}.student-clean .knowledge-score-pill strong{color:var(--dl-teal-800)!important}
+.student-clean .knowledge-actions button{border-radius:14px!important;background:#fff!important;border:1px solid var(--dl-line)!important;color:var(--dl-teal-800)!important}
+.student-clean .knowledge-tabs{position:sticky!important;top:10px!important;z-index:8!important;margin:14px 0!important;background:rgba(255,255,255,.92)!important;backdrop-filter:blur(16px)!important;border:1px solid var(--dl-line)!important;border-radius:22px!important;padding:7px!important;box-shadow:0 12px 30px rgba(4,65,72,.08)!important}.student-clean .knowledge-tabs button{border-radius:16px!important}.student-clean .knowledge-tabs button.active{background:linear-gradient(110deg,var(--dl-teal-900),var(--dl-emerald))!important;color:#fff!important}.student-clean .knowledge-tabs button.active b,.student-clean .knowledge-tabs button.active small{color:#fff!important}
+.student-clean .knowledge-welcome-card,.student-clean .knowledge-metrics button,.student-clean .knowledge-insights article,.student-clean .knowledge-section-head,.student-clean .knowledge-goal-card,.student-clean .knowledge-table-card,.student-clean .student-teacher-alerts{border-radius:24px!important;background:rgba(255,255,255,.96)!important;border:1px solid var(--dl-line)!important;box-shadow:0 12px 30px rgba(5,71,78,.07)!important}
+.student-clean .knowledge-welcome-card{overflow:hidden!important}.student-clean .knowledge-welcome-copy{position:relative!important}.student-clean .knowledge-welcome-copy:after{content:"✦";position:absolute;left:18px;bottom:4px;font-size:72px;color:rgba(21,154,132,.08)}
+.student-clean .knowledge-metrics{gap:12px!important}.student-clean .knowledge-metrics button{transition:.2s ease!important}.student-clean .knowledge-metrics button:hover{transform:translateY(-3px)!important;box-shadow:0 17px 30px rgba(5,71,78,.11)!important}.student-clean .knowledge-metrics button>span{background:linear-gradient(135deg,var(--dl-teal-800),var(--dl-emerald))!important;color:#fff!important;border-radius:14px!important}
+.student-clean .knowledge-insights article.success{border-top:4px solid var(--dl-emerald)!important}.student-clean .knowledge-insights article.focus{border-top:4px solid var(--dl-gold)!important}.student-clean .knowledge-insights article.notice{border-top:4px solid #578bc6!important}
+.student-clean .student-teacher-alerts{border-right:4px solid var(--dl-gold)!important}
+
+@media (max-width:1100px){
+  .academy-access{right:38px!important;left:38px!important;grid-template-columns:130px minmax(0,1fr)!important}.academy-portal-grid{gap:10px!important}.academy-portal-card h2{font-size:17px!important}.academy-portal-card p{font-size:11px!important}
+  .admin2:not(.admin2-login) .admin2-grid{grid-template-columns:1fr!important}.admin2:not(.admin2-login) .admin2-stats,.teacher-daily-dashboard .daily-stats,.teacher-daily-dashboard .analytics-stats{grid-template-columns:repeat(2,1fr)!important}.teacher-daily-dashboard .daily-actions{grid-template-columns:repeat(2,1fr)!important}
+}
+@media (max-width:720px){
+  .academy-access{grid-template-columns:1fr!important}.academy-qr-panel{display:none!important}.academy-portal-grid{grid-template-columns:repeat(2,1fr)!important}
+  .admin2:not(.admin2-login),.teacher-daily-dashboard,.student-clean.student-portal-v2{padding:10px!important}.admin2:not(.admin2-login) .admin2-head,.teacher-daily-dashboard .daily-dashboard-hero{border-radius:22px!important;padding:24px!important}.admin2:not(.admin2-login) .admin2-head h1,.teacher-daily-dashboard .daily-hero-copy h1{font-size:30px!important}.admin2:not(.admin2-login) .admin2-stats{padding:0 8px!important;margin-top:12px!important}.student-clean .knowledge-header{border-radius:22px!important}.student-clean .knowledge-topline{border-radius:21px 21px 0 0!important}.student-clean .knowledge-tabs{top:4px!important;overflow:auto!important;white-space:nowrap!important}
+}

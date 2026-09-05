@@ -1,6 +1,6 @@
 @page {
   size: A4 portrait;
-  margin: 14mm 12mm 16mm;
+  margin: 20mm 12mm 17mm;
 }
 
 .print-header,
@@ -17,14 +17,19 @@
     padding: 0 !important;
     overflow: visible !important;
     background: #fff !important;
-    color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    color: #153b49 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body,
+  body * {
+    font-family: inherit !important;
   }
 
   body {
-    font-size: 10.5pt !important;
-    line-height: 1.45 !important;
+    font-size: 12.8pt !important;
+    line-height: 1.6 !important;
   }
 
   .portal-stage,
@@ -74,32 +79,51 @@
   }
 
   .print-header {
-    display: block !important;
+    display: grid !important;
+    grid-template-columns: 18mm 1fr auto !important;
+    gap: 5mm !important;
     position: fixed !important;
-    top: -10mm !important;
+    top: -16.8mm !important;
     right: 0 !important;
     left: 0 !important;
-    text-align: center !important;
-    font-size: 9pt !important;
-    font-weight: 800 !important;
-    color: #333 !important;
+    min-height: 14mm !important;
+    align-items: center !important;
+    padding: 0 19mm 0 0 !important;
+    border: .35mm solid #dbe7e4 !important;
+    border-right: 3.2mm solid #0b7c74 !important;
+    border-radius: 2mm !important;
+    color: #153b49 !important;
+    font-size: 13pt !important;
+    font-weight: 900 !important;
+    background: #fff url('/icons/lahooni-identity-320.jpg') right center / 16mm 16mm no-repeat !important;
+    background-origin: content-box !important;
+  }
+
+  .print-header::after {
+    content: "وثيقة أكاديمية صادرة من البوابة";
+    font-size: 9.3pt !important;
+    font-weight: 750 !important;
+    color: #55717a !important;
+    white-space: nowrap !important;
   }
 
   .print-footer {
     display: flex !important;
     position: fixed !important;
-    bottom: -11mm !important;
+    bottom: -13.5mm !important;
     right: 0 !important;
     left: 0 !important;
+    min-height: 9mm !important;
     justify-content: space-between !important;
     align-items: center !important;
-    font-size: 8pt !important;
-    color: #555 !important;
+    border-top: .4mm solid #cddbd8 !important;
+    font-size: 9.4pt !important;
+    font-weight: 700 !important;
+    color: #526d76 !important;
   }
 
-  .page-number::after {
-    content: counter(page);
-  }
+  .page-number::before { content: "صفحة "; }
+  .page-number::after { content: counter(page); }
 
   h1,
   h2,
@@ -111,41 +135,51 @@
   th,
   span,
   strong {
-    color: #000 !important;
     text-shadow: none !important;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    break-after: avoid-page;
-    page-break-after: avoid;
-  }
+  h1 { font-size: 21pt !important; }
+  h2 { font-size: 17pt !important; }
+  h3 { font-size: 14pt !important; }
+  h1,h2,h3,h4 { break-after: avoid-page; page-break-after: avoid; }
 
   table {
     width: 100% !important;
     max-width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
-    font-size: 8.5pt !important;
+    font-size: 11.7pt !important;
+    color: #153b49 !important;
   }
 
-  thead {
-    display: table-header-group !important;
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
+  th {
+    background: linear-gradient(180deg,#0b7c74,#075e62) !important;
+    color: #fff !important;
+    font-size: 11.6pt !important;
+    font-weight: 900 !important;
+    vertical-align: middle !important;
   }
-
-  tfoot {
-    display: table-footer-group !important;
-  }
-
-  th,
   td {
-    padding: 5px 4px !important;
+    color: #153b49 !important;
+    font-size: 11.5pt !important;
+    font-weight: 650 !important;
+    vertical-align: middle !important;
+  }
+  th,td {
+    padding: 7px 8px !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-    vertical-align: top !important;
+    word-break: normal !important;
+    border: 1px solid #d4e1de !important;
+  }
+  tbody tr:nth-child(even) td { background: #f5faf9 !important; }
+
+  :is(.student,.student-name,.sticky-name,.student-info strong,[data-student-name],td.name,td.student) {
+    font-size: 12.6pt !important;
+    font-weight: 850 !important;
+    line-height: 1.45 !important;
   }
 
   tr,
@@ -161,12 +195,12 @@
     page-break-inside: avoid;
   }
 
-  img,
-  svg,
-  canvas {
+  img {
     max-width: 100% !important;
     height: auto !important;
+    object-fit: contain !important;
   }
+  svg,canvas { max-width: 100% !important; height: auto !important; }
 
   .student-table-scroll,
   .teacher-table-scroll,
@@ -195,19 +229,11 @@
   .student-goal-card > *,
   .goal-numbers > * {
     width: 100% !important;
-    margin-bottom: 8mm !important;
+    margin-bottom: 6mm !important;
     break-inside: avoid-page;
     page-break-inside: avoid;
   }
 
-  a {
-    color: #000 !important;
-    text-decoration: none !important;
-  }
-
-  * {
-    box-shadow: none !important;
-    animation: none !important;
-    transition: none !important;
-  }
+  a { color: #153b49 !important; text-decoration: none !important; }
+  * { box-shadow: none !important; animation: none !important; transition: none !important; }
 }

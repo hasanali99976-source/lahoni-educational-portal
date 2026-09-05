@@ -1,0 +1,8 @@
+Teacher Academy V13 release marker.
+Global typography: Alexandria across home, admin, teacher, student/parent and all overlays/forms.
+Teacher UI: compact workspace chrome, clearer navigation and fully visible grade units/periods.
+Attendance PDF: complete student lists with automatic pagination; daily and date range up to 31 days.
+Grade PDF: selected unit/period aware, complete student lists and column pagination where required.
+Admin roster PDF: one class fitted to one A4 page for normal school roster sizes.
+Teacher login: redesigned premium academic gateway.
+Data storage paths and existing grades, attendance, notes and diagnostic tests remain unchanged.
