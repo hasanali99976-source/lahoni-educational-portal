@@ -28,9 +28,15 @@ type Candidate = {
   priority: number;
   matchedClass: boolean;
 };
+type TeacherDirectoryEntry = {
+  teacherId: string;
+  teacherData: Record<string, unknown>;
+};
 
 const STUDENT_CODE_PATTERN = /^TH[123]\d{3}$/;
 const MAX_SUBJECT_MATCHES = 30;
+const TEACHER_DIRECTORY_TTL_MS = 15_000;
+let teacherDirectoryCache: { expiresAt: number; entries: TeacherDirectoryEntry[] } | null = null;
 
 function isQuotaError(error: unknown) {
   const source = error as { code?: unknown; message?: unknown };
@@ -88,6 +94,20 @@ async function loadCentralStudent(accessCode: string) {
   return normalized && normalized.active !== false ? normalized : null;
 }
 
+async function loadTeacherDirectory() {
+  const now = Date.now();
+  if (teacherDirectoryCache && teacherDirectoryCache.expiresAt > now) return teacherDirectoryCache.entries;
+
+  const snapshot = await adminDb().collection("portalV2Users").where("role", "==", "teacher").get();
+  const entries = snapshot.docs.flatMap(document => {
+    const teacherData = document.data() as Record<string, unknown>;
+    if (teacherData.active !== true) return [];
+    return [{ teacherId: document.id, teacherData }];
+  });
+  teacherDirectoryCache = { expiresAt: now + TEACHER_DIRECTORY_TTL_MS, entries };
+  return entries;
+}
+
 function allSections(value: unknown) {
   const normalized = normalizeArabic(value);
   return !normalized || normalized === "الكل" || normalized === "كل" || normalized === "جميع الفصول";
@@ -106,10 +126,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "كود الطالب غير صحيح. استخدم صيغة مثل TH1001 أو TH2001 أو TH3001." }, { status: 400 });
     }
 
-    const [existingStudents, centralStudent, teachersSnapshot] = await Promise.all([
+    const [existingStudents, centralStudent, teacherDirectory] = await Promise.all([
       findExistingStudentDocuments(accessCode),
       loadCentralStudent(accessCode),
-      adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
+      loadTeacherDirectory(),
     ]);
 
     const existingByTeacherSubject = new Map(existingStudents.map(item => [`${item.teacherId}:${item.subjectId}`, item]));
@@ -119,13 +139,11 @@ export async function POST(request: Request) {
     }
 
     const studentClassId = classId(student.grade, student.section);
-    const teacherEntries = teachersSnapshot.docs.flatMap(document => {
-      const data = document.data() as Record<string, unknown>;
-      if (data.active !== true) return [];
-      const assignments = normalizeAssignments(data.assignments, data.subjectIds)
+    const teacherEntries = teacherDirectory.flatMap(entry => {
+      const assignments = normalizeAssignments(entry.teacherData.assignments, entry.teacherData.subjectIds)
         .filter(item => gradeNumber(item.grade) === student.grade);
       if (!assignments.length) return [];
-      return [{ teacherId: document.id, teacherData: data, assignments }];
+      return [{ teacherId: entry.teacherId, teacherData: entry.teacherData, assignments }];
     });
 
     const scopeRequests = new Map<string, Promise<any>>();
