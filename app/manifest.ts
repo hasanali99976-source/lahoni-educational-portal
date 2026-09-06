@@ -1,6 +1,12 @@
 import type { MetadataRoute } from "next";
 
-export default function manifest(): MetadataRoute.Manifest {
+type LahooniManifest = MetadataRoute.Manifest & {
+  launch_handler: {
+    client_mode: "navigate-existing";
+  };
+};
+
+export default function manifest(): LahooniManifest {
   return {
     id: "/",
     name: "بوابة أستاذ لحوني التعليمية",
@@ -10,6 +16,9 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
+    launch_handler: {
+      client_mode: "navigate-existing",
+    },
     orientation: "any",
     background_color: "#07152f",
     theme_color: "#0b1d48",
