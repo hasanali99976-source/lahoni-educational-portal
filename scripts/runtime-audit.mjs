@@ -75,7 +75,17 @@ forbid(
   /\bfindUserById\b/,
   "جلسة المعلم يجب أن تعيد استخدام المستخدم الذي تحققت منه requireSession بدل قراءة Firebase مرتين.",
 );
+forbid(
+  "app/api/student/diagnostics/route.ts",
+  /LAHONI_DIAGNOSTIC_RECOVERY|console\.(?:log|info)\([^\n]*recoveryCode/,
+  "كود استعادة الاختبار لا يكتب في سجلات التشغيل لأنه رمز وصول مؤقت.",
+);
 
+requirePattern(
+  "app/api/student/lookup/route.ts",
+  /TEACHER_DIRECTORY_TTL_MS\s*=\s*15_000/,
+  "دخول الطالب يحتاج كاشًا خادميًا قصيرًا لدليل المعلمين لتقليل قراءات Firebase المتكررة.",
+);
 requirePattern(
   "app/api/parent/lookup/route.ts",
   /retired:\s*true/,
