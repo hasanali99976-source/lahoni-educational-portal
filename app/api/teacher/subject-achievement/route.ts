@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculateGradePlanResult, roundGrade } from "../../../../lib/grade-plan";
+import { calculateGradePlanResult, roundGrade, type GradeStudentLike } from "../../../../lib/grade-plan";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { cleanGradePlanSubject, readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
@@ -57,7 +57,7 @@ export async function GET() {
         .map(document => document.data() as Record<string, unknown>)
         .filter(data => !archived(data));
       const graded = rows.map(data => {
-        const result = calculateGradePlanResult(plan, data);
+        const result = calculateGradePlanResult(plan, data as GradeStudentLike);
         const deduction = activeDeductionTotal(data, plan.id);
         const adjusted = Math.max(0, roundGrade(result.earned - deduction));
         return { result, deduction, adjusted };
