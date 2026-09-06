@@ -1,0 +1,33 @@
+/* Student roster readability V11 — visual only, keeps existing data/workflow intact */
+.students-v9 .sv9-roster{overflow:hidden;border-radius:20px}
+.students-v9 .sv9-print-area{padding:0 18px 20px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.students-v9 .sv9-print-head{margin-top:16px}
+.students-v9 .sv9-student-list{display:block;min-width:720px;border:1px solid #dbe7e4;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 5px 16px rgba(10,72,73,.035)}
+.students-v9 .sv9-student-list article{display:grid;grid-template-columns:56px minmax(300px,1fr) 130px 140px;gap:12px;align-items:center;min-height:58px;margin:0;padding:10px 14px;border:0;border-bottom:1px solid #e4ece9;border-radius:0;background:#fff}
+.students-v9 .sv9-student-list article:last-child{border-bottom:0}
+.students-v9 .sv9-student-list article:nth-child(even){background:#fbfdfc}
+.students-v9 .sv9-student-list article:hover{background:#f4faf8}
+.students-v9 .sv9-student-list article>b{width:34px;height:34px;border-radius:9px;background:#edf5f2;color:#436a70;font-size:11px;font-weight:950}
+.students-v9 .sv9-student-list strong{font-size:14px!important;line-height:1.55;color:#173f46;font-weight:950}
+.students-v9 .sv9-student-list small{margin-top:2px;font-size:10px!important;line-height:1.4;color:#71878b;font-weight:750}
+.students-v9 .sv9-student-list code{justify-self:start;direction:ltr;padding:7px 9px;border-radius:8px;background:#edf6f3;color:var(--subject);font:900 11px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace}
+.students-v9 .sv9-student-list button{justify-self:end;min-width:112px;min-height:36px;border:1px solid #d7e4e0;border-radius:9px;background:#f9fbfa;color:#315c61;padding:7px 10px;font-size:10px;font-weight:950}
+.students-v9 .sv9-search input{font-size:11px!important}
+.students-v9 .sv9-search>div b{font-size:12px}
+.students-v9 .sv9-search>div small{font-size:9px}
+.students-v9 .sv9-roster h2{font-size:21px}
+.students-v9 .sv9-roster header p{font-size:9.5px}
+@media(max-width:760px){
+  .students-v9 .sv9-print-area{padding-inline:12px}
+  .students-v9 .sv9-student-list{min-width:690px}
+  .students-v9 .sv9-student-list article{grid-template-columns:52px minmax(280px,1fr) 120px 130px}
+}
+@media print{
+  .students-v9 .sv9-print-area{overflow:visible!important;padding:0!important}
+  .students-v9 .sv9-student-list{min-width:0!important;border-color:#cfdad7;box-shadow:none}
+  .students-v9 .sv9-student-list article{grid-template-columns:44px minmax(0,1fr) 110px!important;min-height:44px;padding:7px 9px}
+  .students-v9 .sv9-student-list article>b{width:28px;height:28px;font-size:9px}
+  .students-v9 .sv9-student-list strong{font-size:11px!important}
+  .students-v9 .sv9-student-list small{font-size:8px!important}
+  .students-v9 .sv9-student-list code{font-size:9px}
+}
