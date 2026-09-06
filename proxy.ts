@@ -16,11 +16,31 @@ function setStudentLock(response: NextResponse) {
   return response;
 }
 
+function clearStudentLock(response: NextResponse) {
+  response.cookies.set(QR_LOCK_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  response.headers.set("Cache-Control", "no-store, max-age=0");
+  return response;
+}
+
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const queryCode = String(request.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
+  const entry = String(request.nextUrl.searchParams.get("entry") || "").trim().toLowerCase();
   const directStudentBarcode = pathname === "/student" && STUDENT_CODE_PATTERN.test(queryCode);
+  const chatHomeEntry = (pathname === "/" || pathname === "/home") && entry === "chat";
   const locked = request.cookies.get(QR_LOCK_COOKIE)?.value === "1";
+
+  // رابط الرئيسية المخصص داخل المحادثة يجب أن يفتح البوابة كاملة حتى لو كانت نافذة الويب
+  // قد احتفظت سابقًا بكوكي قفل الطالب من تجربة QR.
+  if (chatHomeEntry) {
+    return clearStudentLock(NextResponse.next());
+  }
 
   // بعض الباركودات القديمة تفتح /student?code= مباشرة؛ فعّل القفل لها أيضًا.
   if (directStudentBarcode && !locked) {
