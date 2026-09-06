@@ -108,7 +108,12 @@ export async function POST(request: Request) {
     submittedAt: new Date().toISOString(),
   };
   const recoveryCode = createDiagnosticRecoveryCode(result);
-  console.info("LAHONI_DIAGNOSTIC_RECOVERY", recoveryCode);
+  console.info("LAHONI_DIAGNOSTIC_RESULT_RECEIVED", {
+    diagnosticId,
+    studentId: access.studentId,
+    subjectId: access.subjectId,
+    percentage,
+  });
 
   const [backupWrite, firestoreWrite] = await Promise.allSettled([
     withTimeout(saveDiagnosticBackup(result), BACKUP_WRITE_TIMEOUT_MS),
