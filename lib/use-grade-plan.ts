@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { normalizeGradePlan, type GradePlan } from "./grade-plan";
-import { readLocalGradePlan, saveLocalGradePlan } from "./grade-plan-local";
+import { readLocalGradePlan, saveLocalGradePlan, setGradePlanCurrentSubject, setGradePlanCurrentTeacher } from "./grade-plan-local";
+import { useTeacherClient } from "./teacher-client";
 
 type GradePlanState = {
   activePlan: GradePlan | null;
@@ -12,8 +13,11 @@ type GradePlanState = {
 };
 
 export function useGradePlan(enabled = true) {
+  const session = useTeacherClient();
+  const teacherId = String(session.teacherId || "").trim();
+  const subjectId = String(session.subjectKey || "").trim().split("--")[0];
   const [state, setState] = useState<GradePlanState>(() => ({
-    activePlan: enabled ? readLocalGradePlan() : null,
+    activePlan: enabled ? readLocalGradePlan(teacherId, subjectId) : null,
     loading: enabled,
     error: "",
     history: [],
@@ -24,15 +28,22 @@ export function useGradePlan(enabled = true) {
       setState({ activePlan: null, loading: false, error: "", history: [] });
       return null;
     }
-    const localPlan = readLocalGradePlan();
-    setState(current => ({ ...current, activePlan: current.activePlan || localPlan, loading: true, error: "" }));
+    if (!teacherId || !subjectId) {
+      setState(current => ({ ...current, activePlan: null, loading: false, error: "" }));
+      return null;
+    }
+
+    setGradePlanCurrentTeacher(teacherId);
+    setGradePlanCurrentSubject(subjectId);
+    const localPlan = readLocalGradePlan(teacherId, subjectId);
+    setState(current => ({ ...current, activePlan: localPlan || current.activePlan, loading: true, error: "" }));
     try {
-      const response = await fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" });
+      const response = await fetch(`/api/teacher/grade-plan?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store", credentials: "same-origin" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر تحميل خطة توزيع الدرجات.");
       const serverPlan = normalizeGradePlan(data.activePlan);
       const activePlan = serverPlan || localPlan;
-      if (serverPlan) saveLocalGradePlan(serverPlan);
+      if (serverPlan) saveLocalGradePlan(serverPlan, subjectId);
       setState({
         activePlan,
         loading: false,
@@ -41,7 +52,7 @@ export function useGradePlan(enabled = true) {
       });
       return activePlan;
     } catch (error) {
-      const fallback = readLocalGradePlan();
+      const fallback = readLocalGradePlan(teacherId, subjectId);
       setState(current => ({
         ...current,
         activePlan: fallback || current.activePlan,
@@ -50,7 +61,7 @@ export function useGradePlan(enabled = true) {
       }));
       return fallback;
     }
-  }, [enabled]);
+  }, [enabled, teacherId, subjectId]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
