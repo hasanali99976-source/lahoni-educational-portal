@@ -49,6 +49,8 @@ export default function TodayLessonsCenter() {
   const today = useMemo(riyadhDate, []);
   const weekday = useMemo(riyadhWeekday, []);
   const [lessons, setLessons] = useState<TodayLesson[]>([]);
+  const [savedRows, setSavedRows] = useState<WorkRow[]>([]);
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<TodayLesson | null>(null);
@@ -70,18 +72,14 @@ export default function TodayLessonsCenter() {
         return [{ period: Number(match[2]), className: String(lesson.className), notes: String(lesson.notes || "") }];
       }).sort((a, b) => a.period - b.period);
 
-      if (!scheduled.length) {
-        setLessons([]);
-        setMessage("");
-        return;
-      }
-
       const params = new URLSearchParams({ subjectId, date: today });
       [...new Set(scheduled.map(item => item.className))].forEach(className => params.append("className", className));
       const workResponse = await fetch(`/api/teacher/lesson-work?${params.toString()}`, { cache: "no-store" });
       const workData = await workResponse.json().catch(() => ({}));
       const rows = workResponse.ok && Array.isArray(workData.rows) ? workData.rows as WorkRow[] : [];
       const attendance = workResponse.ok && workData.attendance && typeof workData.attendance === "object" ? workData.attendance as Record<string, boolean> : {};
+      setSavedRows(rows);
+      setAttendanceMap(attendance);
       setLessons(scheduled.map(item => ({
         ...item,
         work: rows.find(row => Number(row.period) === item.period && row.className === item.className),
@@ -128,6 +126,7 @@ export default function TodayLessonsCenter() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر حفظ الحصة");
       const row = data.row as WorkRow;
+      setSavedRows(current => [row, ...current.filter(item => item.id !== row.id)]);
       setLessons(current => current.map(item => item.period === editing.period && item.className === editing.className ? { ...item, work: row } : item));
       setEditing(null);
       setMessage(completedWork.trim() ? "تم تحديث تحضير الحصة وما تم تنفيذه." : "تم حفظ تحضير الحصة.");
@@ -136,47 +135,56 @@ export default function TodayLessonsCenter() {
     } finally { setSaving(false); }
   }
 
-  const preparedCount = lessons.filter(item => item.work?.prepared || item.notes).length;
-  const completedCount = lessons.filter(item => item.work?.completed).length;
-  const attendanceCount = lessons.filter(item => item.attendanceDone).length;
+  const currentKeys = useMemo(() => new Set(lessons.map(item => `${item.period}::${item.className}`)), [lessons]);
+  const preservedRows = useMemo(() => savedRows.filter(row => !currentKeys.has(`${Number(row.period)}::${row.className}`)).sort((a, b) => Number(a.period) - Number(b.period)), [savedRows, currentKeys]);
+  const preparedSaved = savedRows.filter(item => item.prepared).length;
+  const completedSaved = savedRows.filter(item => item.completed).length;
+  const preparedFromCurrentNotes = lessons.filter(item => !item.work && item.notes).length;
+  const preparedCount = preparedSaved + preparedFromCurrentNotes;
+  const attendanceClasses = new Set([...lessons.map(item => item.className), ...savedRows.map(item => item.className)]);
+  const attendanceCount = [...attendanceClasses].filter(className => attendanceMap[className]).length;
 
   return <section className="today-center" dir="rtl">
     <header className="today-center-head">
       <div>
         <small>مركز اليوم • {dayLabels[weekday] || "اليوم"}</small>
         <h2>حصصك اليوم مرتبطة بعملك مباشرة</h2>
-        <p>أي تعديل في الجدول ينعكس هنا. حضّر الحصة قبلها، وبعدها دوّن ما تم تنفيذه، والحضور يظهر تلقائيًا.</p>
+        <p>الجدول يحدد الحصص الحالية فقط. التحضير وما تم تنفيذه يُحفظان كسجل مستقل داخل الفصل، لذلك تغيير الجدول لا يلغي تقدمك السابق.</p>
       </div>
       <div className="today-center-actions"><button type="button" onClick={() => void load()} disabled={loading}>{loading ? "تحديث…" : "تحديث"}</button><Link href="/teacher/timetable">تعديل الجدول</Link></div>
     </header>
 
     {message ? <p className="today-center-message">{message}</p> : null}
 
-    {lessons.length ? <>
-      <div className="today-center-kpis">
-        <span><b>{ar(lessons.length)}</b> حصص اليوم</span>
-        <span><b>{ar(preparedCount)}</b> محضرة</span>
-        <span><b>{ar(attendanceCount)}</b> حضور مكتمل</span>
-        <span><b>{ar(completedCount)}</b> تم تنفيذها</span>
-      </div>
-      <div className="today-lessons-grid">{lessons.map(lesson => {
-        const prepared = Boolean(lesson.work?.prepared || lesson.notes);
-        const completed = Boolean(lesson.work?.completed);
-        return <article key={`${lesson.period}-${lesson.className}`} className={completed ? "completed" : ""}>
-          <div className="today-lesson-period"><small>الحصة</small><b>{ar(lesson.period)}</b></div>
-          <div className="today-lesson-main">
-            <header><div><h3>{lesson.className}</h3><span>{session?.subject || "المادة"}</span></div><div className="today-lesson-badges"><i className={prepared ? "ok" : "wait"}>{prepared ? "محضرة" : "بدون تحضير"}</i><i className={lesson.attendanceDone ? "ok" : "wait"}>{lesson.attendanceDone ? "الحضور تم" : "الحضور لم يسجل"}</i><i className={completed ? "done" : "wait"}>{completed ? "تم التنفيذ" : "بانتظار التنفيذ"}</i></div></header>
-            <div className="today-lesson-summary"><div><small>التحضير</small><p>{lesson.work?.preparation || lesson.notes || "لم يضف تحضير لهذه الحصة بعد."}</p></div><div><small>ما تم في الحصة</small><p>{lesson.work?.completedWork || "بعد الحصة سجل باختصار ما تم تنفيذه."}</p></div></div>
-            <footer><button type="button" onClick={() => openEditor(lesson)}>{prepared ? "فتح سجل الحصة" : "إضافة التحضير"}</button><Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`}>{lesson.attendanceDone ? "مراجعة الحضور" : "تسجيل الحضور"}</Link></footer>
-          </div>
-        </article>;
-      })}</div>
-    </> : <div className="today-center-empty"><b>لا توجد حصص في جدول اليوم</b><span>أضف الحصص من الجدول الدراسي وستظهر هنا مباشرة عند الرجوع إلى مركز اليوم.</span><Link href="/teacher/timetable">فتح الجدول الدراسي</Link></div>}
+    <div className="today-center-kpis">
+      <span><b>{ar(lessons.length)}</b> حصص الجدول الآن</span>
+      <span><b>{ar(preparedCount)}</b> تحضير محفوظ اليوم</span>
+      <span><b>{ar(attendanceCount)}</b> حضور محفوظ</span>
+      <span><b>{ar(completedSaved)}</b> إنجاز محفوظ اليوم</span>
+    </div>
+
+    {lessons.length ? <div className="today-lessons-grid">{lessons.map(lesson => {
+      const prepared = Boolean(lesson.work?.prepared || lesson.notes);
+      const completed = Boolean(lesson.work?.completed);
+      return <article key={`${lesson.period}-${lesson.className}`} className={completed ? "completed" : ""}>
+        <div className="today-lesson-period"><small>الحصة</small><b>{ar(lesson.period)}</b></div>
+        <div className="today-lesson-main">
+          <header><div><h3>{lesson.className}</h3><span>{session?.subject || "المادة"}</span></div><div className="today-lesson-badges"><i className={prepared ? "ok" : "wait"}>{prepared ? "محضرة" : "بدون تحضير"}</i><i className={lesson.attendanceDone ? "ok" : "wait"}>{lesson.attendanceDone ? "الحضور تم" : "الحضور لم يسجل"}</i><i className={completed ? "done" : "wait"}>{completed ? "تم التنفيذ" : "بانتظار التنفيذ"}</i></div></header>
+          <div className="today-lesson-summary"><div><small>التحضير</small><p>{lesson.work?.preparation || lesson.notes || "لم يضف تحضير لهذه الحصة بعد."}</p></div><div><small>ما تم في الحصة</small><p>{lesson.work?.completedWork || "بعد الحصة سجل باختصار ما تم تنفيذه."}</p></div></div>
+          <footer><button type="button" onClick={() => openEditor(lesson)}>{prepared ? "فتح سجل الحصة" : "إضافة التحضير"}</button><Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`}>{lesson.attendanceDone ? "مراجعة الحضور" : "تسجيل الحضور"}</Link></footer>
+        </div>
+      </article>;
+    })}</div> : <div className="today-center-empty"><b>لا توجد حصص في جدول اليوم حاليًا</b><span>يمكن تعديل الجدول في أي وقت، وأعمال اليوم المحفوظة لن تتأثر.</span><Link href="/teacher/timetable">فتح الجدول الدراسي</Link></div>}
+
+    {preservedRows.length ? <section className="today-preserved">
+      <header><div><small>محفوظ مستقل عن الجدول</small><h3>أعمال اليوم من جدول سابق</h3></div><span>{ar(preservedRows.length)}</span></header>
+      <div>{preservedRows.map(row => <article key={row.id}><b>الحصة {ar(Number(row.period))}</b><div><strong>{row.className}</strong><span>{row.preparation || "تحضير محفوظ"}</span><small>{row.completed ? `تم التنفيذ${row.completedWork ? ` • ${row.completedWork}` : ""}` : "التحضير محفوظ"}</small></div>{attendanceMap[row.className] ? <i>الحضور محفوظ</i> : null}</article>)}</div>
+    </section> : null}
 
     {editing ? <div className="today-work-modal" role="dialog" aria-modal="true">
       <section>
         <header><div><small>{editing.className}</small><h3>الحصة {ar(editing.period)} • سجل الحصة</h3></div><button type="button" onClick={() => !saving && setEditing(null)}>×</button></header>
-        <label><span>تحضير الحصة</span><textarea value={preparation} onChange={event => setPreparation(event.target.value)} placeholder="عنوان الدرس، الهدف، النشاط أو النقاط التي ستنفذها…"/><small>يُحفظ لهذا اليوم فقط ولا يغيّر جدولك الأسبوعي.</small></label>
+        <label><span>تحضير الحصة</span><textarea value={preparation} onChange={event => setPreparation(event.target.value)} placeholder="عنوان الدرس، الهدف، النشاط أو النقاط التي ستنفذها…"/><small>يُحفظ بتاريخ اليوم داخل سجل الفصل، ولا يعتمد بقاؤه على الجدول الأسبوعي.</small></label>
         <label><span>ما تم تنفيذه <em>بعد الحصة</em></span><textarea value={completedWork} onChange={event => setCompletedWork(event.target.value)} placeholder="ما الذي تم شرحه أو تنفيذه؟ هل بقي شيء للحصة القادمة؟"/></label>
         <footer><button className="save" type="button" onClick={() => void save()} disabled={saving}>{saving ? "جارٍ الحفظ…" : "حفظ سجل الحصة"}</button><button type="button" onClick={() => setEditing(null)} disabled={saving}>إلغاء</button></footer>
       </section>
