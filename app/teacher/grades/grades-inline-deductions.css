@@ -9,3 +9,5 @@
 
 @media(max-width:1100px){.teacher-academy-v12 .academy-v12-canvas:has(.grades-v11){padding-inline:10px!important}.teacher-academy-v12 .academy-v12-canvas:has(.grades-v11)>.grades-v11{max-width:none!important}.grades-v11 .gv11-table-wrap{max-height:72vh!important;min-height:0}.grades-v11 .gv11-gradebook table{min-width:1320px}}
 @media(max-width:700px){.gv11-gradebook th.reason-col,.gv11-gradebook td.reason-cell{min-width:205px}.gv11-gradebook td.reason-cell select,.gv11-gradebook td.reason-cell input{min-width:185px}.grades-v11 .gv11-gradebook table{min-width:1280px}.teacher-academy-v12 .academy-v12-canvas:has(.grades-v11){padding-inline:6px!important}}
+
+/* consolidated production release marker */
