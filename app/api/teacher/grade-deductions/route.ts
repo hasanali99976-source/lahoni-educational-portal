@@ -121,9 +121,13 @@ export async function PUT(request: Request) {
     const planId = clean(body.planId, 120);
     const amount = numeric(body.amount);
     const reason = clean(body.reason, 180);
+    const note = clean(body.note, 500);
 
     if (!subjectId || !studentCode || !planId || amount < 0 || amount > 100 || (amount > 0 && !reason)) {
       return NextResponse.json({ ok: false, message: amount > 0 ? "اكتب مقدار الخصم وسببه." : "بيانات الخصم غير مكتملة." }, { status: 400 });
+    }
+    if (amount > 0 && reason === "سبب آخر" && !note) {
+      return NextResponse.json({ ok: false, message: "اكتب ملاحظة توضح سبب الخصم." }, { status: 400 });
     }
 
     const student = await findStudentDoc(session.userId, subjectId, studentCode);
@@ -145,6 +149,7 @@ export async function PUT(request: Request) {
         scope: "plan",
         amount,
         reason,
+        ...(note ? { note } : {}),
         createdAt: changedAt,
         teacherId: session.userId,
         teacherName: session.name || "المعلم",
