@@ -110,6 +110,62 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  const session = await requireSession("teacher");
+  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+
+  try {
+    const body = await request.json().catch(() => ({}));
+    const subjectId = clean(body.subjectId, 80).split("--")[0];
+    const studentCode = clean(body.studentCode, 40).toUpperCase();
+    const planId = clean(body.planId, 120);
+    const amount = numeric(body.amount);
+    const reason = clean(body.reason, 180);
+
+    if (!subjectId || !studentCode || !planId || amount < 0 || amount > 100 || (amount > 0 && !reason)) {
+      return NextResponse.json({ ok: false, message: amount > 0 ? "اكتب مقدار الخصم وسببه." : "بيانات الخصم غير مكتملة." }, { status: 400 });
+    }
+
+    const student = await findStudentDoc(session.userId, subjectId, studentCode);
+    if (!student) return NextResponse.json({ ok: false, message: "تعذر العثور على سجل الطالب." }, { status: 404 });
+
+    const current = student.snapshot.data() as Record<string, unknown>;
+    const previous = Array.isArray(current.gradeDeductions) ? current.gradeDeductions as DeductionEntry[] : [];
+    const changedAt = new Date().toISOString();
+    const reversed = previous.map(entry => {
+      if (entry.reversedAt || entry.planId !== planId) return entry;
+      return { ...entry, reversedAt: changedAt, reversedBy: session.name || "المعلم" };
+    });
+
+    let entry: DeductionEntry | null = null;
+    if (amount > 0) {
+      entry = {
+        id: `ded-inline-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+        planId,
+        scope: "plan",
+        amount,
+        reason,
+        createdAt: changedAt,
+        teacherId: session.userId,
+        teacherName: session.name || "المعلم",
+        subjectKey: subjectId,
+      };
+    }
+
+    const next = [...(entry ? [entry] : []), ...reversed].slice(0, 120);
+    await student.reference.set({
+      gradeDeductions: next,
+      gradeDeductionUpdatedAt: changedAt,
+      updatedAt: changedAt,
+    }, { merge: true });
+
+    return NextResponse.json({ ok: true, deduction: entry, deductions: next });
+  } catch (error) {
+    console.error("grade deduction inline save failed", error);
+    return NextResponse.json({ ok: false, message: "تعذر حفظ الخصم الآن." }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
