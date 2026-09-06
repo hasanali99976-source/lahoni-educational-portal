@@ -31,14 +31,12 @@ function clearStudentLock(response: NextResponse) {
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const queryCode = String(request.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
-  const entry = String(request.nextUrl.searchParams.get("entry") || "").trim().toLowerCase();
   const directStudentBarcode = pathname === "/student" && STUDENT_CODE_PATTERN.test(queryCode);
-  const chatHomeEntry = (pathname === "/" || pathname === "/home") && entry === "chat";
   const locked = request.cookies.get(QR_LOCK_COOKIE)?.value === "1";
 
-  // رابط الرئيسية المخصص داخل المحادثة يجب أن يفتح البوابة كاملة حتى لو كانت نافذة الويب
-  // قد احتفظت سابقًا بكوكي قفل الطالب من تجربة QR.
-  if (chatHomeEntry) {
+  // الرابط الرسمي للرئيسية يجب أن يفتح البوابة كاملة دائمًا، حتى لو كان الجهاز
+  // قد احتفظ سابقًا بكوكي قفل الطالب من دخول QR. دخول الطالب يبقى عبر /student فقط.
+  if (pathname === "/" || pathname === "/home") {
     return clearStudentLock(NextResponse.next());
   }
 
