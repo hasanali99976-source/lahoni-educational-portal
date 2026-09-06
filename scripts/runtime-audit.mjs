@@ -66,9 +66,30 @@ forbid(
   "فاصل التحديث القديم كل 20 ثانية ممنوع.",
 );
 forbid(
+  "app/student-academic-record-bridge.tsx",
+  /setInterval\s*\(/,
+  "السجل الأكاديمي المدمج لا يكرر قراءة بيانات الطالب دوريًا؛ التحديث يكون عند الفتح أو عودة التركيز.",
+);
+forbid(
   "app/api/teacher-session/route.ts",
   /\bfindUserById\b/,
   "جلسة المعلم يجب أن تعيد استخدام المستخدم الذي تحققت منه requireSession بدل قراءة Firebase مرتين.",
+);
+
+requirePattern(
+  "app/api/parent/lookup/route.ts",
+  /retired:\s*true/,
+  "مسار ولي الأمر القديم يجب أن يبقى متقاعدًا لأن الطالب وولي الأمر يستخدمان بوابة واحدة.",
+);
+forbid(
+  "app/api/parent/lookup/route.ts",
+  /\b(?:adminDb|nationalId|cipher)\b/,
+  "مسار ولي الأمر القديم لا يفك أكواد هوية ولا يقرأ Firebase؛ الدخول الموحد يتم من بوابة الطالب.",
+);
+requirePattern(
+  "app/parent/page.tsx",
+  /redirect\(\s*["']\/student["']\s*\)/,
+  "المسار القديم لولي الأمر يجب أن يحول دائمًا إلى بوابة الطالب وولي الأمر الموحدة.",
 );
 requirePattern(
   "lib/server/portal-auth.ts",
