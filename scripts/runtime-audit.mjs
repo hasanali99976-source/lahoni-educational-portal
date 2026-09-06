@@ -62,8 +62,23 @@ forbid(
 );
 forbid(
   "app/student/page.tsx",
+  /setTimeout\s*\(\s*refresh\s*,/,
+  "صفحة الطالب لا تستخدم سلسلة تحديث كل عدة ثوانٍ؛ التحديث عند الرجوع أو التركيز فقط.",
+);
+forbid(
+  "app/student/page.tsx",
   /(?:20_?000|20000)/,
   "فاصل التحديث القديم كل 20 ثانية ممنوع.",
+);
+requirePattern(
+  "app/student/page.tsx",
+  /gradeDeductions\??:/,
+  "صفحة تقدم الطالب يجب أن تقرأ الخصومات حتى يتطابق المتوسط مع السجل الأكاديمي.",
+);
+requirePattern(
+  "app/student/page.tsx",
+  /result\.earned\s*-\s*deducted/,
+  "تقدم الطالب يجب أن يعتمد الدرجة المحتسبة بعد الخصم دون تعديل الدرجة الأصلية.",
 );
 forbid(
   "app/student-academic-record-bridge.tsx",
