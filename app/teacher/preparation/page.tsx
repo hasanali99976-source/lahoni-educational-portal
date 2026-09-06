@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import "./preparation.css";
 
@@ -30,6 +31,9 @@ function escapeHtml(value:string){return value.replace(/[&<>"']/g,ch=>({"&":"&am
 
 export default function TeacherPreparationPage(){
   const session=useTeacherClient();
+  const searchParams=useSearchParams();
+  const requestedPeriod=Number(searchParams.get("period")||0);
+  const requestedClass=String(searchParams.get("class")||"").trim();
   const subjectId=String(session?.subjectKey||"").split("--")[0];
   const today=useMemo(riyadhDate,[]);
   const day=useMemo(weekday,[]);
@@ -41,6 +45,8 @@ export default function TeacherPreparationPage(){
   const [loading,setLoading]=useState(false);
   const [saving,setSaving]=useState(false);
   const [message,setMessage]=useState("");
+
+  function open(lesson:Lesson){setSelected(lesson);const row=lesson.work;setForm({lessonTitle:row?.lessonTitle||lesson.notes||"",objectives:row?.objectives||"",strategies:row?.strategies||"",introduction:row?.introduction||"",lessonFlow:row?.lessonFlow||row?.preparation||"",activity:row?.activity||"",assessment:row?.assessment||"",homework:row?.homework||"",values:row?.values||""});setMessage("");}
 
   const load=useCallback(async()=>{
     if(!subjectId)return;
@@ -58,16 +64,17 @@ export default function TeacherPreparationPage(){
       const rows=workResponse.ok&&Array.isArray(workData.rows)?workData.rows as WorkRow[]:[];
       const next=scheduled.map(item=>({...item,work:rows.find(row=>Number(row.period)===item.period&&row.className===item.className)}));
       setLessons(next);
-      if(selected){const current=next.find(item=>item.period===selected.period&&item.className===selected.className);if(current)open(current);}
+      const requested=next.find(item=>(!requestedPeriod||item.period===requestedPeriod)&&(!requestedClass||item.className===requestedClass));
+      const current=selected?next.find(item=>item.period===selected.period&&item.className===selected.className):null;
+      if(requested)open(requested);else if(current)open(current);
       setMessage("");
     }catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل تحضير اليوم");}
     finally{setLoading(false);}
-  },[subjectId,day,today,storageKey]);
+  },[subjectId,day,today,storageKey,requestedPeriod,requestedClass]);
 
   useEffect(()=>{void load();},[load]);
-  useEffect(()=>{const refresh=()=>void load();window.addEventListener("lahooni:timetable-updated",refresh as EventListener);window.addEventListener("focus",refresh);return()=>{window.removeEventListener("lahooni:timetable-updated",refresh as EventListener);window.removeEventListener("focus",refresh);};},[load]);
+  useEffect(()=>{const refresh=()=>void load();window.addEventListener("lahooni:timetable-updated",refresh as EventListener);window.addEventListener("lahooni:timetable-synced",refresh as EventListener);window.addEventListener("focus",refresh);return()=>{window.removeEventListener("lahooni:timetable-updated",refresh as EventListener);window.removeEventListener("lahooni:timetable-synced",refresh as EventListener);window.removeEventListener("focus",refresh);};},[load]);
 
-  function open(lesson:Lesson){setSelected(lesson);const row=lesson.work;setForm({lessonTitle:row?.lessonTitle||lesson.notes||"",objectives:row?.objectives||"",strategies:row?.strategies||"",introduction:row?.introduction||"",lessonFlow:row?.lessonFlow||row?.preparation||"",activity:row?.activity||"",assessment:row?.assessment||"",homework:row?.homework||"",values:row?.values||""});setMessage("");}
   function update<K extends keyof FormState>(key:K,value:FormState[K]){setForm(current=>({...current,[key]:value}));}
 
   async function save(){
