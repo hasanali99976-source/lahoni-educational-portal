@@ -6,6 +6,8 @@ import { useTeacherClient } from "../../../lib/teacher-client";
 import "./today-lessons-center.css";
 
 type TimetableLesson = { subject?: string; className?: string; notes?: string };
+type TimetableMap = Record<string, TimetableLesson>;
+type PendingTimetable = { lessons: TimetableMap; classNames: string[]; updatedAt: string };
 type WorkRow = {
   id: string;
   date: string;
@@ -41,11 +43,35 @@ function riyadhDate() {
 function riyadhWeekday() {
   return new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Riyadh", weekday: "long" }).format(new Date()).toLowerCase();
 }
+function readPendingTimetable(storageKey: string): PendingTimetable | null {
+  if (!storageKey || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PendingTimetable>;
+    if (!parsed.lessons || typeof parsed.lessons !== "object" || !Array.isArray(parsed.classNames)) return null;
+    return {
+      lessons: parsed.lessons as TimetableMap,
+      classNames: parsed.classNames.map(value => String(value || "").trim()).filter(Boolean),
+      updatedAt: String(parsed.updatedAt || ""),
+    };
+  } catch {
+    return null;
+  }
+}
+function mergePendingTimetable(server: TimetableMap, pending: PendingTimetable | null) {
+  if (!pending) return server;
+  const ownedClasses = new Set(pending.classNames);
+  const retained = Object.fromEntries(Object.entries(server).filter(([, lesson]) => !ownedClasses.has(String(lesson.className || "").trim()))) as TimetableMap;
+  return { ...retained, ...pending.lessons };
+}
 const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab").format(value);
 
 export default function TodayLessonsCenter() {
   const session = useTeacherClient();
   const subjectId = String(session?.subjectKey || "").split("--")[0];
+  const workspaceKey = String(session?.workspaceKey || session?.subjectKey || subjectId);
+  const storageKey = session?.teacherId ? `ostadh-lahooni:timetable:${session.teacherId}:${workspaceKey}:${session?.activeGrade || "all"}` : "";
   const today = useMemo(riyadhDate, []);
   const weekday = useMemo(riyadhWeekday, []);
   const [lessons, setLessons] = useState<TodayLesson[]>([]);
@@ -62,10 +88,20 @@ export default function TodayLessonsCenter() {
     if (!subjectId) return;
     setLoading(true);
     try {
-      const timetableResponse = await fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store" });
-      const timetableData = await timetableResponse.json().catch(() => ({}));
-      if (!timetableResponse.ok) throw new Error(timetableData.message || "تعذر تحميل جدول اليوم");
-      const timetable = timetableData.lessons && typeof timetableData.lessons === "object" ? timetableData.lessons as Record<string, TimetableLesson> : {};
+      const pending = readPendingTimetable(storageKey);
+      let serverTimetable: TimetableMap = {};
+      let serverAvailable = false;
+      try {
+        const timetableResponse = await fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store" });
+        const timetableData = await timetableResponse.json().catch(() => ({}));
+        if (!timetableResponse.ok) throw new Error(timetableData.message || "تعذر تحميل جدول اليوم");
+        serverTimetable = timetableData.lessons && typeof timetableData.lessons === "object" ? timetableData.lessons as TimetableMap : {};
+        serverAvailable = true;
+      } catch (error) {
+        if (!pending) throw error;
+      }
+
+      const timetable = mergePendingTimetable(serverTimetable, pending);
       const scheduled = Object.entries(timetable).flatMap(([cell, lesson]) => {
         const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/);
         if (!match || match[1] !== weekday || !lesson.className) return [];
@@ -85,27 +121,34 @@ export default function TodayLessonsCenter() {
         work: rows.find(row => Number(row.period) === item.period && row.className === item.className),
         attendanceDone: Boolean(attendance[item.className]),
       })));
-      setMessage("");
+      if (pending) {
+        setMessage(serverAvailable ? "يعرض مركز اليوم آخر تعديل محفوظ عندك مباشرة، حتى قبل اكتمال المزامنة السحابية." : "يعرض مركز اليوم آخر جدول محفوظ على هذا الجهاز لأن المزامنة السحابية متأخرة حاليًا.");
+      } else {
+        setMessage("");
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر تحديث مركز اليوم");
     } finally {
       setLoading(false);
     }
-  }, [subjectId, today, weekday]);
+  }, [subjectId, storageKey, today, weekday]);
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     const refresh = () => void load();
     const visible = () => { if (document.visibilityState === "visible") void load(); };
+    const storageChanged = (event: StorageEvent) => { if (!storageKey || event.key === storageKey) void load(); };
     window.addEventListener("lahooni:timetable-updated", refresh as EventListener);
     window.addEventListener("focus", refresh);
+    window.addEventListener("storage", storageChanged);
     document.addEventListener("visibilitychange", visible);
     return () => {
       window.removeEventListener("lahooni:timetable-updated", refresh as EventListener);
       window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", storageChanged);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [load]);
+  }, [load, storageKey]);
 
   function openEditor(lesson: TodayLesson) {
     setEditing(lesson);
