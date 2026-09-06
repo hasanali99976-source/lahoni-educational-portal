@@ -7,6 +7,7 @@ import { db } from "../../../lib/firebase";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { tenantCollection, type SubjectKey } from "../../../lib/teacher-tenant";
+import { rosterStorageKey } from "../../../lib/unified-roster";
 
 type PendingStudent = { id:string; name:string; className:string; code:string; createdAt:string };
 
@@ -65,6 +66,24 @@ function normalizeStored(raw:unknown):PendingStudent[] {
   return result;
 }
 
+function safePendingSet(key:string,teacherId:string,subjectKey:string,items:PendingStudent[]) {
+  const value=JSON.stringify(items);
+  try {
+    localStorage.setItem(key,value);
+    return true;
+  } catch {
+    // The unified roster is a rebuildable cloud cache. Pending students may not be in the cloud yet,
+    // so free the roster cache first and give the pending queue priority.
+    try { localStorage.removeItem(rosterStorageKey(teacherId,subjectKey)); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(key,value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 export default function QuotaStudentFallback() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
@@ -82,27 +101,29 @@ export default function QuotaStudentFallback() {
 
   const persistPending = useCallback((items:PendingStudent[])=>{
     setPending(items);
-    if (teacherId) localStorage.setItem(storageKey,JSON.stringify(items));
-  },[storageKey,teacherId]);
+    if (teacherId && !safePendingSet(storageKey,teacherId,subjectKey,items)) {
+      setNotice("مساحة المتصفح ممتلئة؛ سيحاول النظام رفع الاسم مباشرة إلى الخادم دون الاعتماد على التخزين المحلي.");
+    }
+  },[storageKey,subjectKey,teacherId]);
 
   const removePending = useCallback((id:string)=>{
     setPending(current=>{
       const next=current.filter(item=>item.id!==id);
-      if (teacherId) localStorage.setItem(storageKey,JSON.stringify(next));
+      if (teacherId) safePendingSet(storageKey,teacherId,subjectKey,next);
       return next;
     });
-  },[storageKey,teacherId]);
+  },[storageKey,subjectKey,teacherId]);
 
   useEffect(()=>{
     if (!teacherId) return;
     try {
       const migrated = normalizeStored(JSON.parse(localStorage.getItem(storageKey)||"[]"));
-      localStorage.setItem(storageKey,JSON.stringify(migrated));
+      safePendingSet(storageKey,teacherId,subjectKey,migrated);
       setPending(migrated);
     } catch {
       setPending([]);
     }
-  },[storageKey,teacherId]);
+  },[storageKey,subjectKey,teacherId]);
 
   useEffect(()=>{
     const attach=()=>{
