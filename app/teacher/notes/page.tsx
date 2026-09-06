@@ -59,6 +59,9 @@ export default function TeacherNotesPage(){
   const preset=presets[selectedPreset];
   const noteText=custom.trim()||preset.message;
   const noteCount=(code:string)=>rows.find(row=>row.studentCode===code)?.notes?.length||0;
+  const totalNotes=useMemo(()=>rows.reduce((sum,row)=>sum+(row.notes?.length||0),0),[rows]);
+  const followedStudents=useMemo(()=>rows.filter(row=>row.notes?.length).length,[rows]);
+  const classNotes=useMemo(()=>rows.filter(row=>row.className===className).reduce((sum,row)=>sum+(row.notes?.length||0),0),[rows,className]);
 
   useEffect(()=>{if(!classStudents.some(student=>student.code===studentCode))setStudentCode(classStudents[0]?.code||"");},[className,classStudents,studentCode]);
 
@@ -76,6 +79,16 @@ export default function TeacherNotesPage(){
 
   return <main className="notes-v10" dir="rtl">
     {message?<div className="nv10-message">{message}</div>:null}
+
+    <section className="nv10-overview" aria-label="ملخص الملاحظات">
+      <article><span>الفصل الحالي</span><b>{className||"—"}</b><small>{classCounts[className]||0} طالب</small></article>
+      <article><span>ملاحظات الفصل</span><b>{classNotes}</b><small>ملاحظة محفوظة</small></article>
+      <article><span>طلاب تمت متابعتهم</span><b>{followedStudents}</b><small>على مستوى المادة</small></article>
+      <article><span>إجمالي الملاحظات</span><b>{totalNotes}</b><small>{session?.subject||"المادة"}</small></article>
+    </section>
+
+    <section className="nv10-workflow-line"><span>١ اختيار الفصل</span><i>←</i><span>٢ اختيار الطالب</span><i>←</i><span>٣ صياغة الملاحظة</span><i>←</i><span>٤ مراجعة وحفظ</span></section>
+
     <section className="nv10-workspace">
       <aside className="nv10-classes">
         <header><small>الخطوة ١</small><h2>اختر الفصل</h2></header>
