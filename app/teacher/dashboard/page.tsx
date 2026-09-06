@@ -15,14 +15,11 @@ type Student=GradeStudentLike&{id:string;code?:string;name?:string;class?:string
 type AttendanceStatus="present"|"absent"|"late"|"excused"|"escaped";
 type AttendanceRecord={class?:string;date?:string;records?:Record<string,AttendanceStatus>};
 type Lesson={subject?:string;className?:string;notes?:string};
-type PendingTimetable={lessons?:Record<string,Lesson>;classNames?:string[];updatedAt?:string};
 
 function dateKey(value:Date){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(value);const map=Object.fromEntries(parts.map(part=>[part.type,part.value]));return `${map.year}-${map.month}-${map.day}`;}
 function weekdayKey(value:Date){return new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",weekday:"long"}).format(value).toLowerCase();}
 function timeLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"}).format(value);}
 function dateLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(value);}
-function readPendingTimetable(key:string):PendingTimetable|null{if(!key||typeof window==="undefined")return null;try{const raw=window.localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as PendingTimetable;if(!parsed?.lessons||typeof parsed.lessons!=="object")return null;return parsed;}catch{return null;}}
-function mergePendingTimetable(server:Record<string,Lesson>,pending:PendingTimetable|null){if(!pending?.lessons)return server;const owned=new Set((pending.classNames||[]).map(String));const retained=Object.fromEntries(Object.entries(server).filter(([,lesson])=>!owned.has(String(lesson.className||""))));return{...retained,...pending.lessons};}
 function subjectTagline(subjectId:string){
   if(subjectId.includes("history"))return"الأحداث • الحضارات • المصادر";
   if(subjectId.includes("critical"))return"تحليل • استدلال • قرار";
@@ -42,8 +39,6 @@ export default function TeacherDashboardPage(){
   const [timetable,setTimetable]=useState<Record<string,Lesson>>({});
   const [now,setNow]=useState<Date|null>(null);
   const [message,setMessage]=useState("");
-  const timetableWorkspaceKey=session?.workspaceKey||session?.subjectKey||"";
-  const timetableStorageKey=session?.teacherId?`ostadh-lahooni:timetable:${session.teacherId}:${timetableWorkspaceKey}:${session.activeGrade||"all"}`:"";
 
   useEffect(()=>{setNow(new Date());const timer=window.setInterval(()=>setNow(new Date()),30000);return()=>window.clearInterval(timer);},[]);
   useEffect(()=>{
@@ -51,33 +46,9 @@ export default function TeacherDashboardPage(){
     const controller=new AbortController();const params=new URLSearchParams({subjectId:session.subjectKey});if(session.activeGrade)params.set("grade",String(session.activeGrade));
     fetch(`/api/teacher/students?${params}`,{cache:"no-store",signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل فصولك");return data;}).then(data=>{const list=(Array.isArray(data.students)?data.students:[]).map((raw:Record<string,unknown>)=>{const code=String(raw.code||raw.id||"").trim().toUpperCase();const className=String(raw.className||raw.class||"").trim();return{...(raw as unknown as Student),id:code,code,name:String(raw.name||"").trim(),class:className,className} as Student;}).filter((student:Student)=>student.id&&student.name&&student.class);setStudents(list);setMessage("");}).catch(error=>{if((error as Error)?.name!=="AbortError")setMessage(error instanceof Error?error.message:"تعذر تحميل فصولك");});
     const stopAttendance=onSnapshot(collection(db,tenantCollection(session.teacherId,session.subjectKey as never,"attendance")),snapshot=>setAttendance(snapshot.docs.map(item=>item.data() as AttendanceRecord)),()=>setAttendance([]));
+    fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(session.subjectKey)}`,{cache:"no-store",signal:controller.signal}).then(response=>response.ok?response.json():Promise.reject()).then(data=>setTimetable(data.lessons&&typeof data.lessons==="object"?data.lessons:{})).catch(()=>setTimetable({}));
     return()=>{controller.abort();stopAttendance();};
   },[session?.teacherId,session?.subjectKey,session?.activeGrade]);
-
-  useEffect(()=>{
-    if(!session?.teacherId||!session?.subjectKey)return;
-    let active=true;
-    let currentController:AbortController|null=null;
-    const loadTimetable=()=>{
-      currentController?.abort();
-      const controller=new AbortController();
-      currentController=controller;
-      const pending=readPendingTimetable(timetableStorageKey);
-      if(pending?.lessons&&active)setTimetable(current=>mergePendingTimetable(current,pending));
-      fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(session.subjectKey)}`,{cache:"no-store",signal:controller.signal})
-        .then(response=>response.ok?response.json():Promise.reject())
-        .then(data=>{if(!active)return;const server=data.lessons&&typeof data.lessons==="object"?data.lessons as Record<string,Lesson>:{};setTimetable(mergePendingTimetable(server,readPendingTimetable(timetableStorageKey)));})
-        .catch(error=>{if(!active||(error as Error)?.name==="AbortError")return;const latest=readPendingTimetable(timetableStorageKey);if(latest?.lessons)setTimetable(current=>mergePendingTimetable(current,latest));});
-    };
-    const refresh=()=>loadTimetable();
-    const visible=()=>{if(document.visibilityState==="visible")loadTimetable();};
-    loadTimetable();
-    window.addEventListener("lahooni:timetable-updated",refresh as EventListener);
-    window.addEventListener("lahooni:timetable-synced",refresh as EventListener);
-    window.addEventListener("focus",refresh);
-    document.addEventListener("visibilitychange",visible);
-    return()=>{active=false;currentController?.abort();window.removeEventListener("lahooni:timetable-updated",refresh as EventListener);window.removeEventListener("lahooni:timetable-synced",refresh as EventListener);window.removeEventListener("focus",refresh);document.removeEventListener("visibilitychange",visible);};
-  },[session?.teacherId,session?.subjectKey,timetableStorageKey]);
 
   const today=now?dateKey(now):"";const weekday=now?weekdayKey(now):"";
   const classes=useMemo(()=>[...new Set(students.map(student=>String(student.class||"")).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})),[students]);
