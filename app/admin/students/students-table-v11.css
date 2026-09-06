@@ -1,0 +1,28 @@
+/* Admin roster readability V11 — visual only; no data or workflow changes */
+.roster-v3 .roster-v3-table{margin:0 15px 15px;padding:0;border:1px solid #dbe7e4;border-radius:14px;background:#fff;overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:0 5px 16px rgba(6,67,70,.035)}
+.roster-v3 .roster-v3-table .head,.roster-v3 .roster-v3-table .row{display:grid!important;grid-template-columns:58px minmax(320px,1fr) 150px 170px!important;align-items:center;gap:12px;min-width:760px;margin:0;border-radius:0}
+.roster-v3 .roster-v3-table .head{min-height:44px;padding:0 14px;border-bottom:1px solid #dbe7e4;background:#f1f7f5;color:#526f73;font-size:10px;font-weight:950}
+.roster-v3 .roster-v3-table .row{min-height:58px;padding:9px 14px;border:0;border-bottom:1px solid #e4ece9;background:#fff}
+.roster-v3 .roster-v3-table .row:nth-of-type(odd){background:#fbfdfc}
+.roster-v3 .roster-v3-table .row:last-of-type{border-bottom:0}
+.roster-v3 .roster-v3-table .row:hover{background:#f4faf8}
+.roster-v3 .roster-v3-table .row>span{font-size:11px;color:#607b7f;font-weight:850}
+.roster-v3 .roster-v3-table strong{font-size:14px!important;line-height:1.55;color:#173f46;font-weight:950}
+.roster-v3 .roster-v3-table code{justify-self:start;direction:ltr;padding:7px 9px;border-radius:8px;background:#edf6f3;color:#0b6964;font-size:11px;font-weight:950}
+.roster-v3 .roster-v3-table .row>div{display:flex!important;grid-column:auto!important;justify-content:flex-end;gap:6px;flex-wrap:nowrap}
+.roster-v3 .roster-v3-table .row button{min-height:35px;padding:0 10px;border-radius:9px;font-size:10px;font-weight:950;white-space:nowrap}
+.roster-v3 .roster-v3-listbar b{font-size:14px}
+.roster-v3 .roster-v3-listbar small{font-size:9px}
+.roster-v3 .roster-v3-listbar input{font-size:11px}
+.roster-v3 .roster-v3-work-head h2{font-size:23px}
+.roster-v3 .roster-v3-work-head p{font-size:10px}
+@media(max-width:850px){
+  .roster-v3 .roster-v3-table .head{display:grid!important}
+  .roster-v3 .roster-v3-table .head,.roster-v3 .roster-v3-table .row{grid-template-columns:58px minmax(320px,1fr) 150px 170px!important;min-width:760px}
+  .roster-v3 .roster-v3-table .row>div{grid-column:auto!important}
+}
+@media(max-width:580px){
+  .roster-v3 .roster-v3-table{margin-inline:10px}
+  .roster-v3 .roster-v3-table .head,.roster-v3 .roster-v3-table .row{grid-template-columns:54px minmax(300px,1fr) 140px 160px!important;min-width:720px}
+  .roster-v3 .roster-v3-table code,.roster-v3 .roster-v3-table .row>div{grid-column:auto!important}
+}
