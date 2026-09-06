@@ -1,0 +1,15 @@
+/* Admin roster readability — one wide academic table surface */
+.roster-v3 .roster-v3-table{padding:0!important;overflow:auto!important;max-height:72vh!important;border-top:1px solid #e2eaed!important;background:#f8fbfc!important}
+.roster-v3 .roster-v3-table .head,.roster-v3 .roster-v3-table .row{min-width:720px!important;display:grid!important;grid-template-columns:64px minmax(300px,1fr) 170px 180px!important;gap:12px!important;align-items:center!important}
+.roster-v3 .roster-v3-table .head{position:sticky!important;top:0!important;z-index:5!important;min-height:46px!important;padding:0 16px!important;background:#0c5267!important;color:#fff!important;font-size:12.5px!important;font-weight:900!important;border:0!important}
+.roster-v3 .roster-v3-table .row{min-height:62px!important;margin:0!important;padding:8px 16px!important;border:0!important;border-bottom:1px solid #e3ecef!important;border-radius:0!important;background:#fff!important}
+.roster-v3 .roster-v3-table .row:nth-of-type(odd){background:#fbfdfe!important}
+.roster-v3 .roster-v3-table .row:hover{background:#f0f8fb!important}
+.roster-v3 .roster-v3-table .row>span{font-size:12.5px!important;color:#718790!important;font-weight:800!important}
+.roster-v3 .roster-v3-table strong{font-size:15.5px!important;line-height:1.35!important;color:#173d4b!important;font-weight:900!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.roster-v3 .roster-v3-table code{justify-self:start!important;padding:7px 10px!important;border-radius:9px!important;background:#edf7f5!important;color:#0a6c66!important;font-size:12px!important;font-weight:900!important}
+.roster-v3 .roster-v3-table .row>div{justify-content:flex-start!important;gap:7px!important}
+.roster-v3 .roster-v3-table .row button{min-height:36px!important;padding:0 11px!important;border-radius:9px!important;font-size:11.5px!important;font-weight:900!important}
+.roster-v3 .roster-v3-listbar b{font-size:14px!important}.roster-v3 .roster-v3-listbar small{font-size:10.5px!important}.roster-v3 .roster-v3-listbar input{font-size:13px!important}
+@media(max-width:850px){.roster-v3 .roster-v3-table .head{display:grid!important}.roster-v3 .roster-v3-table .row{grid-template-columns:64px minmax(300px,1fr) 170px 180px!important}.roster-v3 .roster-v3-table .row>div{grid-column:auto!important}}
+@media(max-width:580px){.roster-v3 .roster-v3-table .row{grid-template-columns:64px minmax(300px,1fr) 170px 180px!important}.roster-v3 .roster-v3-table code,.roster-v3 .roster-v3-table .row>div{grid-column:auto!important}}
