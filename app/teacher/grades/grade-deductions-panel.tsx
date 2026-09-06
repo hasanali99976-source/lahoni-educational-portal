@@ -125,13 +125,13 @@ export default function GradeDeductionsPanel() {
   const totalDeduction = allDeductions.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const adjusted = Math.max(0, Number(result?.earned || 0) - totalDeduction);
 
-  function targetEarned() {
-    if (!result || !target) return 0;
-    if (target.scope === "plan") return result.earned;
-    const section = result.sections.find(item => item.id === target.sectionId);
+  function targetMaximum() {
+    if (!activePlan || !target) return 0;
+    if (target.scope === "plan") return 100;
+    const section = activePlan.sections.find(item => item.id === target.sectionId);
     if (!section) return 0;
-    if (target.scope === "section") return section.earned;
-    return section.items.find(item => item.item.id === target.itemId)?.value || 0;
+    if (target.scope === "section") return Number(section.max || 0);
+    return Number(section.items.find(item => item.id === target.itemId)?.max || 0);
   }
   function sameTarget(item: Deduction) {
     if (!target) return false;
@@ -141,13 +141,14 @@ export default function GradeDeductionsPanel() {
     return target.scope === "section" || item.itemId === target.itemId;
   }
   const alreadyOnTarget = allDeductions.filter(sameTarget).reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const available = Math.max(0, targetEarned() - alreadyOnTarget);
+  const available = Math.max(0, targetMaximum() - alreadyOnTarget);
   const numericAmount = Math.max(0, Number(amount) || 0);
+  const hasRecordedGrades = Boolean(result && result.recordedMaximum > 0);
 
   async function save() {
     if (!student || !activePlan || !target) return setMessage("اختر الطالب وبند الخصم أولًا.");
     if (numericAmount <= 0) return setMessage("حدد مقدار الخصم.");
-    if (numericAmount > available) return setMessage(`أقصى خصم متاح لهذا البند حاليًا ${ar(available)} درجة.`);
+    if (numericAmount > available) return setMessage(`أقصى خصم متاح لهذا البند ${ar(available)} درجة.`);
     setBusy(true); setMessage("");
     try {
       const response = await fetch("/api/teacher/grade-deductions", {
@@ -170,7 +171,7 @@ export default function GradeDeductionsPanel() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر حفظ الخصم");
       setStudents(current => current.map(item => item.code === student.code ? { ...item, gradeDeductions: Array.isArray(data.deductions) ? data.deductions : item.gradeDeductions } : item));
-      setNote(""); setAmount("1"); setMessage("تم اعتماد الخصم وسيظهر للطالب وولي الأمر مع السبب.");
+      setNote(""); setAmount("1"); setMessage(hasRecordedGrades ? "تم اعتماد الخصم وسيظهر في الدرجة المحتسبة." : "تم حجز الخصم للطالب وسيُطبق تلقائيًا عند الرصد.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر حفظ الخصم");
     } finally { setBusy(false); }
@@ -198,7 +199,7 @@ export default function GradeDeductionsPanel() {
 
   return <section className="gded" dir="rtl">
     <header className="gded-head">
-      <div><small>مرتبط مباشرة بالتحصيل العلمي</small><h2>الخصومات والتعديلات</h2><p>الدرجة الأصلية تبقى محفوظة كما رصدتها. الخصم يُسجل بشكل مستقل مع السبب ويمكن إلغاؤه لاحقًا.</p></div>
+      <div><small>مرتبط مباشرة بالتحصيل العلمي</small><h2>الخصومات والتعديلات</h2><p>يمكن تسجيل الخصم حتى قبل بدء الرصد. يبقى محفوظًا ويُطبق تلقائيًا عند احتساب الدرجة.</p></div>
       <span>سجل موثق</span>
     </header>
 
@@ -209,21 +210,21 @@ export default function GradeDeductionsPanel() {
         <label><span>الفصل</span><select value={className} onChange={event => setClassName(event.target.value)}>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
         <label><span>الطالب</span><select value={studentCode} onChange={event => setStudentCode(event.target.value)}>{classStudents.map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>
         {student && result ? <section className="gded-score">
-          <div><small>الدرجة الأصلية</small><b>{ar(result.earned)} <i>/ {ar(result.maximum)}</i></b></div>
+          <div><small>{hasRecordedGrades ? "الدرجة الأصلية" : "الرصد الحالي"}</small><b>{ar(result.earned)} <i>/ {ar(result.maximum)}</i></b></div>
           <strong>− {ar(totalDeduction)}</strong>
-          <div className="final"><small>بعد الخصم</small><b>{ar(adjusted)} <i>/ {ar(result.maximum)}</i></b></div>
+          <div className="final"><small>{hasRecordedGrades ? "بعد الخصم" : "خصم محجوز"}</small><b>{hasRecordedGrades ? ar(adjusted) : `− ${ar(totalDeduction)}`} <i>{hasRecordedGrades ? `/ ${ar(result.maximum)}` : ""}</i></b></div>
         </section> : null}
       </aside>
 
       <section className="gded-form">
         <div className="gded-fields">
-          <label><span>يُخصم من</span><select value={targetValue} onChange={event => setTargetValue(event.target.value)}>{targets.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select><small>المتاح حاليًا: {ar(available)}</small></label>
+          <label><span>يُخصم من</span><select value={targetValue} onChange={event => setTargetValue(event.target.value)}>{targets.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select><small>الحد المتبقي للخصم: {ar(available)}</small></label>
           <label><span>سبب الخصم</span><select value={reason} onChange={event => setReason(event.target.value)}>{reasons.map(item => <option key={item}>{item}</option>)}</select></label>
         </div>
         <div className="gded-amount"><span>مقدار الخصم</span><div>{[0.5,1,2].map(value => <button type="button" key={value} className={Number(amount) === value ? "active" : ""} onClick={() => setAmount(String(value))}>{ar(value)}</button>)}<input type="number" min="0" step="0.25" value={amount} onChange={event => setAmount(event.target.value)} aria-label="مقدار خصم مخصص"/></div></div>
         <label className="gded-note"><span>ملاحظة داخلية <em>اختيارية</em></span><input value={note} onChange={event => setNote(event.target.value)} placeholder="تفصيل مختصر يساعدك عند المراجعة لاحقًا"/></label>
-        <section className="gded-preview"><div><small>قبل الخصم</small><b>{ar(result?.earned || 0)}</b></div><span>←</span><div><small>بعد اعتماد هذا الخصم</small><b>{ar(Math.max(0, adjusted - numericAmount))}</b></div><p>{reason}{target ? ` • ${target.label}` : ""}</p></section>
-        <button type="button" className="gded-save" disabled={busy || !student || numericAmount <= 0 || numericAmount > available} onClick={() => void save()}>{busy ? "جارٍ الحفظ…" : "اعتماد الخصم"}</button>
+        <section className="gded-preview"><div><small>{hasRecordedGrades ? "قبل الخصم" : "حالة الرصد"}</small><b>{hasRecordedGrades ? ar(result?.earned || 0) : "لم يبدأ"}</b></div><span>←</span><div><small>{hasRecordedGrades ? "بعد اعتماد هذا الخصم" : "يُحجز للطالب"}</small><b>{hasRecordedGrades ? ar(Math.max(0, adjusted - numericAmount)) : `− ${ar(totalDeduction + numericAmount)}`}</b></div><p>{reason}{target ? ` • ${target.label}` : ""}</p></section>
+        <button type="button" className="gded-save" disabled={busy || !student || numericAmount <= 0 || numericAmount > available} onClick={() => void save()}>{busy ? "جارٍ الحفظ…" : hasRecordedGrades ? "اعتماد الخصم" : "حجز الخصم"}</button>
       </section>
     </div>
 
