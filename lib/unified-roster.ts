@@ -129,6 +129,26 @@ function browserReady() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 }
 
+function safeLocalSet(key: string, value: string) {
+  if (!browserReady()) return false;
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function safeRosterCacheSet(key: string, value: string) {
+  if (safeLocalSet(key, value)) return true;
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    return false;
+  }
+  return safeLocalSet(key, value);
+}
+
 function asStudent(value: unknown): UnifiedStudent | null {
   if (!value || typeof value !== "object") return null;
   const source = value as UnifiedStudent;
@@ -148,6 +168,33 @@ function asStudent(value: unknown): UnifiedStudent | null {
     active: source.active !== false,
     rosterActive: source.rosterActive !== false,
   };
+}
+
+function compactStudent(student: UnifiedStudent): UnifiedStudent {
+  const normalized = asStudent(student);
+  if (!normalized) return { id: studentCode(student) || clean(student.id) };
+  const compact: UnifiedStudent = {
+    id: normalized.id,
+    name: normalized.name,
+    class: normalized.class,
+    className: normalized.className,
+    accessCode: normalized.accessCode,
+    studentCode: normalized.studentCode,
+    code: normalized.code,
+    active: normalized.active !== false,
+    rosterActive: normalized.rosterActive !== false,
+  };
+  if (typeof normalized.grade === "number") compact.grade = normalized.grade;
+  if (clean(normalized.section)) compact.section = clean(normalized.section);
+  if (clean(normalized.ownerTeacherId)) compact.ownerTeacherId = clean(normalized.ownerTeacherId);
+  if (clean(normalized.teacherId)) compact.teacherId = clean(normalized.teacherId);
+  if (clean(normalized.firstTeacherId)) compact.firstTeacherId = clean(normalized.firstTeacherId);
+  if (clean(normalized.lastTeacherId)) compact.lastTeacherId = clean(normalized.lastTeacherId);
+  if (typeof normalized.synced === "boolean") compact.synced = normalized.synced;
+  if (normalized.officialRoster === true) compact.officialRoster = true;
+  if (clean(normalized.sharedRosterId)) compact.sharedRosterId = clean(normalized.sharedRosterId);
+  if (normalized.linkedFromSharedRoster === true) compact.linkedFromSharedRoster = true;
+  return compact;
 }
 
 export function mergeStudents(...groups: UnifiedStudent[][]) {
@@ -187,15 +234,18 @@ export function loadDeletedCodes(teacherId: string) {
 
 export function saveDeletedCodes(teacherId: string, codes: Set<string>) {
   if (!browserReady() || !teacherId) return;
-  localStorage.setItem(rosterDeletedStorageKey(teacherId), JSON.stringify([...codes]));
+  safeLocalSet(rosterDeletedStorageKey(teacherId), JSON.stringify([...codes]));
 }
 
 export function saveLocalRoster(teacherId: string, students: UnifiedStudent[], subjectKey?: string) {
   if (!browserReady() || !teacherId) return;
   const deleted = loadDeletedCodes(teacherId);
   const normalized = mergeStudents(students).filter((student) => !deleted.has(studentCode(student)));
-  localStorage.setItem(rosterStorageKey(teacherId, subjectKey), JSON.stringify(normalized));
-  if (subjectKey) localStorage.removeItem(`lahooni-pending-students:${teacherId}:${subjectKey}`);
+  const compact = normalized.map(compactStudent);
+  safeRosterCacheSet(rosterStorageKey(teacherId, subjectKey), JSON.stringify(compact));
+  if (subjectKey) {
+    try { localStorage.removeItem(`lahooni-pending-students:${teacherId}:${subjectKey}`); } catch { /* cloud roster remains authoritative */ }
+  }
   window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId, subjectKey: clean(subjectKey) } }));
 }
 
@@ -203,8 +253,9 @@ export function loadLocalRoster(teacherId: string, subjectKey?: string) {
   if (!browserReady() || !teacherId) return [] as UnifiedStudent[];
   const sources: UnifiedStudent[][] = [];
   let hasCurrentRoster = false;
+  const cacheKey = rosterStorageKey(teacherId, subjectKey);
   try {
-    const parsed = JSON.parse(localStorage.getItem(rosterStorageKey(teacherId, subjectKey)) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(cacheKey) || "[]");
     if (Array.isArray(parsed)) {
       sources.push(parsed as UnifiedStudent[]);
       hasCurrentRoster = parsed.length > 0;
@@ -224,7 +275,7 @@ export function loadLocalRoster(teacherId: string, subjectKey?: string) {
 
   const deleted = loadDeletedCodes(teacherId);
   const merged = mergeStudents(...sources).filter((student) => !deleted.has(studentCode(student)));
-  localStorage.setItem(rosterStorageKey(teacherId, subjectKey), JSON.stringify(merged));
+  safeRosterCacheSet(cacheKey, JSON.stringify(merged.map(compactStudent)));
   return merged;
 }
 
@@ -242,7 +293,7 @@ export function loadLocalClasses(teacherId: string, subjectKey?: string) {
 export function saveLocalClasses(teacherId: string, classes: string[], subjectKey?: string) {
   if (!browserReady() || !teacherId) return;
   const normalized = [...new Set(classes.map(normalizeClass).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true }));
-  localStorage.setItem(rosterClassesStorageKey(teacherId, subjectKey), JSON.stringify(normalized));
+  safeLocalSet(rosterClassesStorageKey(teacherId, subjectKey), JSON.stringify(normalized));
   window.dispatchEvent(new CustomEvent("lahooni-roster-updated", { detail: { teacherId, subjectKey: clean(subjectKey) } }));
 }
 
