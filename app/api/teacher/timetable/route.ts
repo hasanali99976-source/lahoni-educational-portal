@@ -8,7 +8,7 @@ import { requireSession } from "../../../../lib/server/portal-auth";
 type Lesson = { subject: string; className: string; notes: string };
 type Schedule = Record<string, Lesson>;
 
-const FIRESTORE_TIMEOUT_MS = 7000;
+const FIRESTORE_TIMEOUT_MS = 12000;
 const VALID_CELL = /^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/;
 
 async function withTimeout<T>(promise: Promise<T>, milliseconds = FIRESTORE_TIMEOUT_MS): Promise<T> {
@@ -133,29 +133,26 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const lessons = await withTimeout(adminDb().runTransaction(async transaction => {
-      const snapshot = await transaction.get(context.reference);
-      const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
-      const existing = cleanSchedule(data?.lessons, context.subjectLabel);
-      const retained = Object.fromEntries(
-        Object.entries(existing).filter(([, lesson]) => !allowedClasses.has(lesson.className)),
-      ) as Schedule;
-      const next = { ...retained, ...submitted };
-      const now = new Date().toISOString();
+    const snapshot = await withTimeout(context.reference.get());
+    const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
+    const existing = cleanSchedule(data?.lessons, context.subjectLabel);
+    const retained = Object.fromEntries(
+      Object.entries(existing).filter(([, lesson]) => !allowedClasses.has(lesson.className)),
+    ) as Schedule;
+    const lessons = { ...retained, ...submitted };
+    const now = new Date().toISOString();
 
-      transaction.set(context.reference, {
-        lessons: next,
-        teacherId: context.session.userId,
-        teacherName: context.session.name || "",
-        subjectKey: subjectId,
-        updatedAt: now,
-        savedThroughApiAt: now,
-      }, { merge: true });
-      return next;
-    }));
+    await withTimeout(context.reference.set({
+      lessons,
+      teacherId: context.session.userId,
+      teacherName: context.session.name || "",
+      subjectKey: subjectId,
+      updatedAt: now,
+      savedThroughApiAt: now,
+    }, { merge: true }));
 
     return NextResponse.json(
-      { ok: true, lessons },
+      { ok: true, lessons, syncedAt: now },
       { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   } catch (error) {
