@@ -37,7 +37,7 @@ function codeFromPage() {
   return String(document.querySelector(".sta4-id code")?.textContent || "").trim().toUpperCase();
 }
 
-function activeSubjectLabel() {
+function activeSubjectLabelFromPage() {
   return String(document.querySelector(".sta4-subject.active b")?.textContent || "").trim();
 }
 
@@ -48,6 +48,7 @@ export default function StudentSubjectAchievementRuntime() {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [subjectHosts, setSubjectHosts] = useState<Array<{ host: HTMLElement; match: Match }>>([]);
   const [progressHost, setProgressHost] = useState<HTMLElement | null>(null);
+  const [activeLabel, setActiveLabel] = useState("");
 
   async function load(code: string) {
     if (!/^TH[123]\d{3}$/.test(code)) return;
@@ -87,6 +88,7 @@ export default function StudentSubjectAchievementRuntime() {
     });
     setSubjectHosts(mapped);
     setProgressHost(document.querySelector(".sta4-progress-layout") as HTMLElement | null);
+    setActiveLabel(activeSubjectLabelFromPage());
   }
 
   useEffect(() => {
@@ -96,6 +98,7 @@ export default function StudentSubjectAchievementRuntime() {
       setSummaries([]);
       setSubjectHosts([]);
       setProgressHost(null);
+      setActiveLabel("");
       return;
     }
 
@@ -129,7 +132,6 @@ export default function StudentSubjectAchievementRuntime() {
   useEffect(() => { locateHosts(); }, [matches, summaries]);
 
   const bySubject = useMemo(() => new Map(summaries.map(item => [item.subjectKey, item])), [summaries]);
-  const activeLabel = activeSubjectLabel();
   const activeMatch = matches.find(item => item.subjectLabel === activeLabel) || matches[0];
   const activeSummary = activeMatch ? bySubject.get(activeMatch.subjectKey) : undefined;
 
@@ -146,7 +148,7 @@ export default function StudentSubjectAchievementRuntime() {
           {summary.deduction > 0 ? <>
             <small>قبل الخصم {ar(summary.beforeDeduction)} • خصم −{ar(summary.deduction)}</small>
             <em>السبب: {firstDeduction?.reason || "خصم أكاديمي"}{summary.deductions.length > 1 ? ` + ${summary.deductions.length - 1}` : ""}</em>
-          </> : <small>{summary.hasPlan ? `خطة المعلم • بدون خصم` : "لم تعتمد خطة رصد بعد"}</small>}
+          </> : <small>{summary.hasPlan ? "حسب خطة المعلم • بدون خصم" : "لم تعتمد خطة رصد بعد"}</small>}
         </div>,
         host,
       );
@@ -156,19 +158,19 @@ export default function StudentSubjectAchievementRuntime() {
       <section className={`sta4-final-grade-explain ${activeSummary.deduction > 0 ? "has-deduction" : ""}`}>
         <header><div><small>التحصيل العلمي حسب خطة المعلم</small><h3>{activeMatch?.subjectLabel || "المادة"}</h3></div><strong>{ar(activeSummary.afterDeduction)} <i>/ ١٠٠</i></strong></header>
         <div className="sta4-grade-flow">
-          <span><small>قبل الخصم</small><b>{ar(activeSummary.beforeDeduction)} / ١٠٠</b></span>
+          <span><small>الدرجة قبل الخصم</small><b>{ar(activeSummary.beforeDeduction)} / ١٠٠</b></span>
           <i>←</i>
-          <span className="deduction"><small>الخصم</small><b>{activeSummary.deduction ? `− ${ar(activeSummary.deduction)}` : "٠"}</b></span>
+          <span className="deduction"><small>مقدار الخصم</small><b>{activeSummary.deduction ? `− ${ar(activeSummary.deduction)}` : "٠"}</b></span>
           <i>←</i>
-          <span className="final"><small>بعد الخصم</small><b>{ar(activeSummary.afterDeduction)} / ١٠٠</b></span>
+          <span className="final"><small>الدرجة بعد الخصم</small><b>{ar(activeSummary.afterDeduction)} / ١٠٠</b></span>
         </div>
         {activeSummary.deduction > 0 ? <div className="sta4-deduction-reasons">
           {activeSummary.deductions.map((item, index) => <article key={`${activeSummary.subjectKey}-${index}`}>
             <b>سبب الخصم: {item.reason || "خصم أكاديمي"}</b>
             {item.note ? <p>ملاحظة المعلم: {item.note}</p> : null}
-            <small>خصم {ar(item.amount)} درجة{item.teacherName ? ` • ${item.teacherName}` : ""}</small>
+            <small>تم خصم {ar(item.amount)} درجة{item.teacherName ? ` • ${item.teacherName}` : ""}</small>
           </article>)}
-        </div> : <p className="sta4-no-deduction">لا يوجد خصم على هذه المادة حاليًا.</p>}
+        </div> : <p className="sta4-no-deduction">لا يوجد خصم على هذه المادة حاليًا، والدرجة أعلاه محسوبة حسب خطة المعلم.</p>}
       </section>,
       progressHost,
     ) : null}
