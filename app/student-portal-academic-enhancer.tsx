@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type GradeValueMap } from "../lib/grade-plan";
@@ -206,7 +206,7 @@ export default function StudentPortalAcademicEnhancer() {
     )}
 
     {noteHost && summary?.deductions.length ? createPortal(<>
-      {summary.deductions.map((item, index) => <article className="sta4-note-item sta4-deduction-note" key={item.id || `${currentMatch.subjectKey}-${index}`} style={{ "--note": "#b77917" } as React.CSSProperties}>
+      {summary.deductions.map((item, index) => <article className="sta4-note-item sta4-deduction-note" key={item.id || `${currentMatch.subjectKey}-${index}`} style={{ "--note": "#b77917" } as CSSProperties}>
         <i />
         <div>
           <b>{currentMatch.subjectLabel} • خصم من التحصيل العلمي</b>
