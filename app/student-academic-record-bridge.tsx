@@ -31,6 +31,22 @@ type GradeHistoryEntry = {
   changeType?: "added" | "changed" | "removed";
 };
 
+type GradeDeduction = {
+  id: string;
+  planId?: string;
+  scope?: "plan" | "section" | "item";
+  sectionId?: string;
+  sectionLabel?: string;
+  itemId?: string;
+  itemLabel?: string;
+  amount?: number;
+  reason?: string;
+  note?: string;
+  createdAt?: string;
+  teacherName?: string;
+  reversedAt?: string;
+};
+
 type StudentRecord = {
   name?: string;
   class?: string;
@@ -40,6 +56,7 @@ type StudentRecord = {
   gradePlanUpdatedAt?: string;
   gradeHistoryUpdatedAt?: string;
   gradeHistory?: GradeHistoryEntry[];
+  gradeDeductions?: GradeDeduction[];
 };
 
 type Match = {
@@ -79,6 +96,15 @@ function dateLabel(value?: string) {
 
 function valuesFor(match: Match, plan: GradePlan) {
   return match.data.gradePlanValues?.[plan.id] || match.data.gradeValues || {};
+}
+
+function activeDeductions(match: Match, plan: GradePlan) {
+  return (Array.isArray(match.data.gradeDeductions) ? match.data.gradeDeductions : [])
+    .filter(item => !item.reversedAt && (!item.planId || item.planId === plan.id));
+}
+
+function deductionTotal(items: GradeDeduction[]) {
+  return Number(items.reduce((sum, item) => sum + Number(item.amount || 0), 0).toFixed(2));
 }
 
 function historyFor(matches: Match[]) {
@@ -211,17 +237,37 @@ export default function StudentAcademicRecordBridge() {
   useEffect(() => {
     if (!open || !matches.length) return;
     const snapshot = matches;
-    const timer = window.setInterval(async () => {
-      const refreshed = await Promise.all(snapshot.map(hydrate));
-      setMatches(refreshed);
-    }, 12000);
-    return () => window.clearInterval(timer);
+    let refreshing = false;
+
+    const refresh = async () => {
+      if (refreshing || document.visibilityState !== "visible") return;
+      refreshing = true;
+      try {
+        const refreshed = await Promise.all(snapshot.map(hydrate));
+        setMatches(refreshed);
+      } finally {
+        refreshing = false;
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [open, matches.length]);
 
   const academic = useMemo(() => matches.map(match => {
     const plan = normalizeGradePlan(match.data.gradePlan);
     const result = plan ? calculateGradePlanResult(plan, { ...match.data, gradeValues: valuesFor(match, plan) }) : null;
-    return { match, plan, result };
+    const deductions = plan ? activeDeductions(match, plan) : [];
+    const deducted = deductionTotal(deductions);
+    const adjusted = result ? Math.max(0, Number((result.earned - deducted).toFixed(2))) : 0;
+    return { match, plan, result, deductions, deducted, adjusted };
   }), [matches]);
 
   const changes = useMemo(() => historyFor(matches), [matches]);
@@ -310,17 +356,29 @@ export default function StudentAcademicRecordBridge() {
         <div className="sar-actions"><button type="button" onClick={() => void printSummary()} disabled={printing || loading}>الشهادة الشاملة PDF</button><button type="button" className="soft" onClick={() => setOpen(false)}>العودة للبوابة</button></div>
       </header>
 
-      <section className="sar-hero sar-hero-integrated"><div><small>شهادتك الأكاديمية الحية</small><h1>{studentName}</h1><p>كل مادة مرتبطة بخطة معلمها كما اعتمدها، والبند غير المرصود يبقى «لم تُرصد بعد» دون تحويله إلى صفر.</p></div><span className="sar-seal">موثق<br/>من البوابة</span></section>
+      <section className="sar-hero sar-hero-integrated"><div><small>شهادتك الأكاديمية الحية</small><h1>{studentName}</h1><p>كل مادة مرتبطة بخطة معلمها كما اعتمدها، وإذا وُجد خصم يظهر سببه ومقداره والدرجة المحتسبة بعده دون تغيير الدرجة الأصلية المحفوظة.</p></div><span className="sar-seal">موثق<br/>من البوابة</span></section>
 
       {loading ? <section className="sar-empty"><h2>جارٍ تحديث السجل…</h2><p>نقرأ آخر رصد محفوظ من معلمي المواد.</p></section> : null}
       {message ? <div className="sar-message">{message}</div> : null}
 
       {!loading && matches.length ? <>
-        <section className="sar-subjects">{academic.map(({ match, result }) => <button type="button" key={match.subjectKey} className={selectedAcademic?.match.subjectKey === match.subjectKey ? "active" : ""} onClick={() => setSelectedKey(match.subjectKey)}><span><b>{match.subjectLabel}</b><small>{match.teacherName}</small></span><strong>{result && result.recordedMaximum > 0 ? `${ar(result.earned)} / ${ar(result.maximum)}` : "لم تُرصد بعد"}</strong></button>)}</section>
+        <section className="sar-subjects">{academic.map(({ match, result, deducted, adjusted }) => <button type="button" key={match.subjectKey} className={selectedAcademic?.match.subjectKey === match.subjectKey ? "active" : ""} onClick={() => setSelectedKey(match.subjectKey)}><span><b>{match.subjectLabel}</b><small>{match.teacherName}</small>{deducted > 0 ? <em>خصومات −{ar(deducted)}</em> : null}</span><strong>{result && result.recordedMaximum > 0 ? `${ar(adjusted)} / ${ar(result.maximum)}` : "لم تُرصد بعد"}</strong></button>)}</section>
 
         {selectedAcademic?.plan && selectedAcademic.result ? <section className="sar-certificate">
-          <header><div><small>شهادة تحصيل مستقلة</small><h2>{selectedAcademic.match.subjectLabel}</h2><p>المعلم: {selectedAcademic.match.teacherName} • {className}</p></div><div className="sar-total"><small>الدرجة الحالية</small><strong>{ar(selectedAcademic.result.earned)} <i>/ {ar(selectedAcademic.result.maximum)}</i></strong><span>اكتمال الرصد {ar(selectedAcademic.result.completion)}٪</span><button type="button" className="sar-pdf" disabled={printing} onClick={() => void printSubject()}>{printing ? "جارٍ تجهيز PDF…" : "طباعة / حفظ شهادة المادة PDF"}</button></div></header>
-          <div className="sar-sections">{selectedAcademic.result.sections.map(section => <article key={section.id}><div className="sar-section-head"><span><small>القسم / الوحدة</small><b>{section.label}</b></span><strong>{ar(section.earned)} / {ar(section.maximum)}</strong></div><div className="sar-items">{section.items.map(entry => <div key={entry.key} className={entry.recorded ? "recorded" : "pending"}><span><b>{entry.item.label}</b><small>{entry.recorded ? "تم الرصد" : "لم تُرصد بعد"}</small></span><strong>{entry.recorded ? ar(entry.value) : "—"} <i>/ {ar(entry.maximum)}</i></strong></div>)}</div></article>)}</div>
+          <header><div><small>شهادة تحصيل مستقلة</small><h2>{selectedAcademic.match.subjectLabel}</h2><p>المعلم: {selectedAcademic.match.teacherName} • {className}</p></div><div className="sar-total"><small>{selectedAcademic.deducted > 0 ? "الدرجة المحتسبة بعد الخصم" : "الدرجة الحالية"}</small><strong>{ar(selectedAcademic.adjusted)} <i>/ {ar(selectedAcademic.result.maximum)}</i></strong><span>{selectedAcademic.deducted > 0 ? `الدرجة الأصلية ${ar(selectedAcademic.result.earned)} • الخصومات −${ar(selectedAcademic.deducted)}` : `اكتمال الرصد ${ar(selectedAcademic.result.completion)}٪`}</span><button type="button" className="sar-pdf" disabled={printing} onClick={() => void printSubject()}>{printing ? "جارٍ تجهيز PDF…" : "طباعة / حفظ شهادة المادة PDF"}</button></div></header>
+
+          {selectedAcademic.deducted > 0 ? <section className="sar-deductions"><header><div><small>خصومات مرتبطة بالتحصيل</small><h3>تفاصيل الخصم</h3></div><strong>− {ar(selectedAcademic.deducted)}</strong></header><div>{selectedAcademic.deductions.map(item => <article key={item.id}><b>− {ar(Number(item.amount || 0))}</b><div><strong>{item.reason || "خصم أكاديمي"}</strong><span>{item.itemLabel || item.sectionLabel || "إجمالي التحصيل"}</span>{item.note ? <p>{item.note}</p> : null}<small>{dateLabel(item.createdAt)}{item.teacherName ? ` • ${item.teacherName}` : ""}</small></div></article>)}</div><footer><span>الدرجة الأصلية <b>{ar(selectedAcademic.result.earned)}</b></span><i>−</i><span>الخصومات <b>{ar(selectedAcademic.deducted)}</b></span><i>=</i><span className="final">الدرجة المحتسبة <b>{ar(selectedAcademic.adjusted)}</b></span></footer></section> : null}
+
+          <div className="sar-sections">{selectedAcademic.result.sections.map(section => {
+            const sectionDeductions = selectedAcademic.deductions.filter(item => item.sectionId === section.id);
+            const sectionDeducted = deductionTotal(sectionDeductions);
+            const sectionAdjusted = Math.max(0, Number((section.earned - sectionDeducted).toFixed(2)));
+            return <article key={section.id}><div className="sar-section-head"><span><small>القسم / الوحدة</small><b>{section.label}</b>{sectionDeducted > 0 ? <em>خصم −{ar(sectionDeducted)}</em> : null}</span><strong>{ar(sectionAdjusted)} / {ar(section.maximum)}</strong></div><div className="sar-items">{section.items.map(entry => {
+              const itemDeducted = deductionTotal(sectionDeductions.filter(item => item.itemId === entry.item.id));
+              const itemAdjusted = Math.max(0, Number((entry.value - itemDeducted).toFixed(2)));
+              return <div key={entry.key} className={entry.recorded ? "recorded" : "pending"}><span><b>{entry.item.label}</b><small>{entry.recorded ? (itemDeducted > 0 ? `تم الرصد • خصم −${ar(itemDeducted)}` : "تم الرصد") : "لم تُرصد بعد"}</small></span><strong>{entry.recorded ? ar(itemAdjusted) : "—"} <i>/ {ar(entry.maximum)}</i></strong></div>;
+            })}</div></article>;
+          })}</div>
           <footer><img src={logo} alt=""/><div><b>معتمد من بوابة أستاذ لحوني التعليمية</b><span>يعكس آخر رصد محفوظ من معلم المادة{selectedAcademic.match.data.gradeHistoryUpdatedAt || selectedAcademic.match.data.gradePlanUpdatedAt ? ` • آخر تحديث ${dateLabel(selectedAcademic.match.data.gradeHistoryUpdatedAt || selectedAcademic.match.data.gradePlanUpdatedAt)}` : ""}</span></div><span className="sar-stamp">معتمد</span></footer>
         </section> : <section className="sar-empty"><h2>{selectedAcademic?.match.subjectLabel || "المادة"}</h2><p>لم يعتمد معلم المادة خطة درجات تفصيلية بعد.</p></section>}
 
