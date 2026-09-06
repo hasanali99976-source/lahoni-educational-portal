@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeGradePlan, validateGradePlanDraft } from "../../../../lib/grade-plan";
+import {
+  cleanGradePlanSubject,
+  readActiveGradePlanForSubject,
+  teacherOwnsGradePlanSubject,
+} from "../../../../lib/server/grade-plan-store";
 
 const CONFIG_COLLECTION = "gradePlanConfig";
 const VERSIONS_COLLECTION = "gradePlanVersions";
@@ -16,39 +21,50 @@ function isQuotaError(error: unknown) {
   return text.includes("resource-exhausted") || text.includes("resource_exhausted") || text.includes("quota exceeded");
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
 
   try {
+    const url = new URL(request.url);
+    const subjectId = cleanGradePlanSubject(url.searchParams.get("subjectId"));
+    if (subjectId && !teacherOwnsGradePlanSubject(session.user, subjectId)) {
+      return NextResponse.json({ ok: false, message: "هذه المادة غير مسندة للمعلم الحالي." }, { status: 403 });
+    }
+
     const database = adminDb();
     const root = teacherRoot(session.userId);
-    const config = await database.collection(`${root}/${CONFIG_COLLECTION}`).doc("current").get();
-    const activePlanId = config.exists ? String(config.data()?.activePlanId || "") : "";
-    const [activeSnapshot, historySnapshot] = await Promise.all([
-      activePlanId ? database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(activePlanId).get() : Promise.resolve(null),
-      database.collection(`${root}/${VERSIONS_COLLECTION}`).get(),
-    ]);
-    const activePlan = activeSnapshot && activeSnapshot.exists
-      ? normalizeGradePlan({ id: activeSnapshot.id, ...activeSnapshot.data() })
-      : null;
-    const history = historySnapshot.docs.map((document: { id: string; data: () => Record<string, unknown> }) => {
-      const data = document.data();
-      return {
-        id: document.id,
-        version: Number(data.version || 0),
-        mode: String(data.mode || ""),
-        method: String(data.method || ""),
-        status: String(data.status || "archived"),
-        activatedAt: String(data.activatedAt || ""),
-        archivedAt: String(data.archivedAt || ""),
-      };
-    }).sort((a, b) => b.version - a.version).slice(0, 20);
+    const gradePlan = subjectId
+      ? await readActiveGradePlanForSubject(session.userId, subjectId)
+      : await readActiveGradePlanForSubject(session.userId, "");
+    const historySnapshot = await database.collection(`${root}/${VERSIONS_COLLECTION}`).get();
+    const history = historySnapshot.docs
+      .map((document: { id: string; data: () => Record<string, unknown> }) => ({ id: document.id, data: document.data() }))
+      .filter(entry => {
+        if (!subjectId) return !cleanGradePlanSubject(entry.data.subjectId);
+        const entrySubject = cleanGradePlanSubject(entry.data.subjectId);
+        if (gradePlan.source === "legacy") return !entrySubject;
+        return entrySubject === subjectId;
+      })
+      .map(entry => ({
+        id: entry.id,
+        version: Number(entry.data.version || 0),
+        mode: String(entry.data.mode || ""),
+        method: String(entry.data.method || ""),
+        status: String(entry.data.status || "archived"),
+        activatedAt: String(entry.data.activatedAt || ""),
+        archivedAt: String(entry.data.archivedAt || ""),
+      }))
+      .sort((a, b) => b.version - a.version)
+      .slice(0, 20);
+
     return NextResponse.json({
       ok: true,
-      activePlan,
-      hasActivePlan: Boolean(activePlan || activePlanId),
-      versionNumber: Number(config.data()?.versionNumber || 0),
+      subjectId,
+      planSource: gradePlan.source,
+      activePlan: gradePlan.activePlan,
+      hasActivePlan: Boolean(gradePlan.activePlan || gradePlan.activePlanId),
+      versionNumber: Number(gradePlan.configData.versionNumber || 0),
       history,
     }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
@@ -63,6 +79,12 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
+    const subjectId = cleanGradePlanSubject(body?.subjectId);
+    if (!subjectId) return NextResponse.json({ ok: false, message: "حدد المادة قبل اعتماد الخطة." }, { status: 400 });
+    if (!teacherOwnsGradePlanSubject(session.user, subjectId)) {
+      return NextResponse.json({ ok: false, message: "هذه المادة غير مسندة للمعلم الحالي." }, { status: 403 });
+    }
+
     const validation = validateGradePlanDraft(body?.plan ?? body);
     if (!validation.valid) {
       return NextResponse.json({ ok: false, message: validation.errors[0] || "الخطة غير مكتملة.", errors: validation.errors }, { status: 400 });
@@ -70,9 +92,9 @@ export async function POST(request: Request) {
 
     const database = adminDb();
     const root = teacherRoot(session.userId);
-    const configRef = database.collection(`${root}/${CONFIG_COLLECTION}`).doc("current");
+    const configRef = database.collection(`${root}/${CONFIG_COLLECTION}`).doc(subjectId);
     const now = new Date().toISOString();
-    const planId = `plan-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    const planId = `${subjectId}--plan-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
     let version = 1;
 
     await database.runTransaction(async transaction => {
@@ -92,12 +114,14 @@ export async function POST(request: Request) {
         id: planId,
         version,
         teacherId: session.userId,
+        subjectId,
         status: "active",
         createdAt: now,
         activatedAt: now,
         archivedAt: "",
       });
       transaction.set(configRef, {
+        subjectId,
         activePlanId: planId,
         versionNumber: version,
         mode: validation.draft.mode,
@@ -117,16 +141,16 @@ export async function POST(request: Request) {
       activatedAt: now,
     });
 
-    return NextResponse.json({ ok: true, planId, version, activePlan, message: "تم اعتماد خطة توزيع الدرجات وقفلها." }, { status: 201 });
+    return NextResponse.json({ ok: true, subjectId, planId, version, activePlan, message: "تم اعتماد خطة المادة وقفلها." }, { status: 201 });
   } catch (error) {
     console.error("teacher grade plan save failed", error);
     if (isQuotaError(error)) {
       return NextResponse.json({
         ok: false,
         code: "grade_plan_quota_exceeded",
-        message: "تم بلوغ حصة التخزين السحابي مؤقتًا. يمكن اعتماد الخطة محليًا ومتابعة الرصد الآن.",
+        message: "تم بلوغ حصة التخزين السحابي مؤقتًا. يمكن اعتماد خطة المادة محليًا ومتابعة الرصد الآن.",
       }, { status: 507 });
     }
-    return NextResponse.json({ ok: false, message: "تعذر اعتماد الخطة الآن. لم يتم تغيير الخطة الحالية." }, { status: 500 });
+    return NextResponse.json({ ok: false, message: "تعذر اعتماد خطة المادة الآن. لم يتم تغيير الخطة الحالية." }, { status: 500 });
   }
 }
