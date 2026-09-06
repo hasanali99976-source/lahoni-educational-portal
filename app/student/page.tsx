@@ -13,10 +13,12 @@ type UnitRecord = { total?: number; attendance?: number; participation?: number;
 type AttendanceSummary = { present: number; absent: number; late: number; excused: number; escaped: number; total: number; disciplineRate: number; latestDate?: string };
 type TeacherNoteEntry = { id?: string; type?: string; label?: string; message?: string; createdAt?: string; teacherName?: string; subject?: string };
 type TimetableLesson = { dayKey: string; dayLabel: string; dayIndex: number; period: number; className: string; subject: string; notes: string };
+type GradeDeduction = { id?: string; planId?: string; scope?: "plan" | "section" | "item"; sectionId?: string; itemId?: string; amount?: number; reversedAt?: string };
 type StudentRecord = {
   gradePlan?: GradePlan | null;
   gradeValues?: GradeValueMap;
   gradePlanValues?: Record<string, GradeValueMap>;
+  gradeDeductions?: GradeDeduction[];
   name?: string;
   class?: string;
   accessCode?: string;
@@ -101,15 +103,32 @@ function StudentMark() {
   return <svg viewBox="0 0 24 24"><path d="m3 8 9-5 9 5-9 5-9-5Z"/><path d="M7 11v5c2.6 2.2 7.4 2.2 10 0v-5M21 8v6"/><circle cx="12" cy="19" r="2"/></svg>;
 }
 
+function activeDeductions(match: Match, plan: GradePlan) {
+  return (Array.isArray(match.data.gradeDeductions) ? match.data.gradeDeductions : [])
+    .filter(item => !item.reversedAt && (!item.planId || item.planId === plan.id));
+}
+
+function deductionTotal(items: GradeDeduction[]) {
+  return Number(items.reduce((sum, item) => sum + Math.max(0, Number(item.amount || 0)), 0).toFixed(2));
+}
+
 function metricsFor(match: Match) {
   const plan = normalizeGradePlan(match.data.gradePlan);
   if (plan) {
     const result = calculateGradePlanResult(plan, match.data || {});
+    const deductions = activeDeductions(match, plan);
+    const deducted = deductionTotal(deductions);
+    const total = Math.max(0, Number((result.earned - deducted).toFixed(2)));
     return {
-      percentage: result.percentage || 0,
-      total: result.earned || 0,
+      percentage: result.maximum ? Math.round((total / result.maximum) * 100) : 0,
+      total,
       completion: result.completion || 0,
-      sections: result.sections.map(section => ({ label: section.label, earned: section.earned, max: section.maximum, percentage: section.maximum ? Math.round(section.earned / section.maximum * 100) : 0 })),
+      deducted,
+      sections: result.sections.map(section => {
+        const sectionDeducted = deductionTotal(deductions.filter(item => item.sectionId === section.id));
+        const earned = Math.max(0, Number((section.earned - sectionDeducted).toFixed(2)));
+        return { label: section.label, earned, max: section.maximum, percentage: section.maximum ? Math.round(earned / section.maximum * 100) : 0 };
+      }),
     };
   }
   const sections = ACADEMIC_UNITS.map(unit => {
@@ -123,7 +142,7 @@ function metricsFor(match: Match) {
   });
   const research = Math.min(RESEARCH_MAX, Number(match.data.researchScore ?? match.data.research ?? 0));
   const total = Math.min(FINAL_MAX, sections.reduce((sum, item) => sum + item.earned, 0) + research);
-  return { percentage: calculatePercentage(total, FINAL_MAX), total, completion: calculatePercentage(total, FINAL_MAX), sections };
+  return { percentage: calculatePercentage(total, FINAL_MAX), total, completion: calculatePercentage(total, FINAL_MAX), deducted: 0, sections };
 }
 
 function noteDate(value?: string) {
@@ -195,16 +214,30 @@ export default function StudentPage() {
   useEffect(() => {
     if (!selected?.accessToken) return;
     let active = true;
-    let timer = 0;
+    let refreshing = false;
     const refresh = async () => {
-      const updated = await hydrateMatch(selected);
-      if (!active) return;
-      setSelected(current => current?.subjectKey === updated.subjectKey ? updated : current);
-      setMatches(current => current.map(item => item.subjectKey === updated.subjectKey ? updated : item));
-      timer = window.setTimeout(refresh, 15000);
+      if (!active || refreshing || document.visibilityState !== "visible") return;
+      refreshing = true;
+      try {
+        const updated = await hydrateMatch(selected);
+        if (!active) return;
+        setSelected(current => current?.subjectKey === updated.subjectKey ? updated : current);
+        setMatches(current => current.map(item => item.subjectKey === updated.subjectKey ? updated : item));
+      } finally {
+        refreshing = false;
+      }
     };
-    timer = window.setTimeout(refresh, 15000);
-    return () => { active = false; window.clearTimeout(timer); };
+    const onFocus = () => void refresh();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [selected?.accessToken]);
 
   function submit(event: FormEvent) {
@@ -224,7 +257,7 @@ export default function StudentPage() {
 
   const theme = subjectTheme(selected?.subjectKey || "", selected?.subjectLabel || "المادة");
   const style = { "--st-primary": theme.primary, "--st-deep": theme.deep, "--st-accent": theme.accent, "--st-soft": theme.soft } as CSSProperties;
-  const selectedMetrics = selected ? metricsFor(selected) : { percentage: 0, total: 0, completion: 0, sections: [] as Array<{ label: string; earned: number; max: number; percentage: number }> };
+  const selectedMetrics = selected ? metricsFor(selected) : { percentage: 0, total: 0, completion: 0, deducted: 0, sections: [] as Array<{ label: string; earned: number; max: number; percentage: number }> };
   const studentName = selected?.data.name?.trim() || "الطالب";
   const classLabel = selected?.data.class?.trim() || "الفصل غير محدد";
   const attendance = selected?.data.attendanceSummary || { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0, disciplineRate: 100 };
@@ -288,15 +321,15 @@ export default function StudentPage() {
     return <main className="student-gateway-v4" dir="rtl">
       <section className="stg4-shell">
         <div className="stg4-form">
-          <div className="stg4-brand"><img src={PORTAL_LOGO} alt="هوية بوابة أستاذ لحوني التعليمية"/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>بوابة الطالب</small></div></div>
-          <small>مساحتك الدراسية</small>
-          <h1>دخول الطالب</h1>
-          <p>أدخل كودك لتشاهد موادك، ملاحظات معلميك، تقدمك، جدولك واختباراتك في مكان واحد.</p>
+          <div className="stg4-brand"><img src={PORTAL_LOGO} alt="هوية بوابة أستاذ لحوني التعليمية"/><div><strong>بوابة أستاذ لحوني التعليمية</strong><small>بوابة الطالب وولي الأمر</small></div></div>
+          <small>المساحة الدراسية المشتركة</small>
+          <h1>دخول الطالب وولي الأمر</h1>
+          <p>أدخل كود الطالب لمشاهدة المواد، ملاحظات المعلمين، التقدم، الجدول والاختبارات في مكان واحد.</p>
           <form onSubmit={submit}>
             <label htmlFor="student-code-v4">كود الطالب</label>
             <div className="stg4-code"><span>TH</span><input id="student-code-v4" dir="ltr" value={accessCode} onChange={event => setAccessCode(normalizeStudentCode(event.target.value))} placeholder={STUDENT_CODE_EXAMPLE} maxLength={6} autoCapitalize="characters" autoComplete="username" required autoFocus/></div>
             {message ? <p className="stg4-error">{message}</p> : null}
-            <button className="stg4-submit" disabled={loading}>{loading ? "جارٍ فتح بوابتك…" : "دخول بوابة الطالب"}</button>
+            <button className="stg4-submit" disabled={loading}>{loading ? "جارٍ فتح البوابة…" : "دخول البوابة"}</button>
           </form>
           <div className="stg4-help"><span>درجاتي</span><span>ملاحظاتي</span><span>جدولي</span><span>تقريري</span></div>
         </div>
@@ -304,8 +337,8 @@ export default function StudentPage() {
           <div className="stg4-student-mark"><StudentMark/></div>
           <div className="stg4-identity-copy">
             <small>هويتك التعليمية</small>
-            <h2>كل ما يخص دراستك، واضح أمامك.</h2>
-            <p>بوابة مخصصة للطالب فقط؛ تربط ما يرصد المعلم بما تحتاج أن تعرفه أنت دون قوائم معقدة أو معلومات زائدة.</p>
+            <h2>كل ما يخص الدراسة، واضح أمامك.</h2>
+            <p>بوابة موحدة للطالب وولي الأمر؛ تعرض ما يرصد المعلم بوضوح دون قوائم معقدة أو معلومات زائدة.</p>
             <div className="stg4-identity-card"><span>ملاحظات المعلمين</span><span>تقدم المواد</span><span>الحصص الأسبوعية</span><span>بيان التقدم PDF</span></div>
           </div>
         </div>
@@ -317,8 +350,8 @@ export default function StudentPage() {
     <StudentKeyboardScroll />
     <div className="sta4-shell">
       <aside className="sta4-side">
-        <div className="sta4-brand"><img src={PORTAL_LOGO} alt="هوية البوابة"/><div><strong>أستاذ لحوني</strong><small>بوابة الطالب</small></div></div>
-        <nav className="sta4-nav" aria-label="أقسام بوابة الطالب">{tabs.map(tab => <button key={tab.key} type="button" className={activeTab === tab.key ? "active" : ""} onClick={() => { setActiveTab(tab.key); window.scrollTo({ top: 0, behavior: "smooth" }); }}><TabIcon tab={tab.key}/><span>{tab.label}</span></button>)}</nav>
+        <div className="sta4-brand"><img src={PORTAL_LOGO} alt="هوية البوابة"/><div><strong>أستاذ لحوني</strong><small>بوابة الطالب وولي الأمر</small></div></div>
+        <nav className="sta4-nav" aria-label="أقسام بوابة الطالب وولي الأمر">{tabs.map(tab => <button key={tab.key} type="button" className={activeTab === tab.key ? "active" : ""} onClick={() => { setActiveTab(tab.key); window.scrollTo({ top: 0, behavior: "smooth" }); }}><TabIcon tab={tab.key}/><span>{tab.label}</span></button>)}</nav>
         <section className="sta4-id"><small>هويتي التعليمية</small><strong>{studentName}</strong><span>{classLabel} • {matches.length} مواد</span><code>{selected.id}</code></section>
       </aside>
 
@@ -331,8 +364,8 @@ export default function StudentPage() {
         <div className="sta4-subjects" aria-label="مواد الطالب">{subjectScores.map(item => <button type="button" key={item.match.subjectKey} className={`sta4-subject ${selected.subjectKey === item.match.subjectKey ? "active" : ""}`} style={{ "--subject": item.theme.primary } as CSSProperties} onClick={() => setSelected(item.match)}><span className="sta4-subject-icon"><SubjectMark subjectKey={item.match.subjectKey}/></span><span><b>{item.match.subjectLabel}</b><small>{item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "بانتظار الرصد"}</small></span></button>)}</div>
 
         <section className="sta4-subject-head">
-          <div className="sta4-subject-copy"><small>{theme.eyebrow}</small><h1>{selected.subjectLabel}</h1><p>{theme.title}. كل ما يظهر هنا مأخوذ من رصد معلم المادة وجدوله وملاحظاته.</p><div className="sta4-subject-meta"><span>{selected.teacherName}</span><span>{classLabel}</span><span>اكتمال الرصد {ar(selectedMetrics.completion)}٪</span></div></div>
-          <div className="sta4-score"><small>مستواي الآن</small><strong>{selectedMetrics.percentage > 0 ? `${ar(selectedMetrics.percentage)}٪` : "—"}</strong><span>{selectedMetrics.percentage >= 90 ? "متميز" : selectedMetrics.percentage >= 80 ? "متقدم" : selectedMetrics.percentage >= 70 ? "جيد" : selectedMetrics.percentage > 0 ? "أحتاج تركيزًا أكثر" : "بانتظار الرصد"}</span></div>
+          <div className="sta4-subject-copy"><small>{theme.eyebrow}</small><h1>{selected.subjectLabel}</h1><p>{theme.title}. كل ما يظهر هنا مأخوذ من رصد معلم المادة وجدوله وملاحظاته.</p><div className="sta4-subject-meta"><span>{selected.teacherName}</span><span>{classLabel}</span><span>اكتمال الرصد {ar(selectedMetrics.completion)}٪</span>{selectedMetrics.deducted > 0 ? <span>خصومات −{ar(selectedMetrics.deducted)}</span> : null}</div></div>
+          <div className="sta4-score"><small>{selectedMetrics.deducted > 0 ? "مستواي بعد الخصم" : "مستواي الآن"}</small><strong>{selectedMetrics.percentage > 0 ? `${ar(selectedMetrics.percentage)}٪` : "—"}</strong><span>{selectedMetrics.percentage >= 90 ? "متميز" : selectedMetrics.percentage >= 80 ? "متقدم" : selectedMetrics.percentage >= 70 ? "جيد" : selectedMetrics.percentage > 0 ? "أحتاج تركيزًا أكثر" : "بانتظار الرصد"}</span></div>
         </section>
 
         {activeTab === "home" && <section className="sta4-panel">
@@ -354,11 +387,11 @@ export default function StudentPage() {
 
         {activeTab === "progress" && <section className="sta4-panel">
           <div className="sta4-progress-layout">
-            <section className="sta4-card"><div className="sta4-card-head"><div><small>تقدمي في المادة</small><h2>{selected.subjectLabel}</h2></div><strong>{selectedMetrics.percentage > 0 ? `${ar(selectedMetrics.percentage)}٪` : "—"}</strong></div><div className="sta4-timeline">{selectedMetrics.sections.length ? selectedMetrics.sections.map(section => <div className="sta4-timeline-row" key={section.label}><b>{section.label}</b><div className="sta4-track"><i style={{ "--p": `${Math.max(0, Math.min(100, section.percentage))}%` } as CSSProperties}/></div><span>{section.percentage > 0 ? `${ar(section.percentage)}٪` : "—"}</span></div>) : <div className="sta4-empty">بانتظار بدء رصد الدرجات.</div>}</div></section>
+            <section className="sta4-card"><div className="sta4-card-head"><div><small>{selectedMetrics.deducted > 0 ? "تقدمي بعد الخصم" : "تقدمي في المادة"}</small><h2>{selected.subjectLabel}</h2></div><strong>{selectedMetrics.percentage > 0 ? `${ar(selectedMetrics.percentage)}٪` : "—"}</strong></div><div className="sta4-timeline">{selectedMetrics.sections.length ? selectedMetrics.sections.map(section => <div className="sta4-timeline-row" key={section.label}><b>{section.label}</b><div className="sta4-track"><i style={{ "--p": `${Math.max(0, Math.min(100, section.percentage))}%` } as CSSProperties}/></div><span>{section.percentage > 0 ? `${ar(section.percentage)}٪` : "—"}</span></div>) : <div className="sta4-empty">بانتظار بدء رصد الدرجات.</div>}</div></section>
             <section className="sta4-card sta4-att"><div className="sta4-card-head"><div><small>حضوري في المادة</small><h2>الانضباط</h2></div></div><div className="sta4-att-top"><div className="sta4-att-ring" style={{ "--r": Math.max(0, Math.min(100, attendance.disciplineRate)) } as CSSProperties}><strong>{ar(attendance.disciplineRate)}٪</strong><span>انضباطي</span></div><div className="sta4-att-stats"><span><b>{ar(attendance.present)}</b>حضور</span><span><b>{ar(attendance.absent)}</b>غياب</span><span><b>{ar(attendance.late)}</b>تأخير</span><span><b>{ar(attendance.excused)}</b>استئذان</span></div></div></section>
           </div>
 
-          <section className="sta4-card"><div className="sta4-card-head"><div><small>كل المواد</small><h2>أين أنا الآن؟</h2></div><span>{strongestSubject ? `الأقوى: ${strongestSubject.match.subjectLabel}` : "بانتظار الرصد"}</span></div><div className="sta4-subject-overview">{subjectScores.map(item => <article className="sta4-subject-card" key={item.match.subjectKey} style={{ "--card": item.theme.primary } as CSSProperties}><div className="sta4-subject-card-head"><span className="sta4-subject-icon" style={{ "--subject": item.theme.primary } as CSSProperties}><SubjectMark subjectKey={item.match.subjectKey}/></span><span className="sta4-pct">{item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "—"}</span></div><h3>{item.match.subjectLabel}</h3><p>{item.match.teacherName}</p><footer><span>اكتمال {ar(item.metrics.completion)}٪</span><span>{item.match.data.teacherNotes?.length || (item.match.data.teacherNote ? 1 : 0)} ملاحظات</span></footer></article>)}</div></section>
+          <section className="sta4-card"><div className="sta4-card-head"><div><small>كل المواد</small><h2>أين أنا الآن؟</h2></div><span>{strongestSubject ? `الأقوى: ${strongestSubject.match.subjectLabel}` : "بانتظار الرصد"}</span></div><div className="sta4-subject-overview">{subjectScores.map(item => <article className="sta4-subject-card" key={item.match.subjectKey} style={{ "--card": item.theme.primary } as CSSProperties}><div className="sta4-subject-card-head"><span className="sta4-subject-icon" style={{ "--subject": item.theme.primary } as CSSProperties}><SubjectMark subjectKey={item.match.subjectKey}/></span><span className="sta4-pct">{item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "—"}</span></div><h3>{item.match.subjectLabel}</h3><p>{item.match.teacherName}</p><footer><span>اكتمال {ar(item.metrics.completion)}٪</span><span>{item.metrics.deducted > 0 ? `خصم −${ar(item.metrics.deducted)}` : `${item.match.data.teacherNotes?.length || (item.match.data.teacherNote ? 1 : 0)} ملاحظات`}</span></footer></article>)}</div></section>
 
           <div className="sta4-today-grid"><article className="sta4-card sta4-now"><small>نقطة قوة</small><h2>{strongestSection?.label || "بانتظار الرصد"}</h2><p>{strongestSection ? `مستواك فيها ${ar(strongestSection.percentage)}٪.` : "تظهر بعد اكتمال أول مرحلة من الرصد."}</p></article><article className="sta4-card sta4-now"><small>الخطوة التالية</small><h2>{weakestSection?.label || supportSubject?.match.subjectLabel || "ابدأ من آخر درس"}</h2><p>{weakestSection ? `راجع هذه المرحلة أولًا؛ مستواك الحالي ${ar(weakestSection.percentage)}٪.` : "راجع ملاحظات المعلم ثم اختبر نفسك."}</p></article></div>
         </section>}
@@ -368,10 +401,10 @@ export default function StudentPage() {
         {activeTab === "tests" && <section className="sta4-panel"><section className="sta4-card"><div className="sta4-card-head"><div><small>{selected.subjectLabel}</small><h2>اختباراتي</h2></div><span>{selected.teacherName}</span></div><div className="sta4-tests"><StudentDiagnostics accessToken={selected.accessToken}/></div></section></section>}
 
         {activeTab === "report" && <section className="sta4-panel">
-          <section className="sta4-report-hero"><div><small>تقريري الشامل</small><h2>بيان تقدمي الأكاديمي</h2><p>التحصيل والانضباط وملاحظات المعلمين في PDF واضح يشبه بيان الطالب.</p></div><button type="button" className={printing ? "sta4-printing" : ""} disabled={printing} onClick={() => void downloadReport()}>{printing ? "جارٍ تجهيز PDF…" : "تحميل بيان التقدم PDF"}</button></section>
+          <section className="sta4-report-hero"><div><small>تقريري الشامل</small><h2>بيان تقدمي الأكاديمي</h2><p>التحصيل بعد الخصومات المعتمدة والانضباط وملاحظات المعلمين في PDF واضح يشبه بيان الطالب.</p></div><button type="button" className={printing ? "sta4-printing" : ""} disabled={printing} onClick={() => void downloadReport()}>{printing ? "جارٍ تجهيز PDF…" : "تحميل بيان التقدم PDF"}</button></section>
           {reportMessage ? <div className="sta4-card sta4-now"><p>{reportMessage}</p></div> : null}
           <div className="sta4-report-grid"><article><small>متوسط التحصيل</small><strong>{overallAverage > 0 ? `${ar(overallAverage)}٪` : "—"}</strong></article><article><small>متوسط الانضباط</small><strong>{ar(overallDiscipline)}٪</strong></article><article><small>المستوى العام</small><strong>{statusLabel}</strong></article></div>
-          <section className="sta4-card"><div className="sta4-card-head"><div><small>ملخص المواد</small><h2>تقدمي العام</h2></div><span>{matches.length} مواد</span></div><div className="sta4-report-table"><table><thead><tr><th>المادة</th><th>المعلم</th><th>التحصيل</th><th>الانضباط</th><th>الملاحظات</th></tr></thead><tbody>{subjectScores.map(item => <tr key={item.match.subjectKey}><td>{item.match.subjectLabel}</td><td>{item.match.teacherName}</td><td>{item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "—"}</td><td>{ar(item.match.data.attendanceSummary?.disciplineRate ?? 100)}٪</td><td>{item.match.data.teacherNotes?.length || (item.match.data.teacherNote ? 1 : 0)}</td></tr>)}</tbody></table></div></section>
+          <section className="sta4-card"><div className="sta4-card-head"><div><small>ملخص المواد</small><h2>تقدمي العام</h2></div><span>{matches.length} مواد</span></div><div className="sta4-report-table"><table><thead><tr><th>المادة</th><th>المعلم</th><th>التحصيل</th><th>الانضباط</th><th>الملاحظات</th></tr></thead><tbody>{subjectScores.map(item => <tr key={item.match.subjectKey}><td>{item.match.subjectLabel}</td><td>{item.match.teacherName}</td><td>{item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "—"}{item.metrics.deducted > 0 ? ` (خصم −${ar(item.metrics.deducted)})` : ""}</td><td>{ar(item.match.data.attendanceSummary?.disciplineRate ?? 100)}٪</td><td>{item.match.data.teacherNotes?.length || (item.match.data.teacherNote ? 1 : 0)}</td></tr>)}</tbody></table></div></section>
           <div className="sta4-today-grid"><article className="sta4-card sta4-now"><small>أقوى مادة</small><h2>{strongestSubject?.match.subjectLabel || "بانتظار الرصد"}</h2><p>{strongestSubject ? `${ar(strongestSubject.metrics.percentage)}٪ — حافظ على هذا المستوى.` : "ستظهر بعد بدء رصد الدرجات."}</p></article><article className="sta4-card sta4-now"><small>أحتاج تركيزًا هنا</small><h2>{supportSubject?.match.subjectLabel || "لا توجد أولوية محددة"}</h2><p>{supportSubject ? `${ar(supportSubject.metrics.percentage)}٪ — راجع ملاحظات المعلم وتقدم المادة.` : "ابدأ من المادة الحالية."}</p></article></div>
         </section>}
       </section>
