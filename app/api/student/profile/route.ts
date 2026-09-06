@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
+import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
 import { normalizeClass } from "../../../../lib/unified-roster";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
@@ -59,12 +60,10 @@ export async function GET(request: Request) {
     || `${String(studentData.grade || "")} ${String(studentData.section || "")}`,
   );
 
-  const gradePlanConfig = await adminDb().collection(`portalV2Data/${access.teacherId}/gradePlanConfig`).doc("current").get();
-  const activeGradePlanId = gradePlanConfig.exists ? String(gradePlanConfig.data()?.activePlanId || "") : "";
-  const [attendance, timetable, gradePlanSnapshot] = await Promise.all([
+  const [attendance, timetable, gradePlanState] = await Promise.all([
     adminDb().collection(`${root}/attendance`).get(),
     adminDb().collection(`${root}/timetable`).doc("weekly").get(),
-    activeGradePlanId ? adminDb().collection(`portalV2Data/${access.teacherId}/gradePlanVersions`).doc(activeGradePlanId).get() : Promise.resolve(null),
+    readActiveGradePlanForSubject(access.teacherId, access.subjectId),
   ]);
 
   const explicitByDate = new Map<string, AttendanceEntry>();
@@ -119,12 +118,6 @@ export async function GET(request: Request) {
     if (date > latestDate) latestDate = date;
   });
 
-  /*
-   * V21 attendance rule:
-   * From 12:00 AM Riyadh time, a scheduled lesson day is treated as automatic "present"
-   * until the teacher records attendance. Any teacher record immediately overrides the
-   * automatic value because explicitByDate always wins for that date.
-   */
   const today = riyadhDateInput(new Date());
   const cursor = dateObject(ATTENDANCE_START_DATE);
   const end = dateObject(today);
@@ -159,7 +152,8 @@ export async function GET(request: Request) {
         attendanceSource,
       },
       timetableLessons,
-      gradePlan: gradePlanSnapshot && gradePlanSnapshot.exists ? { id: gradePlanSnapshot.id, ...gradePlanSnapshot.data() } : null,
+      gradePlan: gradePlanState.activePlan,
+      gradePlanSource: gradePlanState.source,
     },
     attendanceSource,
     expectedWeekdays: [...expectedWeekdays],
