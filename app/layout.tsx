@@ -19,6 +19,7 @@ import "./global-font-v13.css";
 import "./teacher-academy-v20.css";
 import "./teacher-attendance-calendar-v21.css";
 import "./student/academic-record/academic-record-v2.css";
+import "./student-portal-academic-enhancer.css";
 import "./platform-v200.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
@@ -33,6 +34,7 @@ import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherAttendanceScheduleNav from "./teacher-attendance-schedule-nav";
 import TeacherAttendancePrintV21 from "./teacher-attendance-print-v21";
 import StudentAcademicRecordBridge from "./student-academic-record-bridge";
+import StudentPortalAcademicEnhancer from "./student-portal-academic-enhancer";
 import StudentSessionKeeper from "./student-session-keeper";
 import StudentSmartNotesRuntime from "./student-smart-notes-runtime";
 import TeacherNotesIdentityRuntime from "./teacher-notes-identity-runtime";
@@ -61,7 +63,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
-    <StudentSessionKeeper /><StudentAcademicRecordBridge /><StudentSmartNotesRuntime />
+    <StudentSessionKeeper /><StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSmartNotesRuntime />
     <TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
     <PortalPrintRuntime /><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 />
     <PortalRuntimeGate>
