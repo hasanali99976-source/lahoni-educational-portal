@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import DashboardClassLinks from "./dashboard-class-links";
-import DashboardQuickDeduction from "./dashboard-quick-deduction";
 import DashboardTimetableTasks from "./dashboard-timetable-tasks";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -8,6 +7,5 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <DashboardClassLinks />
     <DashboardTimetableTasks />
     {children}
-    <DashboardQuickDeduction />
   </>;
 }
