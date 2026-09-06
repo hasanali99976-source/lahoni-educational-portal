@@ -132,13 +132,13 @@ export default function DashboardQuickDeduction() {
   const target = targets.find(item => item.value === targetValue) || targets[0] || null;
   const activeDeductions = (student?.gradeDeductions || []).filter(item => !item.reversedAt && (!activePlan || item.planId === activePlan.id));
 
-  function targetEarned() {
-    if (!result || !target) return 0;
-    if (target.scope === "plan") return result.earned;
-    const section = result.sections.find(item => item.id === target.sectionId);
+  function targetMaximum() {
+    if (!activePlan || !target) return 0;
+    if (target.scope === "plan") return 100;
+    const section = activePlan.sections.find(item => item.id === target.sectionId);
     if (!section) return 0;
-    if (target.scope === "section") return section.earned;
-    return section.items.find(item => item.item.id === target.itemId)?.value || 0;
+    if (target.scope === "section") return Number(section.max || 0);
+    return Number(section.items.find(item => item.id === target.itemId)?.max || 0);
   }
 
   function sameTarget(item: Deduction) {
@@ -149,10 +149,11 @@ export default function DashboardQuickDeduction() {
   }
 
   const alreadyOnTarget = activeDeductions.filter(sameTarget).reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const available = Math.max(0, targetEarned() - alreadyOnTarget);
+  const available = Math.max(0, targetMaximum() - alreadyOnTarget);
   const numericAmount = Math.max(0, Number(amount) || 0);
   const totalDeduction = activeDeductions.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const afterCurrent = Math.max(0, Number(result?.earned || 0) - totalDeduction);
+  const hasRecordedGrades = Boolean(result && result.recordedMaximum > 0);
 
   async function save() {
     if (!student || !activePlan || !target) return setMessage("اختر الطالب وبند الخصم أولًا.");
@@ -183,7 +184,7 @@ export default function DashboardQuickDeduction() {
       setStudents(current => current.map(item => item.code === student.code ? { ...item, gradeDeductions: Array.isArray(data.deductions) ? data.deductions : item.gradeDeductions } : item));
       setAmount("1");
       setNote("");
-      setMessage(`تم خصم ${ar(numericAmount)} من ${student.name} وحُفظ في سجله.`);
+      setMessage(hasRecordedGrades ? `تم خصم ${ar(numericAmount)} من ${student.name} وحُفظ في سجله.` : `تم حجز خصم ${ar(numericAmount)} على ${student.name} وسيُطبق تلقائيًا عند الرصد.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر حفظ الخصم");
     } finally {
@@ -208,7 +209,7 @@ export default function DashboardQuickDeduction() {
             <div className="tdq-fields">
               <label><span>الفصل</span><select value={className} onChange={event => setClassName(event.target.value)}>{classes.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
               <label><span>الطالب</span><select value={studentCode} onChange={event => setStudentCode(event.target.value)}>{classStudents.map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>
-              <label><span>يُخصم من</span><select value={targetValue} onChange={event => setTargetValue(event.target.value)}>{targets.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select><small>المتاح: {ar(available)} درجة</small></label>
+              <label><span>يُخصم من</span><select value={targetValue} onChange={event => setTargetValue(event.target.value)}>{targets.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select><small>الحد المتبقي: {ar(available)} درجة</small></label>
               <label><span>السبب</span><select value={reason} onChange={event => setReason(event.target.value)}>{reasons.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
             </div>
 
@@ -220,13 +221,13 @@ export default function DashboardQuickDeduction() {
             <label className="tdq-note"><span>ملاحظة <small>اختيارية</small></span><input value={note} onChange={event => setNote(event.target.value)} placeholder="تفصيل مختصر عند الحاجة" /></label>
 
             {student && result ? <section className="tdq-preview">
-              <div><small>الدرجة الحالية بعد الخصومات</small><b>{ar(afterCurrent)}</b></div>
+              <div><small>{hasRecordedGrades ? "الدرجة الحالية بعد الخصومات" : "الرصد الحالي"}</small><b>{hasRecordedGrades ? ar(afterCurrent) : "لم يبدأ"}</b></div>
               <span>←</span>
-              <div><small>بعد الخصم الجديد</small><b>{ar(Math.max(0, afterCurrent - numericAmount))}</b></div>
+              <div><small>{hasRecordedGrades ? "بعد الخصم الجديد" : "خصم محجوز"}</small><b>{hasRecordedGrades ? ar(Math.max(0, afterCurrent - numericAmount)) : `− ${ar(totalDeduction + numericAmount)}`}</b></div>
             </section> : null}
 
             {message ? <p className="tdq-message">{message}</p> : null}
-            <button type="button" className="tdq-save" disabled={busy || !student || numericAmount <= 0 || numericAmount > available} onClick={() => void save()}>{busy ? "جارٍ الحفظ…" : "اعتماد الخصم"}</button>
+            <button type="button" className="tdq-save" disabled={busy || !student || numericAmount <= 0 || numericAmount > available} onClick={() => void save()}>{busy ? "جارٍ الحفظ…" : hasRecordedGrades ? "اعتماد الخصم" : "حجز الخصم"}</button>
           </>}
         </div>
       </section>
