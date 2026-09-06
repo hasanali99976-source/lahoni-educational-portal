@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const subjectId = clean(url.searchParams.get("subjectId"), 80).split("--")[0];
   const date = clean(url.searchParams.get("date"), 10);
-  const classes = [...new Set(url.searchParams.getAll("className").map(normalizeClass).filter(Boolean))];
+  const requestedClasses = [...new Set(url.searchParams.getAll("className").map(normalizeClass).filter(Boolean))];
   const ctx = await context(subjectId);
   if ("error" in ctx) return ctx.error;
   if (!DATE_PATTERN.test(date)) return NextResponse.json({ ok: false, message: "التاريخ غير صحيح." }, { status: 400 });
@@ -47,6 +47,8 @@ export async function GET(request: Request) {
   try {
     const snapshot = await workCollection(ctx.session.userId, subjectId).where("date", "==", date).get();
     const rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const savedClasses = rows.map(row => normalizeClass((row as Record<string, unknown>).className)).filter(Boolean);
+    const classes = [...new Set([...requestedClasses, ...savedClasses])];
 
     const attendanceEntries = await Promise.all(classes.map(async className => {
       const ref = adminDb().collection(`portalV2Data/${ctx.session.userId}/subjects/${subjectId}/attendance`).doc(`${safeId(className)}_${date}`);
@@ -58,6 +60,7 @@ export async function GET(request: Request) {
       ok: true,
       rows,
       attendance: Object.fromEntries(attendanceEntries),
+      preservedIndependentOfTimetable: true,
     }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
     console.error("lesson-work-get-failed", error);
