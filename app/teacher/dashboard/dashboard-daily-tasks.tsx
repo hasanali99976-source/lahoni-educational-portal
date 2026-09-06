@@ -34,8 +34,7 @@ export default function DashboardDailyTasks(){
       const timetableResponse=await fetch(`/api/teacher/timetable?subjectId=${encodeURIComponent(subjectId)}`,{cache:"no-store"});
       const timetableData=await timetableResponse.json().catch(()=>({}));
       const server=timetableResponse.ok&&timetableData.lessons&&typeof timetableData.lessons==="object"?timetableData.lessons as Record<string,TimetableLesson>:{};
-      const pending=readPending(storageKey);
-      const timetable=mergeSchedule(server,pending);
+      const timetable=mergeSchedule(server,readPending(storageKey));
       const scheduled=Object.entries(timetable).flatMap(([cell,lesson])=>{const match=cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/);if(!match||match[1]!==day||!lesson.className)return[];return[{period:Number(match[2]),className:String(lesson.className),notes:String(lesson.notes||"")}];}).sort((a,b)=>a.period-b.period);
       const params=new URLSearchParams({subjectId,date:today});
       [...new Set(scheduled.map(item=>item.className))].forEach(name=>params.append("className",name));
@@ -44,23 +43,16 @@ export default function DashboardDailyTasks(){
       const rows=workResponse.ok&&Array.isArray(workData.rows)?workData.rows as WorkRow[]:[];
       const attendance=workResponse.ok&&workData.attendance&&typeof workData.attendance==="object"?workData.attendance as Record<string,boolean>:{};
       setLessons(scheduled.map(item=>{const work=rows.find(row=>Number(row.period)===item.period&&row.className===item.className);return{...item,prepared:Boolean(work?.prepared),attendanceDone:Boolean(attendance[item.className])};}));
-
-      if(pending?.lessons&&Array.isArray(pending.classNames)&&pending.classNames.length){
-        fetch("/api/teacher/timetable",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId,classNames:pending.classNames,lessons:pending.lessons}),cache:"no-store"})
-          .then(async response=>{if(!response.ok)return;try{localStorage.removeItem(storageKey)}catch{}})
-          .catch(()=>undefined);
-      }
     }finally{setLoading(false);}
   },[subjectId,storageKey,today,day]);
 
   useEffect(()=>{let cancelled=false;let attempts=0;const find=()=>{if(cancelled)return;const node=document.querySelector(".td16-tasks-panel .td16-task-list");if(node){node.classList.add("dtask-enhanced");setTarget(node);return;}attempts+=1;if(attempts<30)window.setTimeout(find,100);};find();return()=>{cancelled=true;};},[]);
   useEffect(()=>{void load();},[load]);
-  useEffect(()=>{const refresh=()=>void load();const visible=()=>{if(document.visibilityState==="visible")void load();};window.addEventListener("lahooni:timetable-updated",refresh as EventListener);window.addEventListener("focus",refresh);document.addEventListener("visibilitychange",visible);return()=>{window.removeEventListener("lahooni:timetable-updated",refresh as EventListener);window.removeEventListener("focus",refresh);document.removeEventListener("visibilitychange",visible);};},[load]);
+  useEffect(()=>{const refresh=()=>void load();const visible=()=>{if(document.visibilityState==="visible")void load();};window.addEventListener("lahooni:timetable-updated",refresh as EventListener);window.addEventListener("lahooni:timetable-synced",refresh as EventListener);window.addEventListener("focus",refresh);document.addEventListener("visibilitychange",visible);return()=>{window.removeEventListener("lahooni:timetable-updated",refresh as EventListener);window.removeEventListener("lahooni:timetable-synced",refresh as EventListener);window.removeEventListener("focus",refresh);document.removeEventListener("visibilitychange",visible);};},[load]);
 
   if(!target)return null;
-  const reportHref="/teacher/reports";
   return createPortal(<div className="dtask-root" dir="rtl">
-    <div className="dtask-shortcuts"><Link href="/teacher/preparation">تحضير المعلم</Link><Link href={reportHref}>تقرير اليوم</Link><Link href="/teacher/timetable">تعديل الجدول</Link><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"تحديث…":"تحديث"}</button></div>
+    <div className="dtask-shortcuts"><Link href="/teacher/preparation">تحضير المعلم</Link><Link href="/teacher/daily-report">تقرير اليوم</Link><Link href="/teacher/timetable">تعديل الجدول</Link><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"تحديث…":"تحديث"}</button></div>
     {lessons.length?lessons.map(lesson=><section className="dtask-lesson" key={`${lesson.period}-${lesson.className}`}>
       <header><span>{lesson.period}</span><div><b>{lesson.className}</b><small>الحصة {lesson.period}{lesson.notes?` • ${lesson.notes}`:""}</small></div></header>
       <div className="dtask-actions">
