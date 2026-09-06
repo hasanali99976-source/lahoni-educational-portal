@@ -7,8 +7,8 @@ import "./daily-report.css";
 
 type TimetableLesson = { subject?: string; className?: string; notes?: string };
 type PendingTimetable = { lessons?: Record<string, TimetableLesson>; classNames?: string[]; updatedAt?: string };
-type WorkRow = { id:string; period:number; className:string; lessonTitle?:string; prepared?:boolean; completed?:boolean; completedWork?:string; updatedAt?:string };
-type DailyLesson = { period:number; className:string; notes:string; prepared:boolean; attendanceDone:boolean; completed:boolean; lessonTitle:string; completedWork:string };
+type WorkRow = { id:string; period:number; className:string; lessonTitle?:string; completed?:boolean; completedWork?:string; updatedAt?:string };
+type DailyLesson = { period:number; className:string; notes:string; attendanceDone:boolean; completed:boolean; lessonTitle:string; completedWork:string };
 
 const ar=(value:number)=>new Intl.NumberFormat("ar-SA-u-nu-arab").format(value);
 function riyadhDate(){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const map=Object.fromEntries(parts.map(item=>[item.type,item.value]));return `${map.year}-${map.month}-${map.day}`;}
@@ -45,7 +45,7 @@ export default function DailyTeacherReportPage(){
       if(!workResponse.ok)throw new Error(workData.message||"تعذر تحميل تقرير اليوم");
       const rows=Array.isArray(workData.rows)?workData.rows as WorkRow[]:[];
       const attendance=workData.attendance&&typeof workData.attendance==="object"?workData.attendance as Record<string,boolean>:{};
-      setLessons(scheduled.map(item=>{const row=rows.find(work=>Number(work.period)===item.period&&work.className===item.className);return{...item,prepared:Boolean(row?.prepared),attendanceDone:Boolean(attendance[item.className]),completed:Boolean(row?.completed),lessonTitle:String(row?.lessonTitle||item.notes||session?.subject||""),completedWork:String(row?.completedWork||"")};}));
+      setLessons(scheduled.map(item=>{const row=rows.find(work=>Number(work.period)===item.period&&work.className===item.className);return{...item,attendanceDone:Boolean(attendance[item.className]),completed:Boolean(row?.completed),lessonTitle:String(row?.lessonTitle||item.notes||session?.subject||""),completedWork:String(row?.completedWork||"")};}));
       setMessage("");
     }catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل تقرير اليوم");}
     finally{setLoading(false);}
@@ -54,15 +54,14 @@ export default function DailyTeacherReportPage(){
   useEffect(()=>{void load();},[load]);
   useEffect(()=>{const refresh=()=>void load();window.addEventListener("lahooni:timetable-updated",refresh as EventListener);window.addEventListener("lahooni:timetable-synced",refresh as EventListener);window.addEventListener("focus",refresh);return()=>{window.removeEventListener("lahooni:timetable-updated",refresh as EventListener);window.removeEventListener("lahooni:timetable-synced",refresh as EventListener);window.removeEventListener("focus",refresh);};},[load]);
 
-  const prepared=lessons.filter(item=>item.prepared).length;
   const attended=lessons.filter(item=>item.attendanceDone).length;
   const completed=lessons.filter(item=>item.completed).length;
 
   return <main className="daily-report-page" dir="rtl">
     <section className="dr-head"><div><small>التقرير اليومي</small><h1>تقرير عمل المعلم</h1><p>{todayLabel} • {session?.subject||"المادة"}{session?.activeGradeLabel?` • ${session.activeGradeLabel}`:""}</p></div><div className="dr-actions"><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"تحديث…":"تحديث"}</button><button type="button" onClick={()=>window.print()}>طباعة / PDF</button></div></section>
     {message?<p className="dr-message">{message}</p>:null}
-    <section className="dr-kpis"><article><small>حصص الجدول</small><b>{ar(lessons.length)}</b></article><article><small>تم التحضير</small><b>{ar(prepared)}</b></article><article><small>تمت المتابعة</small><b>{ar(attended)}</b></article><article><small>العمل المنجز</small><b>{ar(completed)}</b></article></section>
-    <section className="dr-table-wrap"><header><div><small>حصص اليوم من الجدول مباشرة</small><h2>التقرير اليومي</h2></div><Link href="/teacher/timetable">فتح الجدول</Link></header>{lessons.length?<table><thead><tr><th>الحصة</th><th>الفصل</th><th>عنوان الدرس</th><th>التحضير</th><th>المتابعة</th><th>العمل المنجز</th><th>الإجراء</th></tr></thead><tbody>{lessons.map(lesson=><tr key={`${lesson.period}-${lesson.className}`}><td>{ar(lesson.period)}</td><td><b>{lesson.className}</b></td><td>{lesson.lessonTitle||"—"}</td><td><span className={lesson.prepared?"ok":"pending"}>{lesson.prepared?"محضّر":"لم يُحضّر"}</span></td><td><span className={lesson.attendanceDone?"ok":"pending"}>{lesson.attendanceDone?"محفوظة":"لم تُسجل"}</span></td><td>{lesson.completedWork||"—"}</td><td className="dr-links"><Link href={`/teacher/preparation?period=${lesson.period}&class=${encodeURIComponent(lesson.className)}`}>التحضير</Link><Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`}>المتابعة</Link></td></tr>)}</tbody></table>:<div className="dr-empty"><b>لا توجد حصص في جدول اليوم</b><span>أضف الحصص من الجدول الدراسي، وستنعكس هنا تلقائيًا.</span></div>}</section>
+    <section className="dr-kpis"><article><small>حصص الجدول</small><b>{ar(lessons.length)}</b></article><article><small>تمت المتابعة</small><b>{ar(attended)}</b></article><article><small>العمل المنجز</small><b>{ar(completed)}</b></article></section>
+    <section className="dr-table-wrap"><header><div><small>حصص اليوم من الجدول مباشرة</small><h2>التقرير اليومي</h2></div><Link href="/teacher/timetable">فتح الجدول</Link></header>{lessons.length?<table><thead><tr><th>الحصة</th><th>الفصل</th><th>عنوان الدرس</th><th>المتابعة</th><th>العمل المنجز</th><th>الإجراء</th></tr></thead><tbody>{lessons.map(lesson=><tr key={`${lesson.period}-${lesson.className}`}><td>{ar(lesson.period)}</td><td><b>{lesson.className}</b></td><td>{lesson.lessonTitle||"—"}</td><td><span className={lesson.attendanceDone?"ok":"pending"}>{lesson.attendanceDone?"محفوظة":"لم تُسجل"}</span></td><td>{lesson.completedWork||"—"}</td><td className="dr-links"><Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`}>المتابعة</Link></td></tr>)}</tbody></table>:<div className="dr-empty"><b>لا توجد حصص في جدول اليوم</b><span>أضف الحصص من الجدول الدراسي، وستنعكس هنا تلقائيًا.</span></div>}</section>
     <footer className="dr-footer"><span>المعلم: {session?.teacherName||"—"}</span><span>التاريخ: {today}</span><span>بوابة أستاذ لحوني التعليمية</span></footer>
   </main>;
 }
