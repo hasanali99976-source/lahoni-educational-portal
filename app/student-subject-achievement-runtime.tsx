@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 
@@ -46,8 +46,43 @@ function firstReason(summary: Summary) {
   return summary.deductions?.[0]?.reason || "خصم أكاديمي";
 }
 
-function sameHostRows(a: Array<{ host: HTMLElement; match: Match }>, b: Array<{ host: HTMLElement; match: Match }>) {
-  return a.length === b.length && a.every((row, index) => row.host === b[index]?.host && row.match.subjectKey === b[index]?.match.subjectKey);
+function decorateSubjectTabs(sourceMatches: Match[], sourceSummaries: Summary[]) {
+  const bySubject = new Map(sourceSummaries.map(item => [item.subjectKey, item]));
+  const buttons = [...document.querySelectorAll(".sta4-subject")].filter((item): item is HTMLElement => item instanceof HTMLElement);
+
+  buttons.forEach(host => {
+    const label = String(host.querySelector("b")?.textContent || "").trim();
+    const match = sourceMatches.find(item => item.subjectLabel === label);
+    const summary = match ? bySubject.get(match.subjectKey) : undefined;
+    const textHost = host.querySelector("b")?.parentElement as HTMLElement | null;
+    const current = textHost?.querySelector(".sta4-subject-deduction-live") as HTMLElement | null;
+
+    if (!textHost || !summary || !(Number(summary.deduction || 0) > 0)) {
+      current?.remove();
+      return;
+    }
+
+    const desired = `خصم −${ar(summary.deduction)} • ${firstReason(summary)}`;
+    const node = current || document.createElement("span");
+    if (!current) {
+      node.className = "sta4-subject-deduction-live";
+      node.setAttribute("aria-label", "ملاحظة الخصم");
+      node.style.display = "-webkit-box";
+      node.style.marginTop = "4px";
+      node.style.maxWidth = "126px";
+      node.style.overflow = "hidden";
+      node.style.fontSize = "8.5px";
+      node.style.fontWeight = "900";
+      node.style.fontStyle = "normal";
+      node.style.lineHeight = "1.45";
+      node.style.opacity = "0.96";
+      node.style.color = "currentColor";
+      node.style.webkitBoxOrient = "vertical";
+      node.style.webkitLineClamp = "2";
+      textHost.appendChild(node);
+    }
+    if (node.textContent !== desired) node.textContent = desired;
+  });
 }
 
 export default function StudentSubjectAchievementRuntime() {
@@ -55,21 +90,16 @@ export default function StudentSubjectAchievementRuntime() {
   const [studentCode, setStudentCode] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [summaries, setSummaries] = useState<Summary[]>([]);
-  const [subjectHosts, setSubjectHosts] = useState<Array<{ host: HTMLElement; match: Match }>>([]);
   const [progressHost, setProgressHost] = useState<HTMLElement | null>(null);
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null);
   const [reportGridHost, setReportGridHost] = useState<HTMLElement | null>(null);
   const [activeLabel, setActiveLabel] = useState("");
+  const matchesRef = useRef<Match[]>([]);
+  const summariesRef = useRef<Summary[]>([]);
 
-  function syncHosts(sourceMatches: Match[] = matches) {
+  function syncHosts(sourceMatches: Match[] = matchesRef.current, sourceSummaries: Summary[] = summariesRef.current) {
     if (pathname !== "/student") return;
-    const buttons = [...document.querySelectorAll(".sta4-subject")].filter((item): item is HTMLElement => item instanceof HTMLElement);
-    const mapped = buttons.flatMap(host => {
-      const label = String(host.querySelector("b")?.textContent || "").trim();
-      const match = sourceMatches.find(item => item.subjectLabel === label);
-      return match ? [{ host, match }] : [];
-    });
-    setSubjectHosts(current => sameHostRows(current, mapped) ? current : mapped);
+    decorateSubjectTabs(sourceMatches, sourceSummaries);
 
     const nextProgress = document.querySelector(".sta4-progress-layout") as HTMLElement | null;
     const nextReport = document.querySelector(".sta4-report-table") as HTMLElement | null;
@@ -92,8 +122,9 @@ export default function StudentSubjectAchievementRuntime() {
     const lookupData = await lookup.json().catch(() => ({}));
     if (!lookup.ok || !Array.isArray(lookupData.matches)) return;
     const nextMatches = lookupData.matches as Match[];
+    matchesRef.current = nextMatches;
     setMatches(nextMatches);
-    syncHosts(nextMatches);
+    syncHosts(nextMatches, summariesRef.current);
 
     const response = await fetch("/api/student/academic-summary", {
       method: "POST",
@@ -103,10 +134,11 @@ export default function StudentSubjectAchievementRuntime() {
     });
     const data = await response.json().catch(() => ({}));
     if (response.ok && Array.isArray(data.summaries)) {
-      setSummaries(data.summaries as Summary[]);
-      syncHosts(nextMatches);
-      window.requestAnimationFrame(() => syncHosts(nextMatches));
-      window.setTimeout(() => syncHosts(nextMatches), 120);
+      const nextSummaries = data.summaries as Summary[];
+      summariesRef.current = nextSummaries;
+      setSummaries(nextSummaries);
+      syncHosts(nextMatches, nextSummaries);
+      window.requestAnimationFrame(() => syncHosts(nextMatches, nextSummaries));
     }
   }
 
@@ -117,7 +149,7 @@ export default function StudentSubjectAchievementRuntime() {
       setStudentCode(code);
       void load(code);
     }
-    syncHosts(matches);
+    syncHosts();
   }
 
   useEffect(() => {
@@ -128,7 +160,7 @@ export default function StudentSubjectAchievementRuntime() {
     const root = document.querySelector(".portal-stage") || document.body;
     const observer = new MutationObserver(() => {
       window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => syncHosts(matches));
+      frame = window.requestAnimationFrame(() => syncHosts());
     });
     observer.observe(root, { childList: true, subtree: true });
 
@@ -138,8 +170,8 @@ export default function StudentSubjectAchievementRuntime() {
       const interactive = target.closest(".sta4-subject, .sta4-nav, .sta4-top-actions, .stg4-submit");
       if (!interactive) return;
       const text = String(interactive.textContent || "").replace(/\s+/g, " ").trim();
-      window.setTimeout(() => syncHosts(matches), 40);
-      window.setTimeout(() => syncHosts(matches), 180);
+      window.setTimeout(() => syncHosts(), 30);
+      window.setTimeout(() => syncHosts(), 140);
       if (text.includes("تقريري") || text.includes("تقدمي") || text.includes("شاهد تقدمي")) {
         const code = codeFromPage();
         if (/^TH[123]\d{3}$/.test(code)) window.setTimeout(() => void load(code), 40);
@@ -163,11 +195,13 @@ export default function StudentSubjectAchievementRuntime() {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [pathname, studentCode, matches]);
+  }, [pathname, studentCode]);
 
   useEffect(() => {
     if (pathname !== "/student") return;
-    syncHosts(matches);
+    matchesRef.current = matches;
+    summariesRef.current = summaries;
+    syncHosts(matches, summaries);
   }, [pathname, matches, summaries]);
 
   const bySubject = useMemo(() => new Map(summaries.map(item => [item.subjectKey, item])), [summaries]);
@@ -181,21 +215,6 @@ export default function StudentSubjectAchievementRuntime() {
   if (pathname !== "/student") return null;
 
   return <>
-    {subjectHosts.map(({ host, match }) => {
-      const summary = bySubject.get(match.subjectKey);
-      if (!summary) return null;
-      return createPortal(
-        <div className={`sta4-subject-grade ${summary.deduction > 0 ? "has-deduction" : ""}`} key={`subject-grade-${match.subjectKey}`}>
-          <span>التحصيل <b>{ar(summary.afterDeduction)} / {ar(summary.availableMaximum || 100)}</b></span>
-          {summary.deduction > 0 ? <>
-            <small>السقف المتاح الآن {ar(summary.availableMaximum)} من {ar(summary.maximum || 100)} • خصم −{ar(summary.deduction)}</small>
-            <em>{firstReason(summary)}</em>
-          </> : <small>{summary.hasPlan ? "حسب خطة المعلم" : "لم تعتمد خطة رصد بعد"}</small>}
-        </div>,
-        host,
-      );
-    })}
-
     {progressHost && activeSummary ? createPortal(
       <section className={`sta4-final-grade-explain ${activeSummary.deduction > 0 ? "has-deduction" : ""}`}>
         <header><div><small>التحصيل العلمي حسب خطة المعلم</small><h3>{activeMatch?.subjectLabel || "المادة"}</h3></div><strong>{ar(activeSummary.afterDeduction)} <i>/ {ar(activeSummary.availableMaximum || 100)}</i></strong></header>
