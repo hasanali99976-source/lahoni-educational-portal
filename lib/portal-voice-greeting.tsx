@@ -9,6 +9,16 @@ type PortalVoiceGreetingProps = {
   compact?: boolean;
 };
 
+declare global {
+  interface Window {
+    OstadhApp?: {
+      speakArabic?: (text: string) => void;
+      stopSpeech?: () => void;
+    };
+    __OSTADH_ANDROID__?: boolean;
+  }
+}
+
 function cleanName(value?: string) {
   const name = String(value || "").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u, "").trim();
   if (!name || ["المعلم", "الطالب", "مستخدم"].includes(name)) return "";
@@ -49,7 +59,20 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
   const text = useMemo(() => greetingText(role, name), [role, name]);
 
   const speak = useCallback(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
+    if (typeof window === "undefined") return false;
+
+    const isNativeAndroid = Boolean(window.__OSTADH_ANDROID__) || /OstadhLahooniAndroid/i.test(navigator.userAgent);
+    if (isNativeAndroid && window.OstadhApp?.speakArabic) {
+      try {
+        window.OstadhApp.speakArabic(text);
+        startedRef.current = true;
+        return true;
+      } catch {
+        startedRef.current = false;
+      }
+    }
+
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
     try {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -79,7 +102,8 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
       if (!cancelled && !startedRef.current) speak();
     };
 
-    const timer = window.setTimeout(trySpeak, 250);
+    const timer = window.setTimeout(trySpeak, 180);
+    const retryTimer = window.setTimeout(trySpeak, 900);
     const voicesChanged = () => trySpeak();
     const interactionFallback = () => {
       if (!startedRef.current) trySpeak();
@@ -98,10 +122,12 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      window.clearTimeout(retryTimer);
       window.speechSynthesis?.removeEventListener?.("voiceschanged", voicesChanged);
       window.removeEventListener("pointerdown", interactionFallback, true);
       window.removeEventListener("keydown", interactionFallback, true);
       window.removeEventListener("touchstart", interactionFallback, true);
+      try { window.OstadhApp?.stopSpeech?.(); } catch {}
       window.speechSynthesis?.cancel();
     };
   }, [identityKey, speak]);
