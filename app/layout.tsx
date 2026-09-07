@@ -46,6 +46,7 @@ import StudentAcademicRecordMaxRuntime from "./student-academic-record-max-runti
 import StudentSmartNotesRuntime from "./student-smart-notes-runtime";
 import TeacherNotesIdentityRuntime from "./teacher-notes-identity-runtime";
 import AdminStudentEditClassRuntime from "./admin-student-edit-class-runtime";
+import PortalVoiceGreetingRuntime from "./portal-voice-greeting-runtime";
 
 const academyFont = Alexandria({ subsets: ["arabic"], weight: ["400", "500", "600", "700", "800", "900"], display: "swap" });
 
@@ -72,6 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentRiskCenterRuntime /><StudentAcademicRecordMaxRuntime /><StudentSmartNotesRuntime />
     <TeacherGradesCleanRuntime /><TeacherCounselorReferralRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
+    <PortalVoiceGreetingRuntime />
     <PortalPrintRuntime /><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
