@@ -48,10 +48,46 @@ export type SubjectConfigView = {
   icon?: string;
 };
 
+function customSubjectName(subjectKey?: string) {
+  if (!subjectKey) return "";
+  const baseKey = subjectKey.split("--")[0];
+  if (!baseKey.startsWith("custom-")) return "";
+  const marker = baseKey.indexOf("~");
+  if (marker < 0) return "";
+  try { return decodeURIComponent(baseKey.slice(marker + 1)).trim(); }
+  catch { return ""; }
+}
+
+function shortMarkFor(label: string) {
+  const words = label.split(/\s+/).filter(Boolean);
+  const mark = words.slice(0, 2).map(word => word[0] || "").join("");
+  return mark || "م";
+}
+
 export function getSubjectConfig(subjectKey?: string): SubjectConfigView {
   const baseKey = subjectKey?.split("--")[0];
   if (baseKey && baseKey in SUBJECT_CONFIG) return SUBJECT_CONFIG[baseKey as SubjectKey];
-  return SUBJECT_CONFIG.history;
+
+  const customLabel = customSubjectName(subjectKey);
+  if (baseKey?.startsWith("custom-") && customLabel) {
+    return {
+      key: baseKey,
+      label: customLabel,
+      shortMark: shortMarkFor(customLabel),
+      themeClass: "theme-custom-subject",
+      welcomePoints: ["تعلم", "متابعة", "تقارير فورية"],
+      printTitle: `كشف درجات مادة ${customLabel}`,
+    };
+  }
+
+  return {
+    key: baseKey || "subject",
+    label: "المادة",
+    shortMark: "م",
+    themeClass: "theme-custom-subject",
+    welcomePoints: ["تعلم", "متابعة", "تقارير فورية"],
+    printTitle: "كشف درجات المادة",
+  };
 }
 
 export function isSubjectKey(value?: string): value is SubjectKey {
