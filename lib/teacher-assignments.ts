@@ -4,6 +4,7 @@ import { arabicNumber, gradeLabel, gradeNumber, normalizeArabic, sectionNumber }
 export type TeacherAssignment = {
   id: string;
   subjectId: string;
+  subjectLabel?: string;
   grade: string;
   section: string;
   label: string;
@@ -15,15 +16,15 @@ export function assignmentId(subjectId: string, grade: string, section: string) 
   return [subjectId, grade.trim(), section.trim()].map(encodeURIComponent).join(SEPARATOR);
 }
 
-export function assignmentFromId(id: string): TeacherAssignment {
+export function assignmentFromId(id: string, preferredSubjectLabel = ""): TeacherAssignment {
   const [encodedSubject = id, encodedGrade = "", encodedSection = ""] = id.split(SEPARATOR);
   const subjectId = decodeURIComponent(encodedSubject);
   const grade = decodeURIComponent(encodedGrade);
   const section = decodeURIComponent(encodedSection);
-  const subject = getSubjectConfig(subjectId).label;
+  const subjectLabel = preferredSubjectLabel.trim() || getSubjectConfig(subjectId).label;
   const sectionLabel = section === "الكل" ? "جميع الفصول" : section ? `فصل ${section}` : "";
   const details = [grade, sectionLabel].filter(Boolean).join(" — ");
-  return { id, subjectId, grade, section, label: details ? `${subject} — ${details}` : subject };
+  return { id, subjectId, subjectLabel, grade, section, label: details ? `${subjectLabel} — ${details}` : subjectLabel };
 }
 
 export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown = []): TeacherAssignment[] {
@@ -48,6 +49,7 @@ export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown
     const subjectId = String(row.subjectId || row.subjectKey || fromId?.subjectId || row.workspaceKey || "")
       .trim()
       .split("--")[0];
+    const subjectLabel = String(row.subjectLabel || fromId?.subjectLabel || "").trim();
     const className = String(row.className || row.class || "").trim();
     const rawGrade = String(row.grade || fromId?.grade || className || "").trim();
     const parsedGrade = gradeNumber(rawGrade || className);
@@ -60,7 +62,7 @@ export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown
     const section = allSections ? "الكل" : parsedSection ? arabicNumber(parsedSection) : sectionSource;
 
     if (!subjectId || !grade || !section) return;
-    normalized.push(assignmentFromId(assignmentId(subjectId, grade, section)));
+    normalized.push(assignmentFromId(assignmentId(subjectId, grade, section), subjectLabel));
   };
 
   if (Array.isArray(value)) {
@@ -78,6 +80,6 @@ export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown
 
   return Array.isArray(fallbackSubjectIds)
     ? [...new Set(fallbackSubjectIds.map(item => String(item || "").trim().split("--")[0]).filter(Boolean))]
-        .map(assignmentFromId)
+        .map(id => assignmentFromId(assignmentId(id, "", "")))
     : [];
 }
