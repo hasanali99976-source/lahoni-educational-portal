@@ -41,7 +41,7 @@ export default function StudentReportSessionGuard() {
       return;
     }
 
-    let cleanupTimer: ReturnType<typeof window.setTimeout> | null = null;
+    let cleanupTimer: number | null = null;
     let restoring = false;
 
     const markReportRecovery = (event: MouseEvent) => {
