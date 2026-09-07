@@ -129,16 +129,7 @@ export default function StudentPortalAcademicEnhancer() {
   }
 
   useEffect(() => {
-    if (pathname !== "/student") {
-      setStudentCode("");
-      setMatches([]);
-      setSelectedKey("");
-      setProfiles({});
-      setNoteHost(null);
-      setAttendanceHost(null);
-      setProgressHost(null);
-      return;
-    }
+    if (pathname !== "/student") return;
 
     const timers = new Set<number>();
     const schedule = () => {
@@ -172,9 +163,10 @@ export default function StudentPortalAcademicEnhancer() {
   }, [pathname, studentCode, matches, selectedKey]);
 
   useEffect(() => {
+    if (pathname !== "/student") return;
     const match = matches.find(item => item.subjectKey === selectedKey);
     if (match) void loadProfile(match);
-  }, [selectedKey, matches]);
+  }, [pathname, selectedKey, matches]);
 
   const currentMatch = matches.find(item => item.subjectKey === selectedKey) || matches[0];
   const currentData = currentMatch ? profiles[currentMatch.subjectKey]?.data || currentMatch.data || {} : {};
