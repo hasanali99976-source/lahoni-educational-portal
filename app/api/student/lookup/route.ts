@@ -152,11 +152,11 @@ export async function POST(request: Request) {
           const batch = adminDb().batch();
           legacyNoticeStudents.slice(index, index + 350).forEach(item => {
             const reference = adminDb().collection(`portalV2Data/${item.teacherId}/subjects/${item.subjectId}/students`).doc(item.studentId);
-            batch.update(reference, {
+            batch.set(reference, {
               parentCounselorLastNotice: FieldValue.delete(),
               parentCounselorNoticeCount: FieldValue.delete(),
               updatedAt: new Date().toISOString(),
-            });
+            }, { merge: true });
           });
           await batch.commit();
         }
@@ -244,8 +244,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "لم تُربط مواد هذا الصف بالمعلمين بعد." }, { status: 401 });
     }
 
-    // Resolve the plan by BOTH teacher and subject. Never reuse one teacher-wide plan
-    // across History, Critical Thinking, or any other subjects taught by the same teacher.
     const gradePlanByTeacherSubject = new Map<string, unknown>();
     await Promise.all([...chosenBySubject.values()].map(async candidate => {
       const key = `${candidate.teacherId}:${candidate.subjectId}`;
