@@ -24,6 +24,8 @@ function studentAliases(id: string, data: Record<string, unknown>) {
 export async function POST(request: Request) {
   const session = await requireSession("teacher");
   if (!session || !session.user) return NextResponse.json({ ok: false, message: "انتهت جلسة المعلم." }, { status: 401 });
+  const user = session.user;
+  const teacherName = session.name || user.name || "المعلم";
 
   try {
     const body = await request.json().catch(() => ({}));
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
     if (!requestedCodes.length) return NextResponse.json({ ok: false, message: "حدد طالبًا واحدًا على الأقل." }, { status: 400 });
     if (reason.length < 3) return NextResponse.json({ ok: false, message: "اكتب سبب الإحالة بوضوح." }, { status: 400 });
 
-    const assignments = normalizeAssignments(session.user.assignments, session.user.subjectIds);
+    const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     if (!assignments.some(item => item.subjectId === subjectId)) {
       return NextResponse.json({ ok: false, message: "هذه المادة ليست ضمن تكليف المعلم الحالي." }, { status: 403 });
     }
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
         visibleToStudent: true,
         severity: "high",
         teacherId: session.userId,
-        teacherName: session.name || session.user.name || "المعلم",
+        teacherName,
         subjectId,
         subject: clean(body?.subjectLabel, 120) || subjectId,
         createdAt: now,
@@ -96,7 +98,7 @@ export async function POST(request: Request) {
           message: reason,
           referralType,
           subject: clean(body?.subjectLabel, 120) || subjectId,
-          teacherName: session.name || session.user.name || "المعلم",
+          teacherName,
           createdAt: now,
         },
         updatedAt: now,
@@ -106,7 +108,7 @@ export async function POST(request: Request) {
     await batch.commit();
 
     const subjectLabel = clean(body?.subjectLabel, 120) || subjectId;
-    const whatsappText = `السلام عليكم،\nإحالة للمرشد الطلابي — ${subjectLabel}\nالنوع: ${typeLabel}\nالسبب: ${reason}\n\n${names.map((name, index) => `${index + 1}. ${name}`).join("\n")}\n\nالمعلم: ${session.name || session.user.name}`;
+    const whatsappText = `السلام عليكم،\nإحالة للمرشد الطلابي — ${subjectLabel}\nالنوع: ${typeLabel}\nالسبب: ${reason}\n\n${names.map((name, index) => `${index + 1}. ${name}`).join("\n")}\n\nالمعلم: ${teacherName}`;
 
     return NextResponse.json({
       ok: true,
