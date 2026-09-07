@@ -77,9 +77,12 @@ function classGradeFromId(value: string) {
 }
 
 function gradeFromWorkspace(value: string, subjectId: string): Grade | null {
-  const [workspaceSubject, workspaceGrade] = value.split("--");
+  const workspace = String(value || "").trim();
+  const marker = workspace.lastIndexOf("--");
+  if (marker < 0) return null;
+  const workspaceSubject = workspace.slice(0, marker);
   if (workspaceSubject !== subjectId) return null;
-  const grade = Number(workspaceGrade || 0);
+  const grade = Number(workspace.slice(marker + 2) || 0);
   return grade === 1 || grade === 2 || grade === 3 ? grade as Grade : null;
 }
 
@@ -92,7 +95,8 @@ export async function GET(request: Request) {
     if (!user) return NextResponse.json({ ok: false }, { status: 401 });
 
     const url = new URL(request.url);
-    const subjectId = String(url.searchParams.get("subjectId") || "").split("--")[0];
+    // Keep the complete subject identity. Custom subjects may legitimately contain "--".
+    const subjectId = String(url.searchParams.get("subjectId") || "").trim();
     const cookieStore = await cookies();
     const workspaceGrade = gradeFromWorkspace(cookieStore.get("lahooni_active_subject")?.value || "", subjectId);
     const requestedGradeValue = Number(url.searchParams.get("grade") || workspaceGrade || 0);
@@ -135,8 +139,6 @@ export async function GET(request: Request) {
     const centralByCode = new Map(centralRosterRows.map(student => [student.code, student]));
     const centralAllRows = centralRosterRows.filter(item => grades.has(item.grade as Grade));
 
-    // A moved student may still have an older teacher-subject document. Resolve every
-    // legacy row through the current central record by code before filtering the grade.
     const legacyRows = allLegacyRows
       .map(item => {
         const official = centralByCode.get(item.student.code);
@@ -168,11 +170,9 @@ export async function GET(request: Request) {
     centralAllRows.forEach(student => availableMap.set(classId(student.grade, student.section), classFromStudent(student)));
     legacyRows.forEach(item => availableMap.set(classId(item.student.grade, item.student.section), classFromStudent(item.student)));
 
-
     const allStageClasses = [...availableMap.values()]
       .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
-
 
     const currentSignature = assignmentScopeSignature(assignments, subjectId, requestedGrade);
     const scopeData = scopeSnapshot.exists ? scopeSnapshot.data() as Record<string, unknown> : null;
@@ -349,7 +349,6 @@ export async function GET(request: Request) {
     } catch (repairError) {
       console.warn("teacher roster repair deferred", repairError);
     }
-
 
     const classes = allStageClasses.filter(item => selected.has(item.id));
     return NextResponse.json({
