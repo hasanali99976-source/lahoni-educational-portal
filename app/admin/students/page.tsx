@@ -121,11 +121,19 @@ export default function AdminStudentsPage() {
 
   async function removeClass(item: SchoolClass) {
     const count = students.filter(student => student.grade === item.grade && student.section === item.section).length;
-    if (count) return setMessage("لا يمكن حذف فصل يحتوي طلابًا. انقل الطلاب أو احذفهم أولًا.");
-    if (!confirm(`حذف ${item.name}؟`)) return;
+    const confirmation = count > 0
+      ? `حذف ${item.name} وفيه ${ar(count)} طالبًا؟\n\nسيتم حذف الفصل من القوائم الحالية وأرشفة طلابه دفعة واحدة، مع بقاء سجلاتهم التاريخية محفوظة.`
+      : `حذف ${item.name}؟`;
+    if (!confirm(confirmation)) return;
     setBusy(true);
-    try { await api(`/api/admin/students/classes/${item.id}`, { method: "DELETE" }); await load(); setMessage("تم حذف الفصل."); }
-    catch (error) { setMessage(error instanceof Error ? error.message : "تعذر حذف الفصل"); }
+    try {
+      const data = await api(`/api/admin/students/classes/${item.id}${count > 0 ? "?force=1" : ""}`, { method: "DELETE" }, 30000);
+      setClassId("");
+      await load();
+      setMessage(count > 0
+        ? `تم حذف ${item.name} وأرشفة ${ar(data.archivedStudents ?? count)} طالبًا من القوائم الحالية مع حفظ السجلات السابقة.`
+        : `تم حذف ${item.name}.`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر حذف الفصل"); }
     finally { setBusy(false); }
   }
 
