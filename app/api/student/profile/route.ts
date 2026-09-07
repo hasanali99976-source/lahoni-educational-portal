@@ -7,6 +7,7 @@ import { normalizeClass } from "../../../../lib/unified-roster";
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
 type AttendanceEntry = { status: AttendanceStatus; updatedAt: string };
 type TimetableLesson = { className?: unknown; subject?: unknown; notes?: unknown };
+type ReferralRow = Record<string, unknown> & { id: string };
 
 const ATTENDANCE_START_DATE = "2026-08-23";
 const SCHOOL_WEEKDAYS = [0, 1, 2, 3, 4] as const;
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
   ].filter(Boolean));
 
   const counselorReferrals = referralSnapshot.docs
-    .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }))
+    .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }) as ReferralRow)
     .filter(item => {
       if (item.visibleToStudent === false) return false;
       const status = clean(item.status);
