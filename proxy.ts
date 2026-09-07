@@ -32,7 +32,14 @@ export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const queryCode = String(request.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
   const directStudentBarcode = pathname === "/student" && STUDENT_CODE_PATTERN.test(queryCode);
+  const explicitStudentLogout = pathname === "/student" && request.nextUrl.searchParams.has("logout");
   const locked = request.cookies.get(QR_LOCK_COOKIE)?.value === "1";
+
+  // الخروج الصريح من بوابة الطالب يجب أن ينهي قفل QR نفسه، لا أن يتركه
+  // فيعيد الجهاز إلى بوابة الطالب لاحقًا بعد الرجوع أو تبديل الصفحة.
+  if (explicitStudentLogout) {
+    return clearStudentLock(NextResponse.next());
+  }
 
   // الرابط الرسمي للرئيسية يجب أن يفتح البوابة كاملة دائمًا، حتى لو كان الجهاز
   // قد احتفظ سابقًا بكوكي قفل الطالب من دخول QR. دخول الطالب يبقى عبر /student فقط.
