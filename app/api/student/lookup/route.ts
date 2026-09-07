@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { getSubjectConfig } from "../../../../lib/subject-config";
 import { createStudentAccessToken } from "../../../../lib/server/portal-auth";
@@ -43,6 +44,17 @@ function isQuotaError(error: unknown) {
   const source = error as { code?: unknown; message?: unknown };
   const text = `${String(source?.code || "")} ${String(source?.message || "")}`.toLowerCase();
   return text.includes("resource-exhausted") || text.includes("quota exceeded");
+}
+
+function hasVerifiedTeacherNotice(data: Record<string, unknown>) {
+  const notice = data.parentCounselorLastNotice;
+  return !!notice && typeof notice === "object" && (notice as Record<string, unknown>).teacherCreated === true;
+}
+
+function withoutUnverifiedCounselorNotice(data: Record<string, unknown>) {
+  if (!data.parentCounselorLastNotice || hasVerifiedTeacherNotice(data)) return data;
+  const { parentCounselorLastNotice: _notice, parentCounselorNoticeCount: _count, ...safe } = data;
+  return safe;
 }
 
 function parseStudentPath(path: string, data: Record<string, unknown>): LocatedStudent | null {
@@ -133,7 +145,27 @@ export async function POST(request: Request) {
       loadTeacherDirectory(),
     ]);
 
-    const existingByTeacherSubject = new Map(existingStudents.map(item => [`${item.teacherId}:${item.subjectId}`, item]));
+    const legacyNoticeStudents = existingStudents.filter(item => item.data.parentCounselorLastNotice && !hasVerifiedTeacherNotice(item.data));
+    if (legacyNoticeStudents.length) {
+      try {
+        for (let index = 0; index < legacyNoticeStudents.length; index += 350) {
+          const batch = adminDb().batch();
+          legacyNoticeStudents.slice(index, index + 350).forEach(item => {
+            const reference = adminDb().collection(`portalV2Data/${item.teacherId}/subjects/${item.subjectId}/students`).doc(item.studentId);
+            batch.update(reference, {
+              parentCounselorLastNotice: FieldValue.delete(),
+              parentCounselorNoticeCount: FieldValue.delete(),
+              updatedAt: new Date().toISOString(),
+            });
+          });
+          await batch.commit();
+        }
+      } catch (cleanupError) {
+        console.warn("legacy counselor notice cleanup deferred", cleanupError);
+      }
+    }
+
+    const existingByTeacherSubject = new Map(existingStudents.map(item => [`${item.teacherId}:${item.subjectId}`, { ...item, data: withoutUnverifiedCounselorNotice(item.data) }]));
     const student = centralStudent;
     if (!student) {
       return NextResponse.json({ ok: false, message: "كود الطالب غير صحيح، أو لم تُربط له مادة بعد." }, { status: 401 });
@@ -272,7 +304,9 @@ export async function POST(request: Request) {
 
     const matches = located.map(item => {
       const candidate = chosenBySubject.get(item.subjectId)!;
-      const subject = getSubjectConfig(item.subjectId);
+      const configuredSubject = getSubjectConfig(item.subjectId);
+      const assignedSubjectLabel = candidate.assignments.find(assignment => assignment.subjectId === item.subjectId)?.subjectLabel;
+      const subjectLabel = assignedSubjectLabel || configuredSubject.label;
       const accessToken = createStudentAccessToken({
         studentId: item.studentId,
         teacherId: item.teacherId,
@@ -284,12 +318,12 @@ export async function POST(request: Request) {
         id: item.studentId,
         teacherId: item.teacherId,
         subjectKey: item.subjectId,
-        subjectLabel: subject.label,
+        subjectLabel,
         teacherName: String(candidate.teacherData.name || "المعلم"),
-        icon: subject.icon || "📘",
+        icon: configuredSubject.icon || "📘",
         accessToken,
         data: {
-          ...item.data,
+          ...withoutUnverifiedCounselorNotice(item.data),
           gradePlan: gradePlanByTeacherSubject.get(`${item.teacherId}:${item.subjectId}`) || null,
           absences: 0,
           late: 0,
@@ -311,6 +345,7 @@ export async function POST(request: Request) {
       ok: true,
       matches,
       linkedFromCentralRoster: repairWrites.length,
+      cleanedLegacyCounselorNotices: legacyNoticeStudents.length,
       linkedByGradeFallback: [...chosenBySubject.values()].filter(item => !item.matchedClass).length,
       uniqueTeacherPerSubject: true,
       gradePlanScopedByTeacherSubject: true,
