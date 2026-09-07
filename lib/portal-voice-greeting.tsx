@@ -45,14 +45,10 @@ function chooseArabicVoice(voices: SpeechSynthesisVoice[]) {
 
 export default function PortalVoiceGreeting({ role, name, identityKey, compact = false }: PortalVoiceGreetingProps) {
   const [speaking, setSpeaking] = useState(false);
-  const attemptedRef = useRef("");
+  const attemptedRef = useRef(false);
   const text = useMemo(() => greetingText(role, name), [role, name]);
-  const key = useMemo(() => {
-    const identity = String(identityKey || cleanName(name) || role).trim().toLowerCase();
-    return `lahooni:greeting:v1:${role}:${identity}`;
-  }, [role, identityKey, name]);
 
-  const speak = useCallback((manual = false) => {
+  const speak = useCallback(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
     try {
       window.speechSynthesis.cancel();
@@ -67,38 +63,34 @@ export default function PortalVoiceGreeting({ role, name, identityKey, compact =
       utterance.onend = () => setSpeaking(false);
       utterance.onerror = () => setSpeaking(false);
       window.speechSynthesis.speak(utterance);
-      if (!manual) sessionStorage.setItem(key, "1");
       return true;
     } catch {
       setSpeaking(false);
       return false;
     }
-  }, [key, text]);
+  }, [text]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !identityKey || attemptedRef.current === key) return;
-    attemptedRef.current = key;
-    if (sessionStorage.getItem(key) === "1") return;
+    if (typeof window === "undefined" || !identityKey || attemptedRef.current) return;
+    attemptedRef.current = true;
 
     let cancelled = false;
     const trySpeak = () => {
-      if (cancelled || sessionStorage.getItem(key) === "1") return;
-      const didStart = speak(false);
-      // Mark the attempt even when a mobile browser blocks autoplay; the replay button stays available.
-      if (!didStart) sessionStorage.setItem(key, "1");
+      if (!cancelled) speak();
     };
 
     const timer = window.setTimeout(trySpeak, 350);
     const voicesChanged = () => {
-      if (!cancelled && sessionStorage.getItem(key) !== "1") trySpeak();
+      if (!cancelled && !speaking) trySpeak();
     };
     window.speechSynthesis?.addEventListener?.("voiceschanged", voicesChanged);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       window.speechSynthesis?.removeEventListener?.("voiceschanged", voicesChanged);
+      window.speechSynthesis?.cancel();
     };
-  }, [identityKey, key, speak]);
+  }, [identityKey, speak, speaking]);
 
   const style: CSSProperties = compact ? {
     display: "inline-flex", alignItems: "center", justifyContent: "center", width: 38, height: 38,
@@ -113,7 +105,7 @@ export default function PortalVoiceGreeting({ role, name, identityKey, compact =
   return <button
     type="button"
     style={style}
-    onClick={() => speak(true)}
+    onClick={() => speak()}
     aria-label="إعادة تشغيل الترحيب الصوتي"
     title="تشغيل الترحيب الصوتي"
   >
