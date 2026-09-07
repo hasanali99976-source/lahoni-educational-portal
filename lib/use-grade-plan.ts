@@ -46,7 +46,7 @@ export function useGradePlan(enabled = true) {
       return null;
     }
     if (!teacherId || !subjectId) {
-      setState(current => ({ ...current, activePlan: null, loading: false, error: "" }));
+      setState({ activePlan: null, loading: false, error: "", history: [] });
       return null;
     }
 
@@ -54,7 +54,8 @@ export function useGradePlan(enabled = true) {
     setGradePlanCurrentSubject(subjectId);
     const localPlan = readLocalGradePlan(teacherId, subjectId, allowLegacyLocal);
     const scopedLocalPlan = readScopedLocalGradePlan(teacherId, subjectId);
-    setState(current => ({ ...current, activePlan: localPlan || current.activePlan, loading: true, error: "" }));
+    // Never carry the previous subject's plan while the newly selected subject is loading.
+    setState({ activePlan: localPlan, loading: true, error: "", history: [] });
     try {
       const response = await fetch(`/api/teacher/grade-plan?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store", credentials: "same-origin" });
       const data = await response.json().catch(() => ({}));
@@ -89,7 +90,7 @@ export function useGradePlan(enabled = true) {
             }
           }
         } catch {
-          // Keep the subject-scoped local plan active for the teacher and retry on the next refresh.
+          // Keep only the subject-scoped local plan active and retry on the next refresh.
         }
       }
 
@@ -103,12 +104,12 @@ export function useGradePlan(enabled = true) {
       return activePlan;
     } catch (error) {
       const fallback = readLocalGradePlan(teacherId, subjectId, allowLegacyLocal);
-      setState(current => ({
-        ...current,
-        activePlan: fallback || current.activePlan,
+      setState({
+        activePlan: fallback,
         loading: false,
         error: fallback ? "" : error instanceof Error ? error.message : "تعذر تحميل خطة توزيع الدرجات.",
-      }));
+        history: [],
+      });
       return fallback;
     }
   }, [enabled, teacherId, subjectId, allowLegacyLocal]);
