@@ -8,6 +8,7 @@ type TokenRow = { subjectKey?: unknown; accessToken?: unknown };
 type GradeDeduction = {
   id?: unknown;
   planId?: unknown;
+  scope?: unknown;
   amount?: unknown;
   reason?: unknown;
   note?: unknown;
@@ -23,23 +24,41 @@ function studentReason(reasonValue: unknown, noteValue: unknown) {
   return reason || note || "خصم أكاديمي";
 }
 
+function normalizeDeduction(item: GradeDeduction) {
+  const rawReason = String(item.reason || "").trim();
+  const rawNote = String(item.note || "").trim();
+  const reason = studentReason(rawReason, rawNote);
+  return {
+    id: String(item.id || ""),
+    amount: Math.max(0, Number(item.amount || 0)),
+    reason,
+    note: rawReason === "سبب آخر" ? "" : rawNote,
+    teacherName: String(item.teacherName || "").trim(),
+    createdAt: String(item.createdAt || "").trim(),
+  };
+}
+
 function activeDeductions(data: Record<string, unknown>, planId: string) {
   const rows = Array.isArray(data.gradeDeductions) ? data.gradeDeductions as GradeDeduction[] : [];
-  return rows
-    .filter(item => !item.reversedAt && (!item.planId || String(item.planId) === planId) && Number(item.amount || 0) > 0)
-    .map(item => {
-      const rawReason = String(item.reason || "").trim();
-      const rawNote = String(item.note || "").trim();
-      const reason = studentReason(rawReason, rawNote);
-      return {
-        id: String(item.id || ""),
-        amount: Math.max(0, Number(item.amount || 0)),
-        reason,
-        note: rawReason === "سبب آخر" ? "" : rawNote,
-        teacherName: String(item.teacherName || "").trim(),
-        createdAt: String(item.createdAt || "").trim(),
-      };
-    });
+  const active = rows.filter(item => !item.reversedAt && Number(item.amount || 0) > 0);
+
+  // الخصم الإجمالي في جدول التحصيل يخص المادة نفسها، وليس إصدار الخطة فقط.
+  // نعتمد أحدث خصم إجمالي نشط حتى يلغيه المعلم، لكي لا يختفي عند تغيير خطة الرصد.
+  const latestPlanDeduction = active
+    .filter(item => !item.scope || String(item.scope) === "plan")
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0];
+
+  // الخصومات التفصيلية القديمة تبقى مرتبطة بالخطة التي أنشئت عليها فقط.
+  const scoped = active.filter(item => {
+    const scope = String(item.scope || "plan");
+    if (scope === "plan") return false;
+    return !item.planId || String(item.planId) === planId;
+  });
+
+  return [
+    ...(latestPlanDeduction ? [normalizeDeduction(latestPlanDeduction)] : []),
+    ...scoped.map(normalizeDeduction),
+  ];
 }
 
 export async function POST(request: Request) {
