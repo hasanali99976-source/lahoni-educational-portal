@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+// Shared greeting engine: native Android TTS first, browser speech as fallback.
 type PortalVoiceGreetingProps = {
   role: "teacher" | "student";
   name?: string;
