@@ -11,9 +11,10 @@ type PortalVoiceGreetingProps = {
 
 declare global {
   interface Window {
-    OstadhApp?: {
+    OstadhTts?: {
       speakArabic?: (text: string) => void;
       stopSpeech?: () => void;
+      isReady?: () => boolean;
     };
     __OSTADH_ANDROID__?: boolean;
   }
@@ -62,9 +63,9 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
     if (typeof window === "undefined") return false;
 
     const isNativeAndroid = Boolean(window.__OSTADH_ANDROID__) || /OstadhLahooniAndroid/i.test(navigator.userAgent);
-    if (isNativeAndroid && window.OstadhApp?.speakArabic) {
+    if (isNativeAndroid && window.OstadhTts?.speakArabic) {
       try {
-        window.OstadhApp.speakArabic(text);
+        window.OstadhTts.speakArabic(text);
         startedRef.current = true;
         return true;
       } catch {
@@ -104,6 +105,7 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
 
     const timer = window.setTimeout(trySpeak, 180);
     const retryTimer = window.setTimeout(trySpeak, 900);
+    const lateRetryTimer = window.setTimeout(trySpeak, 1800);
     const voicesChanged = () => trySpeak();
     const interactionFallback = () => {
       if (!startedRef.current) trySpeak();
@@ -123,11 +125,12 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
       cancelled = true;
       window.clearTimeout(timer);
       window.clearTimeout(retryTimer);
+      window.clearTimeout(lateRetryTimer);
       window.speechSynthesis?.removeEventListener?.("voiceschanged", voicesChanged);
       window.removeEventListener("pointerdown", interactionFallback, true);
       window.removeEventListener("keydown", interactionFallback, true);
       window.removeEventListener("touchstart", interactionFallback, true);
-      try { window.OstadhApp?.stopSpeech?.(); } catch {}
+      try { window.OstadhTts?.stopSpeech?.(); } catch {}
       window.speechSynthesis?.cancel();
     };
   }, [identityKey, speak]);
