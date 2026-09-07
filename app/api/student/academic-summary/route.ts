@@ -16,18 +16,30 @@ type GradeDeduction = {
   reversedAt?: unknown;
 };
 
+function studentReason(reasonValue: unknown, noteValue: unknown) {
+  const reason = String(reasonValue || "").trim();
+  const note = String(noteValue || "").trim();
+  if (reason === "سبب آخر") return note || "خصم أكاديمي";
+  return reason || note || "خصم أكاديمي";
+}
+
 function activeDeductions(data: Record<string, unknown>, planId: string) {
   const rows = Array.isArray(data.gradeDeductions) ? data.gradeDeductions as GradeDeduction[] : [];
   return rows
     .filter(item => !item.reversedAt && (!item.planId || String(item.planId) === planId) && Number(item.amount || 0) > 0)
-    .map(item => ({
-      id: String(item.id || ""),
-      amount: Math.max(0, Number(item.amount || 0)),
-      reason: String(item.reason || "خصم أكاديمي").trim(),
-      note: String(item.note || "").trim(),
-      teacherName: String(item.teacherName || "").trim(),
-      createdAt: String(item.createdAt || "").trim(),
-    }));
+    .map(item => {
+      const rawReason = String(item.reason || "").trim();
+      const rawNote = String(item.note || "").trim();
+      const reason = studentReason(rawReason, rawNote);
+      return {
+        id: String(item.id || ""),
+        amount: Math.max(0, Number(item.amount || 0)),
+        reason,
+        note: rawReason === "سبب آخر" ? "" : rawNote,
+        teacherName: String(item.teacherName || "").trim(),
+        createdAt: String(item.createdAt || "").trim(),
+      };
+    });
 }
 
 export async function POST(request: Request) {
@@ -57,6 +69,7 @@ export async function POST(request: Request) {
           deduction: 0,
           afterDeduction: 0,
           maximum: 100,
+          availableMaximum: 100,
           completion: 0,
           deductions: [],
         };
@@ -67,6 +80,8 @@ export async function POST(request: Request) {
       const result = calculateGradePlanResult(plan, data);
       const deductions = activeDeductions(data, plan.id);
       const deduction = roundGrade(deductions.reduce((sum, item) => sum + item.amount, 0));
+      const maximum = roundGrade(result.maximum || 100);
+      const availableMaximum = Math.max(0, roundGrade(maximum - deduction));
       const beforeDeduction = roundGrade(result.earned);
       const afterDeduction = Math.max(0, roundGrade(beforeDeduction - deduction));
 
@@ -79,7 +94,8 @@ export async function POST(request: Request) {
         beforeDeduction,
         deduction,
         afterDeduction,
-        maximum: 100,
+        maximum,
+        availableMaximum,
         completion: result.completion,
         complete: result.complete,
         deductions,
