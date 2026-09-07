@@ -7,7 +7,8 @@ import "./student-wow-v67.css";
 import "./student-dashboard-v68.css";
 import "./student-clarity-v69.css";
 import StudentQrLock from "./student-qr-lock";
+import StudentReportSessionGuard from "./student-report-session-guard";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <><StudentQrLock />{children}</>;
+  return <><StudentQrLock /><StudentReportSessionGuard />{children}</>;
 }
