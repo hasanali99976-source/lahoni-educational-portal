@@ -8,6 +8,7 @@ import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type Grad
 type GradeDeduction = {
   id?: string;
   planId?: string;
+  scope?: "plan" | "section" | "item";
   amount?: number;
   reason?: string;
   note?: string;
@@ -54,9 +55,31 @@ function activeSubjectLabel() {
   return String(document.querySelector(".sta4-subject.active b")?.textContent || "").trim();
 }
 
+function normalizeReason(item: GradeDeduction) {
+  const reason = String(item.reason || "").trim();
+  const note = String(item.note || "").trim();
+  if (reason === "سبب آخر") return { ...item, reason: note || "خصم أكاديمي", note: "" };
+  if (!reason && note) return { ...item, reason: note, note: "" };
+  return item;
+}
+
 function activeDeductions(data: StudentRecord, plan: GradePlan) {
-  return (Array.isArray(data.gradeDeductions) ? data.gradeDeductions : [])
-    .filter(item => !item.reversedAt && (!item.planId || item.planId === plan.id) && Number(item.amount || 0) > 0);
+  const rows = (Array.isArray(data.gradeDeductions) ? data.gradeDeductions : [])
+    .filter(item => !item.reversedAt && Number(item.amount || 0) > 0);
+
+  const latestPlanDeduction = rows
+    .filter(item => !item.scope || item.scope === "plan")
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0];
+
+  const scoped = rows.filter(item => {
+    if (!item.scope || item.scope === "plan") return false;
+    return !item.planId || item.planId === plan.id;
+  });
+
+  return [
+    ...(latestPlanDeduction ? [normalizeReason(latestPlanDeduction)] : []),
+    ...scoped.map(normalizeReason),
+  ];
 }
 
 export default function StudentPortalAcademicEnhancer() {
@@ -178,8 +201,8 @@ export default function StudentPortalAcademicEnhancer() {
     const deductions = activeDeductions(currentData, plan);
     const deducted = Number(deductions.reduce((sum, item) => sum + Number(item.amount || 0), 0).toFixed(2));
     const adjusted = Math.max(0, Number((result.earned - deducted).toFixed(2)));
-    const remaining = Math.max(0, Number((result.maximum - adjusted).toFixed(2)));
-    return { plan, result, deductions, deducted, adjusted, remaining };
+    const availableMaximum = Math.max(0, Number((result.maximum - deducted).toFixed(2)));
+    return { plan, result, deductions, deducted, adjusted, availableMaximum };
   }, [currentData]);
 
   if (pathname !== "/student" || !currentMatch) return null;
@@ -190,9 +213,9 @@ export default function StudentPortalAcademicEnhancer() {
 
     {progressHost && summary && createPortal(
       <section className={`sta4-academic-balance ${summary.deducted > 0 ? "has-deduction" : ""}`}>
-        <div><small>التحصيل العلمي</small><strong>{ar(summary.adjusted)} <i>/ {ar(summary.result.maximum)}</i></strong><span>الدرجة المحتسبة حاليًا</span></div>
-        <div><small>المتبقي للدرجة الكاملة</small><strong>{ar(summary.remaining)}</strong><span>{summary.result.complete ? "يشمل أثر الخصم إن وجد" : "يشمل الدرجات غير المرصودة والخصم"}</span></div>
-        {summary.deducted > 0 ? <div className="deduction"><small>الخصم المعتمد</small><strong>− {ar(summary.deducted)}</strong><span>الأصل قبل الخصم {ar(summary.result.earned)}</span></div> : null}
+        <div><small>التحصيل العلمي</small><strong>{ar(summary.adjusted)} <i>/ {ar(summary.availableMaximum)}</i></strong><span>الدرجة الحالية من السقف المتاح بعد الخصم</span></div>
+        <div><small>السقف المتاح للمادة</small><strong>{ar(summary.availableMaximum)}</strong><span>من أصل {ar(summary.result.maximum)} درجة</span></div>
+        {summary.deducted > 0 ? <div className="deduction"><small>الخصم المعتمد</small><strong>− {ar(summary.deducted)}</strong><span>الدرجة قبل الخصم {ar(summary.result.earned)}</span></div> : null}
       </section>,
       progressHost,
     )}
