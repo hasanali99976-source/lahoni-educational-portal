@@ -2,9 +2,9 @@
 
 import { normalizeGradePlan, type GradePlan, type GradePlanDraft } from "./grade-plan";
 
-const STORAGE_KEY = "lahoni-grade-plan-local-v1";
-const CURRENT_TEACHER_KEY = "lahoni-grade-plan-current-teacher";
-const CURRENT_SUBJECT_KEY = "lahoni-grade-plan-current-subject";
+const STORAGE_KEY = "lahooni-grade-plan-local-v1";
+const CURRENT_TEACHER_KEY = "lahooni-grade-plan-current-teacher";
+const CURRENT_SUBJECT_KEY = "lahooni-grade-plan-current-subject";
 
 type StoredPlans = Record<string, GradePlan>;
 
@@ -54,12 +54,16 @@ export function readScopedLocalGradePlan(teacherId = currentTeacherId(), subject
   return normalizeGradePlan(plans[planKey(teacherId, subjectId)]);
 }
 
-export function readLocalGradePlan(teacherId = currentTeacherId(), subjectId = currentSubjectId()) {
+export function readLocalGradePlan(
+  teacherId = currentTeacherId(),
+  subjectId = currentSubjectId(),
+  allowLegacyTeacherPlan = false,
+) {
   if (!teacherId) return null;
   const plans = readAll();
   const scoped = subjectId ? normalizeGradePlan(plans[planKey(teacherId, subjectId)]) : null;
   if (scoped) return scoped;
-  return normalizeGradePlan(plans[teacherId]);
+  return allowLegacyTeacherPlan ? normalizeGradePlan(plans[teacherId]) : null;
 }
 
 export function saveLocalGradePlan(plan: GradePlan, subjectId = currentSubjectId()) {
