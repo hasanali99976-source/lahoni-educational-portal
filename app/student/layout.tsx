@@ -6,9 +6,11 @@ import "./student-premium-v66.css";
 import "./student-wow-v67.css";
 import "./student-dashboard-v68.css";
 import "./student-clarity-v69.css";
+import "./student-report-pdf-v2.css";
 import StudentQrLock from "./student-qr-lock";
 import StudentReportSessionGuard from "./student-report-session-guard";
+import StudentReportPdfV2Runtime from "./student-report-pdf-v2-runtime";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <><StudentQrLock /><StudentReportSessionGuard />{children}</>;
+  return <><StudentQrLock /><StudentReportSessionGuard /><StudentReportPdfV2Runtime />{children}</>;
 }
