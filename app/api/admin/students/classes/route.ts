@@ -23,23 +23,27 @@ export async function POST(request: Request) {
     const database = adminDb();
     const reference = database.collection(SCHOOL_CLASSES_COLLECTION).doc(id);
     const existing = await reference.get();
+    const previous = existing.exists ? existing.data() as Record<string, unknown> : null;
 
-    if (existing.exists) {
-      const data = existing.data() as Record<string, unknown>;
-      if (data.active !== false) {
-        return NextResponse.json({ ok: false, message: `الفصل ${name} موجود مسبقًا.` }, { status: 409 });
-      }
-      // امسح بقايا وثيقة الفصل المحذوفة قبل إنشائه من جديد.
-      // لا نحذف سجلات الطلاب المؤرشفة؛ فهي تاريخية ولا يجب أن تمنع إنشاء فصل جديد بنفس الاسم.
-      await reference.delete();
-    }
+    // إنشاء الفصل هنا عملية idempotent: أي بقايا قديمة أو وثيقة نشطة مخفية
+    // بنفس الهوية تُستبدل بسجل فصل نظيف، بينما سجلات الطلاب التاريخية تبقى كما هي.
+    await reference.set({
+      id,
+      grade,
+      section,
+      name,
+      active: true,
+      createdAt: typeof previous?.createdAt === "string" ? previous.createdAt : now,
+      updatedAt: now,
+      archivedAt: null,
+      deletedAt: null,
+    });
 
-    await reference.set({ id, grade, section, name, active: true, createdAt: now, updatedAt: now });
     return NextResponse.json({
       ok: true,
       schoolClass: { id, grade, section, name, active: true },
       recreated: existing.exists,
-    }, { status: 201 });
+    }, { status: existing.exists ? 200 : 201 });
   } catch (error) {
     console.error("create class failed", error);
     return NextResponse.json({ ok: false, message: "تعذر إضافة الفصل" }, { status: 500 });
