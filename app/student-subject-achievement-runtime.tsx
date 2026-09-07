@@ -46,6 +46,10 @@ function firstReason(summary: Summary) {
   return summary.deductions?.[0]?.reason || "خصم أكاديمي";
 }
 
+function sameHostRows(a: Array<{ host: HTMLElement; match: Match }>, b: Array<{ host: HTMLElement; match: Match }>) {
+  return a.length === b.length && a.every((row, index) => row.host === b[index]?.host && row.match.subjectKey === b[index]?.match.subjectKey);
+}
+
 export default function StudentSubjectAchievementRuntime() {
   const pathname = usePathname();
   const [studentCode, setStudentCode] = useState("");
@@ -56,6 +60,26 @@ export default function StudentSubjectAchievementRuntime() {
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null);
   const [reportGridHost, setReportGridHost] = useState<HTMLElement | null>(null);
   const [activeLabel, setActiveLabel] = useState("");
+
+  function syncHosts(sourceMatches: Match[] = matches) {
+    if (pathname !== "/student") return;
+    const buttons = [...document.querySelectorAll(".sta4-subject")].filter((item): item is HTMLElement => item instanceof HTMLElement);
+    const mapped = buttons.flatMap(host => {
+      const label = String(host.querySelector("b")?.textContent || "").trim();
+      const match = sourceMatches.find(item => item.subjectLabel === label);
+      return match ? [{ host, match }] : [];
+    });
+    setSubjectHosts(current => sameHostRows(current, mapped) ? current : mapped);
+
+    const nextProgress = document.querySelector(".sta4-progress-layout") as HTMLElement | null;
+    const nextReport = document.querySelector(".sta4-report-table") as HTMLElement | null;
+    const nextReportGrid = document.querySelector(".sta4-report-grid") as HTMLElement | null;
+    setProgressHost(current => current === nextProgress ? current : nextProgress);
+    setReportHost(current => current === nextReport ? current : nextReport);
+    setReportGridHost(current => current === nextReportGrid ? current : nextReportGrid);
+    const nextLabel = activeSubjectLabelFromPage();
+    setActiveLabel(current => current === nextLabel ? current : nextLabel);
+  }
 
   async function load(code: string) {
     if (!/^TH[123]\d{3}$/.test(code)) return;
@@ -69,6 +93,7 @@ export default function StudentSubjectAchievementRuntime() {
     if (!lookup.ok || !Array.isArray(lookupData.matches)) return;
     const nextMatches = lookupData.matches as Match[];
     setMatches(nextMatches);
+    syncHosts(nextMatches);
 
     const response = await fetch("/api/student/academic-summary", {
       method: "POST",
@@ -77,7 +102,12 @@ export default function StudentSubjectAchievementRuntime() {
       cache: "no-store",
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok && Array.isArray(data.summaries)) setSummaries(data.summaries as Summary[]);
+    if (response.ok && Array.isArray(data.summaries)) {
+      setSummaries(data.summaries as Summary[]);
+      syncHosts(nextMatches);
+      window.requestAnimationFrame(() => syncHosts(nextMatches));
+      window.setTimeout(() => syncHosts(nextMatches), 120);
+    }
   }
 
   function locateHosts() {
@@ -87,34 +117,32 @@ export default function StudentSubjectAchievementRuntime() {
       setStudentCode(code);
       void load(code);
     }
-    const buttons = [...document.querySelectorAll(".sta4-subject")].filter((item): item is HTMLElement => item instanceof HTMLElement);
-    const mapped = buttons.flatMap(host => {
-      const label = String(host.querySelector("b")?.textContent || "").trim();
-      const match = matches.find(item => item.subjectLabel === label);
-      return match ? [{ host, match }] : [];
-    });
-    setSubjectHosts(mapped);
-    setProgressHost(document.querySelector(".sta4-progress-layout") as HTMLElement | null);
-    setReportHost(document.querySelector(".sta4-report-table") as HTMLElement | null);
-    setReportGridHost(document.querySelector(".sta4-report-grid") as HTMLElement | null);
-    setActiveLabel(activeSubjectLabelFromPage());
+    syncHosts(matches);
   }
 
   useEffect(() => {
     if (pathname !== "/student") return;
 
-    const timers = [60, 300, 1000, 2500, 5000].map(delay => window.setTimeout(locateHosts, delay));
+    const timers = [40, 180, 500, 1200, 2500].map(delay => window.setTimeout(locateHosts, delay));
+    let frame = 0;
+    const root = document.querySelector(".portal-stage") || document.body;
+    const observer = new MutationObserver(() => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => syncHosts(matches));
+    });
+    observer.observe(root, { childList: true, subtree: true });
+
     const onClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const interactive = target.closest(".sta4-subject, .sta4-nav, .sta4-top-actions, .stg4-submit");
       if (!interactive) return;
       const text = String(interactive.textContent || "").replace(/\s+/g, " ").trim();
-      window.setTimeout(locateHosts, 80);
-      window.setTimeout(locateHosts, 450);
+      window.setTimeout(() => syncHosts(matches), 40);
+      window.setTimeout(() => syncHosts(matches), 180);
       if (text.includes("تقريري") || text.includes("تقدمي") || text.includes("شاهد تقدمي")) {
         const code = codeFromPage();
-        if (/^TH[123]\d{3}$/.test(code)) window.setTimeout(() => void load(code), 60);
+        if (/^TH[123]\d{3}$/.test(code)) window.setTimeout(() => void load(code), 40);
       }
     };
     const onFocus = () => {
@@ -129,6 +157,8 @@ export default function StudentSubjectAchievementRuntime() {
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       timers.forEach(id => window.clearTimeout(id));
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
@@ -137,7 +167,7 @@ export default function StudentSubjectAchievementRuntime() {
 
   useEffect(() => {
     if (pathname !== "/student") return;
-    locateHosts();
+    syncHosts(matches);
   }, [pathname, matches, summaries]);
 
   const bySubject = useMemo(() => new Map(summaries.map(item => [item.subjectKey, item])), [summaries]);
