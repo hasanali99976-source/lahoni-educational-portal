@@ -22,7 +22,19 @@ function authenticatedStudentUiVisible() {
 export default function StudentQrLock() {
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
+    const explicitLogout = query.has("logout");
     const queryCode = normalizeStudentCode(query.get("code") || "");
+
+    if (explicitLogout) {
+      try {
+        window.sessionStorage.removeItem(STUDENT_SESSION_KEY);
+      } catch {}
+      document.documentElement.classList.remove("student-code-session");
+      delete document.body.dataset.studentEntry;
+      document.getElementById(LOCK_STYLE_ID)?.remove();
+      return;
+    }
+
     let locked = QR_ENTRIES.has(query.get("entry") || "") || STUDENT_CODE_PATTERN.test(queryCode);
 
     try {
