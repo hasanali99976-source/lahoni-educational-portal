@@ -124,12 +124,18 @@ export async function PUT(request: Request) {
     const subjectId = clean(body.subjectId, 80).split("--")[0];
     const studentCode = clean(body.studentCode, 40).toUpperCase();
     const planId = clean(body.planId, 120);
+    const scope: "plan" | "section" = body.scope === "section" ? "section" : "plan";
+    const sectionId = clean(body.sectionId, 120);
+    const sectionLabel = clean(body.sectionLabel, 160);
     const amount = numeric(body.amount);
     const reason = clean(body.reason, 180);
     const note = clean(body.note, 500);
 
     if (!subjectId || !studentCode || !planId || amount < 0 || amount > 100 || (amount > 0 && !reason)) {
       return NextResponse.json({ ok: false, message: amount > 0 ? "اكتب مقدار الخصم وسببه." : "بيانات الخصم غير مكتملة." }, { status: 400 });
+    }
+    if (scope === "section" && !sectionId) {
+      return NextResponse.json({ ok: false, message: "حدد الوحدة أو الفترة المرتبطة بالخصم." }, { status: 400 });
     }
     if (amount > 0 && reason === "سبب آخر" && !note) {
       return NextResponse.json({ ok: false, message: "اكتب ملاحظة توضح سبب الخصم." }, { status: 400 });
@@ -142,11 +148,14 @@ export async function PUT(request: Request) {
     const previous = Array.isArray(current.gradeDeductions) ? current.gradeDeductions as DeductionEntry[] : [];
     const changedAt = new Date().toISOString();
 
-    // الخصم الإجمالي في جدول التحصيل يخص المادة كلها، لذا أي حفظ جديد
-    // يستبدل جميع الخصومات الإجمالية النشطة السابقة حتى لو تغير إصدار الخطة.
+    // الحفظ من جدول التحصيل يستبدل خصم الهدف الحالي فقط؛
+    // خصم الوحدة الأولى لا يلغي خصم الوحدة الثانية ولا يتحول إلى خصم عام للمادة.
     const reversed = previous.map(entry => {
-      const scope = entry.scope || "plan";
-      if (entry.reversedAt || scope !== "plan") return entry;
+      const entryScope = entry.scope || "plan";
+      const sameTarget = scope === "section"
+        ? entryScope === "section" && String(entry.sectionId || "") === sectionId && (!entry.planId || entry.planId === planId)
+        : entryScope === "plan";
+      if (entry.reversedAt || !sameTarget) return entry;
       return { ...entry, reversedAt: changedAt, reversedBy: session.name || "المعلم" };
     });
 
@@ -156,10 +165,11 @@ export async function PUT(request: Request) {
       entry = {
         id: `ded-inline-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
         planId,
-        scope: "plan",
+        scope,
         amount,
         reason: resolvedReason,
         ...(reason !== "سبب آخر" && note ? { note } : {}),
+        ...(scope === "section" ? { sectionId, sectionLabel } : {}),
         createdAt: changedAt,
         teacherId: session.userId,
         teacherName: session.name || "المعلم",
