@@ -6,7 +6,7 @@ import { SUBJECT_CONFIG } from "../../lib/subject-config";
 import TeacherActivityLeaderboard from "./teacher-activity-leaderboard";
 import "./admin-rebuild.css";
 
-type Assignment = { id?: string; subjectId: string; grade: string; section: string; label?: string };
+type Assignment = { id?: string; subjectId: string; subjectLabel?: string; grade: string; section: string; label?: string };
 type Teacher = { id: string; name: string; active: boolean; subjectIds: string[]; assignments: Assignment[] };
 
 const SUBJECTS = Object.values(SUBJECT_CONFIG)
@@ -15,6 +15,60 @@ const SUBJECTS = Object.values(SUBJECT_CONFIG)
 const GRADES = ["الأول الثانوي", "الثاني الثانوي", "الثالث الثانوي"] as const;
 const SECTIONS = ["الكل", "١", "٢", "٣", "٤", "٥", "٦", "٧"] as const;
 const emptyAssignment = (): Assignment => ({ subjectId: "", grade: "", section: "" });
+const MANUAL_SUBJECT_OPTION = "__manual_subject__";
+
+const SUBJECT_TRANSLATIONS: Record<string, string> = {
+  "اللغة الصينية": "chinese",
+  "الصينية": "chinese",
+  "اللغة الفرنسية": "french",
+  "الفرنسية": "french",
+  "اللغة الالمانية": "german",
+  "اللغة الألمانية": "german",
+  "الألمانية": "german",
+  "البرمجة": "programming",
+  "الروبوت": "robotics",
+  "الروبوتات": "robotics",
+  "الذكاء الاصطناعي": "artificial-intelligence",
+  "الأمن السيبراني": "cybersecurity",
+  "الاقتصاد": "economics",
+  "القانون": "law",
+  "التسويق": "marketing",
+  "المحاسبة": "accounting",
+  "علم النفس": "psychology",
+  "الفلسفة": "philosophy",
+  "المهارات الرقمية": "digital-skills",
+};
+
+function normalizeArabicText(value: string) {
+  return value.trim().replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/\s+/g, " ");
+}
+
+function transliterateArabic(value: string) {
+  const map: Record<string, string> = {
+    ا: "a", ب: "b", ت: "t", ث: "th", ج: "j", ح: "h", خ: "kh", د: "d", ذ: "dh", ر: "r", ز: "z", س: "s", ش: "sh", ص: "s", ض: "d", ط: "t", ظ: "z", ع: "a", غ: "gh", ف: "f", ق: "q", ك: "k", ل: "l", م: "m", ن: "n", ه: "h", و: "w", ي: "y", ء: "", ئ: "y", ؤ: "w",
+  };
+  return normalizeArabicText(value).split("").map(char => map[char] ?? (/[a-z0-9]/i.test(char) ? char.toLowerCase() : char === " " ? "-" : "")).join("")
+    .replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
+function customSubjectIdentity(label: string) {
+  const normalized = normalizeArabicText(label);
+  const translated = Object.entries(SUBJECT_TRANSLATIONS).find(([name]) => normalizeArabicText(name) === normalized)?.[1];
+  const slug = translated || transliterateArabic(label) || "subject";
+  return `custom-${slug}~${encodeURIComponent(label.trim())}`;
+}
+
+function customSubjectLabel(subjectId: string) {
+  const marker = subjectId.indexOf("~");
+  if (!subjectId.startsWith("custom-") || marker < 0) return "";
+  try { return decodeURIComponent(subjectId.slice(marker + 1)); }
+  catch { return ""; }
+}
+
+function subjectIdentityDisplay(subjectId: string) {
+  const marker = subjectId.indexOf("~");
+  return marker >= 0 ? subjectId.slice(0, marker) : subjectId;
+}
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeout = 10000) {
   const controller = new AbortController();
@@ -25,10 +79,22 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
 
 function AssignmentEditor({ rows, setRows }: { rows: Assignment[]; setRows: (rows: Assignment[]) => void }) {
   const update = (index: number, key: keyof Assignment, value: string) => setRows(rows.map((row, i) => i === index ? { ...row, [key]: value } : row));
+  const changeSubject = (index: number, value: string) => {
+    if (value !== MANUAL_SUBJECT_OPTION) {
+      const knownLabel = SUBJECTS.find(([id]) => id === value)?.[1] || customSubjectLabel(value);
+      setRows(rows.map((row, i) => i === index ? { ...row, subjectId: value, subjectLabel: knownLabel || undefined } : row));
+      return;
+    }
+    const label = window.prompt("اكتب اسم المادة كما تريد أن يظهر للمعلم والطالب:", "")?.trim();
+    if (!label) return;
+    const subjectId = customSubjectIdentity(label);
+    setRows(rows.map((row, i) => i === index ? { ...row, subjectId, subjectLabel: label } : row));
+  };
+  const customOptions = [...new Map(rows.filter(row => row.subjectId.startsWith("custom-")).map(row => [row.subjectId, row.subjectLabel || customSubjectLabel(row.subjectId) || row.subjectId])).entries()];
   return <div className="admin2-assignment-box">
-    <div className="admin2-assignment-title"><span>ربط العمل الدراسي</span><small>يمكن للمعلم أن يكون مرتبطًا بأكثر من مادة أو مرحلة.</small></div>
+    <div className="admin2-assignment-title"><span>ربط العمل الدراسي</span><small>يمكن للمعلم أن يكون مرتبطًا بأكثر من مادة أو مرحلة، ويمكن إضافة مادة غير موجودة يدويًا.</small></div>
     {rows.map((row, index) => <div className="admin2-assignment-row" key={index}>
-      <label>المادة<select required value={row.subjectId} onChange={event => update(index, "subjectId", event.target.value)}><option value="">اختر المادة</option>{SUBJECTS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+      <label>المادة<select required value={row.subjectId} onChange={event => changeSubject(index, event.target.value)}><option value="">اختر المادة</option>{SUBJECTS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}{customOptions.map(([id, label]) => <option key={id} value={id}>{label}</option>)}<option value={MANUAL_SUBJECT_OPTION}>＋ إضافة مادة يدويًا…</option></select>{row.subjectId.startsWith("custom-") && <small>هوية المادة: {subjectIdentityDisplay(row.subjectId)}</small>}</label>
       <label>الصف<select required value={row.grade} onChange={event => update(index, "grade", event.target.value)}><option value="">اختر الصف</option>{GRADES.map(item => <option key={item}>{item}</option>)}</select></label>
       <label>الفصل<select required value={row.section} onChange={event => update(index, "section", event.target.value)}><option value="">اختر الفصل</option>{SECTIONS.map(item => <option key={item}>{item === "الكل" ? "جميع الفصول" : item}</option>)}</select></label>
       {rows.length > 1 && <button type="button" className="admin2-btn danger compact" onClick={() => setRows(rows.filter((_, i) => i !== index))}>حذف</button>}
@@ -142,8 +208,8 @@ export default function AdminPage() {
     finally { setBusy(false); }
   }
 
-  const subjectLabel = (id: string) => SUBJECTS.find(([key]) => key === id)?.[1] || id;
-  const assignmentLabel = (assignment: Assignment) => assignment.label || `${subjectLabel(assignment.subjectId)} — ${assignment.grade}${assignment.section ? ` — ${assignment.section === "الكل" ? "جميع الفصول" : `فصل ${assignment.section}`}` : ""}`;
+  const subjectLabel = (id: string) => SUBJECTS.find(([key]) => key === id)?.[1] || customSubjectLabel(id) || id;
+  const assignmentLabel = (assignment: Assignment) => assignment.label || `${assignment.subjectLabel || subjectLabel(assignment.subjectId)} — ${assignment.grade}${assignment.section ? ` — ${assignment.section === "الكل" ? "جميع الفصول" : `فصل ${assignment.section}`}` : ""}`;
   const uniqueSubjectCount = useMemo(() => new Set(teachers.flatMap(item => item.subjectIds || [])).size, [teachers]);
   const assignmentCount = useMemo(() => teachers.reduce((sum, item) => sum + (item.assignments?.length || 0), 0), [teachers]);
   const activeCount = useMemo(() => teachers.filter(item => item.active).length, [teachers]);
