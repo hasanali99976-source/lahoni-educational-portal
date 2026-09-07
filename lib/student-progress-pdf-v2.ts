@@ -173,6 +173,12 @@ function drawCompactNoteText(ctx: CanvasRenderingContext2D, text: string, x: num
   ctx.fillText(raw, x, y, maxWidth);
 }
 
+function desiredPanelHeight(noteCount: number, maxHeight: number) {
+  if (noteCount <= 0) return Math.min(maxHeight, 142);
+  const visibleRows = Math.min(noteCount, 6);
+  return Math.min(maxHeight, 116 + visibleRows * 68 + Math.max(0, visibleRows - 1) * 7);
+}
+
 function drawNotesPanel(
   ctx: CanvasRenderingContext2D,
   notes: StudentReportNoteV2[],
@@ -187,50 +193,50 @@ function drawNotesPanel(
   footerText: string,
 ) {
   roundedRect(ctx, x, y, w, h, 16, "#fff", LINE);
-  roundedRect(ctx, x + 10, y + 10, w - 20, 46, 12, soft);
-  drawFixedText(ctx, title, x + w - 24, y + 33, { size: 14, weight: 900, color: accent, maxWidth: w - 130 });
-  drawFixedText(ctx, `${ar(notes.length)} سجل`, x + 24, y + 33, { size: 10.5, weight: 850, color: accent, align: "left", maxWidth: 90 });
+  roundedRect(ctx, x + 10, y + 10, w - 20, 42, 12, soft);
+  drawFixedText(ctx, title, x + w - 24, y + 31, { size: 13.5, weight: 900, color: accent, maxWidth: w - 130 });
+  drawFixedText(ctx, `${ar(notes.length)} سجل`, x + 24, y + 31, { size: 10, weight: 850, color: accent, align: "left", maxWidth: 90 });
 
-  const bottomBarH = 42;
-  const listTop = y + 68;
-  const listBottom = y + h - bottomBarH - 18;
-  const listH = Math.max(80, listBottom - listTop);
-  const maxRows = Math.max(1, Math.floor(listH / 64));
-  const visible = notes.slice(0, maxRows);
-  const hidden = Math.max(0, notes.length - visible.length);
-
-  if (!visible.length) {
-    roundedRect(ctx, x + 14, listTop + 8, w - 28, 76, 12, "#fafcfc", LINE);
-    drawFixedText(ctx, emptyText, x + w - 28, listTop + 46, { size: 12, weight: 800, color: MUTED, maxWidth: w - 56 });
-  } else {
-    const gap = 8;
-    const cardH = Math.max(54, Math.min(92, (listH - gap * Math.max(0, visible.length - 1)) / visible.length));
-    visible.forEach((note, index) => {
-      const yy = listTop + index * (cardH + gap);
-      roundedRect(ctx, x + 14, yy, w - 28, cardH, 11, index % 2 ? "#fbfdfd" : "#fff", accent === GOLD ? "#ead6a7" : LINE);
-      drawFixedText(ctx, note.subject, x + w - 28, yy + 20, { size: 11.5, weight: 900, color: INK, maxWidth: w - 150 });
-      drawFixedText(ctx, note.kind === "deduction" ? "خصم" : "ملاحظة", x + 28, yy + 20, { size: 9.5, weight: 900, color: accent, align: "left", maxWidth: 70 });
-      drawCompactNoteText(ctx, note.text, x + w - 28, yy + Math.min(cardH - 20, 46), w - 56, cardH < 64 ? 10 : 11.5);
-      const meta = [note.teacher, note.date].filter(Boolean).join(" • ");
-      if (meta && cardH >= 68) drawFixedText(ctx, meta, x + 28, yy + cardH - 14, { size: 8.8, weight: 700, color: MUTED, align: "left", maxWidth: w - 56 });
-    });
+  const listTop = y + 62;
+  if (!notes.length) {
+    roundedRect(ctx, x + 14, listTop, w - 28, 54, 11, "#fafcfc", LINE);
+    drawFixedText(ctx, emptyText, x + w - 28, listTop + 27, { size: 11.5, weight: 800, color: MUTED, maxWidth: w - 56 });
+    return;
   }
 
-  roundedRect(ctx, x + 10, y + h - bottomBarH, w - 20, 32, 10, soft);
+  const footerH = 30;
+  const listBottom = y + h - footerH - 14;
+  const listH = Math.max(58, listBottom - listTop);
+  const maxRows = Math.max(1, Math.floor((listH + 7) / 68));
+  const visible = notes.slice(0, maxRows);
+  const hidden = Math.max(0, notes.length - visible.length);
+  const gap = 7;
+  const cardH = Math.max(56, Math.min(68, (listH - gap * Math.max(0, visible.length - 1)) / visible.length));
+
+  visible.forEach((note, index) => {
+    const yy = listTop + index * (cardH + gap);
+    roundedRect(ctx, x + 14, yy, w - 28, cardH, 11, index % 2 ? "#fbfdfd" : "#fff", accent === GOLD ? "#ead6a7" : LINE);
+    drawFixedText(ctx, note.subject, x + w - 28, yy + 19, { size: 11.3, weight: 900, color: INK, maxWidth: w - 150 });
+    drawFixedText(ctx, note.kind === "deduction" ? "خصم" : "ملاحظة", x + 28, yy + 19, { size: 9.2, weight: 900, color: accent, align: "left", maxWidth: 70 });
+    drawCompactNoteText(ctx, note.text, x + w - 28, yy + Math.min(cardH - 17, 42), w - 56, cardH < 62 ? 9.7 : 11.2);
+    const meta = [note.teacher, note.date].filter(Boolean).join(" • ");
+    if (meta && cardH >= 64) drawFixedText(ctx, meta, x + 28, yy + cardH - 12, { size: 8.5, weight: 700, color: MUTED, align: "left", maxWidth: w - 56 });
+  });
+
   const bottomText = hidden > 0 ? `و ${ar(hidden)} سجلات إضافية محفوظة في البوابة.` : footerText;
-  drawFixedText(ctx, bottomText, x + w - 24, y + h - bottomBarH + 16, { size: 9.5, weight: 800, color: accent, maxWidth: w - 48 });
+  drawFixedText(ctx, bottomText, x + w - 18, y + h - 13, { size: 8.8, weight: 800, color: accent, maxWidth: w - 36 });
 }
 
 function notesBlock(ctx: CanvasRenderingContext2D, notes: StudentReportNoteV2[], startY: number) {
   const x = 48;
   const w = W - 96;
   const footerTop = H - 108;
-  const safeStart = Math.max(startY + 16, 590);
-  const sectionTitleH = 40;
+  const safeStart = Math.max(startY + 14, 560);
+  const sectionTitleH = 38;
   const panelGap = 14;
-  const panelY = safeStart + sectionTitleH + 10;
-  const panelH = Math.max(220, footerTop - panelY);
+  const panelY = safeStart + sectionTitleH + 9;
   const panelW = (w - panelGap) / 2;
+  const maxPanelH = Math.max(140, footerTop - panelY);
 
   roundedRect(ctx, x, safeStart, w, sectionTitleH, 12, "#eaf2f4", LINE);
   drawFixedText(ctx, "تفاصيل المتابعة", W - 68, safeStart + sectionTitleH / 2, { size: 14, weight: 900, color: NAVY, maxWidth: 360 });
@@ -238,6 +244,8 @@ function notesBlock(ctx: CanvasRenderingContext2D, notes: StudentReportNoteV2[],
 
   const deductionNotes = notes.filter(note => note.kind === "deduction");
   const teacherNotes = notes.filter(note => note.kind === "teacher");
+  const deductionH = desiredPanelHeight(deductionNotes.length, maxPanelH);
+  const teacherH = desiredPanelHeight(teacherNotes.length, maxPanelH);
   const rightX = x + w - panelW;
   const leftX = x;
 
@@ -247,12 +255,12 @@ function notesBlock(ctx: CanvasRenderingContext2D, notes: StudentReportNoteV2[],
     rightX,
     panelY,
     panelW,
-    panelH,
+    deductionH,
     "الخصومات وأسبابها",
     "لا توجد خصومات مسجلة حاليًا.",
     GOLD,
     "#fff7e8",
-    "الخصومات الظاهرة محسوبة ضمن السقف المتاح في الجدول.",
+    "الخصومات محسوبة ضمن السقف المتاح في الجدول.",
   );
 
   drawNotesPanel(
@@ -261,7 +269,7 @@ function notesBlock(ctx: CanvasRenderingContext2D, notes: StudentReportNoteV2[],
     leftX,
     panelY,
     panelW,
-    panelH,
+    teacherH,
     "ملاحظات المعلمين",
     "لا توجد ملاحظات إضافية من المعلمين حاليًا.",
     TEAL,
