@@ -31,9 +31,67 @@ function detectIdentity(pathname: string): GreetingIdentity | null {
   return null;
 }
 
+function primeWebVoice() {
+  if (typeof window === "undefined") return;
+
+  try {
+    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextCtor) {
+      const context = new AudioContextCtor();
+      if (context.state === "suspended") void context.resume();
+      const buffer = context.createBuffer(1, 1, 22050);
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(context.destination);
+      source.start(0);
+      source.onended = () => void context.close();
+    }
+  } catch {}
+
+  try {
+    if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+      window.speechSynthesis.cancel();
+      const unlock = new SpeechSynthesisUtterance("\u200B");
+      unlock.lang = "ar-SA";
+      unlock.volume = 0.01;
+      unlock.rate = 1;
+      window.speechSynthesis.speak(unlock);
+    }
+  } catch {}
+
+  try { sessionStorage.setItem("ostadh-voice-unlocked", String(Date.now())); } catch {}
+}
+
 export default function PortalVoiceGreetingRuntime() {
   const pathname = usePathname();
   const [identity, setIdentity] = useState<GreetingIdentity | null>(null);
+
+  useEffect(() => {
+    const isLoginSurface = pathname === "/teacher" || pathname === "/student" || pathname === "/";
+    if (!isLoginSurface) return;
+
+    const onGesture = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest("button,input[type='submit']") as HTMLElement | null;
+      const form = target.closest("form");
+      const text = String(button?.textContent || button?.getAttribute("value") || "").trim();
+      const looksLikeLogin = Boolean(form) && (
+        /دخول|تسجيل|فتح الأكاديمية|الدخول/i.test(text) ||
+        pathname === "/teacher" || pathname === "/student"
+      );
+      if (looksLikeLogin) primeWebVoice();
+    };
+
+    document.addEventListener("pointerdown", onGesture, true);
+    document.addEventListener("touchstart", onGesture, true);
+    document.addEventListener("submit", primeWebVoice, true);
+    return () => {
+      document.removeEventListener("pointerdown", onGesture, true);
+      document.removeEventListener("touchstart", onGesture, true);
+      document.removeEventListener("submit", primeWebVoice, true);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let frame = 0;
