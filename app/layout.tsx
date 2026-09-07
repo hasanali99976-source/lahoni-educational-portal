@@ -38,7 +38,7 @@ import TeacherGradesCleanRuntime from "./teacher-grades-clean-runtime";
 import StudentAcademicRecordBridge from "./student-academic-record-bridge";
 import StudentPortalAcademicEnhancer from "./student-portal-academic-enhancer";
 import StudentSubjectAchievementRuntime from "./student-subject-achievement-runtime";
-import StudentSessionKeeper from "./student-session-keeper";
+import StudentAcademicRecordMaxRuntime from "./student-academic-record-max-runtime";
 import StudentSmartNotesRuntime from "./student-smart-notes-runtime";
 import TeacherNotesIdentityRuntime from "./teacher-notes-identity-runtime";
 import AdminStudentEditClassRuntime from "./admin-student-edit-class-runtime";
@@ -66,7 +66,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
-    <StudentSessionKeeper /><StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentSmartNotesRuntime />
+    <StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentAcademicRecordMaxRuntime /><StudentSmartNotesRuntime />
     <TeacherGradesCleanRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
     <PortalPrintRuntime /><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 />
     <PortalRuntimeGate>
