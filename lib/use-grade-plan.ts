@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { normalizeGradePlan, type GradePlan } from "./grade-plan";
 import { readLocalGradePlan, readScopedLocalGradePlan, saveLocalGradePlan, setGradePlanCurrentSubject, setGradePlanCurrentTeacher } from "./grade-plan-local";
 import { useTeacherClient } from "./teacher-client";
@@ -12,12 +12,29 @@ type GradePlanState = {
   history: Array<{ id: string; version: number; mode: string; method: string; status: string; activatedAt: string; archivedAt?: string }>;
 };
 
+function cleanSubject(value: unknown) {
+  return String(value || "").trim().split("--")[0];
+}
+
 export function useGradePlan(enabled = true) {
   const session = useTeacherClient();
   const teacherId = String(session.teacherId || "").trim();
-  const subjectId = String(session.subjectKey || "").trim().split("--")[0];
+  const subjectId = cleanSubject(session.subjectKey);
+  const assignedSubjects = useMemo(() => {
+    const ids = new Set<string>();
+    (session.subjects || []).forEach(item => {
+      const id = cleanSubject(item.subjectId);
+      if (id) ids.add(id);
+    });
+    (session.assignments || []).forEach(item => {
+      const id = cleanSubject(item.subjectId);
+      if (id) ids.add(id);
+    });
+    return [...ids];
+  }, [session.subjects, session.assignments]);
+  const allowLegacyLocal = assignedSubjects.length === 1 && assignedSubjects[0] === subjectId;
   const [state, setState] = useState<GradePlanState>(() => ({
-    activePlan: enabled ? readLocalGradePlan(teacherId, subjectId) : null,
+    activePlan: enabled ? readLocalGradePlan(teacherId, subjectId, allowLegacyLocal) : null,
     loading: enabled,
     error: "",
     history: [],
@@ -35,7 +52,7 @@ export function useGradePlan(enabled = true) {
 
     setGradePlanCurrentTeacher(teacherId);
     setGradePlanCurrentSubject(subjectId);
-    const localPlan = readLocalGradePlan(teacherId, subjectId);
+    const localPlan = readLocalGradePlan(teacherId, subjectId, allowLegacyLocal);
     const scopedLocalPlan = readScopedLocalGradePlan(teacherId, subjectId);
     setState(current => ({ ...current, activePlan: localPlan || current.activePlan, loading: true, error: "" }));
     try {
@@ -72,7 +89,7 @@ export function useGradePlan(enabled = true) {
             }
           }
         } catch {
-          // Keep the local plan active for the teacher and retry on the next refresh.
+          // Keep the subject-scoped local plan active for the teacher and retry on the next refresh.
         }
       }
 
@@ -85,7 +102,7 @@ export function useGradePlan(enabled = true) {
       });
       return activePlan;
     } catch (error) {
-      const fallback = readLocalGradePlan(teacherId, subjectId);
+      const fallback = readLocalGradePlan(teacherId, subjectId, allowLegacyLocal);
       setState(current => ({
         ...current,
         activePlan: fallback || current.activePlan,
@@ -94,7 +111,7 @@ export function useGradePlan(enabled = true) {
       }));
       return fallback;
     }
-  }, [enabled, teacherId, subjectId]);
+  }, [enabled, teacherId, subjectId, allowLegacyLocal]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
