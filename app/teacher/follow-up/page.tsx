@@ -73,6 +73,8 @@ export default function FollowUpPage() {
   const [threshold, setThreshold] = useState(80);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [referralOpen, setReferralOpen] = useState(false);
+  const [referralClass, setReferralClass] = useState("");
+  const [referralType, setReferralType] = useState<"achievement" | "other">("achievement");
   const [notifyParents, setNotifyParents] = useState(false);
   const [reason, setReason] = useState("انخفاض مستوى التحصيل الدراسي");
   const [noteStudent, setNoteStudent] = useState<Student | null>(null);
@@ -130,25 +132,46 @@ export default function FollowUpPage() {
   const mastered = useMemo(() => completed.filter(student => (student.finalScore || 0) >= threshold), [completed, threshold]);
   const support = useMemo(() => completed.filter(student => (student.finalScore || 0) < threshold), [completed, threshold]);
   const incomplete = useMemo(() => evaluated.filter(student => student.completion < 100), [evaluated]);
-  const referralCandidates = support;
+  const referralCandidates = useMemo(() => students.filter(student => !referralClass || (student.class || "").trim() === referralClass).map(student => evaluateStudent(student, activePlan)), [students, referralClass, activePlan]);
   const selectedStudents = referralCandidates.filter(student => selectedIds.includes(student.id));
 
   function openReferral() {
-    if (!support.length) return setMessage("لا يوجد طلاب مكتملو الرصد تحت معيار الإتقان حاليًا.");
-    setSelectedIds(support.map(student => student.id));
+    if (!students.length) return setMessage("لا توجد قائمة طلاب متاحة للإحالة في هذه المادة.");
+    const initialClass = selectedClass && classes.includes(selectedClass) ? selectedClass : (classes[0] || "");
+    setReferralClass(initialClass);
+    setSelectedIds([]);
+    setReferralType("achievement");
+    setReason("انخفاض مستوى التحصيل الدراسي");
     setNotifyParents(false);
     setReferralOpen(true);
   }
 
   async function sendReferral() {
+    if (!referralClass) return setMessage("اختر الفصل أولًا.");
     if (!selectedStudents.length) return setMessage("حدد طالبًا واحدًا على الأقل للإحالة.");
+    if (!reason.trim()) return setMessage("اكتب سبب الإحالة.");
     const now = new Date().toISOString();
     await Promise.all(selectedStudents.map(async student => {
-      const percentage = student.finalScore || 0;
-      await setDoc(doc(db, referralsPath, crypto.randomUUID()), { studentId: student.id, studentName: student.name || "", className: student.class || "", percentage, reason, status: "جديدة", teacherName, subject, createdAt: now });
-      if (notifyParents) await setDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason}. مستوى الإتقان بعد اكتمال الرصد ${percentage}%.`, percentage, createdAt: now } }, { merge: true });
+      const percentage = student.finalScore ?? student.performance ?? 0;
+      await setDoc(doc(db, referralsPath, crypto.randomUUID()), {
+        studentId: student.id,
+        studentName: student.name || "",
+        className: student.class || "",
+        percentage,
+        reason: reason.trim(),
+        referralType,
+        referralTypeLabel: referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى",
+        status: "جديدة",
+        teacherId,
+        teacherName,
+        subjectId: subjectKey,
+        subject,
+        explicitTeacherAction: true,
+        createdAt: now,
+      });
+      if (notifyParents) await setDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason.trim()}.`, percentage, reason: reason.trim(), referralType, className: student.class || "", teacherId, teacherName, subjectId: subjectKey, subject, explicitTeacherAction: true, createdAt: now } }, { merge: true });
     }));
-    const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالسبب: ${reason}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"} — ${student.finalScore || 0}%`).join("\n")}\n\nالمعلم: ${teacherName}`;
+    const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالفصل: ${referralClass}\nنوع الإحالة: ${referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى"}\nالسبب: ${reason.trim()}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"}${student.finalScore !== null ? ` — ${student.finalScore}%` : ""}`).join("\n")}\n\nالمعلم: ${teacherName}`;
     window.open(`https://wa.me/${counselorPhone}?text=${encodeURIComponent(text)}`, "_blank");
     setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`);
     setReferralOpen(false);
@@ -230,7 +253,7 @@ export default function FollowUpPage() {
       <header><div><h2>الطلاب</h2><p>درجة نهائية فقط عند اكتمال الرصد ١٠٠٪. قبل ذلك يظهر الأداء الحالي بوصفه مبدئيًا.</p></div><div className="follow-actions"><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
       <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
         {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}>
-          <td><input type="checkbox" disabled={status.className !== "support"} checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td>
+          <td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td>
           <td className="student-name-cell"><b>{student.name || "—"}</b></td><td>{student.class || "—"}</td>
           <td><strong>{student.finalScore !== null ? `${student.finalScore}%` : `${student.performance}% مبدئي`}</strong></td>
           <td><div className="completion"><span><i style={{ width: `${student.completion}%` }} /></span><b>{student.completion}%</b></div></td>
@@ -257,7 +280,15 @@ export default function FollowUpPage() {
       <div className="modal-actions"><button onClick={() => setNoteStudent(null)}>إلغاء</button><button className="primary" onClick={() => void saveNote()}>حفظ الملاحظة</button></div>
     </section></div>}
 
-    {referralOpen && <div className="follow-modal" onClick={() => setReferralOpen(false)}><section className="referral-modal" onClick={event => event.stopPropagation()}><header><div><h3>إحالة للمرشد الطلابي</h3><p>تعرض هنا فقط الحالات مكتملة الرصد وتحت معيار الإتقان.</p></div><button className="close" onClick={() => setReferralOpen(false)}>×</button></header><div className="referral-students">{referralCandidates.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name}</b><small>{student.class} • {student.finalScore}%</small></span></label>)}</div><label className="reason-field">سبب الإحالة<textarea value={reason} onChange={event => setReason(event.target.value)} /></label><label className="parent-notify"><input type="checkbox" checked={notifyParents} onChange={event => setNotifyParents(event.target.checked)} /><span>إبلاغ ولي الأمر في البوابة</span></label><div className="modal-actions"><button onClick={() => setReferralOpen(false)}>إلغاء</button><button className="primary" onClick={() => void sendReferral()}>تسجيل الإحالة وإرسالها</button></div></section></div>}
+    {referralOpen && <div className="follow-modal" onClick={() => setReferralOpen(false)}><section className="referral-modal" onClick={event => event.stopPropagation()}>
+      <header><div><h3>إحالة للمرشد الطلابي</h3><p>اختر الفصل والطالب ونوع الإحالة. يمكن الإحالة حتى بدون رصد درجات.</p></div><button className="close" onClick={() => setReferralOpen(false)}>×</button></header>
+      <label className="reason-field">الفصل<select value={referralClass} onChange={event => { setReferralClass(event.target.value); setSelectedIds([]); }}><option value="">اختر الفصل</option>{classes.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
+      <label className="reason-field">نوع الإحالة<select value={referralType} onChange={event => { const value = event.target.value as "achievement" | "other"; setReferralType(value); if (value === "achievement") setReason("انخفاض مستوى التحصيل الدراسي"); else setReason(""); }}><option value="achievement">مرتبطة بالتحصيل/الإتقان</option><option value="other">إحالة أخرى</option></select></label>
+      <div className="referral-students">{referralCandidates.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name}</b><small>{student.class}{student.finalScore !== null ? ` • ${student.finalScore}%` : " • بدون رصد مكتمل"}</small></span></label>)}{referralClass && !referralCandidates.length ? <p>لا يوجد طلاب في الفصل المختار.</p> : null}</div>
+      <label className="reason-field">سبب الإحالة<textarea value={reason} onChange={event => setReason(event.target.value)} placeholder={referralType === "other" ? "مثال: سلوك، غياب، عدم تفاعل، مشكلة صفية، أو أي سبب يحتاج متابعة" : "اكتب سبب الإحالة"} /></label>
+      <label className="parent-notify"><input type="checkbox" checked={notifyParents} onChange={event => setNotifyParents(event.target.checked)} /><span>إبلاغ ولي الأمر في البوابة</span></label>
+      <div className="modal-actions"><button onClick={() => setReferralOpen(false)}>إلغاء</button><button className="primary" onClick={() => void sendReferral()}>تسجيل الإحالة وإرسالها</button></div>
+    </section></div>}
 
     {message && <div className="follow-toast" role="status">{message}</div>}
   </main>;
