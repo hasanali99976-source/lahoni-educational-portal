@@ -95,41 +95,41 @@ export async function POST(request: Request) {
     const configRef = database.collection(`${root}/${CONFIG_COLLECTION}`).doc(subjectId);
     const now = new Date().toISOString();
     const planId = `${subjectId}--plan-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-    let version = 1;
 
-    await database.runTransaction(async transaction => {
-      const configSnapshot = await transaction.get(configRef);
-      const currentPlanId = configSnapshot.exists ? String(configSnapshot.data()?.activePlanId || "") : "";
-      version = Math.max(0, Number(configSnapshot.data()?.versionNumber || 0)) + 1;
+    const configSnapshot = await configRef.get();
+    const currentPlanId = configSnapshot.exists ? String(configSnapshot.data()?.activePlanId || "") : "";
+    const version = Math.max(0, Number(configSnapshot.data()?.versionNumber || 0)) + 1;
+    const batch = database.batch();
 
-      if (currentPlanId) {
-        const oldRef = database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(currentPlanId);
-        const oldSnapshot = await transaction.get(oldRef);
-        if (oldSnapshot.exists) transaction.set(oldRef, { status: "archived", archivedAt: now }, { merge: true });
-      }
-
-      const versionRef = database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(planId);
-      transaction.set(versionRef, {
-        ...validation.draft,
-        id: planId,
-        version,
-        teacherId: session.userId,
-        subjectId,
-        status: "active",
-        createdAt: now,
-        activatedAt: now,
-        archivedAt: "",
-      });
-      transaction.set(configRef, {
-        subjectId,
-        activePlanId: planId,
-        versionNumber: version,
-        mode: validation.draft.mode,
-        method: validation.draft.method,
-        activatedAt: now,
-        updatedAt: now,
+    if (currentPlanId && currentPlanId !== planId) {
+      batch.set(database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(currentPlanId), {
+        status: "archived",
+        archivedAt: now,
       }, { merge: true });
+    }
+
+    const versionRef = database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(planId);
+    batch.set(versionRef, {
+      ...validation.draft,
+      id: planId,
+      version,
+      teacherId: session.userId,
+      subjectId,
+      status: "active",
+      createdAt: now,
+      activatedAt: now,
+      archivedAt: "",
     });
+    batch.set(configRef, {
+      subjectId,
+      activePlanId: planId,
+      versionNumber: version,
+      mode: validation.draft.mode,
+      method: validation.draft.method,
+      activatedAt: now,
+      updatedAt: now,
+    }, { merge: true });
+    await batch.commit();
 
     const activePlan = normalizeGradePlan({
       ...validation.draft,
@@ -141,14 +141,14 @@ export async function POST(request: Request) {
       activatedAt: now,
     });
 
-    return NextResponse.json({ ok: true, subjectId, planId, version, activePlan, message: "تم اعتماد خطة المادة وقفلها." }, { status: 201 });
+    return NextResponse.json({ ok: true, subjectId, planId, version, activePlan, message: "تم اعتماد خطة المادة وقفلها ومزامنتها مع بوابة الطالب." }, { status: 201 });
   } catch (error) {
     console.error("teacher grade plan save failed", error);
     if (isQuotaError(error)) {
       return NextResponse.json({
         ok: false,
         code: "grade_plan_quota_exceeded",
-        message: "تم بلوغ حصة التخزين السحابي مؤقتًا. يمكن اعتماد خطة المادة محليًا ومتابعة الرصد الآن.",
+        message: "تم بلوغ حصة التخزين السحابي مؤقتًا. ستبقى الخطة محليًا وسيعاد رفعها تلقائيًا عند عودة الاتصال بالسحابة.",
       }, { status: 507 });
     }
     return NextResponse.json({ ok: false, message: "تعذر اعتماد خطة المادة الآن. لم يتم تغيير الخطة الحالية." }, { status: 500 });
