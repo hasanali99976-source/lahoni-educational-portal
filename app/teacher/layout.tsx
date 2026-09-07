@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { type CSSProperties, ReactNode, useEffect, useMemo, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
@@ -104,6 +104,7 @@ function pageContext(pathname: string) {
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLoginPage = pathname === "/teacher";
   const [ready, setReady] = useState(false);
   const [hasGradePlan, setHasGradePlan] = useState<boolean | null>(null);
@@ -160,7 +161,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         signOut(auth),
       ]);
     } finally {
-      window.location.replace("/teacher");
+      router.replace("/teacher");
     }
   }
 
@@ -170,23 +171,31 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
+    router.prefetch("/teacher/dashboard");
+    tabs.forEach(tab => router.prefetch(tab.href));
+  }, [ready, router]);
+
+  useEffect(() => {
     if (isLoginPage) { setReady(false); clearSessionState(); return; }
     setReady(false);
     let active = true;
     fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" })
       .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
-      .then(async (session: TeacherSession) => {
+      .then((session: TeacherSession) => {
         if (!active || !session.teacherId) throw new Error("missing_teacher_identity");
         applySession(session);
-        const planResponse = await fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" });
-        const planData = planResponse.ok ? await planResponse.json().catch(() => ({})) : {};
-        if (!active) return;
-        setHasGradePlan(Boolean(planData?.activePlan || planData?.hasActivePlan || readLocalGradePlan(session.teacherId)));
         setReady(true);
+
+        // The grade-plan badge is secondary UI; never block the whole teacher portal on it.
+        void fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" })
+          .then(response => response.ok ? response.json() : Promise.reject(new Error("plan_failed")))
+          .then(planData => { if (active) setHasGradePlan(Boolean(planData?.activePlan || planData?.hasActivePlan)); })
+          .catch(() => { if (active) setHasGradePlan(Boolean(readLocalGradePlan(session.teacherId))); });
       })
-      .catch(() => { if (active) window.location.replace("/teacher"); });
+      .catch(() => { if (active) router.replace("/teacher"); });
     return () => { active = false; };
-  }, [isLoginPage]);
+  }, [isLoginPage, router]);
 
   async function changeSubject(nextWorkspaceKey: string) {
     if (nextWorkspaceKey === workspaceKey || switchingSubject) return;
@@ -199,6 +208,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workspaceKey: nextWorkspaceKey }),
         cache: "no-store",
+        credentials: "same-origin",
       });
       if (!response.ok) throw new Error();
       if (selected) {
@@ -208,9 +218,10 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         setActiveGrade(selected.grade || null);
         setActiveGradeLabel(selected.gradeLabel || "");
       }
-      window.setTimeout(() => window.location.assign("/teacher/dashboard"), 140);
+      router.replace("/teacher/dashboard");
     } finally {
-      window.setTimeout(() => { setSwitchingSubject(false); setSwitchingLabel(""); }, 320);
+      setSwitchingSubject(false);
+      setSwitchingLabel("");
     }
   }
 
@@ -230,7 +241,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     assignments,
     setSubject: changeSubject,
     refresh: async () => {
-      const response = await fetch("/api/teacher-session", { cache: "no-store" });
+      const response = await fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" });
       if (response.ok) applySession(await response.json());
     },
   };
@@ -244,7 +255,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     <nav>{tabs.filter(tab => tab.group === group).map(tab => {
       const active = pathname.startsWith(tab.href);
       const badge = tab.key === "gradeplan" && hasGradePlan ? "✓" : tab.badge;
-      return <Link key={tab.href} href={tab.href} className={active ? "active" : ""}>
+      return <Link key={tab.href} href={tab.href} prefetch className={active ? "active" : ""}>
         <span className="academy-v12-nav-icon"><NavIcon type={tab.key}/></span>
         <b>{tab.label}</b>
         {badge ? <i>{badge}</i> : null}
@@ -252,15 +263,15 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     })}</nav>
   </section>;
 
-  return <TeacherClientContext.Provider key={teacherId} value={contextValue}>
+  return <TeacherClientContext.Provider key={`${teacherId || "teacher"}:${workspaceKey}`} value={contextValue}>
     <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} style={subjectVisualStyle(subjectKey)} dir="rtl" data-subject={subjectKey}>
       <aside className="academy-v12-rail">
-        <Link href="/teacher/dashboard" className="academy-v12-brand">
+        <Link href="/teacher/dashboard" prefetch className="academy-v12-brand">
           <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority />
           <span><small>بوابة أستاذ لحوني التعليمية</small><strong>أكاديمية المعلم</strong></span>
         </Link>
 
-        <Link href="/teacher/dashboard" className={`academy-v12-home ${pathname.startsWith("/teacher/dashboard") ? "active" : ""}`}>
+        <Link href="/teacher/dashboard" prefetch className={`academy-v12-home ${pathname.startsWith("/teacher/dashboard") ? "active" : ""}`}>
           <span className="academy-v12-nav-icon"><NavIcon type="dashboard"/></span><b>مركز اليوم</b><i>الرئيسية</i>
         </Link>
 
@@ -299,13 +310,13 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
           <div className="academy-v12-top-actions">
             <span className="academy-v12-date">{todayLabel}</span>
-            <Link href="/teacher/reports" className="academy-v12-report"><NavIcon type="reports"/><span>مركز التقارير</span></Link>
+            <Link href="/teacher/reports" prefetch className="academy-v12-report"><NavIcon type="reports"/><span>مركز التقارير</span></Link>
           </div>
         </header>
 
         <section className="academy-v12-headline">
           <div><small>{subjectName} • {context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
-          <div className="academy-v12-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href}>{context.action}</Link></div>
+          <div className="academy-v12-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href} prefetch>{context.action}</Link></div>
         </section>
 
         <div className="academy-v12-competition"><TeacherCompetitionProgress compact/></div>
