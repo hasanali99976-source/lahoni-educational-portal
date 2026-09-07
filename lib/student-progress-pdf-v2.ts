@@ -6,9 +6,11 @@ import {
   drawFixedText,
   drawImageContain,
   ensurePrintFontsReady,
+  fitPrintSize,
   loadPortalPrintLogo,
   printLine,
   roundedRect,
+  setPrintFont,
 } from "./portal-print-system";
 
 export type StudentReportSubjectV2 = {
@@ -55,24 +57,24 @@ function pageBase(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, 
   ctx.fillStyle = "#f4f8f9";
   ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = NAVY;
-  ctx.fillRect(0, 0, W, 184);
+  ctx.fillRect(0, 0, W, 156);
   ctx.fillStyle = TEAL;
-  ctx.fillRect(0, 0, W, 14);
-  roundedRect(ctx, W - 164, 28, 116, 116, 20, "#ffffff");
-  if (logo) drawImageContain(ctx, logo, W - 154, 38, 96, 96, 2);
-  drawFixedText(ctx, title, W - 190, 76, { size: 35, weight: 900, color: "#fff", maxWidth: 760 });
-  drawFixedText(ctx, subtitle, W - 190, 127, { size: 18, weight: 750, color: "#d5e9ed", maxWidth: 780 });
+  ctx.fillRect(0, 0, W, 12);
+  roundedRect(ctx, W - 142, 24, 94, 94, 18, "#ffffff");
+  if (logo) drawImageContain(ctx, logo, W - 134, 32, 78, 78, 2);
+  drawFixedText(ctx, title, W - 166, 62, { size: 30, weight: 900, color: "#fff", maxWidth: 770 });
+  drawFixedText(ctx, subtitle, W - 166, 108, { size: 15.5, weight: 750, color: "#d5e9ed", maxWidth: 800 });
 }
 
-function footer(ctx: CanvasRenderingContext2D, portalName: string, pageLabel: string) {
-  printLine(ctx, 48, H - 104, W - 48, H - 104, "#cbdadd", 1.4);
-  drawFixedText(ctx, portalName, W - 48, H - 70, { size: 14.5, weight: 900, color: TEAL, maxWidth: 420 });
-  drawFixedText(ctx, pageLabel, W / 2, H - 70, { size: 13.5, weight: 800, color: MUTED, align: "center", maxWidth: 240 });
-  drawFixedText(ctx, new Intl.DateTimeFormat("ar-SA", { dateStyle: "long" }).format(new Date()), 48, H - 70, { size: 13.5, weight: 750, color: MUTED, align: "left", maxWidth: 300 });
+function footer(ctx: CanvasRenderingContext2D, portalName: string) {
+  printLine(ctx, 48, H - 88, W - 48, H - 88, "#cbdadd", 1.3);
+  drawFixedText(ctx, portalName, W - 48, H - 57, { size: 13.5, weight: 900, color: TEAL, maxWidth: 420 });
+  drawFixedText(ctx, "صفحة واحدة", W / 2, H - 57, { size: 12.5, weight: 800, color: MUTED, align: "center", maxWidth: 220 });
+  drawFixedText(ctx, new Intl.DateTimeFormat("ar-SA", { dateStyle: "long" }).format(new Date()), 48, H - 57, { size: 12.5, weight: 750, color: MUTED, align: "left", maxWidth: 300 });
 }
 
 function identity(ctx: CanvasRenderingContext2D, options: StudentProgressPdfV2Options) {
-  roundedRect(ctx, 48, 214, W - 96, 126, 20, "#fff", LINE);
+  roundedRect(ctx, 48, 178, W - 96, 92, 17, "#fff", LINE);
   const cols = [
     ["اسم الطالب", options.studentName],
     ["الصف / الفصل", options.className || "غير محدد"],
@@ -81,9 +83,9 @@ function identity(ctx: CanvasRenderingContext2D, options: StudentProgressPdfV2Op
   const colW = (W - 128) / 3;
   cols.forEach(([label, value], index) => {
     const x = W - 64 - index * colW;
-    drawFixedText(ctx, label, x, 252, { size: 14.5, weight: 800, color: MUTED, maxWidth: colW - 22 });
-    drawFixedText(ctx, value, x, 300, { size: 24, weight: 900, color: INK, maxWidth: colW - 22 });
-    if (index < 2) printLine(ctx, x - colW + 10, 234, x - colW + 10, 322, "#e1e9eb", 1.2);
+    drawFixedText(ctx, label, x, 205, { size: 12.5, weight: 800, color: MUTED, maxWidth: colW - 22 });
+    drawFixedText(ctx, value, x, 242, { size: 19, weight: 900, color: INK, maxWidth: colW - 22 });
+    if (index < 2) printLine(ctx, x - colW + 10, 193, x - colW + 10, 255, "#e1e9eb", 1.1);
   });
 }
 
@@ -97,53 +99,52 @@ function summary(ctx: CanvasRenderingContext2D, options: StudentProgressPdfV2Opt
     { label: "إجمالي الخصومات", value: totalDeduction > 0 ? `− ${ar(totalDeduction)}` : "٠", bg: "#fff7e8", fg: GOLD },
     { label: "متوسط الانضباط", value: `${ar(disciplineAverage)}٪`, bg: "#edf3fb", fg: "#315e95" },
   ];
-  const gap = 16;
+  const gap = 14;
   const cardW = (W - 96 - gap * 2) / 3;
   cards.forEach((card, index) => {
     const x = W - 48 - cardW - index * (cardW + gap);
-    roundedRect(ctx, x, 370, cardW, 106, 17, card.bg);
-    drawFixedText(ctx, card.label, x + cardW - 20, 404, { size: 14.5, weight: 850, color: card.fg, maxWidth: cardW - 40 });
-    drawFixedText(ctx, card.value, x + cardW - 20, 447, { size: 25, weight: 900, color: card.fg, maxWidth: cardW - 40 });
+    roundedRect(ctx, x, 290, cardW, 76, 14, card.bg);
+    drawFixedText(ctx, card.label, x + cardW - 18, 315, { size: 12.5, weight: 850, color: card.fg, maxWidth: cardW - 36 });
+    drawFixedText(ctx, card.value, x + cardW - 18, 344, { size: 20, weight: 900, color: card.fg, maxWidth: cardW - 36 });
   });
 }
 
 function subjectTable(ctx: CanvasRenderingContext2D, subjects: StudentReportSubjectV2[]) {
   const x = 48;
-  const y = 508;
+  const y = 390;
   const w = W - 96;
-  const headerH = 52;
-  const rowH = Math.max(48, Math.min(62, (H - y - 190 - headerH) / Math.max(subjects.length, 1)));
-  const widths = [240, 230, 190, 160, 140, 184];
+  const headerH = 40;
+  const maxBodyH = 430;
+  const count = Math.max(subjects.length, 1);
+  const rowH = Math.max(34, Math.min(50, maxBodyH / count));
+  const widths = [245, 225, 200, 170, 130, 174];
   const labels = ["المادة", "المعلم", "التحصيل", "السقف المتاح", "الخصم", "الانضباط"];
-  const totalH = headerH + Math.max(subjects.length, 1) * rowH;
-  roundedRect(ctx, x, y, w, totalH, 17, "#fff", LINE);
+  const totalH = headerH + count * rowH;
+  roundedRect(ctx, x, y, w, totalH, 14, "#fff", LINE);
   ctx.fillStyle = NAVY;
   ctx.fillRect(x, y, w, headerH);
   let cursor = x + w;
   labels.forEach((label, index) => {
     const ww = widths[index];
-    drawFixedText(ctx, label, cursor - ww / 2, y + headerH / 2, { size: 15, weight: 900, color: "#fff", align: "center", maxWidth: ww - 12 });
+    drawFixedText(ctx, label, cursor - ww / 2, y + headerH / 2, { size: 12.5, weight: 900, color: "#fff", align: "center", maxWidth: ww - 10 });
     cursor -= ww;
-    if (index < labels.length - 1) printLine(ctx, cursor, y, cursor, y + totalH, "#d8e4e6", 1.1);
+    if (index < labels.length - 1) printLine(ctx, cursor, y, cursor, y + totalH, "#d8e4e6", 1);
   });
   if (!subjects.length) {
-    drawFixedText(ctx, "بانتظار رصد المواد", W / 2, y + headerH + rowH / 2, { size: 20, weight: 800, color: MUTED, align: "center" });
-    return;
+    drawFixedText(ctx, "بانتظار رصد المواد", W / 2, y + headerH + rowH / 2, { size: 17, weight: 800, color: MUTED, align: "center" });
+    return y + totalH;
   }
   subjects.forEach((subject, row) => {
     const yy = y + headerH + row * rowH;
-    ctx.fillStyle = row % 2 ? "#f7fafb" : "#fff";
+    ctx.fillStyle = subject.deduction > 0 ? "#fff8e8" : row % 2 ? "#f7fafb" : "#fff";
     ctx.fillRect(x, yy, w, rowH);
-    if (subject.deduction > 0) {
-      ctx.fillStyle = "#fff8e8";
-      ctx.fillRect(x, yy, w, rowH);
-    }
-    printLine(ctx, x, yy + rowH, x + w, yy + rowH, "#dfe8ea", 1.05);
+    printLine(ctx, x, yy + rowH, x + w, yy + rowH, "#dfe8ea", 1);
+    const available = Number(subject.availableMaximum || 100);
     const values = [
       subject.subject,
       subject.teacher,
-      `${ar(subject.score)} / ١٠٠`,
-      `${ar(subject.availableMaximum)} / ١٠٠`,
+      `${ar(subject.score)} / ${ar(available)}`,
+      `${ar(available)} / ١٠٠`,
       subject.deduction > 0 ? `− ${ar(subject.deduction)}` : "٠",
       `${ar(subject.discipline)}٪`,
     ];
@@ -151,34 +152,58 @@ function subjectTable(ctx: CanvasRenderingContext2D, subjects: StudentReportSubj
     values.forEach((value, index) => {
       const ww = widths[index];
       drawFixedText(ctx, value, r - ww / 2, yy + rowH / 2, {
-        size: index < 2 ? 15.5 : 17,
+        size: index < 2 ? 12.5 : 14,
         weight: index === 0 || index >= 2 ? 900 : 750,
         color: index === 4 && subject.deduction > 0 ? GOLD : index === 2 ? TEAL : INK,
         align: "center",
-        maxWidth: ww - 16,
+        maxWidth: ww - 12,
       });
       r -= ww;
     });
   });
+  return y + totalH;
 }
 
-function notesPage(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, options: StudentProgressPdfV2Options, notes: StudentReportNoteV2[], pageIndex: number, pageCount: number) {
-  pageBase(ctx, logo, "الملاحظات والخصومات", "كل ما سجله المعلمون وما تم خصمه من التحصيل، مع السبب.");
-  let y = 226;
-  notes.forEach(note => {
+function drawCompactNoteText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, preferred = 12.5) {
+  const raw = String(text || "").replace(/\s+/g, " ").trim();
+  const size = fitPrintSize(ctx, raw, maxWidth, preferred, 8.5, 760);
+  setPrintFont(ctx, size, 760);
+  ctx.fillStyle = INK;
+  ctx.textAlign = "right";
+  ctx.fillText(raw, x, y, maxWidth);
+}
+
+function notesBlock(ctx: CanvasRenderingContext2D, notes: StudentReportNoteV2[], startY: number) {
+  const x = 48;
+  const w = W - 96;
+  const footerTop = H - 112;
+  const titleH = 38;
+  const safeStart = Math.max(startY + 18, 760);
+  roundedRect(ctx, x, safeStart, w, titleH, 12, "#eaf2f4", LINE);
+  drawFixedText(ctx, "الملاحظات والخصومات", W - 68, safeStart + titleH / 2, { size: 14, weight: 900, color: NAVY, maxWidth: 420 });
+
+  if (!notes.length) {
+    roundedRect(ctx, x, safeStart + titleH + 8, w, 48, 12, "#fff", LINE);
+    drawFixedText(ctx, "لا توجد ملاحظات أو خصومات مسجلة حاليًا.", W - 68, safeStart + titleH + 32, { size: 12.5, weight: 800, color: MUTED, maxWidth: w - 40 });
+    return;
+  }
+
+  const sorted = [...notes].sort((a, b) => Number(b.kind === "deduction") - Number(a.kind === "deduction"));
+  const availableH = footerTop - safeStart - titleH - 10;
+  const rowH = Math.max(30, Math.min(72, availableH / sorted.length));
+  sorted.forEach((note, index) => {
+    const y = safeStart + titleH + 6 + index * rowH;
     const deduction = note.kind === "deduction";
-    const bg = deduction ? "#fff7e7" : "#ffffff";
-    const border = deduction ? "#e8d2a0" : LINE;
-    const accent = deduction ? GOLD : TEAL;
-    roundedRect(ctx, 48, y, W - 96, 126, 16, bg, border);
-    roundedRect(ctx, W - 222, y + 18, 150, 34, 10, deduction ? "#f7e8bf" : "#e6f4f1");
-    drawFixedText(ctx, deduction ? "خصم من التحصيل" : "ملاحظة المعلم", W - 147, y + 35, { size: 12.5, weight: 900, color: accent, align: "center", maxWidth: 132 });
-    drawFixedText(ctx, note.subject, W - 244, y + 34, { size: 18, weight: 900, color: INK, maxWidth: 360 });
-    drawFixedText(ctx, note.text, W - 72, y + 77, { size: 16.5, weight: 780, color: INK, maxWidth: W - 190 });
-    drawFixedText(ctx, [note.teacher, note.date].filter(Boolean).join(" • "), W - 72, y + 105, { size: 12.5, weight: 740, color: MUTED, maxWidth: W - 190 });
-    y += 140;
+    const bg = deduction ? "#fff7e7" : index % 2 ? "#f8fbfb" : "#fff";
+    roundedRect(ctx, x, y, w, Math.max(28, rowH - 4), 10, bg, deduction ? "#e8d2a0" : LINE);
+    const tagW = 126;
+    roundedRect(ctx, W - 68 - tagW, y + 7, tagW, 24, 8, deduction ? "#f7e8bf" : "#e6f4f1");
+    drawFixedText(ctx, deduction ? "خصم" : "ملاحظة", W - 68 - tagW / 2, y + 19, { size: 10.5, weight: 900, color: deduction ? GOLD : TEAL, align: "center", maxWidth: tagW - 12 });
+    drawFixedText(ctx, note.subject, W - 212, y + 19, { size: 12, weight: 900, color: INK, maxWidth: 220 });
+    drawCompactNoteText(ctx, note.text, W - 68, y + Math.min(rowH - 14, 47), w - 255, rowH < 45 ? 10.5 : 12.5);
+    const meta = [note.teacher, note.date].filter(Boolean).join(" • ");
+    if (meta && rowH >= 48) drawFixedText(ctx, meta, 68, y + rowH - 15, { size: 9.5, weight: 700, color: MUTED, align: "left", maxWidth: 260 });
   });
-  footer(ctx, options.portalName, `صفحة ${pageIndex} من ${pageCount}`);
 }
 
 export async function downloadStudentProgressPdfV2(options: StudentProgressPdfV2Options) {
@@ -186,25 +211,15 @@ export async function downloadStudentProgressPdfV2(options: StudentProgressPdfV2
   const logo = await loadPortalPrintLogo();
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
 
-  const first = createPrintCanvas(W, H);
-  pageBase(first.ctx, logo, "بيان التقدم الأكاديمي", "التحصيل بعد الخصم، السقف المتاح، الانضباط وملاحظات المعلمين.");
-  identity(first.ctx, options);
-  summary(first.ctx, options);
-  subjectTable(first.ctx, options.subjects);
-  footer(first.ctx, options.portalName, "صفحة ١");
-  pdf.addImage(first.canvas.toDataURL("image/png"), "PNG", 0, 0, 210, 297, undefined, "FAST");
-
-  const chunks: StudentReportNoteV2[][] = [];
-  const sortedNotes = [...options.notes].sort((a, b) => Number(b.kind === "deduction") - Number(a.kind === "deduction"));
-  for (let i = 0; i < sortedNotes.length; i += 10) chunks.push(sortedNotes.slice(i, i + 10));
-  const pageCount = 1 + chunks.length;
-  chunks.forEach((chunk, index) => {
-    pdf.addPage("a4", "portrait");
-    const page = createPrintCanvas(W, H);
-    notesPage(page.ctx, logo, options, chunk, index + 2, pageCount);
-    pdf.addImage(page.canvas.toDataURL("image/png"), "PNG", 0, 0, 210, 297, undefined, "FAST");
-  });
+  const page = createPrintCanvas(W, H);
+  pageBase(page.ctx, logo, "بيان التقدم الأكاديمي", "التحصيل، السقف المتاح، الخصومات وأسبابها وملاحظات المعلمين في صفحة واحدة.");
+  identity(page.ctx, options);
+  summary(page.ctx, options);
+  const tableEnd = subjectTable(page.ctx, options.subjects);
+  notesBlock(page.ctx, options.notes, tableEnd);
+  footer(page.ctx, options.portalName);
+  pdf.addImage(page.canvas.toDataURL("image/png"), "PNG", 0, 0, 210, 297, undefined, "FAST");
 
   pdf.save(options.fileName);
-  return { pageCount, subjectCount: options.subjects.length, noteCount: options.notes.length };
+  return { pageCount: 1, subjectCount: options.subjects.length, noteCount: options.notes.length };
 }
