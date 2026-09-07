@@ -79,6 +79,7 @@ export async function GET(request: Request) {
     clean(studentData.studentCode),
   ].filter(Boolean));
 
+  // Student-facing counselor alerts must come only from an explicit action by this subject's teacher.
   const counselorReferrals = referralSnapshot.docs
     .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }) as ReferralRow)
     .filter(item => {
