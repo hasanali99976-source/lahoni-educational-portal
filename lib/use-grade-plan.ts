@@ -33,12 +33,12 @@ export function useGradePlan(enabled = true) {
     return [...ids];
   }, [session.subjects, session.assignments]);
   const allowLegacyLocal = assignedSubjects.length === 1 && assignedSubjects[0] === subjectId;
-  const [state, setState] = useState<GradePlanState>(() => ({
-    activePlan: enabled ? readLocalGradePlan(teacherId, subjectId, allowLegacyLocal) : null,
+  const [state, setState] = useState<GradePlanState>({
+    activePlan: null,
     loading: enabled,
     error: "",
     history: [],
-  }));
+  });
 
   const refresh = useCallback(async () => {
     if (!enabled) {
@@ -52,17 +52,21 @@ export function useGradePlan(enabled = true) {
 
     setGradePlanCurrentTeacher(teacherId);
     setGradePlanCurrentSubject(subjectId);
-    const localPlan = readLocalGradePlan(teacherId, subjectId, allowLegacyLocal);
     const scopedLocalPlan = readScopedLocalGradePlan(teacherId, subjectId);
-    // Never carry the previous subject's plan while the newly selected subject is loading.
-    setState({ activePlan: localPlan, loading: true, error: "", history: [] });
+
+    // Server data is the source of truth. Do not paint an older device copy first,
+    // because that makes saved changes appear to disappear and then reappear.
+    setState({ activePlan: null, loading: true, error: "", history: [] });
     try {
-      const response = await fetch(`/api/teacher/grade-plan?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store", credentials: "same-origin" });
+      const response = await fetch(`/api/teacher/grade-plan?subjectId=${encodeURIComponent(subjectId)}`, {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر تحميل خطة توزيع الدرجات.");
 
       let serverPlan = normalizeGradePlan(data.activePlan);
-      let activePlan = serverPlan || localPlan;
+      let activePlan = serverPlan;
       const shouldSyncLocal = Boolean(
         scopedLocalPlan && (
           !serverPlan
@@ -90,7 +94,7 @@ export function useGradePlan(enabled = true) {
             }
           }
         } catch {
-          // Keep only the subject-scoped local plan active and retry on the next refresh.
+          // Keep waiting for the server source of truth on this load.
         }
       }
 
@@ -103,6 +107,7 @@ export function useGradePlan(enabled = true) {
       });
       return activePlan;
     } catch (error) {
+      // Local storage is now offline fallback only; it is never shown before the server attempt.
       const fallback = readLocalGradePlan(teacherId, subjectId, allowLegacyLocal);
       setState({
         activePlan: fallback,
