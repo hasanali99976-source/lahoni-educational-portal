@@ -22,7 +22,6 @@ import "./student/academic-record/academic-record-v2.css";
 import "./student-portal-academic-enhancer.css";
 import "./student-subject-achievement-runtime.css";
 import "./student-risk-center-runtime.css";
-import "./teacher-counselor-referral-runtime.css";
 import "./platform-v200.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
@@ -37,7 +36,6 @@ import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherAttendanceScheduleNav from "./teacher-attendance-schedule-nav";
 import TeacherAttendancePrintV21 from "./teacher-attendance-print-v21";
 import TeacherGradesCleanRuntime from "./teacher-grades-clean-runtime";
-import TeacherCounselorReferralRuntime from "./teacher-counselor-referral-runtime";
 import StudentAcademicRecordBridge from "./student-academic-record-bridge";
 import StudentPortalAcademicEnhancer from "./student-portal-academic-enhancer";
 import StudentSubjectAchievementRuntime from "./student-subject-achievement-runtime";
@@ -72,7 +70,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentRiskCenterRuntime /><StudentAcademicRecordMaxRuntime /><StudentSmartNotesRuntime />
-    <TeacherGradesCleanRuntime /><TeacherCounselorReferralRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
+    <TeacherGradesCleanRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
     <PortalVoiceGreetingRuntime />
     <PortalPrintRuntime /><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 />
     <PortalRuntimeGate>
