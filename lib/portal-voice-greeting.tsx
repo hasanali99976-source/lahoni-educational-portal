@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 type PortalVoiceGreetingProps = {
   role: "teacher" | "student";
@@ -43,9 +43,9 @@ function chooseArabicVoice(voices: SpeechSynthesisVoice[]) {
   return arabic.find(voice => /sa/i.test(voice.lang)) || arabic.find(voice => /female|natural|microsoft|google/i.test(voice.name)) || arabic[0] || null;
 }
 
-export default function PortalVoiceGreeting({ role, name, identityKey, compact = false }: PortalVoiceGreetingProps) {
-  const [speaking, setSpeaking] = useState(false);
+export default function PortalVoiceGreeting({ role, name, identityKey }: PortalVoiceGreetingProps) {
   const attemptedRef = useRef(false);
+  const startedRef = useRef(false);
   const text = useMemo(() => greetingText(role, name), [role, name]);
 
   const speak = useCallback(() => {
@@ -59,13 +59,12 @@ export default function PortalVoiceGreeting({ role, name, identityKey, compact =
       utterance.volume = 1;
       const voice = chooseArabicVoice(window.speechSynthesis.getVoices());
       if (voice) utterance.voice = voice;
-      utterance.onstart = () => setSpeaking(true);
-      utterance.onend = () => setSpeaking(false);
-      utterance.onerror = () => setSpeaking(false);
+      utterance.onstart = () => { startedRef.current = true; };
+      utterance.onerror = () => { startedRef.current = false; };
       window.speechSynthesis.speak(utterance);
       return true;
     } catch {
-      setSpeaking(false);
+      startedRef.current = false;
       return false;
     }
   }, [text]);
@@ -73,43 +72,39 @@ export default function PortalVoiceGreeting({ role, name, identityKey, compact =
   useEffect(() => {
     if (typeof window === "undefined" || !identityKey || attemptedRef.current) return;
     attemptedRef.current = true;
-
+    startedRef.current = false;
     let cancelled = false;
+
     const trySpeak = () => {
-      if (!cancelled) speak();
+      if (!cancelled && !startedRef.current) speak();
     };
 
-    const timer = window.setTimeout(trySpeak, 350);
-    const voicesChanged = () => {
-      if (!cancelled && !speaking) trySpeak();
+    const timer = window.setTimeout(trySpeak, 250);
+    const voicesChanged = () => trySpeak();
+    const interactionFallback = () => {
+      if (!startedRef.current) trySpeak();
+      if (startedRef.current) {
+        window.removeEventListener("pointerdown", interactionFallback, true);
+        window.removeEventListener("keydown", interactionFallback, true);
+        window.removeEventListener("touchstart", interactionFallback, true);
+      }
     };
+
     window.speechSynthesis?.addEventListener?.("voiceschanged", voicesChanged);
+    window.addEventListener("pointerdown", interactionFallback, true);
+    window.addEventListener("keydown", interactionFallback, true);
+    window.addEventListener("touchstart", interactionFallback, true);
+
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       window.speechSynthesis?.removeEventListener?.("voiceschanged", voicesChanged);
+      window.removeEventListener("pointerdown", interactionFallback, true);
+      window.removeEventListener("keydown", interactionFallback, true);
+      window.removeEventListener("touchstart", interactionFallback, true);
       window.speechSynthesis?.cancel();
     };
-  }, [identityKey, speak, speaking]);
+  }, [identityKey, speak]);
 
-  const style: CSSProperties = compact ? {
-    display: "inline-flex", alignItems: "center", justifyContent: "center", width: 38, height: 38,
-    borderRadius: 12, border: "1px solid rgba(15,23,42,.12)", background: "rgba(255,255,255,.92)",
-    cursor: "pointer", fontSize: 18, boxShadow: "0 4px 16px rgba(15,23,42,.06)", flex: "0 0 auto",
-  } : {
-    display: "inline-flex", alignItems: "center", gap: 7, minHeight: 38, padding: "0 12px",
-    borderRadius: 12, border: "1px solid rgba(15,23,42,.12)", background: "rgba(255,255,255,.92)",
-    cursor: "pointer", fontWeight: 800, color: "#18324a", boxShadow: "0 4px 16px rgba(15,23,42,.06)",
-  };
-
-  return <button
-    type="button"
-    style={style}
-    onClick={() => speak()}
-    aria-label="إعادة تشغيل الترحيب الصوتي"
-    title="تشغيل الترحيب الصوتي"
-  >
-    <span aria-hidden="true">{speaking ? "🔊" : "🔉"}</span>
-    {!compact ? <span>{speaking ? "الترحيب يعمل" : "الترحيب الصوتي"}</span> : null}
-  </button>;
+  return null;
 }
