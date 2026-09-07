@@ -31,6 +31,10 @@ function numeric(value: unknown) {
   return Math.round(number * 100) / 100;
 }
 
+function directReason(reason: string, note: string) {
+  return reason === "سبب آخر" ? (note || "خصم أكاديمي") : (reason || note || "خصم أكاديمي");
+}
+
 async function findStudentDoc(teacherId: string, subjectId: string, code: string) {
   const students = adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`);
   const directRef = students.doc(code);
@@ -81,17 +85,18 @@ export async function POST(request: Request) {
     const previous = Array.isArray(current.gradeDeductions) ? current.gradeDeductions as DeductionEntry[] : [];
     const createdAt = new Date().toISOString();
     const id = `ded-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const resolvedReason = directReason(reason, note);
     const entry: DeductionEntry = {
       id,
       planId,
       scope,
       amount,
-      reason,
+      reason: resolvedReason,
       createdAt,
       teacherId: session.userId,
       teacherName: session.name || "المعلم",
       subjectKey: subjectId,
-      ...(note ? { note } : {}),
+      ...(reason !== "سبب آخر" && note ? { note } : {}),
       ...(sectionId ? { sectionId, sectionLabel } : {}),
       ...(itemId ? { itemId, itemLabel } : {}),
     };
@@ -136,20 +141,25 @@ export async function PUT(request: Request) {
     const current = student.snapshot.data() as Record<string, unknown>;
     const previous = Array.isArray(current.gradeDeductions) ? current.gradeDeductions as DeductionEntry[] : [];
     const changedAt = new Date().toISOString();
+
+    // الخصم الإجمالي في جدول التحصيل يخص المادة كلها، لذا أي حفظ جديد
+    // يستبدل جميع الخصومات الإجمالية النشطة السابقة حتى لو تغير إصدار الخطة.
     const reversed = previous.map(entry => {
-      if (entry.reversedAt || entry.planId !== planId) return entry;
+      const scope = entry.scope || "plan";
+      if (entry.reversedAt || scope !== "plan") return entry;
       return { ...entry, reversedAt: changedAt, reversedBy: session.name || "المعلم" };
     });
 
     let entry: DeductionEntry | null = null;
     if (amount > 0) {
+      const resolvedReason = directReason(reason, note);
       entry = {
         id: `ded-inline-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
         planId,
         scope: "plan",
         amount,
-        reason,
-        ...(note ? { note } : {}),
+        reason: resolvedReason,
+        ...(reason !== "سبب آخر" && note ? { note } : {}),
         createdAt: changedAt,
         teacherId: session.userId,
         teacherName: session.name || "المعلم",
