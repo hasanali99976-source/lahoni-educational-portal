@@ -52,21 +52,66 @@ const tabs: TeacherTab[] = [
   { href: "/teacher/grade-plan", key: "gradeplan", label: "الخطة الدراسية", group: "setup" },
 ];
 
-function subjectVisualStyle(subjectId: string): CSSProperties {
-  const base = String(subjectId || "subject").trim().split("--")[0] || "subject";
+function normalizedSubjectText(subjectId: string, subjectName = "") {
+  return `${subjectId} ${subjectName}`.trim().toLocaleLowerCase("ar");
+}
+
+function semanticSubjectHue(subjectId: string, subjectName = "") {
+  const value = normalizedSubjectText(subjectId, subjectName);
+  if (/تاريخ|history/.test(value)) return 28;
+  if (/تفكير|ناقد|critical/.test(value)) return 274;
+  if (/كيمياء|chem/.test(value)) return 174;
+  if (/فيزياء|phys/.test(value)) return 218;
+  if (/أحياء|احياء|biology/.test(value)) return 112;
+  if (/تنمية|مستدام|sustain/.test(value)) return 148;
+  if (/رياضيات|math/.test(value)) return 232;
+  if (/عربي|لغتي|arabic/.test(value)) return 348;
+  if (/انجليزي|إنجليزي|english/.test(value)) return 202;
+  if (/اسلام|إسلام|دين|islam/.test(value)) return 158;
+  if (/علوم|science/.test(value)) return 188;
+  if (/حاسب|تقنية|رقمي|computer|digital/.test(value)) return 206;
+  if (/فني|فن|art/.test(value)) return 318;
+  if (/بدني|رياضة|physical/.test(value)) return 12;
+  if (/جغراف|geograph/.test(value)) return 194;
   let hash = 2166136261;
-  for (let index = 0; index < base.length; index += 1) {
-    hash ^= base.charCodeAt(index);
+  const seed = value || "subject";
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
     hash = Math.imul(hash, 16777619);
   }
-  const hue = Math.abs(hash >>> 0) % 360;
+  return Math.abs(hash >>> 0) % 360;
+}
+
+function subjectVisualStyle(subjectId: string, subjectName = "", identityIndex = 0): CSSProperties {
+  const baseHue = semanticSubjectHue(subjectId, subjectName);
+  const hue = (baseHue + identityIndex * 47) % 360;
   const secondaryHue = (hue + 18) % 360;
   return {
-    "--subject": `hsl(${hue} 52% 42%)`,
-    "--subject-deep": `hsl(${secondaryHue} 50% 29%)`,
-    "--subject-soft": `hsl(${hue} 44% 94%)`,
-    "--subject-faint": `hsl(${hue} 38% 98%)`,
+    "--subject": `hsl(${hue} 58% 42%)`,
+    "--subject-deep": `hsl(${secondaryHue} 54% 28%)`,
+    "--subject-soft": `hsl(${hue} 48% 94%)`,
+    "--subject-faint": `hsl(${hue} 42% 98%)`,
   } as CSSProperties;
+}
+
+function subjectSymbol(subjectId: string, subjectName = "") {
+  const value = normalizedSubjectText(subjectId, subjectName);
+  if (/تاريخ|history/.test(value)) return "🏛️";
+  if (/تفكير|ناقد|critical/.test(value)) return "🧠";
+  if (/كيمياء|chem/.test(value)) return "⚗️";
+  if (/فيزياء|phys/.test(value)) return "⚛️";
+  if (/أحياء|احياء|biology/.test(value)) return "🧬";
+  if (/تنمية|مستدام|sustain/.test(value)) return "🌱";
+  if (/رياضيات|math/.test(value)) return "∑";
+  if (/عربي|لغتي|arabic/.test(value)) return "ض";
+  if (/انجليزي|إنجليزي|english/.test(value)) return "A";
+  if (/اسلام|إسلام|دين|islam/.test(value)) return "☪";
+  if (/علوم|science/.test(value)) return "🔬";
+  if (/حاسب|تقنية|رقمي|computer|digital/.test(value)) return "💻";
+  if (/فني|فن|art/.test(value)) return "🎨";
+  if (/بدني|رياضة|physical/.test(value)) return "🏃";
+  if (/جغراف|geograph/.test(value)) return "🌍";
+  return "📘";
 }
 
 function NavIcon({ type }: { type: string }) {
@@ -186,8 +231,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         if (!active || !session.teacherId) throw new Error("missing_teacher_identity");
         applySession(session);
         setReady(true);
-
-        // The grade-plan badge is secondary UI; never block the whole teacher portal on it.
         void fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" })
           .then(response => response.ok ? response.json() : Promise.reject(new Error("plan_failed")))
           .then(planData => { if (active) setHasGradePlan(Boolean(planData?.activePlan || planData?.hasActivePlan)); })
@@ -249,6 +292,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const availableSubjects = subjects.length
     ? subjects
     : [{ workspaceKey, subjectId: subjectKey, subjectName, grade: activeGrade || undefined, gradeLabel: activeGradeLabel } as TeacherClientSubject];
+  const activeIdentityIndex = Math.max(0, availableSubjects.findIndex(item => item.workspaceKey === workspaceKey));
 
   const renderGroup = (group: TeacherTab["group"], title: string) => <section className="academy-v12-nav-group">
     <small>{title}</small>
@@ -264,7 +308,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   </section>;
 
   return <TeacherClientContext.Provider key={`${teacherId || "teacher"}:${workspaceKey}`} value={contextValue}>
-    <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} style={subjectVisualStyle(subjectKey)} dir="rtl" data-subject={subjectKey}>
+    <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} style={subjectVisualStyle(subjectKey, subjectName, activeIdentityIndex)} dir="rtl" data-subject={subjectKey}>
       <aside className="academy-v12-rail">
         <Link href="/teacher/dashboard" prefetch className="academy-v12-brand">
           <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority />
@@ -292,17 +336,18 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <button className="academy-v12-menu" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة">☰</button>
 
           <section className="academy-v12-profile">
-            <div className="academy-v12-avatar">{teacherName.trim().charAt(0) || "م"}</div>
+            <div className="academy-v12-avatar" title={subjectName}>{subjectSymbol(subjectKey, subjectName)}</div>
             <div className="academy-v12-profile-copy"><small>المعلم</small><h2>{teacherName}</h2><p>{subjectName} • {activeGradeLabel || "المرحلة الثانوية"}</p></div>
             <span className="academy-v12-online"><i/> متصل</span>
           </section>
 
           <section className="academy-v12-subjects" aria-label="المواد المسندة">
             <small>المواد المسندة</small>
-            <div>{availableSubjects.map(subject => {
+            <div>{availableSubjects.map((subject, index) => {
               const active = subject.workspaceKey === workspaceKey;
-              return <button type="button" key={subject.workspaceKey} style={subjectVisualStyle(subject.subjectId)} className={active ? "active" : ""} disabled={switchingSubject} onClick={() => void changeSubject(subject.workspaceKey)}>
+              return <button type="button" key={subject.workspaceKey} style={subjectVisualStyle(subject.subjectId, subject.subjectName, index)} className={active ? "active" : ""} disabled={switchingSubject} onClick={() => void changeSubject(subject.workspaceKey)}>
                 <span className="subject-ribbon" data-subject={subject.subjectId}/>
+                <span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1, marginInline: 4 }}>{subjectSymbol(subject.subjectId, subject.subjectName)}</span>
                 <span><b>{subject.subjectName}</b><em>{subject.gradeLabel || ""}</em></span>
               </button>;
             })}</div>
@@ -315,7 +360,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         </header>
 
         <section className="academy-v12-headline">
-          <div><small>{subjectName} • {context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
+          <div><small><span aria-hidden="true">{subjectSymbol(subjectKey, subjectName)}</span> {subjectName} • {context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
           <div className="academy-v12-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href} prefetch>{context.action}</Link></div>
         </section>
 
