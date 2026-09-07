@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { normalizeGradePlan, type GradePlan } from "./grade-plan";
-import { readLocalGradePlan, saveLocalGradePlan, setGradePlanCurrentSubject, setGradePlanCurrentTeacher } from "./grade-plan-local";
+import { readLocalGradePlan, readScopedLocalGradePlan, saveLocalGradePlan, setGradePlanCurrentSubject, setGradePlanCurrentTeacher } from "./grade-plan-local";
 import { useTeacherClient } from "./teacher-client";
 
 type GradePlanState = {
@@ -36,13 +36,46 @@ export function useGradePlan(enabled = true) {
     setGradePlanCurrentTeacher(teacherId);
     setGradePlanCurrentSubject(subjectId);
     const localPlan = readLocalGradePlan(teacherId, subjectId);
+    const scopedLocalPlan = readScopedLocalGradePlan(teacherId, subjectId);
     setState(current => ({ ...current, activePlan: localPlan || current.activePlan, loading: true, error: "" }));
     try {
       const response = await fetch(`/api/teacher/grade-plan?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store", credentials: "same-origin" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر تحميل خطة توزيع الدرجات.");
-      const serverPlan = normalizeGradePlan(data.activePlan);
-      const activePlan = serverPlan || localPlan;
+
+      let serverPlan = normalizeGradePlan(data.activePlan);
+      let activePlan = serverPlan || localPlan;
+      const shouldSyncLocal = Boolean(
+        scopedLocalPlan && (
+          !serverPlan
+          || data.planSource === "legacy"
+          || String(scopedLocalPlan.id || "").startsWith("local-")
+        )
+      );
+
+      if (shouldSyncLocal && scopedLocalPlan) {
+        try {
+          const syncResponse = await fetch("/api/teacher/grade-plan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            cache: "no-store",
+            body: JSON.stringify({ subjectId, plan: scopedLocalPlan }),
+          });
+          const syncData = await syncResponse.json().catch(() => ({}));
+          if (syncResponse.ok) {
+            const syncedPlan = normalizeGradePlan(syncData.activePlan);
+            if (syncedPlan) {
+              serverPlan = syncedPlan;
+              activePlan = syncedPlan;
+              saveLocalGradePlan(syncedPlan, subjectId);
+            }
+          }
+        } catch {
+          // Keep the local plan active for the teacher and retry on the next refresh.
+        }
+      }
+
       if (serverPlan) saveLocalGradePlan(serverPlan, subjectId);
       setState({
         activePlan,
