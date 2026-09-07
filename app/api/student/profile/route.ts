@@ -44,6 +44,10 @@ function validStatus(value: unknown): value is AttendanceStatus {
   return value === "present" || value === "absent" || value === "late" || value === "excused" || value === "escaped";
 }
 
+function clean(value: unknown) {
+  return String(value || "").trim();
+}
+
 export async function GET(request: Request) {
   const header = request.headers.get("authorization") || "";
   const access = readStudentAccessToken(header.startsWith("Bearer ") ? header.slice(7) : "");
@@ -60,11 +64,42 @@ export async function GET(request: Request) {
     || `${String(studentData.grade || "")} ${String(studentData.section || "")}`,
   );
 
-  const [attendance, timetable, gradePlanState] = await Promise.all([
+  const [attendance, timetable, gradePlanState, referralSnapshot] = await Promise.all([
     adminDb().collection(`${root}/attendance`).get(),
     adminDb().collection(`${root}/timetable`).doc("weekly").get(),
     readActiveGradePlanForSubject(access.teacherId, access.subjectId),
+    adminDb().collection(`${root}/counselorReferrals`).get(),
   ]);
+
+  const aliases = new Set([
+    access.studentId,
+    clean(studentData.code),
+    clean(studentData.accessCode),
+    clean(studentData.studentCode),
+  ].filter(Boolean));
+
+  const counselorReferrals = referralSnapshot.docs
+    .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }))
+    .filter(item => {
+      if (item.visibleToStudent === false) return false;
+      const status = clean(item.status);
+      if (status === "ملغاة" || status === "محذوفة") return false;
+      const referralAliases = [clean(item.studentId), clean(item.studentCode), clean(item.rosterStudentId)].filter(Boolean);
+      return referralAliases.some(alias => aliases.has(alias));
+    })
+    .map(item => ({
+      id: clean(item.id),
+      referralType: clean(item.referralType) === "mastery" ? "mastery" : "other",
+      referralTypeLabel: clean(item.referralTypeLabel) || (clean(item.referralType) === "mastery" ? "إحالة مرتبطة بالإتقان والتحصيل" : "إحالة أخرى للمرشد"),
+      reason: clean(item.reason) || "إحالة للمتابعة مع المرشد الطلابي",
+      status: clean(item.status) || "جديدة",
+      teacherName: clean(item.teacherName),
+      subject: clean(item.subject),
+      createdAt: clean(item.createdAt),
+      severity: clean(item.severity) || "high",
+    }))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 20);
 
   const explicitByDate = new Map<string, AttendanceEntry>();
   for (const record of attendance.docs) {
@@ -140,6 +175,7 @@ export async function GET(request: Request) {
     ok: true,
     data: {
       ...studentData,
+      counselorReferrals,
       absences: counts.absent,
       late: counts.late,
       attendanceSummary: {
