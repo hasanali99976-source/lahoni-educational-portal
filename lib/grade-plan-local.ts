@@ -48,6 +48,12 @@ export function setGradePlanCurrentSubject(subjectId: string) {
   if (subject) window.localStorage.setItem(CURRENT_SUBJECT_KEY, subject);
 }
 
+export function readScopedLocalGradePlan(teacherId = currentTeacherId(), subjectId = currentSubjectId()) {
+  if (!teacherId || !subjectId) return null;
+  const plans = readAll();
+  return normalizeGradePlan(plans[planKey(teacherId, subjectId)]);
+}
+
 export function readLocalGradePlan(teacherId = currentTeacherId(), subjectId = currentSubjectId()) {
   if (!teacherId) return null;
   const plans = readAll();
