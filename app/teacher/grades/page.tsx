@@ -20,7 +20,11 @@ import { useGradePlan } from "../../../lib/use-grade-plan";
 import "./grades-v11.css";
 import "./grades-inline-deductions.css";
 
-type GradeDeduction={id:string;planId?:string;amount?:number;reason?:string;note?:string;reversedAt?:string};
+type GradeDeduction={
+  id:string;planId?:string;scope?:"plan"|"section"|"item";
+  sectionId?:string;sectionLabel?:string;itemId?:string;itemLabel?:string;
+  amount?:number;reason?:string;note?:string;reversedAt?:string;
+};
 type Student=GradeStudentLike&{
   id:string;code:string;name:string;class:string;className:string;
   gradeValues?:GradeValueMap;gradePlanValues?:Record<string,GradeValueMap>;gradeDeductions?:GradeDeduction[];
@@ -112,26 +116,33 @@ export default function GradesPage(){
     setLocalValues(next);setDirty(false);
   },[classStudents,section?.id,activePlan?.id]);
   useEffect(()=>{
-    if(!activePlan){setLocalDeductions({});setDeductionDirty({});return;}
+    if(!activePlan||!section){setLocalDeductions({});setDeductionDirty({});return;}
     const next:LocalDeductions={};
-    classStudents.forEach(student=>{next[student.id]=draftFromDeductions(activePlanDeductions(student));});
+    classStudents.forEach(student=>{next[student.id]=draftFromDeductions(sectionDeductions(student));});
     setLocalDeductions(next);setDeductionDirty({});
-  },[classStudents,activePlan?.id]);
+  },[classStudents,activePlan?.id,section?.id]);
 
   function itemKey(item:GradePlanItem){return section?gradeEntryKey(section.id,item.id):"";}
   function valuesForPlan(student:Student){if(!activePlan)return student.gradeValues||{};return student.gradePlanValues?.[activePlan.id]||student.gradeValues||{};}
   function studentForPlan(student:Student){return{...student,gradeValues:valuesForPlan(student)};}
   function effectiveStudent(student:Student){return{...student,gradeValues:{...valuesForPlan(student),...(localValues[student.id]||{})}};}
   function activePlanDeductions(student:Student){if(!activePlan)return[];return(Array.isArray(student.gradeDeductions)?student.gradeDeductions:[]).filter(item=>!item.reversedAt&&(!item.planId||item.planId===activePlan.id));}
-  function deductionFor(student:Student){const draft=localDeductions[student.id];if(draft)return draft;return draftFromDeductions(activePlanDeductions(student));}
-  function adjustedResult(student:Student){const result=calculateGradePlanResult(activePlan!,effectiveStudent(student));const deduction=deductionFor(student).amount;const earned=Math.max(0,roundGrade(result.earned-deduction));const percentage=result.maximum?Math.round((earned/result.maximum)*100):0;return{result,earned,percentage,deduction};}
+  function sectionDeductions(student:Student){if(!section)return[];return activePlanDeductions(student).filter(item=>(item.scope||"plan")==="section"&&String(item.sectionId||"")===section.id);}
+  function currentSectionItemDeductions(student:Student){if(!section)return[];return activePlanDeductions(student).filter(item=>item.scope==="item"&&String(item.sectionId||"")===section.id);}
+  function deductionFor(student:Student){const draft=localDeductions[student.id];if(draft)return draft;return draftFromDeductions(sectionDeductions(student));}
+  function totalDeductionFor(student:Student){
+    const persisted=activePlanDeductions(student);
+    const other=persisted.filter(item=>!section||!((item.scope||"plan")==="section"&&String(item.sectionId||"")===section.id));
+    return roundGrade(other.reduce((sum,item)=>sum+Number(item.amount||0),0)+deductionFor(student).amount);
+  }
+  function adjustedResult(student:Student){const result=calculateGradePlanResult(activePlan!,effectiveStudent(student));const deduction=totalDeductionFor(student);const earned=Math.max(0,roundGrade(result.earned-deduction));const availableMaximum=Math.max(0,roundGrade(result.maximum-deduction));const percentage=availableMaximum?Math.round((earned/availableMaximum)*100):0;return{result,earned,percentage,deduction,availableMaximum};}
   function setGradeValue(studentId:string,item:GradePlanItem,value:number){const key=itemKey(item);setLocalValues(current=>({...current,[studentId]:{...(current[studentId]||{}),[key]:clamp(value,item.max)}}));setDirty(true);}
-  function setDeductionAmount(studentId:string,value:number){setLocalDeductions(current=>({...current,[studentId]:{...(current[studentId]||{reason:"",note:""}),amount:clamp(value,planMaximum)}}));setDeductionDirty(current=>({...current,[studentId]:true}));}
+  function setDeductionAmount(studentId:string,value:number){setLocalDeductions(current=>({...current,[studentId]:{...(current[studentId]||{reason:"",note:""}),amount:clamp(value,section?.max||planMaximum)}}));setDeductionDirty(current=>({...current,[studentId]:true}));}
   function setDeductionReason(studentId:string,value:string){setLocalDeductions(current=>({...current,[studentId]:{...(current[studentId]||{amount:0,note:""}),reason:value}}));setDeductionDirty(current=>({...current,[studentId]:true}));}
   function setDeductionNote(studentId:string,value:string){setLocalDeductions(current=>({...current,[studentId]:{...(current[studentId]||{amount:0,reason:""}),note:value.slice(0,500)}}));setDeductionDirty(current=>({...current,[studentId]:true}));}
   function applyFullGrade(item:GradePlanItem){const key=itemKey(item);setLocalValues(current=>{const next={...current};classStudents.forEach(student=>{next[student.id]={...(next[student.id]||{}),[key]:item.max};});return next;});setDirty(true);}
   function clearRow(studentId:string){if(!section)return;setLocalValues(current=>{const row={...(current[studentId]||{})};section.items.forEach(item=>{row[itemKey(item)]=0;});return{...current,[studentId]:row};});setDirty(true);}
-  function sectionTotal(student:Student){if(!activePlan||!section)return 0;return calculateGradePlanResult(activePlan,effectiveStudent(student)).sections.find(item=>item.id===section.id)?.earned||0;}
+  function sectionTotal(student:Student){if(!activePlan||!section)return 0;const raw=calculateGradePlanResult(activePlan,effectiveStudent(student)).sections.find(item=>item.id===section.id)?.earned||0;const itemDeduction=currentSectionItemDeductions(student).reduce((sum,item)=>sum+Number(item.amount||0),0);return Math.max(0,roundGrade(raw-itemDeduction-deductionFor(student).amount));}
   function handleCellKey(event:KeyboardEvent<HTMLInputElement>,studentIndex:number,itemIndex:number){if(event.key!=="Enter")return;event.preventDefault();const next=document.querySelector<HTMLInputElement>(`[data-grade-cell="${studentIndex+1}-${itemIndex}"]`)||document.querySelector<HTMLInputElement>(`[data-grade-cell="0-${itemIndex+1}"]`);next?.focus();next?.select();}
 
   const hasDeductionChanges=Object.values(deductionDirty).some(Boolean);
@@ -148,20 +159,20 @@ export default function GradesPage(){
       excellent:recorded.filter(item=>item.percentage>=90).length,
       completion:results.length?Math.round(results.reduce((sum,item)=>sum+item.result.completion,0)/results.length):0,
     };
-  },[activePlan,classStudents,localValues,localDeductions]);
+  },[activePlan,classStudents,localValues,localDeductions,section?.id]);
 
   const sectionAnalytics=useMemo(()=>{
     if(!activePlan||!section||!classStudents.length)return{average:0,recorded:0};
-    const values=classStudents.map(student=>calculateGradePlanResult(activePlan,effectiveStudent(student)).sections.find(item=>item.id===section.id)?.earned||0);
+    const values=classStudents.map(student=>sectionTotal(student));
     const recorded=values.filter(value=>value>0);
     return{average:recorded.length?Math.round((recorded.reduce((sum,value)=>sum+value,0)/recorded.length)*10)/10:0,recorded:recorded.length};
-  },[activePlan,section,classStudents,localValues]);
+  },[activePlan,section,classStudents,localValues,localDeductions]);
 
   const aiInsight=classAnalytics.support
     ? `${classAnalytics.support} طالب في الفصل تحت 60٪ بعد احتساب الخصومات. بعد الحفظ انتقل للإتقان والمهارة لتحديد التدخل المناسب.`
     : classAnalytics.completion<100
       ? `اكتمال الرصد للفصل ${classAnalytics.completion}٪. ركز على الخانات الناقصة قبل الحكم على مستوى الطالب.`
-      : "الرصد مكتمل. الخصومات النشطة تبقى مطبقة على المجموع النهائي حتى يتم إلغاؤها من الجدول.";
+      : "الرصد مكتمل. خصم كل وحدة يبقى مرتبطًا بها ويظهر في سجل الطالب داخل نفس الوحدة.";
 
   async function saveRegister(){
     if(!tenant||!selectedClass||!activePlan||!section)return setMessage("اختر الفصل والوحدة أولًا");
@@ -185,7 +196,7 @@ export default function GradesPage(){
       const deductionRows=await Promise.all(changedIds.map(async studentId=>{
         const student=classStudents.find(item=>item.id===studentId)!;
         const draft=deductionFor(student);
-        const response=await fetch("/api/teacher/grade-deductions",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId:tenant.subjectKey,studentCode:student.code,planId:activePlan.id,amount:draft.amount,reason:draft.reason.trim(),note:draft.note.trim()}),cache:"no-store"});
+        const response=await fetch("/api/teacher/grade-deductions",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId:tenant.subjectKey,studentCode:student.code,planId:activePlan.id,scope:"section",sectionId:section.id,sectionLabel:section.label,amount:draft.amount,reason:draft.reason.trim(),note:draft.note.trim()}),cache:"no-store"});
         const data=await response.json().catch(()=>({}));
         if(!response.ok)throw new Error(data.message||`تعذر حفظ خصم ${student.name}`);
         return[studentId,Array.isArray(data.deductions)?data.deductions as GradeDeduction[]:[]] as const;
@@ -193,7 +204,7 @@ export default function GradesPage(){
       const deductionMap=new Map(deductionRows);
 
       setStudents(current=>current.map(student=>classStudents.some(item=>item.id===student.id)?{...student,gradeValues:{...valuesForPlan(student),...(localValues[student.id]||{})},gradePlanValues:{...(student.gradePlanValues||{}),[activePlan.id]:{...valuesForPlan(student),...(localValues[student.id]||{})}},gradeDeductions:deductionMap.get(student.id)||student.gradeDeductions}:student));
-      setDirty(false);setDeductionDirty({});setMessage(`تم حفظ ${section.label} والخصومات لفصل ${selectedClass}.`);
+      setDirty(false);setDeductionDirty({});setMessage(`تم حفظ ${section.label} وخصوماتها لفصل ${selectedClass}.`);
     }catch(error){console.error("gradebook-save-v11",error);setMessage(error instanceof Error?error.message:"تعذر حفظ الدرجات الآن.");}finally{setSaving(false);}
   }
 
@@ -227,12 +238,12 @@ export default function GradesPage(){
     <section className="gv11-insight"><span>AI</span><div><small>قراءة أكاديمية</small><h3>{selectedClass||"اختر الفصل"} • {section?.label||""}</h3><p>{aiInsight}</p></div><Link href="/teacher/follow-up">الإتقان والمهارة</Link></section>
 
     <section className="gv11-gradebook">
-      <header><div><small>سجل الرصد</small><h2>{section?.label}</h2><p>{section?.items.length||0} عناصر تقييم • الخصم محفوظ مستقلًا عن الدرجة الأصلية</p></div><div><span className={hasChanges?"pending":"saved"}>{hasChanges?"تغييرات غير محفوظة":"محفوظ"}</span><small>{visibleStudents.length} طالب ظاهر</small></div></header>
-      <div className="gv11-table-wrap"><table><thead><tr><th className="num">م</th><th className="name">اسم الطالب</th>{section?.items.map(item=><th key={item.id}><span>{item.label}</span><small>من {item.max}</small><button type="button" onClick={()=>applyFullGrade(item)}>كامل للكل</button></th>)}<th>مجموع {section?.label}<small>من {section?.max}</small></th><th>قبل الخصم<small>التحصيل الحالي</small></th><th className="deduction-col">الخصم<small>درجة</small></th><th className="reason-col">سبب الخصم والملاحظة<small>تظهر للطالب</small></th><th className="final-col">المجموع النهائي<small>بعد الخصم</small></th><th className="row-action">إجراء</th></tr></thead><tbody>{visibleStudents.map((student,studentIndex)=>{
+      <header><div><small>سجل الرصد</small><h2>{section?.label}</h2><p>{section?.items.length||0} عناصر تقييم • الخصم يرتبط بهذه {activePlan.mode==="units"?"الوحدة":"الفترة"} ويظهر للطالب داخلها</p></div><div><span className={hasChanges?"pending":"saved"}>{hasChanges?"تغييرات غير محفوظة":"محفوظ"}</span><small>{visibleStudents.length} طالب ظاهر</small></div></header>
+      <div className="gv11-table-wrap"><table><thead><tr><th className="num">م</th><th className="name">اسم الطالب</th>{section?.items.map(item=><th key={item.id}><span>{item.label}</span><small>من {item.max}</small><button type="button" onClick={()=>applyFullGrade(item)}>كامل للكل</button></th>)}<th>مجموع {section?.label}<small>بعد خصم الوحدة</small></th><th>قبل الخصم<small>إجمالي المادة</small></th><th className="deduction-col">خصم {section?.label}<small>درجة</small></th><th className="reason-col">سبب الخصم والملاحظة<small>تظهر للطالب داخل الوحدة</small></th><th className="final-col">المجموع النهائي<small>بعد كل الخصومات</small></th><th className="row-action">إجراء</th></tr></thead><tbody>{visibleStudents.map((student,studentIndex)=>{
         const source=effectiveStudent(student);const result=calculateGradePlanResult(activePlan,source);const deduction=deductionFor(student);const adjusted=adjustedResult(student);
-        return <tr key={student.id}><td className="num">{studentIndex+1}</td><td className="name"><b>{student.name}</b><small>{student.code} • {result.completion}٪ رصد{deduction.amount>0?` • خصم ${deduction.amount}`:""}</small></td>{section?.items.map((item,itemIndex)=>{const key=itemKey(item);const value=localValues[student.id]?.[key]??readGradeEntry(student,section,item).value;return <td key={item.id}><input data-grade-cell={`${studentIndex}-${itemIndex}`} type="number" min="0" max={item.max} step="0.5" value={value} onFocus={event=>event.currentTarget.select()} onKeyDown={event=>handleCellKey(event,studentIndex,itemIndex)} onChange={event=>setGradeValue(student.id,item,Number(event.target.value))}/></td>;})}<td className="section-total">{sectionTotal(student)}</td><td className="overall"><b>{result.earned}</b><small>{result.percentage}٪</small></td><td className="deduction-cell"><div className="deduction-quick">{QUICK_DEDUCTIONS.map(value=><button type="button" key={value} className={deduction.amount===value?"active":""} onClick={()=>setDeductionAmount(student.id,value)}>{value}</button>)}</div><input aria-label={`خصم ${student.name}`} type="number" min="0" max={planMaximum} step="0.5" value={deduction.amount} onFocus={event=>event.currentTarget.select()} onChange={event=>setDeductionAmount(student.id,Number(event.target.value))}/></td><td className="reason-cell"><select className={deduction.amount>0&&!deduction.reason.trim()?"missing-reason":""} aria-label={`سبب خصم ${student.name}`} value={deduction.reason} onChange={event=>setDeductionReason(student.id,event.target.value)}><option value="">{deduction.amount>0?"اختر السبب":"بدون خصم"}</option>{DEDUCTION_REASONS.map(reason=><option key={reason} value={reason}>{reason}</option>)}</select><input className={deduction.amount>0&&deduction.reason==="سبب آخر"&&!deduction.note.trim()?"missing-note":""} aria-label={`ملاحظة خصم ${student.name}`} type="text" value={deduction.note} placeholder={deduction.amount>0?"ملاحظة المعلم (اختيارية)":"لا توجد ملاحظة"} onChange={event=>setDeductionNote(student.id,event.target.value)}/></td><td className={`final-total ${deduction.amount>0?"deducted":""}`}><b>{adjusted.earned}</b><small>{adjusted.percentage}٪{deduction.amount>0?" • الخصم مستمر":""}</small></td><td className="row-action"><button type="button" onClick={()=>clearRow(student.id)}>مسح الوحدة</button></td></tr>;
+        return <tr key={student.id}><td className="num">{studentIndex+1}</td><td className="name"><b>{student.name}</b><small>{student.code} • {result.completion}٪ رصد{deduction.amount>0?` • خصم ${section?.label} ${deduction.amount}`:""}</small></td>{section?.items.map((item,itemIndex)=>{const key=itemKey(item);const value=localValues[student.id]?.[key]??readGradeEntry(student,section,item).value;return <td key={item.id}><input data-grade-cell={`${studentIndex}-${itemIndex}`} type="number" min="0" max={item.max} step="0.5" value={value} onFocus={event=>event.currentTarget.select()} onKeyDown={event=>handleCellKey(event,studentIndex,itemIndex)} onChange={event=>setGradeValue(student.id,item,Number(event.target.value))}/></td>;})}<td className="section-total">{sectionTotal(student)}</td><td className="overall"><b>{result.earned}</b><small>{result.percentage}٪</small></td><td className="deduction-cell"><div className="deduction-quick">{QUICK_DEDUCTIONS.map(value=><button type="button" key={value} className={deduction.amount===value?"active":""} onClick={()=>setDeductionAmount(student.id,value)}>{value}</button>)}</div><input aria-label={`خصم ${section?.label} للطالب ${student.name}`} type="number" min="0" max={section?.max||planMaximum} step="0.5" value={deduction.amount||""} onFocus={event=>event.currentTarget.select()} onChange={event=>setDeductionAmount(student.id,Number(event.target.value))}/></td><td className="reason-cell"><select className={deduction.amount>0&&!deduction.reason.trim()?"missing-reason":""} aria-label={`سبب خصم ${student.name}`} value={deduction.reason} onChange={event=>setDeductionReason(student.id,event.target.value)}><option value="">{deduction.amount>0?"اختر السبب":"—"}</option>{DEDUCTION_REASONS.map(reason=><option key={reason} value={reason}>{reason}</option>)}</select><input className={deduction.amount>0&&deduction.reason==="سبب آخر"&&!deduction.note.trim()?"missing-note":""} aria-label={`ملاحظة خصم ${student.name}`} type="text" value={deduction.note} placeholder={deduction.amount>0?"ملاحظة المعلم":""} onChange={event=>setDeductionNote(student.id,event.target.value)}/></td><td className={`final-total ${adjusted.deduction>0?"deducted":""}`}><b>{adjusted.earned} / {adjusted.availableMaximum}</b><small>{adjusted.percentage}٪{adjusted.deduction>0?` • إجمالي الخصم ${adjusted.deduction}`:""}</small></td><td className="row-action"><button type="button" onClick={()=>clearRow(student.id)}>مسح الوحدة</button></td></tr>;
       })}{!visibleStudents.length?<tr><td className="empty" colSpan={(section?.items.length||0)+8}>{loading?"جارٍ تحميل الطلاب…":"لا توجد أسماء مطابقة."}</td></tr>:null}</tbody></table></div>
-      <footer><span>الخصم يبقى مطبقًا حتى تجعل قيمته صفرًا وتحفظ، والسبب والملاحظة يظهران للطالب في نفس المادة.</span><span>{session.subject||"المادة"} • {selectedClass||"—"}</span></footer>
+      <footer><span>خصم كل وحدة مستقل عنها؛ يظهر داخل نفس الوحدة في سجل الطالب ثم ينعكس تلقائيًا على إجمالي المادة.</span><span>{session.subject||"المادة"} • {selectedClass||"—"}</span></footer>
     </section>
   </main>;
 }
