@@ -82,6 +82,10 @@ export async function GET(request: Request) {
   const counselorReferrals = referralSnapshot.docs
     .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }) as ReferralRow)
     .filter(item => {
+      if (item.teacherCreated !== true) return false;
+      if (clean(item.source) !== "teacher_action") return false;
+      if (clean(item.teacherId) !== access.teacherId) return false;
+      if (clean(item.subjectId).split("--")[0] !== access.subjectId.split("--")[0]) return false;
       if (item.visibleToStudent === false) return false;
       const status = clean(item.status);
       if (status === "ملغاة" || status === "محذوفة") return false;
@@ -98,9 +102,24 @@ export async function GET(request: Request) {
       subject: clean(item.subject),
       createdAt: clean(item.createdAt),
       severity: clean(item.severity) || "high",
+      teacherCreated: true,
+      source: "teacher_action",
     }))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 20);
+
+  const latestExplicitReferral = counselorReferrals[0];
+  const parentCounselorLastNotice = latestExplicitReferral ? {
+    title: "إحالة للمرشد الطلابي",
+    message: latestExplicitReferral.reason,
+    referralType: latestExplicitReferral.referralType,
+    subject: latestExplicitReferral.subject,
+    teacherName: latestExplicitReferral.teacherName,
+    teacherCreated: true,
+    source: "teacher_action",
+    referralId: latestExplicitReferral.id,
+    createdAt: latestExplicitReferral.createdAt,
+  } : undefined;
 
   const explicitByDate = new Map<string, AttendanceEntry>();
   for (const record of attendance.docs) {
@@ -177,6 +196,8 @@ export async function GET(request: Request) {
     data: {
       ...studentData,
       counselorReferrals,
+      parentCounselorLastNotice,
+      parentCounselorNoticeCount: counselorReferrals.length,
       absences: counts.absent,
       late: counts.late,
       attendanceSummary: {
