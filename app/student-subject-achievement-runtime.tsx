@@ -27,6 +27,7 @@ type Summary = {
   deduction: number;
   afterDeduction: number;
   maximum: number;
+  availableMaximum: number;
   completion?: number;
   deductions: Deduction[];
 };
@@ -41,6 +42,10 @@ function activeSubjectLabelFromPage() {
   return String(document.querySelector(".sta4-subject.active b")?.textContent || "").trim();
 }
 
+function firstReason(summary: Summary) {
+  return summary.deductions?.[0]?.reason || "خصم أكاديمي";
+}
+
 export default function StudentSubjectAchievementRuntime() {
   const pathname = usePathname();
   const [studentCode, setStudentCode] = useState("");
@@ -48,6 +53,8 @@ export default function StudentSubjectAchievementRuntime() {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [subjectHosts, setSubjectHosts] = useState<Array<{ host: HTMLElement; match: Match }>>([]);
   const [progressHost, setProgressHost] = useState<HTMLElement | null>(null);
+  const [reportHost, setReportHost] = useState<HTMLElement | null>(null);
+  const [reportGridHost, setReportGridHost] = useState<HTMLElement | null>(null);
   const [activeLabel, setActiveLabel] = useState("");
 
   async function load(code: string) {
@@ -88,6 +95,8 @@ export default function StudentSubjectAchievementRuntime() {
     });
     setSubjectHosts(mapped);
     setProgressHost(document.querySelector(".sta4-progress-layout") as HTMLElement | null);
+    setReportHost(document.querySelector(".sta4-report-table") as HTMLElement | null);
+    setReportGridHost(document.querySelector(".sta4-report-grid") as HTMLElement | null);
     setActiveLabel(activeSubjectLabelFromPage());
   }
 
@@ -98,9 +107,14 @@ export default function StudentSubjectAchievementRuntime() {
     const onClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest(".sta4-subject, .sta4-nav, .stg4-submit")) {
-        window.setTimeout(locateHosts, 80);
-        window.setTimeout(locateHosts, 450);
+      const interactive = target.closest(".sta4-subject, .sta4-nav, .sta4-top-actions, .stg4-submit");
+      if (!interactive) return;
+      const text = String(interactive.textContent || "").replace(/\s+/g, " ").trim();
+      window.setTimeout(locateHosts, 80);
+      window.setTimeout(locateHosts, 450);
+      if (text.includes("تقريري") || text.includes("تقدمي") || text.includes("شاهد تقدمي")) {
+        const code = codeFromPage();
+        if (/^TH[123]\d{3}$/.test(code)) window.setTimeout(() => void load(code), 60);
       }
     };
     const onFocus = () => {
@@ -129,6 +143,10 @@ export default function StudentSubjectAchievementRuntime() {
   const bySubject = useMemo(() => new Map(summaries.map(item => [item.subjectKey, item])), [summaries]);
   const activeMatch = matches.find(item => item.subjectLabel === activeLabel) || matches[0];
   const activeSummary = activeMatch ? bySubject.get(activeMatch.subjectKey) : undefined;
+  const liveRows = useMemo(() => matches.map(match => ({ match, summary: bySubject.get(match.subjectKey) })).filter(row => row.summary), [matches, bySubject]);
+  const liveAverage = liveRows.length
+    ? Math.round(liveRows.reduce((sum, row) => sum + Number(row.summary?.afterDeduction || 0), 0) / liveRows.length)
+    : 0;
 
   if (pathname !== "/student") return null;
 
@@ -136,14 +154,13 @@ export default function StudentSubjectAchievementRuntime() {
     {subjectHosts.map(({ host, match }) => {
       const summary = bySubject.get(match.subjectKey);
       if (!summary) return null;
-      const firstDeduction = summary.deductions?.[0];
       return createPortal(
         <div className={`sta4-subject-grade ${summary.deduction > 0 ? "has-deduction" : ""}`} key={`subject-grade-${match.subjectKey}`}>
-          <span>التحصيل <b>{ar(summary.afterDeduction)} / ١٠٠</b></span>
+          <span>التحصيل <b>{ar(summary.afterDeduction)} / {ar(summary.availableMaximum || 100)}</b></span>
           {summary.deduction > 0 ? <>
-            <small>قبل الخصم {ar(summary.beforeDeduction)} • خصم −{ar(summary.deduction)}</small>
-            <em>السبب: {firstDeduction?.reason || "خصم أكاديمي"}{summary.deductions.length > 1 ? ` + ${summary.deductions.length - 1}` : ""}</em>
-          </> : <small>{summary.hasPlan ? "حسب خطة المعلم • بدون خصم" : "لم تعتمد خطة رصد بعد"}</small>}
+            <small>السقف المتاح الآن {ar(summary.availableMaximum)} من {ar(summary.maximum || 100)} • خصم −{ar(summary.deduction)}</small>
+            <em>{firstReason(summary)}</em>
+          </> : <small>{summary.hasPlan ? "حسب خطة المعلم" : "لم تعتمد خطة رصد بعد"}</small>}
         </div>,
         host,
       );
@@ -151,23 +168,48 @@ export default function StudentSubjectAchievementRuntime() {
 
     {progressHost && activeSummary ? createPortal(
       <section className={`sta4-final-grade-explain ${activeSummary.deduction > 0 ? "has-deduction" : ""}`}>
-        <header><div><small>التحصيل العلمي حسب خطة المعلم</small><h3>{activeMatch?.subjectLabel || "المادة"}</h3></div><strong>{ar(activeSummary.afterDeduction)} <i>/ ١٠٠</i></strong></header>
+        <header><div><small>التحصيل العلمي حسب خطة المعلم</small><h3>{activeMatch?.subjectLabel || "المادة"}</h3></div><strong>{ar(activeSummary.afterDeduction)} <i>/ {ar(activeSummary.availableMaximum || 100)}</i></strong></header>
         <div className="sta4-grade-flow">
-          <span><small>الدرجة قبل الخصم</small><b>{ar(activeSummary.beforeDeduction)} / ١٠٠</b></span>
+          <span><small>الدرجة قبل الخصم</small><b>{ar(activeSummary.beforeDeduction)} / {ar(activeSummary.maximum || 100)}</b></span>
           <i>←</i>
           <span className="deduction"><small>مقدار الخصم</small><b>{activeSummary.deduction ? `− ${ar(activeSummary.deduction)}` : "٠"}</b></span>
           <i>←</i>
-          <span className="final"><small>الدرجة بعد الخصم</small><b>{ar(activeSummary.afterDeduction)} / ١٠٠</b></span>
+          <span className="final"><small>المتاح بعد الخصم</small><b>{ar(activeSummary.afterDeduction)} / {ar(activeSummary.availableMaximum || 100)}</b></span>
         </div>
         {activeSummary.deduction > 0 ? <div className="sta4-deduction-reasons">
           {activeSummary.deductions.map((item, index) => <article key={`${activeSummary.subjectKey}-${index}`}>
-            <b>سبب الخصم: {item.reason || "خصم أكاديمي"}</b>
-            {item.note ? <p>ملاحظة المعلم: {item.note}</p> : null}
-            <small>تم خصم {ar(item.amount)} درجة{item.teacherName ? ` • ${item.teacherName}` : ""}</small>
+            <b>{item.reason || "خصم أكاديمي"}</b>
+            {item.note ? <p>{item.note}</p> : null}
+            <small>خصم {ar(item.amount)} درجة{item.teacherName ? ` • ${item.teacherName}` : ""}</small>
           </article>)}
-        </div> : <p className="sta4-no-deduction">لا يوجد خصم على هذه المادة حاليًا، والدرجة أعلاه محسوبة حسب خطة المعلم.</p>}
+        </div> : null}
       </section>,
       progressHost,
+    ) : null}
+
+    {reportGridHost && liveRows.length ? createPortal(
+      <div className="sta4-live-report-summary">
+        <article><small>متوسط التحصيل المباشر</small><strong>{ar(liveAverage)} / ١٠٠</strong></article>
+        <article><small>مواد بخطة معتمدة</small><strong>{liveRows.filter(row => row.summary?.hasPlan).length} / {liveRows.length}</strong></article>
+        <article><small>مواد عليها خصم</small><strong>{liveRows.filter(row => Number(row.summary?.deduction || 0) > 0).length}</strong></article>
+      </div>,
+      reportGridHost,
+    ) : null}
+
+    {reportHost && liveRows.length ? createPortal(
+      <div className="sta4-live-report">
+        <table><thead><tr><th>المادة</th><th>خطة المعلم</th><th>قبل الخصم</th><th>الخصم</th><th>المتاح الآن</th><th>السبب</th></tr></thead><tbody>
+          {liveRows.map(({ match, summary }) => <tr key={match.subjectKey}>
+            <td><b>{match.subjectLabel}</b><small>{match.teacherName}</small></td>
+            <td>{summary?.hasPlan ? `معتمدة • نسخة ${summary.planVersion || 1}` : "لم تعتمد"}</td>
+            <td>{ar(summary?.beforeDeduction || 0)} / {ar(summary?.maximum || 100)}</td>
+            <td>{summary?.deduction ? `− ${ar(summary.deduction)}` : "—"}</td>
+            <td className={summary?.deduction ? "reduced" : ""}>{ar(summary?.afterDeduction || 0)} / {ar(summary?.availableMaximum || 100)}</td>
+            <td>{summary?.deduction ? firstReason(summary!) : "—"}</td>
+          </tr>)}
+        </tbody></table>
+      </div>,
+      reportHost,
     ) : null}
   </>;
 }
