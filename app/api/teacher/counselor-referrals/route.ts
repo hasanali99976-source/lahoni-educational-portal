@@ -44,7 +44,8 @@ export async function POST(request: Request) {
     }
 
     const root = `portalV2Data/${session.userId}/subjects/${subjectId}`;
-    const studentsSnapshot = await adminDb().collection(`${root}/students`).get();
+    const studentsCollection = adminDb().collection(`${root}/students`);
+    const studentsSnapshot = await studentsCollection.get();
     const requested = new Set(requestedCodes);
     const matched = studentsSnapshot.docs.filter(document => {
       const data = document.data() as Record<string, unknown>;
@@ -81,22 +82,21 @@ export async function POST(request: Request) {
         visibleToStudent: true,
         severity: "high",
         teacherId: session.userId,
-        teacherName: session.name || session.user?.name || "المعلم",
+        teacherName: session.name || session.user.name || "المعلم",
         subjectId,
         subject: clean(body?.subjectLabel, 120) || subjectId,
         createdAt: now,
         updatedAt: now,
       });
 
-      // تبقى الإحالة ظاهرة في سجل الطالب وولي الأمر حتى لو لم يوجد أي رصد درجات.
-      batch.set(document.ref, {
+      batch.set(studentsCollection.doc(document.id), {
         parentCounselorNoticeCount: Number(data.parentCounselorNoticeCount || 0) + 1,
         parentCounselorLastNotice: {
           title: "إحالة للمرشد الطلابي",
           message: reason,
           referralType,
           subject: clean(body?.subjectLabel, 120) || subjectId,
-          teacherName: session.name || session.user?.name || "المعلم",
+          teacherName: session.name || session.user.name || "المعلم",
           createdAt: now,
         },
         updatedAt: now,
