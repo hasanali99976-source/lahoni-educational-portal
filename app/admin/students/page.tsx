@@ -14,14 +14,25 @@ const GRADES = [
   { value: 3, label: "الثالث الثانوي" },
 ];
 const ar = (value: string | number) => String(value).replace(/\d/g, digit => "٠١٢٣٤٥٦٧٨٩"[Number(digit)] || digit);
+const normalizeDigits = (value: string) => value
+  .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+  .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
 
 async function api(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 20000) {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(input, { ...init, signal: controller.signal, cache: "no-store" });
+    const response = await fetch(input, {
+      ...init,
+      credentials: "same-origin",
+      signal: controller.signal,
+      cache: "no-store",
+    });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.message || "تعذر تنفيذ العملية");
+    if (!response.ok) {
+      if (response.status === 401) throw new Error("انتهت جلسة الإدارة. سجّل الدخول من جديد ثم أعد المحاولة.");
+      throw new Error(data.message || `تعذر تنفيذ العملية (${response.status})`);
+    }
     return data;
   } finally { window.clearTimeout(timer); }
 }
@@ -57,34 +68,57 @@ export default function AdminStudentsPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const gradeClasses = useMemo(() => classes.filter(item => item.grade === grade).sort((a, b) => Number(a.section) - Number(b.section)), [classes, grade]);
+  const gradeClasses = useMemo(() => classes.filter(item => item.grade === grade && item.active !== false).sort((a, b) => Number(a.section) - Number(b.section)), [classes, grade]);
 
   useEffect(() => {
     if (!gradeClasses.length) { setClassId(""); return; }
     if (!gradeClasses.some(item => item.id === classId)) setClassId(gradeClasses[0].id);
   }, [gradeClasses, classId]);
 
-  const selectedClass = useMemo(() => classes.find(item => item.id === classId) || null, [classes, classId]);
-  const classStudents = useMemo(() => selectedClass ? students.filter(student => student.grade === selectedClass.grade && student.section === selectedClass.section).sort((a, b) => a.name.localeCompare(b.name, "ar")) : [], [students, selectedClass]);
+  const selectedClass = useMemo(() => classes.find(item => item.id === classId && item.active !== false) || null, [classes, classId]);
+  const classStudents = useMemo(() => selectedClass ? students.filter(student => student.active !== false && student.grade === selectedClass.grade && student.section === selectedClass.section).sort((a, b) => a.name.localeCompare(b.name, "ar")) : [], [students, selectedClass]);
   const visibleStudents = useMemo(() => {
     const q = search.trim().toLocaleLowerCase("ar");
     return q ? classStudents.filter(student => student.name.toLocaleLowerCase("ar").includes(q) || student.code.toLowerCase().includes(q)) : classStudents;
   }, [classStudents, search]);
-  const gradeCount = useMemo(() => students.filter(student => student.grade === grade).length, [students, grade]);
+  const gradeCount = useMemo(() => students.filter(student => student.active !== false && student.grade === grade).length, [students, grade]);
 
   async function addClass(event: FormEvent) {
     event.preventDefault();
-    const section = newClassSection.replace(/[^0-9٠-٩]/g, "").trim();
-    if (!section) return setMessage("اكتب رقم الفصل.");
+    const section = normalizeDigits(newClassSection).replace(/\D/g, "").trim();
+    if (!/^[1-8]$/.test(section)) return setMessage("رقم الفصل يجب أن يكون من ١ إلى ٨.");
     setBusy(true);
+    setMessage("");
     try {
-      const data = await api("/api/admin/students/classes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ grade, section }) });
-      await load();
-      setShowClass(false); setNewClassSection("");
-      if (data.schoolClass?.id) setClassId(data.schoolClass.id);
-      setMessage("تمت إضافة الفصل وأصبح جاهزًا للقائمة.");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر إضافة الفصل"); }
-    finally { setBusy(false); }
+      const data = await api("/api/admin/students/classes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+        body: JSON.stringify({ grade, section }),
+      });
+      const created = data.schoolClass as SchoolClass | undefined;
+      if (!created?.id) throw new Error("تم الحفظ لكن لم يرجع النظام هوية الفصل.");
+
+      // أظهر الفصل فورًا ولا تجعل نجاح العملية متوقفًا على GET لاحق.
+      setClasses(current => {
+        const withoutSame = current.filter(item => item.id !== created.id);
+        return [...withoutSame, { ...created, active: true }];
+      });
+      setClassId(created.id);
+      setShowClass(false);
+      setNewClassSection("");
+      setMessage(`تمت إضافة ${created.name} وأصبح جاهزًا الآن.`);
+
+      // تحديث صامت للتحقق من التزامن، بدون إخفاء الفصل إذا تعثر التحديث.
+      void (async () => {
+        try {
+          const refreshed = await api("/api/admin/students");
+          if (Array.isArray(refreshed.students)) setStudents(refreshed.students);
+          if (Array.isArray(refreshed.classes)) setClasses(refreshed.classes);
+        } catch { /* يبقى السجل الذي عاد من POST ظاهرًا */ }
+      })();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "تعذر إضافة الفصل");
+    } finally { setBusy(false); }
   }
 
   async function addStudent(event: FormEvent) {
@@ -120,7 +154,7 @@ export default function AdminStudentsPage() {
   }
 
   async function removeClass(item: SchoolClass) {
-    const count = students.filter(student => student.grade === item.grade && student.section === item.section).length;
+    const count = students.filter(student => student.active !== false && student.grade === item.grade && student.section === item.section).length;
     const confirmation = count > 0
       ? `حذف ${item.name} وفيه ${ar(count)} طالبًا؟\n\nسيتم حذف الفصل من القوائم الحالية وأرشفة طلابه دفعة واحدة، مع بقاء سجلاتهم التاريخية محفوظة.`
       : `حذف ${item.name}؟`;
@@ -197,10 +231,10 @@ export default function AdminStudentsPage() {
 
     {message && <div className="roster-v3-message">{message}</div>}
 
-    <section className="roster-v3-step"><header><span>١</span><div><b>اختر الصف</b><small>{ar(gradeCount)} طالبًا في الصف المحدد</small></div></header><div className="roster-v3-grades">{GRADES.map(item => <button key={item.value} className={grade === item.value ? "active" : ""} onClick={() => { setGrade(item.value); setSearch(""); }}>{item.label}<small>{ar(students.filter(student => student.grade === item.value).length)}</small></button>)}</div></section>
+    <section className="roster-v3-step"><header><span>١</span><div><b>اختر الصف</b><small>{ar(gradeCount)} طالبًا في الصف المحدد</small></div></header><div className="roster-v3-grades">{GRADES.map(item => <button key={item.value} className={grade === item.value ? "active" : ""} onClick={() => { setGrade(item.value); setSearch(""); }}>{item.label}<small>{ar(students.filter(student => student.active !== false && student.grade === item.value).length)}</small></button>)}</div></section>
 
     <section className="roster-v3-step"><header><span>٢</span><div><b>اختر الفصل</b><small>لن تظهر لك إلا قائمة الفصل الذي تختاره</small></div></header><div className="roster-v3-classes">{gradeClasses.map(item => {
-      const count = students.filter(student => student.grade === item.grade && student.section === item.section).length;
+      const count = students.filter(student => student.active !== false && student.grade === item.grade && student.section === item.section).length;
       return <button key={item.id} className={classId === item.id ? "active" : ""} onClick={() => { setClassId(item.id); setSearch(""); }}><b>فصل {ar(item.section)}</b><small>{ar(count)} طالب</small></button>;
     })}<button className="add-class" onClick={() => setShowClass(true)}>＋<small>فصل جديد</small></button>{!gradeClasses.length && <p className="roster-v3-no-class">لا يوجد فصل لهذا الصف. اضغط «إضافة فصل» واكتب رقمه.</p>}</div></section>
 
@@ -214,7 +248,7 @@ export default function AdminStudentsPage() {
       {loading ? <div className="roster-v3-empty">جارٍ تحميل القائمة…</div> : <div className="roster-v3-table"><div className="head"><span>م</span><span>اسم الطالب</span><span>الكود</span><span>الإجراء</span></div>{visibleStudents.map((student, index) => <div className="row" key={student.id}><span>{ar(index + 1)}</span><strong>{student.name}</strong><code>{student.code}</code><div><button onClick={() => setEditing({ ...student })}>تعديل</button><button className="danger" onClick={() => void removeStudent(student)}>حذف</button></div></div>)}{!visibleStudents.length && <div className="roster-v3-empty">لا توجد أسماء في هذا الفصل بعد. أضف طالبًا أو ارفع كشفًا كاملًا.</div>}</div>}
     </section> : <section className="roster-v3-select-hint"><span>🎓</span><b>اختر فصلًا لتظهر قائمته وأدواته</b><small>لن نعرض لك نماذج أو خيارات لا تحتاجها الآن.</small></section>}
 
-    {showClass && <div className="roster-v3-modal"><form onSubmit={addClass}><header><div><small>فصل جديد في {GRADES.find(item => item.value === grade)?.label}</small><h2>أضف رقم الفصل</h2></div><button type="button" onClick={() => setShowClass(false)}>×</button></header><label>رقم الفصل<input inputMode="numeric" value={newClassSection} onChange={event => setNewClassSection(event.target.value)} placeholder="مثال: 1" autoFocus /></label><footer><button type="button" onClick={() => setShowClass(false)}>إلغاء</button><button className="primary" disabled={busy}>إضافة الفصل</button></footer></form></div>}
+    {showClass && <div className="roster-v3-modal"><form onSubmit={addClass}><header><div><small>فصل جديد في {GRADES.find(item => item.value === grade)?.label}</small><h2>أضف رقم الفصل</h2></div><button type="button" onClick={() => setShowClass(false)}>×</button></header><label>رقم الفصل<input inputMode="numeric" value={newClassSection} onChange={event => setNewClassSection(event.target.value)} placeholder="مثال: 1" autoFocus /></label><footer><button type="button" onClick={() => setShowClass(false)}>إلغاء</button><button className="primary" disabled={busy}>{busy ? "جارٍ الإضافة…" : "إضافة الفصل"}</button></footer></form></div>}
 
     {showUpload && selectedClass && <div className="roster-v3-modal"><section className="roster-v3-upload"><header><div><small>{selectedClass.name}</small><h2>رفع كشف الطلاب</h2></div><button type="button" onClick={() => { setShowUpload(false); setFile(null); setPreviewRows([]); }}>×</button></header><label className="roster-v3-drop"><input type="file" accept=".xlsx,.xls,.csv,.pdf,application/pdf" onChange={event => { setFile(event.target.files?.[0] || null); setPreviewRows([]); }} /><span>⬆</span><b>{file?.name || "اختر Excel أو CSV أو PDF"}</b><small>سيُستخدم الصف والفصل المحددان تلقائيًا إذا لم يكونا موجودين في الملف.</small></label><button className="roster-v3-read" onClick={() => void previewFile()} disabled={!file || busy}>{busy ? "جارٍ القراءة…" : "قراءة ومعاينة"}</button>{previewRows.length > 0 && <div className="roster-v3-preview"><div><b>وجدنا {ar(previewRows.length)} اسمًا</b><small>أول الأسماء:</small>{previewRows.slice(0,8).map((row,index) => <span key={`${row.name}-${index}`}>{ar(index + 1)}. {row.name}</span>)}</div><button onClick={() => void importPreview()} disabled={busy}>اعتماد وإضافة القائمة</button></div>}</section></div>}
 
