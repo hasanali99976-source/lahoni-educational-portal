@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { getSubjectConfig } from "../../../../lib/subject-config";
 import { createStudentAccessToken } from "../../../../lib/server/portal-auth";
+import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
 import { normalizeAssignments, type TeacherAssignment } from "../../../../lib/teacher-assignments";
 import { canonicalClassName, classId, gradeNumber, normalizeArabic, normalizeStudentRecord, type SchoolStudent } from "../../../../lib/school-roster";
 import {
@@ -211,20 +212,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "لم تُربط مواد هذا الصف بالمعلمين بعد." }, { status: 401 });
     }
 
-    const gradePlanByTeacher = new Map<string, Record<string, unknown> | null>();
-    await Promise.all([...new Set([...chosenBySubject.values()].map(candidate => candidate.teacherId))].map(async teacherId => {
+    // Resolve the plan by BOTH teacher and subject. Never reuse one teacher-wide plan
+    // across History, Critical Thinking, or any other subjects taught by the same teacher.
+    const gradePlanByTeacherSubject = new Map<string, unknown>();
+    await Promise.all([...chosenBySubject.values()].map(async candidate => {
+      const key = `${candidate.teacherId}:${candidate.subjectId}`;
       try {
-        const config = await adminDb().collection(`portalV2Data/${teacherId}/gradePlanConfig`).doc("current").get();
-        const activePlanId = config.exists ? String(config.data()?.activePlanId || "") : "";
-        if (!activePlanId) {
-          gradePlanByTeacher.set(teacherId, null);
-          return;
-        }
-        const plan = await adminDb().collection(`portalV2Data/${teacherId}/gradePlanVersions`).doc(activePlanId).get();
-        gradePlanByTeacher.set(teacherId, plan.exists ? { id: plan.id, ...plan.data() } : null);
+        const state = await readActiveGradePlanForSubject(candidate.teacherId, candidate.subjectId);
+        gradePlanByTeacherSubject.set(key, state.activePlan || null);
       } catch (gradePlanError) {
-        console.warn("student approved grade plan lookup deferred", gradePlanError);
-        gradePlanByTeacher.set(teacherId, null);
+        console.warn("student subject grade plan lookup deferred", gradePlanError);
+        gradePlanByTeacherSubject.set(key, null);
       }
     }));
 
@@ -292,7 +290,7 @@ export async function POST(request: Request) {
         accessToken,
         data: {
           ...item.data,
-          gradePlan: gradePlanByTeacher.get(item.teacherId) || null,
+          gradePlan: gradePlanByTeacherSubject.get(`${item.teacherId}:${item.subjectId}`) || null,
           absences: 0,
           late: 0,
           attendanceSummary: {
@@ -315,6 +313,7 @@ export async function POST(request: Request) {
       linkedFromCentralRoster: repairWrites.length,
       linkedByGradeFallback: [...chosenBySubject.values()].filter(item => !item.matchedClass).length,
       uniqueTeacherPerSubject: true,
+      gradePlanScopedByTeacherSubject: true,
       grade: student.grade,
       classId: studentClassId,
       subjectCount: matches.length,
