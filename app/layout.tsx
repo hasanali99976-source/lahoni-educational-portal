@@ -34,6 +34,7 @@ import DesignLabSmartAssist from "./design-lab-smart-assist";
 import DesignLabPortalAccent from "./design-lab-portal-accent";
 import TeacherAttendanceScheduleNav from "./teacher-attendance-schedule-nav";
 import TeacherAttendancePrintV21 from "./teacher-attendance-print-v21";
+import TeacherGradesCleanRuntime from "./teacher-grades-clean-runtime";
 import StudentAcademicRecordBridge from "./student-academic-record-bridge";
 import StudentPortalAcademicEnhancer from "./student-portal-academic-enhancer";
 import StudentSubjectAchievementRuntime from "./student-subject-achievement-runtime";
@@ -66,7 +67,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <StudentSessionKeeper /><StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentSmartNotesRuntime />
-    <TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
+    <TeacherGradesCleanRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
     <PortalPrintRuntime /><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
