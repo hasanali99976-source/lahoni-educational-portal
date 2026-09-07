@@ -108,14 +108,18 @@ async function previewFile(file: File, defaultGrade: number | null, defaultSecti
 
 async function importRows(rows: ImportRow[]) {
   const database = adminDb();
+  const now = new Date().toISOString();
   const existingSnapshot = await database.collection(SCHOOL_STUDENTS_COLLECTION).get();
   const existing = existingSnapshot.docs
     .map(document => normalizeStudentRecord(document.data() as Record<string, unknown>, document.id))
     .filter((student): student is SchoolStudent => !!student);
-  const identities = new Set(existing.map(studentIdentity));
+
+  const existingByIdentity = new Map(existing.map(student => [studentIdentity(student), student]));
   const usedStudents: Array<Pick<SchoolStudent, "code">> = existing.map(student => ({ code: student.code }));
   const imported: SchoolStudent[] = [];
+  const reactivated: SchoolStudent[] = [];
   const skipped: Array<{ name: string; reason: string }> = [];
+  const classMap = new Map<string, { grade: number; section: string }>();
 
   for (const raw of rows.slice(0, 1200)) {
     const name = clean(raw.name);
@@ -125,44 +129,93 @@ async function importRows(rows: ImportRow[]) {
       skipped.push({ name: name || "سطر غير معروف", reason: "الصف أو الفصل غير محدد" });
       continue;
     }
+
+    classMap.set(classId(grade, section), { grade, section });
     const identity = studentIdentity({ name, grade, section });
-    if (identities.has(identity)) {
-      skipped.push({ name, reason: "الطالب موجود مسبقًا في نفس الصف والفصل" });
+    const previous = existingByIdentity.get(identity);
+
+    if (previous) {
+      if (previous.active !== false) {
+        skipped.push({ name, reason: "الطالب موجود مسبقًا في نفس الصف والفصل" });
+        continue;
+      }
+
+      const student: SchoolStudent = {
+        ...previous,
+        id: previous.code,
+        code: previous.code,
+        name,
+        grade,
+        section,
+        className: canonicalClassName(grade, section),
+        active: true,
+        updatedAt: now,
+      };
+      reactivated.push(student);
+      existingByIdentity.set(identity, student);
       continue;
     }
+
     let code = normalizeCode(raw.code);
     if (!code || usedStudents.some(item => item.code === code)) code = nextStudentCode(usedStudents, grade);
     if (!code) {
       skipped.push({ name, reason: "تعذر إنشاء كود طالب جديد" });
       continue;
     }
-    const student: SchoolStudent = { id: code, code, name, grade, section, className: canonicalClassName(grade, section), active: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+
+    const student: SchoolStudent = {
+      id: code,
+      code,
+      name,
+      grade,
+      section,
+      className: canonicalClassName(grade, section),
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    };
     imported.push(student);
-    identities.add(identity);
+    existingByIdentity.set(identity, student);
     usedStudents.push({ code });
   }
 
-  for (let index = 0; index < imported.length; index += 350) {
-    const group = imported.slice(index, index + 350);
+  if (classMap.size) {
     const batch = database.batch();
-    const classMap = new Map<string, { grade: number; section: string }>();
-    group.forEach(student => classMap.set(classId(student.grade, student.section), { grade: student.grade, section: student.section }));
     classMap.forEach(({ grade, section }, id) => {
-      batch.set(database.collection(SCHOOL_CLASSES_COLLECTION).doc(id), { id, grade, section, name: canonicalClassName(grade, section), active: true, updatedAt: new Date().toISOString() }, { merge: true });
-    });
-    group.forEach(student => {
-      batch.set(database.collection(SCHOOL_STUDENTS_COLLECTION).doc(student.code), {
-        ...student,
-        accessCode: student.code,
-        studentCode: student.code,
-        class: student.className,
-        rosterActive: true,
+      batch.set(database.collection(SCHOOL_CLASSES_COLLECTION).doc(id), {
+        id,
+        grade,
+        section,
+        name: canonicalClassName(grade, section),
+        active: true,
+        archivedAt: null,
+        deletedAt: null,
+        updatedAt: now,
       }, { merge: true });
     });
     await batch.commit();
   }
 
-  return { imported, skipped };
+  const studentsToWrite = [...reactivated, ...imported];
+  for (let index = 0; index < studentsToWrite.length; index += 350) {
+    const group = studentsToWrite.slice(index, index + 350);
+    const batch = database.batch();
+    group.forEach(student => {
+      batch.set(database.collection(SCHOOL_STUDENTS_COLLECTION).doc(student.code), {
+        ...student,
+        active: true,
+        rosterActive: true,
+        archivedAt: null,
+        accessCode: student.code,
+        studentCode: student.code,
+        class: student.className,
+        updatedAt: now,
+      }, { merge: true });
+    });
+    await batch.commit();
+  }
+
+  return { imported, reactivated, skipped };
 }
 
 export async function POST(request: Request) {
@@ -176,7 +229,14 @@ export async function POST(request: Request) {
       const rows = Array.isArray(body.rows) ? body.rows as ImportRow[] : [];
       if (!rows.length) return NextResponse.json({ ok: false, message: "لا توجد صفوف صالحة للاستيراد." }, { status: 400 });
       const result = await importRows(rows);
-      return NextResponse.json({ ok: true, imported: result.imported.length, skipped: result.skipped.length, skippedRows: result.skipped.slice(0, 100), students: result.imported });
+      return NextResponse.json({
+        ok: true,
+        imported: result.imported.length,
+        reactivated: result.reactivated.length,
+        skipped: result.skipped.length,
+        skippedRows: result.skipped.slice(0, 100),
+        students: [...result.reactivated, ...result.imported],
+      });
     }
 
     const form = await request.formData();
