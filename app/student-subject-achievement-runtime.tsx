@@ -92,15 +92,7 @@ export default function StudentSubjectAchievementRuntime() {
   }
 
   useEffect(() => {
-    if (pathname !== "/student") {
-      setStudentCode("");
-      setMatches([]);
-      setSummaries([]);
-      setSubjectHosts([]);
-      setProgressHost(null);
-      setActiveLabel("");
-      return;
-    }
+    if (pathname !== "/student") return;
 
     const timers = [60, 300, 1000, 2500, 5000].map(delay => window.setTimeout(locateHosts, delay));
     const onClick = (event: MouseEvent) => {
@@ -129,7 +121,10 @@ export default function StudentSubjectAchievementRuntime() {
     };
   }, [pathname, studentCode, matches]);
 
-  useEffect(() => { locateHosts(); }, [matches, summaries]);
+  useEffect(() => {
+    if (pathname !== "/student") return;
+    locateHosts();
+  }, [pathname, matches, summaries]);
 
   const bySubject = useMemo(() => new Map(summaries.map(item => [item.subjectKey, item])), [summaries]);
   const activeMatch = matches.find(item => item.subjectLabel === activeLabel) || matches[0];
