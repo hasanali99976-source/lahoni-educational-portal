@@ -1,3 +1,4 @@
 Production refresh requested after subject identities, student portal, mobile, admin login, diagnostic fallback, safe roster recovery, preserved student codes and attendance history, and teacher-assignment linking updates.
 Deployment refresh: 2026-08-27 18:14 Asia/Riyadh.
 Production publish requested after runtime cleanup and removal of duplicate requests: 2026-08-27 18:55 Asia/Riyadh.
+Production publish requested for mobile/iPhone/Android web voice greeting unlock on login: 2026-09-08.
