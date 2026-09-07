@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, ReactNode, useEffect, useMemo, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
@@ -51,6 +51,23 @@ const tabs: TeacherTab[] = [
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", group: "insight", badge: "AI" },
   { href: "/teacher/grade-plan", key: "gradeplan", label: "الخطة الدراسية", group: "setup" },
 ];
+
+function subjectVisualStyle(subjectId: string): CSSProperties {
+  const base = String(subjectId || "subject").trim().split("--")[0] || "subject";
+  let hash = 2166136261;
+  for (let index = 0; index < base.length; index += 1) {
+    hash ^= base.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  const hue = Math.abs(hash >>> 0) % 360;
+  const secondaryHue = (hue + 18) % 360;
+  return {
+    "--subject": `hsl(${hue} 52% 42%)`,
+    "--subject-deep": `hsl(${secondaryHue} 50% 29%)`,
+    "--subject-soft": `hsl(${hue} 44% 94%)`,
+    "--subject-faint": `hsl(${hue} 38% 98%)`,
+  } as CSSProperties;
+}
 
 function NavIcon({ type }: { type: string }) {
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -236,7 +253,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   </section>;
 
   return <TeacherClientContext.Provider key={teacherId} value={contextValue}>
-    <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} dir="rtl" data-subject={subjectKey}>
+    <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} style={subjectVisualStyle(subjectKey)} dir="rtl" data-subject={subjectKey}>
       <aside className="academy-v12-rail">
         <Link href="/teacher/dashboard" className="academy-v12-brand">
           <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority />
@@ -265,7 +282,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
           <section className="academy-v12-profile">
             <div className="academy-v12-avatar">{teacherName.trim().charAt(0) || "م"}</div>
-            <div className="academy-v12-profile-copy"><small>المعلم</small><h2>{teacherName}</h2><p>{activeGradeLabel || "المرحلة الثانوية"}</p></div>
+            <div className="academy-v12-profile-copy"><small>المعلم</small><h2>{teacherName}</h2><p>{subjectName} • {activeGradeLabel || "المرحلة الثانوية"}</p></div>
             <span className="academy-v12-online"><i/> متصل</span>
           </section>
 
@@ -273,7 +290,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             <small>المواد المسندة</small>
             <div>{availableSubjects.map(subject => {
               const active = subject.workspaceKey === workspaceKey;
-              return <button type="button" key={subject.workspaceKey} className={active ? "active" : ""} disabled={switchingSubject} onClick={() => void changeSubject(subject.workspaceKey)}>
+              return <button type="button" key={subject.workspaceKey} style={subjectVisualStyle(subject.subjectId)} className={active ? "active" : ""} disabled={switchingSubject} onClick={() => void changeSubject(subject.workspaceKey)}>
                 <span className="subject-ribbon" data-subject={subject.subjectId}/>
                 <span><b>{subject.subjectName}</b><em>{subject.gradeLabel || ""}</em></span>
               </button>;
@@ -287,7 +304,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         </header>
 
         <section className="academy-v12-headline">
-          <div><small>{context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
+          <div><small>{subjectName} • {context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
           <div className="academy-v12-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href}>{context.action}</Link></div>
         </section>
 
