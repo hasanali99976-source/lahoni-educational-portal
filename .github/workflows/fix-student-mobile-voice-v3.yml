@@ -1,0 +1,31 @@
+name: Fix student mobile voice v3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/scripts/fix_student_mobile_voice_v3.py"
+      - ".github/workflows/fix-student-mobile-voice-v3.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Patch student mobile voice
+        run: python .github/scripts/fix_student_mobile_voice_v3.py
+      - name: Validate web build
+        run: npm install --no-package-lock --ignore-scripts && npm run build
+      - name: Commit student mobile voice fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/student/page.tsx
+          git commit -m "Fix student mobile voice trigger and page-load greeting" || exit 0
+          git push origin main
