@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import PortalVoiceGreeting from "../lib/portal-voice-greeting";
 
@@ -21,7 +21,7 @@ function detectIdentity(pathname: string): GreetingIdentity | null {
     return { role: "teacher", name: safeName, identityKey: `teacher:${safeName || "active"}` };
   }
 
-  if (pathname.startsWith("/student") && document.querySelector(".student-academy-v4")) {
+  if (pathname.startsWith("/student") && document.querySelector(".student-academy-v4") && !document.querySelector(".student-gateway-v4")) {
     const name = textOf(".sta4-id strong") || textOf(".sta4-student strong");
     const code = textOf(".sta4-id code");
     const safeName = name && name !== "الطالب" ? name : "";
@@ -35,15 +35,7 @@ export default function PortalVoiceGreetingRuntime() {
   const pathname = usePathname();
   const [identity, setIdentity] = useState<GreetingIdentity | null>(null);
 
-  // Login-page voice is intentionally NOT handled here.
-  // Teacher/student login pages own the single user-gesture trigger so mobile browsers
-  // do not receive pointerdown + touchstart + submit duplicates that cancel each other.
   useEffect(() => {
-    if (pathname === "/teacher" || pathname === "/student" || pathname === "/") {
-      setIdentity(null);
-      return;
-    }
-
     let frame = 0;
     let timeout = 0;
     const update = () => {
@@ -52,33 +44,19 @@ export default function PortalVoiceGreetingRuntime() {
     };
 
     update();
-    timeout = window.setTimeout(update, 900);
+    timeout = window.setTimeout(update, 700);
     const observer = new MutationObserver(update);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     window.addEventListener("pageshow", update);
-    window.addEventListener("focus", update);
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(frame);
       window.clearTimeout(timeout);
       window.removeEventListener("pageshow", update);
-      window.removeEventListener("focus", update);
+      setIdentity(null);
     };
   }, [pathname]);
 
   if (!identity) return null;
-
-  const wrapperStyle: CSSProperties = {
-    position: "fixed",
-    left: "max(14px, env(safe-area-inset-left))",
-    bottom: "max(14px, env(safe-area-inset-bottom))",
-    zIndex: 2147483000,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
-  return <div style={wrapperStyle} data-portal-voice-greeting>
-    <PortalVoiceGreeting role={identity.role} name={identity.name} identityKey={identity.identityKey} compact />
-  </div>;
+  return <PortalVoiceGreeting role={identity.role} name={identity.name} identityKey={identity.identityKey} compact />;
 }
