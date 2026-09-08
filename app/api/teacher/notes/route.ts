@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
   const url = new URL(request.url);
-  const subjectId = clean(url.searchParams.get("subjectId"), 80).split("--")[0];
+  const subjectId = clean(url.searchParams.get("subjectId"), 80);
   if (!subjectId) return NextResponse.json({ ok: true, rows: [] });
 
   try {
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const subjectId = clean(body.subjectId, 80).split("--")[0];
+    const subjectId = clean(body.subjectId, 80);
     const studentCode = clean(body.studentCode, 40).toUpperCase();
     const type = clean(body.type || "academic", 40);
     const label = clean(body.label || "ملاحظة المعلم", 120);
@@ -119,7 +119,7 @@ export async function DELETE(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const subjectId = clean(body.subjectId, 80).split("--")[0];
+    const subjectId = clean(body.subjectId, 80);
     const studentCode = clean(body.studentCode, 40).toUpperCase();
     const noteId = clean(body.noteId, 80);
     const student = await findStudentDoc(session.userId, subjectId, studentCode);
