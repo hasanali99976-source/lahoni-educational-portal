@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-// Shared greeting engine: native Android TTS first, browser speech as fallback.
 type PortalVoiceGreetingProps = {
   role: "teacher" | "student";
   name?: string;
@@ -16,6 +15,11 @@ declare global {
       speakArabic?: (text: string) => void;
       stopSpeech?: () => void;
       isReady?: () => boolean;
+    };
+    OstadhApp?: {
+      speakArabic?: (text: string) => void;
+      stopSpeech?: () => void;
+      isSpeechReady?: () => boolean;
     };
     __OSTADH_ANDROID__?: boolean;
   }
@@ -63,15 +67,19 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
   const speak = useCallback(() => {
     if (typeof window === "undefined") return false;
 
-    const isNativeAndroid = Boolean(window.__OSTADH_ANDROID__) || /OstadhLahooniAndroid/i.test(navigator.userAgent);
-    if (isNativeAndroid && window.OstadhTts?.speakArabic) {
-      try {
+    try {
+      if (window.OstadhApp?.speakArabic) {
+        window.OstadhApp.speakArabic(text);
+        startedRef.current = true;
+        return true;
+      }
+      if (window.OstadhTts?.speakArabic) {
         window.OstadhTts.speakArabic(text);
         startedRef.current = true;
         return true;
-      } catch {
-        startedRef.current = false;
       }
+    } catch {
+      startedRef.current = false;
     }
 
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
@@ -104,9 +112,9 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
       if (!cancelled && !startedRef.current) speak();
     };
 
-    const timer = window.setTimeout(trySpeak, 180);
-    const retryTimer = window.setTimeout(trySpeak, 900);
-    const lateRetryTimer = window.setTimeout(trySpeak, 1800);
+    const timer = window.setTimeout(trySpeak, 120);
+    const retryTimer = window.setTimeout(trySpeak, 700);
+    const lateRetryTimer = window.setTimeout(trySpeak, 1600);
     const voicesChanged = () => trySpeak();
     const interactionFallback = () => {
       if (!startedRef.current) trySpeak();
@@ -131,6 +139,7 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
       window.removeEventListener("pointerdown", interactionFallback, true);
       window.removeEventListener("keydown", interactionFallback, true);
       window.removeEventListener("touchstart", interactionFallback, true);
+      try { window.OstadhApp?.stopSpeech?.(); } catch {}
       try { window.OstadhTts?.stopSpeech?.(); } catch {}
       window.speechSynthesis?.cancel();
     };
