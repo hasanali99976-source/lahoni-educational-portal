@@ -46,6 +46,43 @@ const DAY_ORDER = ["sunday", "monday", "tuesday", "wednesday", "thursday"];
 const DAY_LABELS: Record<string, string> = { sunday: "الأحد", monday: "الاثنين", tuesday: "الثلاثاء", wednesday: "الأربعاء", thursday: "الخميس" };
 const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0);
 
+
+function speakLoginGreeting(role: "teacher" | "student", person?: string) {
+  if (typeof window === "undefined") return;
+  const clean = String(person || "").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u, "").trim();
+  const text = role === "teacher"
+    ? (clean ? `مرحبًا أستاذ ${clean}. أهلًا بك في بوابة أستاذ لحوني التعليمية.` : "مرحبًا أستاذ. أهلًا بك في بوابة أستاذ لحوني التعليمية.")
+    : (clean ? `مرحبًا ${clean}. كيف حالك اليوم؟ نتمنى لك يومًا دراسيًا موفقًا.` : "مرحبًا بك. نتمنى لك يومًا دراسيًا موفقًا ومميزًا.");
+
+  try {
+    const native = (window as any).OstadhApp;
+    if (native && typeof native.speakArabic === "function") {
+      native.speakArabic(text);
+      return;
+    }
+    const nativeTts = (window as any).OstadhTts;
+    if (nativeTts && typeof nativeTts.speakArabic === "function") {
+      nativeTts.speakArabic(text);
+      return;
+    }
+  } catch {}
+
+  try {
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ar-SA";
+    utterance.rate = 0.94;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => /^ar-SA$/i.test(v.lang)) || voices.find(v => /^ar(?:-|$)/i.test(v.lang));
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.speak(utterance);
+  } catch {}
+}
+
+
 const tabs: Array<{ key: StudentTab; label: string }> = [
   { key: "home", label: "الرئيسية" },
   { key: "notes", label: "ملاحظاتي" },
@@ -177,6 +214,7 @@ export default function StudentPage() {
   }
 
   async function lookup(codeValue: string) {
+    speakLoginGreeting("student");
     const code = normalizeStudentCode(codeValue);
     setMessage("");
     setMatches([]);
