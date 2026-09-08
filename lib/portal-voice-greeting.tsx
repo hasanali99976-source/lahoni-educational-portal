@@ -9,17 +9,18 @@ type PortalVoiceGreetingProps = {
   compact?: boolean;
 };
 
+type NativeSpeechBridge = {
+  speakArabic?: (text: string) => void;
+  stopSpeech?: () => void;
+  isSpeechReady?: () => boolean;
+};
+
 declare global {
   interface Window {
     OstadhTts?: {
       speakArabic?: (text: string) => void;
       stopSpeech?: () => void;
       isReady?: () => boolean;
-    };
-    OstadhApp?: {
-      speakArabic?: (text: string) => void;
-      stopSpeech?: () => void;
-      isSpeechReady?: () => boolean;
     };
     __OSTADH_ANDROID__?: boolean;
   }
@@ -67,9 +68,10 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
   const speak = useCallback(() => {
     if (typeof window === "undefined") return false;
 
+    const nativeApp = (window as unknown as { OstadhApp?: NativeSpeechBridge }).OstadhApp;
     try {
-      if (window.OstadhApp?.speakArabic) {
-        window.OstadhApp.speakArabic(text);
+      if (nativeApp?.speakArabic) {
+        nativeApp.speakArabic(text);
         startedRef.current = true;
         return true;
       }
@@ -139,7 +141,8 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
       window.removeEventListener("pointerdown", interactionFallback, true);
       window.removeEventListener("keydown", interactionFallback, true);
       window.removeEventListener("touchstart", interactionFallback, true);
-      try { window.OstadhApp?.stopSpeech?.(); } catch {}
+      const nativeBridge = (window as unknown as { OstadhApp?: NativeSpeechBridge }).OstadhApp;
+      try { nativeBridge?.stopSpeech?.(); } catch {}
       try { window.OstadhTts?.stopSpeech?.(); } catch {}
       window.speechSynthesis?.cancel();
     };
