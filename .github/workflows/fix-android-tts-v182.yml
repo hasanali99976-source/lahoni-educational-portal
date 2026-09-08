@@ -1,0 +1,55 @@
+name: Fix Android native TTS v1.8.2
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/scripts/fix_android_tts_182.py"
+      - ".github/workflows/fix-android-tts-v182.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Patch Android native TTS
+        run: python .github/scripts/fix_android_tts_182.py
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "8.9"
+
+      - name: Build APK 1.8.2
+        working-directory: android-app
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Publish source and APK
+        run: |
+          mkdir -p releases/android
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk releases/android/ostadh-lahooni-v1.8.2.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android-app/app/src/main/java/com/ostadlahooni/app/MainActivity.java android-app/app/build.gradle releases/android/ostadh-lahooni-v1.8.2.apk
+          git commit -m "Fix Android native TTS and publish v1.8.2" || exit 0
+          git push origin main
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ostadh-lahooni-apk-v1.8.2
+          path: releases/android/ostadh-lahooni-v1.8.2.apk
+          if-no-files-found: error
