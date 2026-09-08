@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
   try {
     const url = new URL(request.url);
-    const subjectId = clean(url.searchParams.get("subjectId"), 80).split("--")[0];
+    const subjectId = clean(url.searchParams.get("subjectId"), 80);
     if (!subjectId) return NextResponse.json({ ok: false, message: "المادة غير محددة." }, { status: 400 });
 
     const snapshot = await adminDb()
