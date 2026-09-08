@@ -69,16 +69,17 @@ function speakLoginGreeting(role: "teacher" | "student", person?: string) {
 
   try {
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
-    window.speechSynthesis.cancel();
+    const synth = window.speechSynthesis;
+    synth.resume();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "ar-SA";
     utterance.rate = 0.94;
     utterance.pitch = 1;
     utterance.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
+    const voices = synth.getVoices();
     const voice = voices.find(v => /^ar-SA$/i.test(v.lang)) || voices.find(v => /^ar(?:-|$)/i.test(v.lang));
     if (voice) utterance.voice = voice;
-    window.speechSynthesis.speak(utterance);
+    synth.speak(utterance);
   } catch {}
 }
 
@@ -213,8 +214,8 @@ export default function StudentPage() {
     }
   }
 
-  async function lookup(codeValue: string) {
-    speakLoginGreeting("student");
+  async function lookup(codeValue: string, shouldSpeak = false) {
+    if (shouldSpeak) speakLoginGreeting("student");
     const code = normalizeStudentCode(codeValue);
     setMessage("");
     setMatches([]);
@@ -245,7 +246,7 @@ export default function StudentPage() {
     if (query.has("code") || query.has("entry") || query.has("v") || query.has("logout")) window.history.replaceState({}, "", "/student");
     if (CODE_PATTERN.test(code) && !automaticLoginStarted.current) {
       automaticLoginStarted.current = true;
-      void lookup(code);
+      void lookup(code, false);
     }
   }, []);
 
@@ -280,7 +281,7 @@ export default function StudentPage() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    void lookup(accessCode);
+    void lookup(accessCode, true);
   }
 
   function exitStudentPortal() {
