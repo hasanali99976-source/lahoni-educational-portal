@@ -1,0 +1,45 @@
+name: Fix Deduction Percentage v1
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-deduction-percentage-v1.py'
+      - '.github/workflows/fix-deduction-percentage-v1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply percentage fix
+        run: python .github/scripts/fix-deduction-percentage-v1.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify percentage formula
+        run: |
+          grep -q 'const percentage=result.maximum?Math.round((earned/result.maximum)*100):0' app/teacher/grades/page.tsx
+          ! grep -q 'const percentage=availableMaximum?Math.round((earned/availableMaximum)*100):0' app/teacher/grades/page.tsx
+      - name: Commit validated fix
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grades/page.tsx
+          git commit -m 'fix: subtract deductions directly from percentage'
+          git push
