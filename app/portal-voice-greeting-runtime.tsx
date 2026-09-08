@@ -31,99 +31,19 @@ function detectIdentity(pathname: string): GreetingIdentity | null {
   return null;
 }
 
-function chooseArabicVoice(voices: SpeechSynthesisVoice[]) {
-  const arabic = voices.filter(voice => /^ar(?:-|$)/i.test(voice.lang));
-  return arabic.find(voice => /sa/i.test(voice.lang))
-    || arabic.find(voice => /female|natural|microsoft|google/i.test(voice.name))
-    || arabic[0]
-    || null;
-}
-
-function speakLoginGreeting(role: "teacher" | "student") {
-  if (typeof window === "undefined") return;
-
-  const phrase = role === "teacher"
-    ? "مرحبًا أستاذ. أهلًا بك في بوابة أستاذ لحوني التعليمية."
-    : "مرحبًا بك. أهلًا بك في بوابة أستاذ لحوني التعليمية، ونتمنى لك يومًا دراسيًا موفقًا.";
-
-  // Android application bridge when the installed app exposes native TTS.
-  try {
-    if (window.OstadhTts?.speakArabic) {
-      window.OstadhTts.speakArabic(phrase);
-      return;
-    }
-  } catch {}
-
-  // IMPORTANT: the real utterance is started synchronously from the login gesture.
-  // iOS Safari/PWA and many Android WebViews do not preserve audio permission after async login completes.
-  try {
-    if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(phrase);
-      utterance.lang = "ar-SA";
-      utterance.volume = 1;
-      utterance.rate = 0.94;
-      utterance.pitch = 1;
-      const voice = chooseArabicVoice(window.speechSynthesis.getVoices());
-      if (voice) utterance.voice = voice;
-      window.speechSynthesis.speak(utterance);
-    }
-  } catch {}
-
-  // Also unlock WebAudio for browsers that require an active audio context.
-  try {
-    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (AudioContextCtor) {
-      const context = new AudioContextCtor();
-      if (context.state === "suspended") void context.resume();
-      const buffer = context.createBuffer(1, 1, 22050);
-      const source = context.createBufferSource();
-      source.buffer = buffer;
-      source.connect(context.destination);
-      source.start(0);
-      source.onended = () => void context.close();
-    }
-  } catch {}
-
-  try { sessionStorage.setItem("ostadh-voice-unlocked", String(Date.now())); } catch {}
-}
-
 export default function PortalVoiceGreetingRuntime() {
   const pathname = usePathname();
   const [identity, setIdentity] = useState<GreetingIdentity | null>(null);
 
+  // Login-page voice is intentionally NOT handled here.
+  // Teacher/student login pages own the single user-gesture trigger so mobile browsers
+  // do not receive pointerdown + touchstart + submit duplicates that cancel each other.
   useEffect(() => {
-    const isTeacherLogin = pathname === "/teacher";
-    const isStudentLogin = pathname === "/student" || pathname === "/";
-    if (!isTeacherLogin && !isStudentLogin) return;
+    if (pathname === "/teacher" || pathname === "/student" || pathname === "/") {
+      setIdentity(null);
+      return;
+    }
 
-    const role: "teacher" | "student" = isTeacherLogin ? "teacher" : "student";
-    const onGesture = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const button = target.closest("button,input[type='submit']") as HTMLElement | null;
-      const form = target.closest("form");
-      const label = String(button?.textContent || button?.getAttribute("value") || "").trim();
-      const looksLikeLogin = Boolean(form) && (
-        /دخول|تسجيل|فتح الأكاديمية|الدخول/i.test(label)
-        || isTeacherLogin
-        || isStudentLogin
-      );
-      if (looksLikeLogin) speakLoginGreeting(role);
-    };
-
-    const onSubmit = () => speakLoginGreeting(role);
-    document.addEventListener("pointerdown", onGesture, true);
-    document.addEventListener("touchstart", onGesture, true);
-    document.addEventListener("submit", onSubmit, true);
-    return () => {
-      document.removeEventListener("pointerdown", onGesture, true);
-      document.removeEventListener("touchstart", onGesture, true);
-      document.removeEventListener("submit", onSubmit, true);
-    };
-  }, [pathname]);
-
-  useEffect(() => {
     let frame = 0;
     let timeout = 0;
     const update = () => {
