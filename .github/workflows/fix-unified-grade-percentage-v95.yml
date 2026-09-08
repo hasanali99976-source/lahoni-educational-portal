@@ -1,0 +1,44 @@
+name: Fix Unified Grade Percentage v95
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/fix-unified-grade-percentage-v95.py'
+      - '.github/workflows/fix-unified-grade-percentage-v95.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply unified percentage fix
+        run: python .github/scripts/fix-unified-grade-percentage-v95.py
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Verify
+        run: |
+          grep -q 'const percentage=result.maximum?Math.max(0,Math.round((earned/result.maximum)*100)):0' app/teacher/grades/page.tsx
+      - name: Commit validated fix
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/teacher/grades/page.tsx
+          git commit -m 'fix: keep grade percentage based on original 100 points'
+          git push
