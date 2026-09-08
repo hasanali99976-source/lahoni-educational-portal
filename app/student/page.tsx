@@ -215,7 +215,8 @@ export default function StudentPage() {
   }
 
   async function lookup(codeValue: string, shouldSpeak = false) {
-    if (shouldSpeak) speakLoginGreeting("student");
+    // Voice greeting is intentionally delayed until the student portal and real name are visible.
+    void shouldSpeak;
     const code = normalizeStudentCode(codeValue);
     setMessage("");
     setMatches([]);
