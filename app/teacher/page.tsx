@@ -9,42 +9,6 @@ import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-login-v14.css";
 
-function speakLoginGreeting(person?: string) {
-  if (typeof window === "undefined") return;
-  const clean = String(person || "").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u, "").trim();
-  const text = clean
-    ? `مرحبًا أستاذ ${clean}. أهلًا بك في بوابة أستاذ لحوني التعليمية.`
-    : "مرحبًا أستاذ. أهلًا بك في بوابة أستاذ لحوني التعليمية.";
-
-  try {
-    const native = (window as any).OstadhApp;
-    if (native && typeof native.speakArabic === "function") {
-      native.speakArabic(text);
-      return;
-    }
-    const nativeTts = (window as any).OstadhTts;
-    if (nativeTts && typeof nativeTts.speakArabic === "function") {
-      nativeTts.speakArabic(text);
-      return;
-    }
-  } catch {}
-
-  try {
-    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
-    const synth = window.speechSynthesis;
-    synth.resume();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ar-SA";
-    utterance.rate = 0.94;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = synth.getVoices();
-    const voice = voices.find(v => /^ar-SA$/i.test(v.lang)) || voices.find(v => /^ar(?:-|$)/i.test(v.lang));
-    if (voice) utterance.voice = voice;
-    synth.speak(utterance);
-  } catch {}
-}
-
 export default function TeacherLoginPage(){
   const [name,setName]=useState("");
   const [password,setPassword]=useState("");
@@ -55,7 +19,6 @@ export default function TeacherLoginPage(){
 
   async function submit(event:FormEvent){
     event.preventDefault();
-    speakLoginGreeting(name);
     setError("");
     setLoading(true);
     try{
