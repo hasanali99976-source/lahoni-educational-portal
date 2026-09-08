@@ -19,6 +19,7 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.provider.MediaStore;
+import android.speech.tts.TextToSpeech;
 import android.util.Base64;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -33,20 +34,25 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final String HOME_URL = "https://tahdheeb-history.vercel.app/";
-    private static final String APP_VERSION = "1.7.0";
+    private static final String APP_VERSION = "1.8.0";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
     private ToneGenerator introTone;
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
+    private String pendingSpeech = null;
     private long lastRefreshAt = 0L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        initTextToSpeech();
         webView = new WebView(this);
         setContentView(webView);
         playIntroSound();
@@ -100,7 +106,8 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 String bridgeScript = "(function(){" +
                     "window.__OSTADH_ANDROID__=true;" +
-                    "var cacheKey='ostadh-clean-1.7.0';" +
+                    "window.OstadhTts={speakArabic:function(t){try{OstadhApp.speakArabic(String(t||''));}catch(e){}},stopSpeech:function(){try{OstadhApp.stopSpeech();}catch(e){}},isReady:function(){try{return !!OstadhApp.isSpeechReady();}catch(e){return false;}}};" +
+                    "var cacheKey='ostadh-clean-1.8.0';" +
                     "if(!sessionStorage.getItem(cacheKey)){sessionStorage.setItem(cacheKey,'1');var jobs=[];" +
                     "if('serviceWorker' in navigator){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}" +
                     "if(window.caches){jobs.push(caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}));}" +
@@ -149,6 +156,50 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState == null) webView.loadUrl(HOME_URL + "?appVersion=" + APP_VERSION + "&fresh=" + System.currentTimeMillis());
         else webView.restoreState(savedInstanceState);
+    }
+
+    private void initTextToSpeech() {
+        try {
+            tts = new TextToSpeech(this, status -> {
+                if (status == TextToSpeech.SUCCESS) {
+                    int result = tts.setLanguage(new Locale("ar", "SA"));
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        tts.setLanguage(new Locale("ar"));
+                    }
+                    tts.setSpeechRate(0.94f);
+                    tts.setPitch(1.0f);
+                    ttsReady = true;
+                    if (pendingSpeech != null && !pendingSpeech.trim().isEmpty()) {
+                        String queued = pendingSpeech;
+                        pendingSpeech = null;
+                        speakArabicNative(queued);
+                    }
+                }
+            });
+        } catch (Exception ignored) {
+            ttsReady = false;
+        }
+    }
+
+    private void speakArabicNative(String text) {
+        final String safe = text == null ? "" : text.trim();
+        if (safe.isEmpty()) return;
+        runOnUiThread(() -> {
+            try {
+                if (!ttsReady || tts == null) {
+                    pendingSpeech = safe;
+                    return;
+                }
+                tts.stop();
+                tts.speak(safe, TextToSpeech.QUEUE_FLUSH, null, "ostadh-greeting-" + System.currentTimeMillis());
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private void stopArabicNative() {
+        runOnUiThread(() -> {
+            try { if (tts != null) tts.stop(); } catch (Exception ignored) {}
+        });
     }
 
     private void playIntroSound() {
@@ -231,6 +282,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void printPage(String title) { printCurrentPage(title); }
         @JavascriptInterface public void saveBase64(String fileName, String mimeType, String base64Data) { saveBase64ToDownloads(fileName, mimeType, base64Data); }
         @JavascriptInterface public void openUrl(String url) { runOnUiThread(() -> openExternal(Uri.parse(url))); }
+        @JavascriptInterface public void speakArabic(String text) { speakArabicNative(text); }
+        @JavascriptInterface public void stopSpeech() { stopArabicNative(); }
+        @JavascriptInterface public boolean isSpeechReady() { return ttsReady; }
         @JavascriptInterface public void shareText(String title, String text, String url) {
             runOnUiThread(() -> { Intent share = new Intent(Intent.ACTION_SEND); share.setType("text/plain"); String body = (text == null ? "" : text) + ((url == null || url.isEmpty()) ? "" : "\n" + url); share.putExtra(Intent.EXTRA_SUBJECT, title == null ? "أستاذ لحوني" : title); share.putExtra(Intent.EXTRA_TEXT, body); startActivity(Intent.createChooser(share, "مشاركة عبر")); });
         }
@@ -254,7 +308,13 @@ public class MainActivity extends Activity {
             webView.reload();
         }
     }
+
     @Override protected void onSaveInstanceState(Bundle outState) { webView.saveState(outState); super.onSaveInstanceState(outState); }
-    @Override protected void onDestroy() { if (introTone != null) { introTone.release(); introTone = null; } if (webView != null) { webView.removeJavascriptInterface("OstadhApp"); webView.destroy(); } super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (introTone != null) { introTone.release(); introTone = null; }
+        try { if (tts != null) { tts.stop(); tts.shutdown(); tts = null; } } catch (Exception ignored) {}
+        if (webView != null) { webView.removeJavascriptInterface("OstadhApp"); webView.destroy(); }
+        super.onDestroy();
+    }
     @Override public void onBackPressed() { if (webView != null && webView.canGoBack()) webView.goBack(); else super.onBackPressed(); }
 }
