@@ -1,0 +1,31 @@
+name: Fix direct login voice v2
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/scripts/fix_login_voice_direct_v2.py"
+      - ".github/workflows/fix-login-voice-direct-v2.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Patch teacher and student login voice
+        run: python .github/scripts/fix_login_voice_direct_v2.py
+      - name: Validate web build
+        run: npm ci && npm run build
+      - name: Commit direct login voice fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/page.tsx app/student/page.tsx
+          git commit -m "Fix voice directly on teacher and student login gesture" || exit 0
+          git push origin main
