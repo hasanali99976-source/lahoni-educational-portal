@@ -23,6 +23,7 @@ import "./student-portal-academic-enhancer.css";
 import "./student-subject-achievement-runtime.css";
 import "./student-risk-center-runtime.css";
 import "./platform-v200.css";
+import "./platform-3d-v210.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -45,6 +46,7 @@ import StudentSmartNotesRuntime from "./student-smart-notes-runtime";
 import TeacherNotesIdentityRuntime from "./teacher-notes-identity-runtime";
 import AdminStudentEditClassRuntime from "./admin-student-edit-class-runtime";
 import PortalVoiceGreetingRuntime from "./portal-voice-greeting-runtime";
+import AttendanceInsightsRuntime from "./attendance-insights-runtime";
 
 const academyFont = Alexandria({ subsets: ["arabic"], weight: ["400", "500", "600", "700", "800", "900"], display: "swap" });
 
@@ -78,6 +80,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
+    <AttendanceInsightsRuntime />
     <DesignLabPortalAccent />
     <DesignLabSmartAssist />
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
