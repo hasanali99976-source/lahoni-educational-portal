@@ -31,9 +31,46 @@ function detectIdentity(pathname: string): GreetingIdentity | null {
   return null;
 }
 
-function primeWebVoice() {
+function chooseArabicVoice(voices: SpeechSynthesisVoice[]) {
+  const arabic = voices.filter(voice => /^ar(?:-|$)/i.test(voice.lang));
+  return arabic.find(voice => /sa/i.test(voice.lang))
+    || arabic.find(voice => /female|natural|microsoft|google/i.test(voice.name))
+    || arabic[0]
+    || null;
+}
+
+function speakLoginGreeting(role: "teacher" | "student") {
   if (typeof window === "undefined") return;
 
+  const phrase = role === "teacher"
+    ? "مرحبًا أستاذ. أهلًا بك في بوابة أستاذ لحوني التعليمية."
+    : "مرحبًا بك. أهلًا بك في بوابة أستاذ لحوني التعليمية، ونتمنى لك يومًا دراسيًا موفقًا.";
+
+  // Android application bridge when the installed app exposes native TTS.
+  try {
+    if (window.OstadhTts?.speakArabic) {
+      window.OstadhTts.speakArabic(phrase);
+      return;
+    }
+  } catch {}
+
+  // IMPORTANT: the real utterance is started synchronously from the login gesture.
+  // iOS Safari/PWA and many Android WebViews do not preserve audio permission after async login completes.
+  try {
+    if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(phrase);
+      utterance.lang = "ar-SA";
+      utterance.volume = 1;
+      utterance.rate = 0.94;
+      utterance.pitch = 1;
+      const voice = chooseArabicVoice(window.speechSynthesis.getVoices());
+      if (voice) utterance.voice = voice;
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch {}
+
+  // Also unlock WebAudio for browsers that require an active audio context.
   try {
     const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (AudioContextCtor) {
@@ -48,17 +85,6 @@ function primeWebVoice() {
     }
   } catch {}
 
-  try {
-    if ("speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined") {
-      window.speechSynthesis.cancel();
-      const unlock = new SpeechSynthesisUtterance("\u200B");
-      unlock.lang = "ar-SA";
-      unlock.volume = 0.01;
-      unlock.rate = 1;
-      window.speechSynthesis.speak(unlock);
-    }
-  } catch {}
-
   try { sessionStorage.setItem("ostadh-voice-unlocked", String(Date.now())); } catch {}
 }
 
@@ -67,29 +93,33 @@ export default function PortalVoiceGreetingRuntime() {
   const [identity, setIdentity] = useState<GreetingIdentity | null>(null);
 
   useEffect(() => {
-    const isLoginSurface = pathname === "/teacher" || pathname === "/student" || pathname === "/";
-    if (!isLoginSurface) return;
+    const isTeacherLogin = pathname === "/teacher";
+    const isStudentLogin = pathname === "/student" || pathname === "/";
+    if (!isTeacherLogin && !isStudentLogin) return;
 
+    const role: "teacher" | "student" = isTeacherLogin ? "teacher" : "student";
     const onGesture = (event: Event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const button = target.closest("button,input[type='submit']") as HTMLElement | null;
       const form = target.closest("form");
-      const text = String(button?.textContent || button?.getAttribute("value") || "").trim();
+      const label = String(button?.textContent || button?.getAttribute("value") || "").trim();
       const looksLikeLogin = Boolean(form) && (
-        /دخول|تسجيل|فتح الأكاديمية|الدخول/i.test(text) ||
-        pathname === "/teacher" || pathname === "/student"
+        /دخول|تسجيل|فتح الأكاديمية|الدخول/i.test(label)
+        || isTeacherLogin
+        || isStudentLogin
       );
-      if (looksLikeLogin) primeWebVoice();
+      if (looksLikeLogin) speakLoginGreeting(role);
     };
 
+    const onSubmit = () => speakLoginGreeting(role);
     document.addEventListener("pointerdown", onGesture, true);
     document.addEventListener("touchstart", onGesture, true);
-    document.addEventListener("submit", primeWebVoice, true);
+    document.addEventListener("submit", onSubmit, true);
     return () => {
       document.removeEventListener("pointerdown", onGesture, true);
       document.removeEventListener("touchstart", onGesture, true);
-      document.removeEventListener("submit", primeWebVoice, true);
+      document.removeEventListener("submit", onSubmit, true);
     };
   }, [pathname]);
 
