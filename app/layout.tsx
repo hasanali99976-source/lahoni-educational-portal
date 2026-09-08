@@ -25,6 +25,7 @@ import "./student-risk-center-runtime.css";
 import "./platform-v200.css";
 import "./platform-3d-v210.css";
 import "./student-subject-gate-runtime.css";
+import "./platform-3d-v220.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
