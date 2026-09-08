@@ -38,7 +38,7 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final String HOME_URL = "https://tahdheeb-history.vercel.app/";
-    private static final String APP_VERSION = "1.8.0";
+    private static final String APP_VERSION = "1.8.2";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
@@ -81,7 +81,9 @@ public class MainActivity extends Activity {
         webView.setScrollbarFadingEnabled(true);
         webView.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webView.requestFocusFromTouch();
-        webView.addJavascriptInterface(new NativeBridge(), "OstadhApp");
+        NativeBridge nativeBridge = new NativeBridge();
+        webView.addJavascriptInterface(nativeBridge, "OstadhApp");
+        webView.addJavascriptInterface(nativeBridge, "OstadhTts");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -107,7 +109,7 @@ public class MainActivity extends Activity {
                 String bridgeScript = "(function(){" +
                     "window.__OSTADH_ANDROID__=true;" +
                     "window.OstadhTts={speakArabic:function(t){try{OstadhApp.speakArabic(String(t||''));}catch(e){}},stopSpeech:function(){try{OstadhApp.stopSpeech();}catch(e){}},isReady:function(){try{return !!OstadhApp.isSpeechReady();}catch(e){return false;}}};" +
-                    "var cacheKey='ostadh-clean-1.8.0';" +
+                    "var cacheKey='ostadh-clean-1.8.2';" +
                     "if(!sessionStorage.getItem(cacheKey)){sessionStorage.setItem(cacheKey,'1');var jobs=[];" +
                     "if('serviceWorker' in navigator){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}" +
                     "if(window.caches){jobs.push(caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}));}" +
@@ -160,20 +162,28 @@ public class MainActivity extends Activity {
 
     private void initTextToSpeech() {
         try {
-            tts = new TextToSpeech(this, status -> {
-                if (status == TextToSpeech.SUCCESS) {
+            ttsReady = false;
+            tts = new TextToSpeech(getApplicationContext(), status -> {
+                if (status != TextToSpeech.SUCCESS || tts == null) {
+                    ttsReady = false;
+                    return;
+                }
+                try {
                     int result = tts.setLanguage(new Locale("ar", "SA"));
                     if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        tts.setLanguage(new Locale("ar"));
+                        result = tts.setLanguage(new Locale("ar"));
+                    }
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        tts.setLanguage(Locale.getDefault());
                     }
                     tts.setSpeechRate(0.94f);
                     tts.setPitch(1.0f);
                     ttsReady = true;
-                    if (pendingSpeech != null && !pendingSpeech.trim().isEmpty()) {
-                        String queued = pendingSpeech;
-                        pendingSpeech = null;
-                        speakArabicNative(queued);
-                    }
+                    String queued = pendingSpeech;
+                    pendingSpeech = null;
+                    if (queued != null && !queued.trim().isEmpty()) speakArabicNative(queued);
+                } catch (Exception error) {
+                    ttsReady = false;
                 }
             });
         } catch (Exception ignored) {
@@ -186,13 +196,22 @@ public class MainActivity extends Activity {
         if (safe.isEmpty()) return;
         runOnUiThread(() -> {
             try {
-                if (!ttsReady || tts == null) {
+                if (tts == null || !ttsReady) {
                     pendingSpeech = safe;
+                    if (tts == null) initTextToSpeech();
                     return;
                 }
-                tts.stop();
-                tts.speak(safe, TextToSpeech.QUEUE_FLUSH, null, "ostadh-greeting-" + System.currentTimeMillis());
-            } catch (Exception ignored) {}
+                int result = tts.speak(safe, TextToSpeech.QUEUE_FLUSH, null, "ostadh-greeting-" + System.currentTimeMillis());
+                if (result == TextToSpeech.ERROR) {
+                    pendingSpeech = safe;
+                    ttsReady = false;
+                    try { tts.shutdown(); } catch (Exception ignored) {}
+                    tts = null;
+                    initTextToSpeech();
+                }
+            } catch (Exception ignored) {
+                pendingSpeech = safe;
+            }
         });
     }
 
@@ -313,7 +332,7 @@ public class MainActivity extends Activity {
     @Override protected void onDestroy() {
         if (introTone != null) { introTone.release(); introTone = null; }
         try { if (tts != null) { tts.stop(); tts.shutdown(); tts = null; } } catch (Exception ignored) {}
-        if (webView != null) { webView.removeJavascriptInterface("OstadhApp"); webView.destroy(); }
+        if (webView != null) { webView.removeJavascriptInterface("OstadhApp"); webView.removeJavascriptInterface("OstadhTts"); webView.destroy(); }
         super.onDestroy();
     }
     @Override public void onBackPressed() { if (webView != null && webView.canGoBack()) webView.goBack(); else super.onBackPressed(); }
