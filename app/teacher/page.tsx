@@ -9,13 +9,12 @@ import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-login-v14.css";
 
-
-function speakLoginGreeting(role: "teacher" | "student", person?: string) {
+function speakLoginGreeting(person?: string) {
   if (typeof window === "undefined") return;
   const clean = String(person || "").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u, "").trim();
-  const text = role === "teacher"
-    ? (clean ? `مرحبًا أستاذ ${clean}. أهلًا بك في بوابة أستاذ لحوني التعليمية.` : "مرحبًا أستاذ. أهلًا بك في بوابة أستاذ لحوني التعليمية.")
-    : (clean ? `مرحبًا ${clean}. كيف حالك اليوم؟ نتمنى لك يومًا دراسيًا موفقًا.` : "مرحبًا بك. نتمنى لك يومًا دراسيًا موفقًا ومميزًا.");
+  const text = clean
+    ? `مرحبًا أستاذ ${clean}. أهلًا بك في بوابة أستاذ لحوني التعليمية.`
+    : "مرحبًا أستاذ. أهلًا بك في بوابة أستاذ لحوني التعليمية.";
 
   try {
     const native = (window as any).OstadhApp;
@@ -32,19 +31,19 @@ function speakLoginGreeting(role: "teacher" | "student", person?: string) {
 
   try {
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
-    window.speechSynthesis.cancel();
+    const synth = window.speechSynthesis;
+    synth.resume();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "ar-SA";
     utterance.rate = 0.94;
     utterance.pitch = 1;
     utterance.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
+    const voices = synth.getVoices();
     const voice = voices.find(v => /^ar-SA$/i.test(v.lang)) || voices.find(v => /^ar(?:-|$)/i.test(v.lang));
     if (voice) utterance.voice = voice;
-    window.speechSynthesis.speak(utterance);
+    synth.speak(utterance);
   } catch {}
 }
-
 
 export default function TeacherLoginPage(){
   const [name,setName]=useState("");
@@ -55,7 +54,10 @@ export default function TeacherLoginPage(){
   const router=useRouter();
 
   async function submit(event:FormEvent){
-    event.preventDefault(); speakLoginGreeting("teacher", name); setError(""); setLoading(true);
+    event.preventDefault();
+    speakLoginGreeting(name);
+    setError("");
+    setLoading(true);
     try{
       const response=await fetch("/api/teacher-login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,password})});
       const data=await response.json();
