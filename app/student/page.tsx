@@ -231,7 +231,7 @@ export default function StudentPage() {
       if (!raw.length) return setMessage("لم تُربط مواد الطالب بالمعلمين بعد.");
       const enriched = await Promise.all(raw.map(hydrateMatch));
       setMatches(enriched);
-      setSelected(enriched[0]);
+      setSelected(null);
       setActiveTab("home");
     } catch {
       setMessage("تعذر الوصول إلى بيانات الطالب الآن. حاول مرة أخرى.");
@@ -357,6 +357,16 @@ export default function StudentPage() {
     }
   }
 
+  if (!selected && matches.length) {
+    const choiceName = matches[0]?.data.name?.trim() || "الطالب";
+    const choiceClass = matches[0]?.data.class?.trim() || "الفصل غير محدد";
+    return <main className="student-subject-choice-v300" dir="rtl">
+      <header><small>بوابة الطالب</small><h1>مرحبًا {choiceName}</h1><p>{choiceClass} • اختر المادة التي تريد الدخول إليها الآن.</p></header>
+      <div className="student-subject-grid-v300">{subjectScores.map(item => <button type="button" key={item.match.subjectKey} className="student-subject-card-v300" style={{ "--subject": item.theme.primary } as CSSProperties} onClick={() => { setSelected(item.match); setActiveTab("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}><span className="icon"><SubjectMark subjectKey={item.match.subjectKey}/></span><strong>{item.match.subjectLabel}</strong><small>{item.match.teacherName} • {item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "بانتظار الرصد"}</small></button>)}</div>
+      <div style={{display:"flex",justifyContent:"center",marginTop:18}}><button type="button" className="student-change-subject-v300" onClick={exitStudentPortal}>تسجيل الخروج</button></div>
+    </main>;
+  }
+
   if (!selected) {
     return <main className="student-gateway-v4" dir="rtl">
       <section className="stg4-shell">
@@ -398,7 +408,7 @@ export default function StudentPage() {
       <section className="sta4-main">
         <header className="sta4-top">
           <div className="sta4-student"><div className="sta4-avatar">{studentName.charAt(0) || "ط"}</div><div><strong>{studentName}</strong><small>{classLabel} • آخر البيانات من معلميك</small></div></div>
-          <div className="sta4-top-actions"><button type="button" className="report" onClick={() => { setActiveTab("report"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>تقريري</button><button type="button" onClick={exitStudentPortal}>خروج</button></div>
+          <div className="sta4-top-actions"><button type="button" className="student-change-subject-v300" onClick={() => { setSelected(null); setActiveTab("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>موادي</button><button type="button" className="report" onClick={() => { setActiveTab("report"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>تقريري</button><button type="button" onClick={exitStudentPortal}>خروج</button></div>
         </header>
 
         <div className="sta4-subjects" aria-label="مواد الطالب">{subjectScores.map(item => <button type="button" key={item.match.subjectKey} className={`sta4-subject ${selected.subjectKey === item.match.subjectKey ? "active" : ""}`} style={{ "--subject": item.theme.primary } as CSSProperties} onClick={() => setSelected(item.match)}><span className="sta4-subject-icon"><SubjectMark subjectKey={item.match.subjectKey}/></span><span><b>{item.match.subjectLabel}</b><small>{item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "بانتظار الرصد"}</small></span></button>)}</div>
