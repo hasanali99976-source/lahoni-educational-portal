@@ -11,7 +11,6 @@ export function cleanGradePlanSubject(value: unknown) {
   return String(value ?? "")
     .trim()
     .toLowerCase()
-    .split("--")[0]
     .replace(/[^a-z0-9_-]/g, "")
     .slice(0, 80);
 }
