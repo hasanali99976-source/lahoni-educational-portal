@@ -27,41 +27,40 @@ declare global {
 }
 
 function cleanName(value?: string) {
-  const name = String(value || "").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u, "").trim();
+  const name = String(value || "")
+    .trim()
+    .replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!name || ["المعلم", "الطالب", "مستخدم"].includes(name)) return "";
-  return name.slice(0, 80);
-}
-
-function riyadhHour() {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Riyadh",
-    hour: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(new Date());
-  return Number(parts.find(part => part.type === "hour")?.value || 12);
+  const parts = name.split(" ");
+  const deduped = parts.filter((part, index) => index === 0 || part !== parts[index - 1]);
+  return deduped.join(" ").slice(0, 60);
 }
 
 function greetingText(role: "teacher" | "student", name?: string) {
   const person = cleanName(name);
-  const hour = riyadhHour();
-  const daypart = hour >= 5 && hour < 12 ? "صباح الخير" : hour >= 12 && hour < 18 ? "مساء الخير" : "أهلًا وسهلًا";
   if (role === "teacher") {
     return person
-      ? `مرحبًا أستاذ ${person}. ${daypart}. أهلًا بك في بوابة أستاذ لحوني التعليمية، ونتمنى لك وقتًا موفقًا.`
-      : `مرحبًا أستاذ. ${daypart}. أهلًا بك في بوابة أستاذ لحوني التعليمية، ونتمنى لك وقتًا موفقًا.`;
+      ? `هلا أستاذ ${person}، حياك الله في بوابة أستاذ لحوني التعليمية.`
+      : "هلا أستاذ، حياك الله في بوابة أستاذ لحوني التعليمية.";
   }
   return person
-    ? `مرحبًا ${person}. ${daypart}. كيف حالك اليوم؟ نتمنى لك يومًا دراسيًا موفقًا ومميزًا.`
-    : `مرحبًا بك. ${daypart}. نتمنى لك يومًا دراسيًا موفقًا ومميزًا.`;
+    ? `هلا ${person}، حياك الله. الله يوفقك اليوم.`
+    : "هلا بك، حياك الله. الله يوفقك اليوم.";
 }
 
 function chooseArabicVoice(voices: SpeechSynthesisVoice[]) {
   const arabic = voices.filter(voice => /^ar(?:-|$)/i.test(voice.lang));
-  return arabic.find(voice => /sa/i.test(voice.lang)) || arabic.find(voice => /female|natural|microsoft|google/i.test(voice.name)) || arabic[0] || null;
+  return arabic.find(voice => /^ar-SA$/i.test(voice.lang))
+    || arabic.find(voice => /saudi|saudi arabia|ar-sa/i.test(`${voice.name} ${voice.lang}`))
+    || arabic.find(voice => /natural|microsoft|google/i.test(voice.name))
+    || arabic[0]
+    || null;
 }
 
 export default function PortalVoiceGreeting({ role, name, identityKey }: PortalVoiceGreetingProps) {
-  const attemptedRef = useRef(false);
+  const attemptedRef = useRef("");
   const startedRef = useRef(false);
   const text = useMemo(() => greetingText(role, name), [role, name]);
 
@@ -86,12 +85,11 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
 
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
     try {
-      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "ar-SA";
-      utterance.rate = 0.94;
-      utterance.pitch = 1;
-      utterance.volume = 1;
+      utterance.rate = 0.9;
+      utterance.pitch = 0.98;
+      utterance.volume = 0.9;
       const voice = chooseArabicVoice(window.speechSynthesis.getVoices());
       if (voice) utterance.voice = voice;
       utterance.onstart = () => { startedRef.current = true; };
@@ -105,8 +103,8 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
   }, [text]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !identityKey || attemptedRef.current) return;
-    attemptedRef.current = true;
+    if (typeof window === "undefined" || !identityKey || attemptedRef.current === identityKey) return;
+    attemptedRef.current = identityKey;
     startedRef.current = false;
     let cancelled = false;
 
@@ -114,37 +112,16 @@ export default function PortalVoiceGreeting({ role, name, identityKey }: PortalV
       if (!cancelled && !startedRef.current) speak();
     };
 
-    const timer = window.setTimeout(trySpeak, 120);
-    const retryTimer = window.setTimeout(trySpeak, 700);
-    const lateRetryTimer = window.setTimeout(trySpeak, 1600);
+    const timer = window.setTimeout(trySpeak, 350);
+    const retryTimer = window.setTimeout(trySpeak, 1100);
     const voicesChanged = () => trySpeak();
-    const interactionFallback = () => {
-      if (!startedRef.current) trySpeak();
-      if (startedRef.current) {
-        window.removeEventListener("pointerdown", interactionFallback, true);
-        window.removeEventListener("keydown", interactionFallback, true);
-        window.removeEventListener("touchstart", interactionFallback, true);
-      }
-    };
 
     window.speechSynthesis?.addEventListener?.("voiceschanged", voicesChanged);
-    window.addEventListener("pointerdown", interactionFallback, true);
-    window.addEventListener("keydown", interactionFallback, true);
-    window.addEventListener("touchstart", interactionFallback, true);
-
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       window.clearTimeout(retryTimer);
-      window.clearTimeout(lateRetryTimer);
       window.speechSynthesis?.removeEventListener?.("voiceschanged", voicesChanged);
-      window.removeEventListener("pointerdown", interactionFallback, true);
-      window.removeEventListener("keydown", interactionFallback, true);
-      window.removeEventListener("touchstart", interactionFallback, true);
-      const nativeBridge = (window as unknown as { OstadhApp?: NativeSpeechBridge }).OstadhApp;
-      try { nativeBridge?.stopSpeech?.(); } catch {}
-      try { window.OstadhTts?.stopSpeech?.(); } catch {}
-      window.speechSynthesis?.cancel();
     };
   }, [identityKey, speak]);
 
