@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import DailyAttendanceInsights from "./daily-attendance-insights";
 import "./daily-report.css";
 
 type TimetableLesson = { subject?: string; className?: string; notes?: string };
@@ -58,10 +59,11 @@ export default function DailyTeacherReportPage(){
   const completed=lessons.filter(item=>item.completed).length;
 
   return <main className="daily-report-page" dir="rtl">
-    <section className="dr-head"><div><small>التقرير اليومي</small><h1>تقرير عمل المعلم</h1><p>{todayLabel} • {session?.subject||"المادة"}{session?.activeGradeLabel?` • ${session.activeGradeLabel}`:""}</p></div><div className="dr-actions"><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"تحديث…":"تحديث"}</button><button type="button" onClick={()=>window.print()}>طباعة / PDF</button></div></section>
+    <section className="dr-head"><div><small>بوابة اليوم</small><h1>يوم المعلم الدراسي</h1><p>{todayLabel} • {session?.subject||"المادة"}{session?.activeGradeLabel?` • ${session.activeGradeLabel}`:""}</p></div><div className="dr-actions"><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"تحديث…":"تحديث"}</button><button type="button" onClick={()=>window.print()}>طباعة / PDF</button></div></section>
     {message?<p className="dr-message">{message}</p>:null}
     <section className="dr-kpis"><article><small>حصص الجدول</small><b>{ar(lessons.length)}</b></article><article><small>تمت المتابعة</small><b>{ar(attended)}</b></article><article><small>العمل المنجز</small><b>{ar(completed)}</b></article></section>
-    <section className="dr-table-wrap"><header><div><small>حصص اليوم من الجدول مباشرة</small><h2>التقرير اليومي</h2></div><Link href="/teacher/timetable">فتح الجدول</Link></header>{lessons.length?<table><thead><tr><th>الحصة</th><th>الفصل</th><th>عنوان الدرس</th><th>المتابعة</th><th>العمل المنجز</th><th>الإجراء</th></tr></thead><tbody>{lessons.map(lesson=><tr key={`${lesson.period}-${lesson.className}`}><td>{ar(lesson.period)}</td><td><b>{lesson.className}</b></td><td>{lesson.lessonTitle||"—"}</td><td><span className={lesson.attendanceDone?"ok":"pending"}>{lesson.attendanceDone?"محفوظة":"لم تُسجل"}</span></td><td>{lesson.completedWork||"—"}</td><td className="dr-links"><Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`}>المتابعة</Link></td></tr>)}</tbody></table>:<div className="dr-empty"><b>لا توجد حصص في جدول اليوم</b><span>أضف الحصص من الجدول الدراسي، وستنعكس هنا تلقائيًا.</span></div>}</section>
+    <DailyAttendanceInsights />
+    <section className="dr-table-wrap"><header><div><small>حصص اليوم من الجدول مباشرة</small><h2>الحصص والعمل اليومي</h2></div><Link href="/teacher/timetable">فتح الجدول</Link></header>{lessons.length?<table><thead><tr><th>الحصة</th><th>الفصل</th><th>عنوان الدرس</th><th>المتابعة</th><th>العمل المنجز</th><th>الإجراء</th></tr></thead><tbody>{lessons.map(lesson=><tr key={`${lesson.period}-${lesson.className}`}><td>{ar(lesson.period)}</td><td><b>{lesson.className}</b></td><td>{lesson.lessonTitle||"—"}</td><td><span className={lesson.attendanceDone?"ok":"pending"}>{lesson.attendanceDone?"محفوظة":"لم تُسجل"}</span></td><td>{lesson.completedWork||"—"}</td><td className="dr-links"><Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`}>المتابعة</Link></td></tr>)}</tbody></table>:<div className="dr-empty"><b>لا توجد حصص في جدول اليوم</b><span>أضف الحصص من الجدول الدراسي، وستنعكس هنا تلقائيًا.</span></div>}</section>
     <footer className="dr-footer"><span>المعلم: {session?.teacherName||"—"}</span><span>التاريخ: {today}</span><span>بوابة أستاذ لحوني التعليمية</span></footer>
   </main>;
 }
