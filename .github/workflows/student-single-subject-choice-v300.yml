@@ -1,0 +1,51 @@
+name: Student single subject choice v300
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/student-single-subject-choice-v300.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Patch student page
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app/student/page.tsx')
+          s=p.read_text()
+          old='''      setMatches(enriched);\n      setSelected(enriched[0]);\n      setActiveTab("home");'''
+          new='''      setMatches(enriched);\n      setSelected(null);\n      setActiveTab("home");'''
+          if old not in s:
+              raise SystemExit('lookup target not found')
+          s=s.replace(old,new,1)
+
+          marker='''  if (!selected) {\n    return <main className="student-gateway-v4" dir="rtl">'''
+          chooser='''  if (!selected && matches.length) {\n    const choiceName = matches[0]?.data.name?.trim() || "الطالب";\n    const choiceClass = matches[0]?.data.class?.trim() || "الفصل غير محدد";\n    return <main className="student-subject-choice-v300" dir="rtl">\n      <header><small>بوابة الطالب</small><h1>مرحبًا {choiceName}</h1><p>{choiceClass} • اختر المادة التي تريد الدخول إليها الآن.</p></header>\n      <div className="student-subject-grid-v300">{subjectScores.map(item => <button type="button" key={item.match.subjectKey} className="student-subject-card-v300" style={{ "--subject": item.theme.primary } as CSSProperties} onClick={() => { setSelected(item.match); setActiveTab("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}><span className="icon"><SubjectMark subjectKey={item.match.subjectKey}/></span><strong>{item.match.subjectLabel}</strong><small>{item.match.teacherName} • {item.metrics.percentage > 0 ? `${ar(item.metrics.percentage)}٪` : "بانتظار الرصد"}</small></button>)}</div>\n      <div style={{display:"flex",justifyContent:"center",marginTop:18}}><button type="button" className="student-change-subject-v300" onClick={exitStudentPortal}>تسجيل الخروج</button></div>\n    </main>;\n  }\n\n  if (!selected) {\n    return <main className="student-gateway-v4" dir="rtl">'''
+          if marker not in s:
+              raise SystemExit('gateway marker not found')
+          s=s.replace(marker,chooser,1)
+
+          old_actions='''<div className="sta4-top-actions"><button type="button" className="report" onClick={() => { setActiveTab("report"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>تقريري</button><button type="button" onClick={exitStudentPortal}>خروج</button></div>'''
+          new_actions='''<div className="sta4-top-actions"><button type="button" className="student-change-subject-v300" onClick={() => { setSelected(null); setActiveTab("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>موادي</button><button type="button" className="report" onClick={() => { setActiveTab("report"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>تقريري</button><button type="button" onClick={exitStudentPortal}>خروج</button></div>'''
+          if old_actions not in s:
+              raise SystemExit('top actions target not found')
+          s=s.replace(old_actions,new_actions,1)
+          p.write_text(s)
+          PY
+      - name: Build check
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/page.tsx
+          git commit -m 'Fix student portal single subject choice flow'
+          git push origin main
