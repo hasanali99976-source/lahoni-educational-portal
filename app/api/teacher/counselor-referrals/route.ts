@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const subjectId = clean(body?.subjectId, 100).split("--")[0];
+    const subjectId = clean(body?.subjectId, 100);
     const referralType: ReferralType = body?.referralType === "mastery" ? "mastery" : "other";
     const reason = clean(body?.reason, 800);
     const requestedCodes = Array.isArray(body?.studentCodes)
