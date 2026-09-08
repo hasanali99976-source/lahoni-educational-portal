@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const subjectId = clean(body.subjectId, 80).split("--")[0];
+    const subjectId = clean(body.subjectId, 80);
     const studentCode = clean(body.studentCode, 40).toUpperCase();
     const planId = clean(body.planId, 120);
     const scope = body.scope === "item" || body.scope === "section" ? body.scope : "plan";
@@ -121,7 +121,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const subjectId = clean(body.subjectId, 80).split("--")[0];
+    const subjectId = clean(body.subjectId, 80);
     const studentCode = clean(body.studentCode, 40).toUpperCase();
     const planId = clean(body.planId, 120);
     const scope: "plan" | "section" = body.scope === "section" ? "section" : "plan";
@@ -197,7 +197,7 @@ export async function DELETE(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const subjectId = clean(body.subjectId, 80).split("--")[0];
+    const subjectId = clean(body.subjectId, 80);
     const studentCode = clean(body.studentCode, 40).toUpperCase();
     const deductionId = clean(body.deductionId, 120);
     if (!subjectId || !studentCode || !deductionId) {
