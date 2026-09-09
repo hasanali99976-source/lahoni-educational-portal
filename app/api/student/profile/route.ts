@@ -22,6 +22,19 @@ function riyadhDateInput(date: Date) {
 function dateObject(value: string) { return new Date(`${value}T12:00:00Z`); }
 function validStatus(value: unknown): value is AttendanceStatus { return value === "present" || value === "absent" || value === "late" || value === "excused" || value === "escaped"; }
 function clean(value: unknown) { return String(value || "").trim(); }
+function studentRichness(data: Record<string, unknown>) {
+  let score = 0;
+  const notes = Array.isArray(data.teacherNotes) ? data.teacherNotes.length : 0;
+  const deductions = Array.isArray(data.gradeDeductions) ? (data.gradeDeductions as Array<Record<string, unknown>>).filter(item => !item?.reversedAt).length : 0;
+  score += notes * 30;
+  score += deductions * 40;
+  if (clean(data.teacherNote)) score += 25;
+  if (data.gradeValues && typeof data.gradeValues === "object") score += 12;
+  if (data.gradePlanValues && typeof data.gradePlanValues === "object") score += 12;
+  if (data.parentCounselorLastNotice && typeof data.parentCounselorLastNotice === "object") score += 20;
+  if (clean(data.updatedAt)) score += 2;
+  return score;
+}
 
 export async function GET(request: Request) {
   const header = request.headers.get("authorization") || "";
@@ -30,15 +43,16 @@ export async function GET(request: Request) {
 
   const root = `portalV2Data/${access.teacherId}/subjects/${access.subjectId}`;
   const students = adminDb().collection(`${root}/students`);
-  let student = await students.doc(access.studentId).get();
-  if (!student.exists) {
-    for (const field of ["code", "accessCode", "studentCode"] as const) {
-      const hit = await students.where(field, "==", access.studentId).limit(1).get();
-      if (!hit.empty) { student = hit.docs[0]!; break; }
-    }
+  const candidateMap = new Map<string, FirebaseFirestore.QueryDocumentSnapshot | FirebaseFirestore.DocumentSnapshot>();
+  const direct = await students.doc(access.studentId).get();
+  if (direct.exists) candidateMap.set(direct.id, direct);
+  for (const field of ["code", "accessCode", "studentCode"] as const) {
+    const hits = await students.where(field, "==", access.studentId).limit(8).get();
+    hits.docs.forEach(doc => candidateMap.set(doc.id, doc));
   }
-  if (!student.exists) return NextResponse.json({ ok: false, message: "لم يعد سجل الطالب متاحًا." }, { status: 404 });
-
+  const candidates = [...candidateMap.values()].filter(doc => doc.exists);
+  if (!candidates.length) return NextResponse.json({ ok: false, message: "لم يعد سجل الطالب متاحًا." }, { status: 404 });
+  const student = [...candidates].sort((a, b) => studentRichness((b.data() || {}) as Record<string, unknown>) - studentRichness((a.data() || {}) as Record<string, unknown>))[0]!;
   const studentData = student.data() as Record<string, unknown>;
   const studentClass = normalizeClass(studentData.class || studentData.className || `${String(studentData.grade || "")} ${String(studentData.section || "")}`);
   const [attendance, timetable, gradePlanState, referralSnapshot] = await Promise.all([
@@ -48,7 +62,14 @@ export async function GET(request: Request) {
     adminDb().collection(`${root}/counselorReferrals`).get(),
   ]);
 
-  const aliases = new Set([access.studentId, student.id, clean(studentData.code), clean(studentData.accessCode), clean(studentData.studentCode)].filter(Boolean));
+  const aliases = new Set<string>([access.studentId, student.id]);
+  candidates.forEach(doc => {
+    aliases.add(doc.id);
+    const data = (doc.data() || {}) as Record<string, unknown>;
+    [data.code, data.accessCode, data.studentCode].map(clean).filter(Boolean).forEach(value => aliases.add(value));
+  });
+  [studentData.code, studentData.accessCode, studentData.studentCode].map(clean).filter(Boolean).forEach(value => aliases.add(value));
+
   const counselorReferrals = referralSnapshot.docs
     .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }) as ReferralRow)
     .filter(item => {
@@ -99,7 +120,11 @@ export async function GET(request: Request) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
     if (!date || date < ATTENDANCE_START_DATE) continue;
-    const status = data?.records?.[student.id] ?? data?.records?.[access.studentId];
+    let status: unknown;
+    for (const alias of aliases) {
+      const candidate = data?.records?.[alias];
+      if (validStatus(candidate)) { status = candidate; break; }
+    }
     if (!validStatus(status)) continue;
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
     const existing = explicitByDate.get(date);
@@ -149,6 +174,8 @@ export async function GET(request: Request) {
       gradePlan: gradePlanState.activePlan,
       gradePlanSource: gradePlanState.source,
     },
+    resolvedStudentDocumentId: student.id,
+    matchedStudentAliases: [...aliases],
     attendanceSource,
     expectedWeekdays: [...expectedWeekdays],
     timetableLessons,
