@@ -7,12 +7,10 @@ import "./student-wow-v67.css";
 import "./student-dashboard-v68.css";
 import "./student-clarity-v69.css";
 import "./student-report-pdf-v2.css";
-import "./student-subject-private-runtime.css";
 import StudentQrLock from "./student-qr-lock";
 import StudentReportSessionGuard from "./student-report-session-guard";
 import StudentReportPdfV2Runtime from "./student-report-pdf-v2-runtime";
-import StudentSubjectPrivateRuntime from "./student-subject-private-runtime";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <><StudentQrLock /><StudentReportSessionGuard /><StudentReportPdfV2Runtime /><StudentSubjectPrivateRuntime />{children}</>;
+  return <><StudentQrLock /><StudentReportSessionGuard /><StudentReportPdfV2Runtime />{children}</>;
 }
