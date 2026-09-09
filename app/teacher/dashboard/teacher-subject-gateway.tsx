@@ -48,6 +48,8 @@ export default function TeacherSubjectGateway() {
 
   useEffect(() => {
     if (!session.teacherId || subjects.length <= 1) return;
+    const key = `lahooni:teacher-subject-choice:${session.teacherId}`;
+    if (window.sessionStorage.getItem(key) === "1") return;
     setRequiredChoice(true);
     setOpen(true);
   }, [session.teacherId, subjects.length]);
@@ -59,6 +61,9 @@ export default function TeacherSubjectGateway() {
     setChanging(workspaceKey);
     try {
       await session.setSubject(workspaceKey);
+      if (session.teacherId) {
+        window.sessionStorage.setItem(`lahooni:teacher-subject-choice:${session.teacherId}`, "1");
+      }
       setRequiredChoice(false);
       setOpen(false);
     } finally {
