@@ -1,62 +1,8 @@
 "use client";
-
-import { useCallback, useEffect, useMemo, useRef } from "react";
-
-type PortalVoiceGreetingProps={role:"teacher"|"student";name?:string;identityKey?:string;compact?:boolean};
-type NativeSpeechBridge={speakArabic?:(text:string)=>void;stopSpeech?:()=>void;isSpeechReady?:()=>boolean};
-declare global{interface Window{OstadhTts?:{speakArabic?:(text:string)=>void;stopSpeech?:()=>void;isReady?:()=>boolean};__OSTADH_ANDROID__?:boolean;__lahooniAudioCtx?:AudioContext}}
-
-function cleanName(value?:string){
-  const name=String(value||"").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u,"").replace(/\s+/g," ").trim();
-  if(!name||["المعلم","الطالب","مستخدم"].includes(name))return "";
-  const parts=name.split(" ");return parts.filter((part,index)=>index===0||part!==parts[index-1]).join(" ").slice(0,60);
-}
-function greetingText(role:"teacher"|"student",name?:string){const person=cleanName(name);if(role==="teacher")return person?`حياك الله يا أستاذ ${person}، نورت بوابة أستاذ لحوني.`:"حياك الله يا أستاذ، نورت بوابة أستاذ لحوني.";return person?`حياك الله يا ${person}، يوم دراسي موفق بإذن الله.`:"حياك الله، يوم دراسي موفق بإذن الله."}
-function chooseArabicVoice(voices:SpeechSynthesisVoice[]){const a=voices.filter(v=>/^ar(?:-|$)/i.test(v.lang));return a.find(v=>/^ar-SA$/i.test(v.lang))||a.find(v=>/saudi|ar-sa/i.test(`${v.name} ${v.lang}`))||a.find(v=>/natural|microsoft|google/i.test(v.name))||a[0]||null}
-
-function getAudioContext(){
-  if(typeof window==="undefined")return null;
-  try{
-    if(window.__lahooniAudioCtx)return window.__lahooniAudioCtx;
-    const AudioCtx=(window.AudioContext||(window as any).webkitAudioContext) as typeof AudioContext|undefined;
-    if(!AudioCtx)return null;
-    window.__lahooniAudioCtx=new AudioCtx();
-    return window.__lahooniAudioCtx;
-  }catch{return null}
-}
-
-function playLearningJingle(role:"teacher"|"student"){
-  if(typeof window==="undefined")return;
-  const key=`lahooni:jingle:${role}`;if(sessionStorage.getItem(key))return;
-  try{
-    const ctx=getAudioContext();if(!ctx)return;
-    const begin=()=>{
-      if(sessionStorage.getItem(key))return;
-      const master=ctx.createGain();master.gain.value=.065;master.connect(ctx.destination);
-      const notes=[261.63,329.63,392,523.25,392,440,523.25,659.25];
-      const start=ctx.currentTime+.04;notes.forEach((freq,i)=>{const osc=ctx.createOscillator();const gain=ctx.createGain();osc.type="sine";osc.frequency.value=freq;gain.gain.setValueAtTime(0,start+i*.23);gain.gain.linearRampToValueAtTime(1,start+i*.23+.025);gain.gain.exponentialRampToValueAtTime(.001,start+i*.23+.2);osc.connect(gain);gain.connect(master);osc.start(start+i*.23);osc.stop(start+i*.23+.22)});
-      sessionStorage.setItem(key,"1");
-    };
-    if(ctx.state==="suspended"){void ctx.resume().then(begin).catch(()=>{});}else begin();
-  }catch{}
-}
-
-export default function PortalVoiceGreeting({role,name,identityKey}:PortalVoiceGreetingProps){
-  const attemptedRef=useRef("");const startedRef=useRef(false);const text=useMemo(()=>greetingText(role,name),[role,name]);const onceKey=`lahooni:greeted:${role}`;
-  const speak=useCallback(()=>{
-    if(typeof window==="undefined"||sessionStorage.getItem(onceKey))return true;
-    sessionStorage.setItem(onceKey,"1");
-    const nativeApp=(window as unknown as {OstadhApp?:NativeSpeechBridge}).OstadhApp;
-    try{if(nativeApp?.speakArabic){nativeApp.speakArabic(text);startedRef.current=true;window.setTimeout(()=>playLearningJingle(role),2600);return true}if(window.OstadhTts?.speakArabic){window.OstadhTts.speakArabic(text);startedRef.current=true;window.setTimeout(()=>playLearningJingle(role),2600);return true}}catch{}
-    if(!("speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined"){window.setTimeout(()=>playLearningJingle(role),450);return false}
-    try{const u=new SpeechSynthesisUtterance(text);u.lang="ar-SA";u.rate=.88;u.pitch=.96;u.volume=.82;const voice=chooseArabicVoice(window.speechSynthesis.getVoices());if(voice)u.voice=voice;u.onstart=()=>{startedRef.current=true};u.onend=()=>playLearningJingle(role);u.onerror=()=>window.setTimeout(()=>playLearningJingle(role),250);window.speechSynthesis.speak(u);return true}catch{window.setTimeout(()=>playLearningJingle(role),250);return false}
-  },[text,role,onceKey]);
-  useEffect(()=>{
-    const unlock=()=>{const ctx=getAudioContext();if(ctx?.state==="suspended")void ctx.resume().catch(()=>{});};
-    window.addEventListener("pointerdown",unlock,{passive:true});
-    window.addEventListener("keydown",unlock);
-    return()=>{window.removeEventListener("pointerdown",unlock);window.removeEventListener("keydown",unlock)};
-  },[]);
-  useEffect(()=>{if(typeof window==="undefined"||!identityKey||attemptedRef.current===identityKey||sessionStorage.getItem(onceKey))return;attemptedRef.current=identityKey;startedRef.current=false;let cancelled=false;const trySpeak=()=>{if(!cancelled&&!startedRef.current)speak()};const timer=window.setTimeout(trySpeak,420);const retry=window.setTimeout(trySpeak,1200);const voices=()=>trySpeak();window.speechSynthesis?.addEventListener?.("voiceschanged",voices);return()=>{cancelled=true;window.clearTimeout(timer);window.clearTimeout(retry);window.speechSynthesis?.removeEventListener?.("voiceschanged",voices)}},[identityKey,speak,onceKey]);
-  return null;
-}
+import {useCallback,useEffect,useMemo,useRef} from "react";
+type P={role:"teacher"|"student";name?:string;identityKey?:string;compact?:boolean};type Native={speakArabic?:(t:string)=>void};declare global{interface Window{OstadhTts?:Native;__lahooniAudioCtx?:AudioContext}}
+function clean(v?:string){return String(v||"").trim().replace(/^(الأستاذ|استاذ|أستاذ|المعلم|الطالب|أ\.)\s*/u,"").replace(/\s+/g," ").trim()}
+function text(role:"teacher"|"student",name?:string){const n=clean(name);return role==="teacher"?(n?`حياك الله يا أستاذ ${n}، نورت بوابة أستاذ لحوني.`:"حياك الله يا أستاذ، نورت بوابة أستاذ لحوني."):(n?`حياك الله يا ${n}، يوم دراسي موفق بإذن الله.`:"حياك الله، يوم دراسي موفق بإذن الله.")}
+function ctx(){try{if(window.__lahooniAudioCtx)return window.__lahooniAudioCtx;const C=(window.AudioContext||(window as any).webkitAudioContext) as typeof AudioContext|undefined;if(!C)return null;return window.__lahooniAudioCtx=new C()}catch{return null}}
+function jingle(role:"teacher"|"student"){const key=`lahooni:jingle:${role}`;if(sessionStorage.getItem(key))return;const c=ctx();if(!c)return;const play=()=>{if(sessionStorage.getItem(key))return;const master=c.createGain();master.gain.value=.14;master.connect(c.destination);const notes=[392,523.25,659.25,523.25,587.33,659.25,783.99,1046.5];const t=c.currentTime+.03;notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=i%2?"triangle":"sine";o.frequency.value=f;g.gain.setValueAtTime(.001,t+i*.2);g.gain.linearRampToValueAtTime(.9,t+i*.2+.025);g.gain.exponentialRampToValueAtTime(.001,t+i*.2+.18);o.connect(g);g.connect(master);o.start(t+i*.2);o.stop(t+i*.2+.19)});sessionStorage.setItem(key,"1")};if(c.state==="suspended")void c.resume().then(play).catch(()=>{});else play()}
+export default function PortalVoiceGreeting({role,name,identityKey}:P){const attempted=useRef("");const started=useRef(false);const greeting=useMemo(()=>text(role,name),[role,name]);const once=`lahooni:greeted:${role}`;const speak=useCallback(()=>{if(sessionStorage.getItem(once))return true;sessionStorage.setItem(once,"1");const native=(window as any).OstadhApp as Native|undefined;try{if(native?.speakArabic){native.speakArabic(greeting);started.current=true;setTimeout(()=>jingle(role),2400);return true}if(window.OstadhTts?.speakArabic){window.OstadhTts.speakArabic(greeting);started.current=true;setTimeout(()=>jingle(role),2400);return true}}catch{}if(!("speechSynthesis" in window)){setTimeout(()=>jingle(role),300);return false}try{const u=new SpeechSynthesisUtterance(greeting);u.lang="ar-SA";u.rate=.9;u.volume=1;const vs=window.speechSynthesis.getVoices();u.voice=vs.find(v=>/^ar-SA$/i.test(v.lang))||vs.find(v=>/^ar/i.test(v.lang))||null;u.onstart=()=>{started.current=true};u.onend=()=>jingle(role);u.onerror=()=>jingle(role);window.speechSynthesis.speak(u);setTimeout(()=>{if(!sessionStorage.getItem(`lahooni:jingle:${role}`))jingle(role)},3200);return true}catch{jingle(role);return false}},[greeting,role,once]);useEffect(()=>{const unlock=()=>{const c=ctx();if(c?.state==="suspended")void c.resume().catch(()=>{})};window.addEventListener("pointerdown",unlock,{passive:true});window.addEventListener("keydown",unlock);return()=>{window.removeEventListener("pointerdown",unlock);window.removeEventListener("keydown",unlock)}},[]);useEffect(()=>{if(!identityKey||attempted.current===identityKey||sessionStorage.getItem(once))return;attempted.current=identityKey;started.current=false;const a=setTimeout(speak,350),b=setTimeout(()=>{if(!started.current)speak()},1000);return()=>{clearTimeout(a);clearTimeout(b)}},[identityKey,speak,once]);return null}
