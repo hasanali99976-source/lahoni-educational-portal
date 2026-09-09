@@ -26,6 +26,7 @@ import "./platform-v200.css";
 import "./platform-3d-v210.css";
 import "./platform-3d-v220.css";
 import "./platform-modern-v300.css";
+import "./platform-modern-v301.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
