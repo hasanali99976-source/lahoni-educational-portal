@@ -1,1 +1,2 @@
-deploy v300 refresh 2026-09-08
+deploy v300 refresh 2026-09-09
+includes modern v300, daily attendance insights, and learning jingle
