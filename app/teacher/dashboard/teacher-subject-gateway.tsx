@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
@@ -43,13 +43,21 @@ export default function TeacherSubjectGateway() {
   const [requiredChoice, setRequiredChoice] = useState(false);
   const [changing, setChanging] = useState("");
   const [mounted, setMounted] = useState(false);
+  const openedForThisLogin = useRef(false);
+  const lastTeacherId = useRef<string | null>(null);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!session.teacherId || subjects.length <= 1) return;
-    const key = `lahooni:teacher-subject-choice:${session.teacherId}`;
-    if (window.sessionStorage.getItem(key) === "1") return;
+    const teacherId = session.teacherId || null;
+    if (lastTeacherId.current !== teacherId) {
+      lastTeacherId.current = teacherId;
+      openedForThisLogin.current = false;
+      setOpen(false);
+      setRequiredChoice(false);
+    }
+    if (!teacherId || subjects.length <= 1 || openedForThisLogin.current) return;
+    openedForThisLogin.current = true;
     setRequiredChoice(true);
     setOpen(true);
   }, [session.teacherId, subjects.length]);
@@ -61,9 +69,6 @@ export default function TeacherSubjectGateway() {
     setChanging(workspaceKey);
     try {
       await session.setSubject(workspaceKey);
-      if (session.teacherId) {
-        window.sessionStorage.setItem(`lahooni:teacher-subject-choice:${session.teacherId}`, "1");
-      }
       setRequiredChoice(false);
       setOpen(false);
     } finally {
