@@ -24,9 +24,10 @@ export default function DailyAttendanceInsights(){
   const subjectKey=String(session?.subjectKey||"history");
   const [students,setStudents]=useState<Student[]>([]);
   const [attendance,setAttendance]=useState<any[]>([]);
-  const [selectedClass,setSelectedClass]=useState("all");
+  const [selectedClasses,setSelectedClasses]=useState<string[]>([]);
+  const [selectedStudent,setSelectedStudent]=useState("");
   const [mode,setMode]=useState<Mode>("all");
-  const [period,setPeriod]=useState<Period>("month");
+  const [period,setPeriod]=useState<Period>("day");
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState("");
 
@@ -42,7 +43,7 @@ export default function DailyAttendanceInsights(){
       const path=tenantCollection(teacherId,subjectKey as any,"attendance");
       const snapshot=await getDocs(collection(db,path));
       setStudents(roster);setAttendance(snapshot.docs.map(d=>({id:d.id,...d.data()})));
-    }catch{setError("تعذر تحميل إحصائيات الحضور الآن");}
+    }catch{setError("تعذر تحميل تقرير الغياب والتأخير والهروب الآن");}
     finally{setLoading(false)}
   },[teacherId,subjectKey,session?.activeGrade]);
 
@@ -50,29 +51,39 @@ export default function DailyAttendanceInsights(){
   useEffect(()=>{const f=()=>void load();window.addEventListener("lahooni:attendance-updated",f as EventListener);return()=>window.removeEventListener("lahooni:attendance-updated",f as EventListener)},[load]);
 
   const classes=useMemo(()=>[...new Set(students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})),[students]);
+  useEffect(()=>{if(classes.length&&!selectedClasses.length)setSelectedClasses(classes)},[classes,selectedClasses.length]);
+  const scopeClasses=selectedClasses.length?selectedClasses:classes;
+  const visibleStudents=useMemo(()=>students.filter(s=>scopeClasses.includes(s.className)).sort((a,b)=>a.name.localeCompare(b.name,"ar")),[students,scopeClasses]);
   const rows=useMemo<Row[]>(()=>{
     const map=new Map<string,Row>();const from=start(period),today=iso(new Date());
-    for(const s of students){if(selectedClass!=="all"&&s.className!==selectedClass)continue;map.set(s.id,{id:s.id,name:s.name,className:s.className,absent:0,late:0,escaped:0,total:0})}
-    for(const doc of attendance){const date=clean(doc.date);if(date<from||date>today)continue;const cls=clean(doc.class);if(selectedClass!=="all"&&cls!==selectedClass)continue;const records=doc.records&&typeof doc.records==="object"?doc.records:{};for(const [id,val] of Object.entries(records)){if(val!=="absent"&&val!=="late"&&val!=="escaped")continue;const row=map.get(String(id).toUpperCase());if(row)row[val as Status]++;}}
+    for(const s of students){if(scopeClasses.length&&!scopeClasses.includes(s.className))continue;map.set(s.id,{id:s.id,name:s.name,className:s.className,absent:0,late:0,escaped:0,total:0})}
+    for(const doc of attendance){const date=clean(doc.date);if(date<from||date>today)continue;const cls=clean(doc.class);if(scopeClasses.length&&!scopeClasses.includes(cls))continue;const records=doc.records&&typeof doc.records==="object"?doc.records:{};for(const [id,val] of Object.entries(records)){if(val!=="absent"&&val!=="late"&&val!=="escaped")continue;const row=map.get(String(id).toUpperCase());if(row)row[val as Status]++;}}
     for(const r of map.values())r.total=mode==="all"?r.absent+r.late+r.escaped:r[mode];
     return [...map.values()].filter(r=>r.total>0).sort((a,b)=>b.total-a.total||b.absent-a.absent||a.name.localeCompare(b.name,"ar"));
-  },[students,attendance,selectedClass,mode,period]);
+  },[students,attendance,scopeClasses,mode,period]);
   const leader=(key:Status)=>[...rows].sort((a,b)=>b[key]-a[key])[0];
   const absent=leader("absent"),late=leader("late"),escaped=leader("escaped");
 
-  function printReport(){
-    const title=mode==="all"?"الغياب والتأخير والهروب":labels[mode];const cls=selectedClass==="all"?"جميع الفصول":selectedClass;const body=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.className)}</td><td>${r.absent}</td><td>${r.late}</td><td>${r.escaped}</td><td><b>${r.total}</b></td></tr>`).join("");const w=window.open("","_blank","width=1100,height=800");if(!w)return;w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير ${title}</title><style>@page{size:A4 landscape;margin:9mm}body{font-family:Arial;color:#173b46}.head{background:#073f4d;color:white;padding:15px;text-align:center}.meta{padding:10px;border:1px solid #ddd;margin:10px 0}table{width:100%;border-collapse:collapse}th{background:#0b6d72;color:white}th,td{padding:8px;border:1px solid #ddd;text-align:center}.tools{text-align:center;margin:10px}@media print{.tools{display:none}}</style></head><body><div class="tools"><button onclick="print()">طباعة / حفظ PDF</button></div><div class="head"><b>بوابة أستاذ لحوني التعليمية</b><br>تقرير ${title} — مرتب من الأكثر إلى الأقل</div><div class="meta">المعلم: ${esc(session?.teacherName||"")} | المادة: ${esc(session?.subject||"")} | النطاق: ${esc(cls)}</div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>غياب</th><th>تأخير</th><th>هروب</th><th>الإجمالي</th></tr></thead><tbody>${body||'<tr><td colspan="7">لا توجد سجلات</td></tr>'}</tbody></table></body></html>`);w.document.close();
+  function toggleClass(cls:string){setSelectedStudent("");setSelectedClasses(prev=>prev.includes(cls)?prev.filter(x=>x!==cls):[...prev,cls])}
+  function printRows(reportRows:Row[],scopeLabel:string){
+    const title=mode==="all"?"الغياب والتأخير والهروب":labels[mode];
+    const body=reportRows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.className)}</td><td>${r.absent}</td><td>${r.late}</td><td>${r.escaped}</td><td><b>${r.total}</b></td></tr>`).join("");
+    const w=window.open("","_blank","width=1100,height=800");if(!w)return;
+    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير ${title}</title><style>@page{size:A4 landscape;margin:9mm}body{font-family:Arial;color:#173b46}.head{background:#073f4d;color:white;padding:15px;text-align:center;border-radius:12px}.meta{padding:10px;border:1px solid #ddd;margin:10px 0;border-radius:10px}table{width:100%;border-collapse:collapse}th{background:#0b6d72;color:white}th,td{padding:8px;border:1px solid #ddd;text-align:center}.tools{text-align:center;margin:10px}.tools button{padding:9px 18px;border:0;border-radius:9px;background:#0b6d72;color:#fff;font-weight:700}@media print{.tools{display:none}}</style></head><body><div class="tools"><button onclick="print()">طباعة / حفظ PDF</button></div><div class="head"><b>بوابة أستاذ لحوني التعليمية</b><br>تقرير ${title}</div><div class="meta">المعلم: ${esc(session?.teacherName||"")} | المادة: ${esc(session?.subject||"")} | النطاق: ${esc(scopeLabel)}</div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>غياب</th><th>تأخير</th><th>هروب</th><th>الإجمالي</th></tr></thead><tbody>${body||'<tr><td colspan="7">لا توجد سجلات</td></tr>'}</tbody></table></body></html>`);w.document.close();
   }
+  function printSelectedStudent(){const student=students.find(s=>s.id===selectedStudent);if(!student)return;const row=rows.find(r=>r.id===student.id);printRows(row?[row]:[{id:student.id,name:student.name,className:student.className,absent:0,late:0,escaped:0,total:0}],`الطالب: ${student.name} • ${student.className}`)}
+  function printSelectedClasses(){printRows(rows,scopeClasses.length===1?`الفصل: ${scopeClasses[0]}`:`الفصول: ${scopeClasses.join("، ")}`)}
 
   return <section className="daily-attendance-v300" dir="rtl">
-    <div className="dav300-head"><div><small>مؤشرات الحضور والانضباط</small><h2>من الأكثر غيابًا أو تأخيرًا أو هروبًا؟</h2><p>اختَر الحالة والفصل، وستظهر لك النتائج مرتبة مباشرة من الأعلى إلى الأقل.</p></div></div>
+    <div className="dav300-head"><div><small>تقرير مستقل داخل تبويب اليوم</small><h2>الغياب والتأخير والهروب</h2><p>اختر الحالة ثم طالبًا أو فصلًا أو عدة فصول، واطبع التقرير المطلوب مباشرة.</p></div></div>
     <div className="dav300-filters">
       <select value={mode} onChange={e=>setMode(e.target.value as Mode)}><option value="all">الكل: غياب + تأخير + هروب</option><option value="absent">الغياب فقط</option><option value="late">التأخير فقط</option><option value="escaped">الهروب فقط</option></select>
-      <select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}><option value="all">جميع الفصول</option>{classes.map(c=><option key={c} value={c}>{c}</option>)}</select>
       <select value={period} onChange={e=>setPeriod(e.target.value as Period)}><option value="day">اليوم</option><option value="week">آخر 7 أيام</option><option value="month">آخر 30 يومًا</option><option value="all">جميع السجلات</option></select>
-      <button type="button" onClick={printReport} disabled={loading}>طباعة التقرير</button>
+      <select value={selectedStudent} onChange={e=>setSelectedStudent(e.target.value)}><option value="">اختر طالبًا للطباعة الفردية</option>{visibleStudents.map(s=><option key={s.id} value={s.id}>{s.name} — {s.className}</option>)}</select>
+      <button type="button" onClick={printSelectedStudent} disabled={!selectedStudent||loading}>طباعة الطالب</button>
     </div>
+    <div className="dav300-class-picker"><div className="dav300-class-title"><b>الفصول المطلوبة في التقرير</b><span>يمكن اختيار فصل واحد أو عدة فصول</span></div><div className="dav300-class-chips"><button type="button" className={selectedClasses.length===classes.length?"active":""} onClick={()=>{setSelectedStudent("");setSelectedClasses(classes)}}>كل الفصول</button>{classes.map(cls=><button type="button" key={cls} className={selectedClasses.includes(cls)?"active":""} onClick={()=>toggleClass(cls)}>{cls}</button>)}</div><button type="button" className="dav300-print-scope" onClick={printSelectedClasses} disabled={!scopeClasses.length||loading}>{scopeClasses.length===1?"طباعة الفصل":"طباعة الفصول المحددة"}</button></div>
     <div className="dav300-kpis"><article><small>الأكثر غيابًا</small><strong>{absent?.name||"—"}</strong><span>{absent?`${absent.absent} غياب • ${absent.className}`:"لا توجد حالات"}</span></article><article><small>الأكثر تأخيرًا</small><strong>{late?.name||"—"}</strong><span>{late?`${late.late} تأخير • ${late.className}`:"لا توجد حالات"}</span></article><article><small>الأكثر هروبًا</small><strong>{escaped?.name||"—"}</strong><span>{escaped?`${escaped.escaped} هروب • ${escaped.className}`:"لا توجد حالات"}</span></article></div>
-    {error?<div className="dav300-empty">{error}</div>:<div className="dav300-table"><table><thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الفصل</th><th>غياب</th><th>تأخير</th><th>هروب</th><th>الإجمالي</th></tr></thead><tbody>{rows.slice(0,30).map((r,i)=><tr key={r.id}><td>{i+1}</td><td className="name">{r.name}</td><td>{r.className}</td><td>{r.absent}</td><td>{r.late}</td><td>{r.escaped}</td><td><b>{r.total}</b></td></tr>)}{!loading&&rows.length===0?<tr><td colSpan={7} className="dav300-empty">لا توجد سجلات مطابقة للاختيار الحالي.</td></tr>:null}</tbody></table></div>}
+    {error?<div className="dav300-empty">{error}</div>:<div className="dav300-table"><table><thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الفصل</th><th>غياب</th><th>تأخير</th><th>هروب</th><th>الإجمالي</th></tr></thead><tbody>{rows.slice(0,100).map((r,i)=><tr key={r.id}><td>{i+1}</td><td className="name">{r.name}</td><td>{r.className}</td><td>{r.absent}</td><td>{r.late}</td><td>{r.escaped}</td><td><b>{r.total}</b></td></tr>)}{!loading&&rows.length===0?<tr><td colSpan={7} className="dav300-empty">لا توجد سجلات مطابقة للاختيار الحالي.</td></tr>:null}</tbody></table></div>}
   </section>
 }
