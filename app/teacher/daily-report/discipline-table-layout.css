@@ -1,0 +1,24 @@
+.dav300-ranking{padding:14px;gap:12px}
+.dav300-ranking-head{padding-bottom:9px}
+.dav300-rank-group{gap:6px;border:1px solid #e0e8e7;border-radius:14px;overflow:hidden;background:#fff}
+.dav300-rank-group h3{margin:0;padding:10px 12px;color:#fff!important;background:var(--accent);font-size:13px}
+.dav300-rank-group h3>span{background:#fff!important;opacity:.9}
+.rank-grid{display:block!important;background:#fff}
+.rank-grid:before{content:"الترتيب   |   الطالب والفصل   |   الحالات من أصل الحصص   |   النسبة";display:block;padding:8px 12px;background:#f3f6f6;color:#60777d;border-bottom:1px solid #e0e8e7;font-size:9px;font-weight:900;word-spacing:10px}
+.dav300-rank-group article{display:grid!important;grid-template-columns:46px minmax(180px,1fr) 150px 90px!important;align-items:center!important;gap:10px!important;min-height:52px;padding:8px 12px!important;border:0!important;border-bottom:1px solid #e7eeec!important;border-radius:0!important;background:#fff!important;position:static!important}
+.dav300-rank-group article:last-child{border-bottom:0!important}
+.dav300-rank-group article:nth-child(even){background:#fafcfc!important}
+.dav300-rank-group .rank-no{width:30px;height:30px;border-radius:8px}
+.rank-student b{font-size:11px;white-space:normal;overflow:visible;text-overflow:clip}
+.rank-student small{font-size:8.5px}
+.rank-count{grid-column:auto!important;text-align:center!important;display:flex;align-items:baseline;justify-content:center;gap:5px}
+.rank-count strong{font-size:16px}
+.rank-count small{font-size:8.5px}
+.rank-percent{position:static!important;justify-self:center;padding:5px 8px;min-width:58px;text-align:center;border-radius:8px}
+.dav300-kpis{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.dav300-kpis article{grid-template-columns:34px 1fr;padding:10px 11px;border-radius:13px}
+.kpi-icon{width:32px;height:32px;border-radius:9px;font-size:13px}
+.dav300-kpis strong{font-size:21px}.dav300-kpis em{font-size:8px}
+@media(max-width:820px){.dav300-rank-group article{grid-template-columns:38px minmax(150px,1fr) 120px 72px!important}.rank-grid:before{font-size:8px}.dav300-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.dav300-rank-group{overflow-x:auto}.rank-grid{min-width:620px}.dav300-rank-group article{grid-template-columns:42px minmax(180px,1fr) 140px 80px!important}.dav300-kpis{grid-template-columns:1fr 1fr}.dav300-kpis article.lessons{grid-column:1/-1}}
+.pdf-export-mode .dav300-rank-group{overflow:visible!important}.pdf-export-mode .rank-grid{min-width:0!important}.pdf-export-mode .dav300-rank-group article{grid-template-columns:46px minmax(180px,1fr) 150px 90px!important}
