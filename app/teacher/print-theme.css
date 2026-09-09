@@ -1,1 +1,19 @@
-@import "./teacher-platform-v500.css";
+/* Teacher print system — print only. No legacy visual imports. */
+@page{size:A4 portrait;margin:12mm 10mm 14mm}
+@media print{
+  html,body{background:#fff!important;color:#111!important;font-family:"Segoe UI",Tahoma,Arial,sans-serif!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .academy-v12-rail,.academy-v12-topbar,.academy-v12-headline,.academy-v12-competition,.academy-v12-switching,.academy-v12-backdrop,.no-print,[data-no-print="true"]{display:none!important}
+  .teacher-academy-v12,.academy-v12-stage,.academy-v12-canvas,.academy-v12-canvas>main{display:block!important;width:100%!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;box-shadow:none!important;border:0!important}
+  .teacher-academy-v12 .academy-v12-canvas *{box-shadow:none!important;text-shadow:none!important}
+  .teacher-academy-v12 .academy-v12-canvas :where(section,article,.card,.panel,.attendance-card){break-inside:avoid;border-color:#cfd7da!important;border-radius:8px!important}
+  .teacher-academy-v12 .academy-v12-canvas table{width:100%!important;border-collapse:collapse!important;border:1px solid #bfc9cd!important;border-radius:0!important;font-size:9pt!important}
+  .teacher-academy-v12 .academy-v12-canvas thead{display:table-header-group!important;position:static!important}.teacher-academy-v12 .academy-v12-canvas tfoot{display:table-footer-group!important}
+  .teacher-academy-v12 .academy-v12-canvas th{background:#eaf0f2!important;color:#173743!important;font-size:8.5pt!important;font-weight:800!important;padding:6px 5px!important;border:1px solid #c5cfd3!important}
+  .teacher-academy-v12 .academy-v12-canvas td{background:#fff!important;color:#111!important;font-size:8.5pt!important;padding:6px 5px!important;border:1px solid #d4dcdf!important}
+  .teacher-academy-v12 .academy-v12-canvas h1{font-size:18pt!important;color:#153d50!important;margin:0 0 8px!important}.teacher-academy-v12 .academy-v12-canvas h2{font-size:14pt!important;color:#153d50!important}.teacher-academy-v12 .academy-v12-canvas h3{font-size:11pt!important}
+  .teacher-academy-v12 .academy-v12-canvas p,.teacher-academy-v12 .academy-v12-canvas span,.teacher-academy-v12 .academy-v12-canvas label{font-size:9pt!important}
+  .report-class-page,.class-report-page,[data-print-class]{break-after:page!important;page-break-after:always!important;min-height:260mm!important;padding:8mm!important;border:1px solid #d5dde0!important}
+  .report-class-page:last-child,.class-report-page:last-child,[data-print-class]:last-child{break-after:auto!important;page-break-after:auto!important}
+  .print-page-break{break-before:page!important;page-break-before:always!important}
+  a[href]:after{content:""!important}
+}
