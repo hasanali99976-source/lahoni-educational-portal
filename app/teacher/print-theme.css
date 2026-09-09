@@ -1,54 +1,18 @@
-/* Teacher workspace polish + professional print system. No legacy imports. */
-
-/* Screen: keep only the five core workspaces visible in the permanent rail.
-   Secondary tools stay available through contextual links/pages; nothing is deleted. */
-@media screen{
-  .teacher-academy-v12{font-family:"Segoe UI",Tahoma,Arial,sans-serif!important}
-  .academy-v12-nav-group a[href="/teacher/timetable"],
-  .academy-v12-nav-group a[href="/teacher/follow-up"],
-  .academy-v12-nav-group a[href="/teacher/notes"],
-  .academy-v12-nav-group a[href="/teacher/diagnostics"],
-  .academy-v12-nav-group a[href="/teacher/report"],
-  .academy-v12-nav-group a[href="/teacher/portfolio"],
-  .academy-v12-nav-group a[href="/teacher/ai"],
-  .academy-v12-nav-group a[href="/teacher/grade-plan"]{display:none!important}
-  .academy-v12-nav-group:has(nav:empty),.academy-v12-nav-group>small{display:none!important}
-  .academy-v12-nav-list{display:grid!important;align-content:start!important;gap:7px!important;padding-top:8px!important}
-  .academy-v12-nav-group{margin:0!important}
-  .academy-v12-nav-group nav{display:grid!important;gap:7px!important}
-  .academy-v12-nav-group a{min-height:54px!important;border-radius:15px!important;padding:8px 10px!important}
-  .academy-v12-nav-group a>b{font-size:14px!important}
-  .academy-v12-home{min-height:56px!important;border-radius:16px!important}
-  .academy-v12-headline{grid-template-columns:minmax(0,1fr) minmax(300px,.7fr)!important}
-  .academy-v12-ai{min-height:88px!important}
-  .academy-v12-canvas :where(table){border-collapse:separate!important;border-spacing:0!important;border:1px solid #dbe5e7!important;border-radius:16px!important;overflow:hidden!important;background:#fff!important}
-  .academy-v12-canvas :where(thead th){position:sticky!important;top:0;z-index:4;background:#eef4f5!important;color:#183943!important;font-weight:900!important;border-bottom:1px solid #cedbdd!important}
-  .academy-v12-canvas :where(tbody tr:nth-child(even) td){background:#fbfcfd!important}
-  .academy-v12-canvas :where(tbody tr:hover td){background:#f0f8f7!important}
-  .academy-v12-canvas :where(td,th){padding-block:11px!important;vertical-align:middle!important}
-  .academy-v12-canvas :where(input,select,textarea){border-radius:10px!important;border:1px solid #ccd9dc!important;background:#fff!important;min-height:38px!important}
-  .academy-v12-canvas :where(button){border-radius:10px!important}
-  .gv11-table-wrap{border-radius:16px!important;box-shadow:0 12px 28px rgba(21,61,80,.06)!important}
-  .gv11-gradebook .deduction-col,.gv11-gradebook .deduction-cell{background:#fff8ec!important}
-  .gv11-gradebook .reason-col,.gv11-gradebook .reason-cell{background:#fffdf8!important}
-  .gv11-gradebook .final-col,.gv11-gradebook .final-total{background:#eef8f4!important}
-  @media(max-width:900px){.academy-v12-headline{grid-template-columns:1fr!important}}
-}
-
+/* Professional print system for Teacher Intelligence V20. Screen styling lives elsewhere. */
 @page{size:A4 portrait;margin:12mm 10mm 14mm}
 @media print{
-  html,body{background:#fff!important;color:#111!important;font-family:"Segoe UI",Tahoma,Arial,sans-serif!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .academy-v12-rail,.academy-v12-topbar,.academy-v12-headline,.academy-v12-competition,.academy-v12-switching,.academy-v12-backdrop,.no-print,[data-no-print="true"],button,input,select,textarea{display:none!important}
-  .teacher-academy-v12,.academy-v12-stage,.academy-v12-canvas,.academy-v12-canvas>main{display:block!important;width:100%!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;box-shadow:none!important;border:0!important}
-  .teacher-academy-v12 .academy-v12-canvas *{box-shadow:none!important;text-shadow:none!important}
-  .teacher-academy-v12 .academy-v12-canvas :where(section,article,.card,.panel,.attendance-card){break-inside:avoid;border-color:#cfd7da!important;border-radius:7px!important}
-  .teacher-academy-v12 .academy-v12-canvas table{width:100%!important;border-collapse:collapse!important;border:1px solid #aebcc1!important;border-radius:0!important;font-size:8.6pt!important;table-layout:auto!important}
-  .teacher-academy-v12 .academy-v12-canvas thead{display:table-header-group!important;position:static!important}.teacher-academy-v12 .academy-v12-canvas tfoot{display:table-footer-group!important}
-  .teacher-academy-v12 .academy-v12-canvas tr{break-inside:avoid!important;page-break-inside:avoid!important}
-  .teacher-academy-v12 .academy-v12-canvas th{background:#e9f0f2!important;color:#173743!important;font-size:8.4pt!important;font-weight:850!important;padding:6px 5px!important;border:1px solid #b8c5ca!important;white-space:normal!important}
-  .teacher-academy-v12 .academy-v12-canvas td{background:#fff!important;color:#111!important;font-size:8.4pt!important;padding:6px 5px!important;border:1px solid #ccd5d8!important;white-space:normal!important}
-  .teacher-academy-v12 .academy-v12-canvas h1{font-size:18pt!important;color:#153d50!important;margin:0 0 8px!important}.teacher-academy-v12 .academy-v12-canvas h2{font-size:14pt!important;color:#153d50!important}.teacher-academy-v12 .academy-v12-canvas h3{font-size:11pt!important}
-  .teacher-academy-v12 .academy-v12-canvas p,.teacher-academy-v12 .academy-v12-canvas span,.teacher-academy-v12 .academy-v12-canvas label{font-size:9pt!important}
+  html,body{background:#fff!important;color:#111!important;font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ts-rail,.ts-topbar,.ts-context,.ts-switching,.ts-backdrop,.no-print,[data-no-print="true"],button,input,select,textarea{display:none!important}
+  .teacher-studio,.ts-stage,.ts-canvas,.ts-canvas>main{display:block!important;width:100%!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;box-shadow:none!important;border:0!important}
+  .teacher-studio .ts-canvas *{box-shadow:none!important;text-shadow:none!important}
+  .teacher-studio .ts-canvas :where(section,article,.card,.panel,.attendance-card){break-inside:avoid;border-color:#cfd7da!important;border-radius:7px!important}
+  .teacher-studio .ts-canvas table{width:100%!important;border-collapse:collapse!important;border:1px solid #aebcc1!important;border-radius:0!important;font-size:8.6pt!important;table-layout:auto!important}
+  .teacher-studio .ts-canvas thead{display:table-header-group!important;position:static!important}.teacher-studio .ts-canvas tfoot{display:table-footer-group!important}
+  .teacher-studio .ts-canvas tr{break-inside:avoid!important;page-break-inside:avoid!important}
+  .teacher-studio .ts-canvas th{background:#e9f0f2!important;color:#173743!important;font-size:8.4pt!important;font-weight:850!important;padding:6px 5px!important;border:1px solid #b8c5ca!important;white-space:normal!important}
+  .teacher-studio .ts-canvas td{background:#fff!important;color:#111!important;font-size:8.4pt!important;padding:6px 5px!important;border:1px solid #ccd5d8!important;white-space:normal!important}
+  .teacher-studio .ts-canvas h1{font-size:18pt!important;color:#153d50!important;margin:0 0 8px!important}.teacher-studio .ts-canvas h2{font-size:14pt!important;color:#153d50!important}.teacher-studio .ts-canvas h3{font-size:11pt!important}
+  .teacher-studio .ts-canvas p,.teacher-studio .ts-canvas span,.teacher-studio .ts-canvas label{font-size:9pt!important}
   .report-class-page,.class-report-page,[data-print-class]{break-after:page!important;page-break-after:always!important;min-height:260mm!important;padding:8mm!important;border:1px solid #c7d2d6!important;background:#fff!important;position:relative!important}
   .report-class-page:before,.class-report-page:before,[data-print-class]:before{content:"بوابة أستاذ لحوني التعليمية";display:block!important;padding-bottom:5mm!important;margin-bottom:5mm!important;border-bottom:2px solid #153d50!important;color:#153d50!important;font-size:14pt!important;font-weight:900!important;text-align:center!important}
   .report-class-page:last-child,.class-report-page:last-child,[data-print-class]:last-child{break-after:auto!important;page-break-after:auto!important}
