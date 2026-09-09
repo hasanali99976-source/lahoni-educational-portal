@@ -176,8 +176,8 @@ export default function StudentPage() {
     if (!selected?.accessToken) return; let active = true; let refreshing = false;
     const refresh = async () => { if (!active || refreshing || document.visibilityState !== "visible") return; refreshing = true; try { const updated = await hydrateMatch(selected); if (!active) return; setSelected(current => current?.subjectKey === updated.subjectKey ? updated : current); setMatches(current => current.map(item => item.subjectKey === updated.subjectKey ? updated : item)); } finally { refreshing = false; } };
     const onFocus = () => void refresh(); const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
-    window.addEventListener("focus", onFocus); document.addEventListener("visibilitychange", onVisible); const interval = window.setInterval(refresh, 15000);
-    return () => { active = false; window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVisible); window.clearInterval(interval); };
+    window.addEventListener("focus", onFocus); document.addEventListener("visibilitychange", onVisible);
+    return () => { active = false; window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVisible); };
   }, [selected?.accessToken]);
 
   const subjectScores = useMemo(() => matches.map(match => ({ match, metrics: metricsFor(match), theme: subjectTheme(match.subjectKey, match.subjectLabel) })), [matches]);
