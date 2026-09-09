@@ -2,6 +2,8 @@
 .sta500-alert-center,
 .sta500-alert-grid,
 .sta500-alert,
+.sta700-alert-center,
+.sta600-alert-center:not(.sta800-alert-center),
 .sta4-note-now,
 .student-private-alerts,
 .student-private-context,
