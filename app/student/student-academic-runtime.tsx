@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 
 type StudentProfile = {
-  name?: string;
   teacherNotes?: Array<{ id?: string; label?: string; message?: string; createdAt?: string; teacherName?: string }>;
   teacherNote?: string;
   gradeValues?: unknown;
@@ -25,11 +24,16 @@ type StudentMatch = {
 };
 
 type AlertKind = "grade" | "deduction" | "note" | "counselor";
-type AlertData = { kind: AlertKind; title: string; text: string; signature: string; subjectKey: string; target: "progress" | "notes" };
+type AlertData = {
+  kind: AlertKind;
+  title: string;
+  text: string;
+  signature: string;
+  subjectKey: string;
+  target: "progress" | "notes";
+};
 
-function clean(value: unknown) {
-  return String(value || "").replace(/\s+/g, " ").trim();
-}
+const clean = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim();
 
 function hasPositiveNumber(value: unknown): boolean {
   if (typeof value === "number") return Number.isFinite(value) && value > 0;
@@ -51,72 +55,22 @@ function hash(value: string) {
   return (h >>> 0).toString(36);
 }
 
-function alertStorageKey(code: string, subjectKey: string, kind: AlertKind) {
-  return `lahooni:student-alert:v600:${code}:${subjectKey}:${kind}`;
+function storageKey(code: string, subjectKey: string, kind: AlertKind) {
+  return `lahooni:student-alert:v700:${code}:${subjectKey}:${kind}`;
 }
 
-function iconFor(kind: AlertKind) {
-  if (kind === "grade") return "↗";
-  if (kind === "deduction") return "−";
-  if (kind === "counselor") return "!";
-  return "✦";
-}
-
-function tabButton(label: string) {
-  return [...document.querySelectorAll<HTMLButtonElement>(".student-academy-v4 .sta4-nav button")]
-    .find(button => clean(button.textContent).includes(label));
-}
-
-function createAlert(alert: AlertData, onDismiss: () => void) {
-  const article = document.createElement("article");
-  article.className = `sta600-alert ${alert.kind}`;
-  article.tabIndex = 0;
-  article.setAttribute("role", "button");
-
-  const icon = document.createElement("span");
-  icon.className = "sta600-alert-icon";
-  icon.textContent = iconFor(alert.kind);
-
-  const body = document.createElement("div");
-  body.className = "sta600-alert-copy";
-  const eyebrow = document.createElement("small");
-  eyebrow.textContent = alert.kind === "grade" ? "تحديث في التحصيل" : alert.kind === "deduction" ? "تحديث على الدرجة" : alert.kind === "counselor" ? "متابعة إرشادية" : "رسالة من المعلم";
-  const title = document.createElement("strong");
-  title.textContent = alert.title;
-  const text = document.createElement("p");
-  text.textContent = alert.text;
-  const action = document.createElement("span");
-  action.className = "sta600-alert-action";
-  action.textContent = alert.target === "notes" ? "فتح ملاحظاتي ←" : "فتح تقدمي ←";
-  body.append(eyebrow, title, text, action);
-
-  const dismiss = document.createElement("button");
-  dismiss.type = "button";
-  dismiss.className = "sta600-alert-dismiss";
-  dismiss.setAttribute("aria-label", "إخفاء التنبيه");
-  dismiss.textContent = "×";
-  dismiss.addEventListener("click", event => {
-    event.stopPropagation();
-    onDismiss();
-    article.remove();
-  });
-
-  const openTarget = () => {
-    const button = tabButton(alert.target === "notes" ? "ملاحظاتي" : "تقدمي");
-    button?.click();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-  article.addEventListener("click", openTarget);
-  article.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") openTarget();
-  });
-  article.append(icon, body, dismiss);
-  return article;
+function removeOldCenters() {
+  document.querySelectorAll(".sta500-alert-center,.sta600-alert-center,.sta700-alert-center").forEach(node => node.remove());
 }
 
 function selectedSubjectLabel() {
   return clean(document.querySelector(".student-academy-v4 .sta4-subject-head h1")?.textContent)
     || clean(document.querySelector(".student-academy-v4 .sta4-subject.active b")?.textContent);
+}
+
+function tabButton(label: string) {
+  return [...document.querySelectorAll<HTMLButtonElement>(".student-academy-v4 .sta4-nav button")]
+    .find(button => clean(button.textContent).includes(label));
 }
 
 async function loadProfiles(code: string): Promise<StudentMatch[]> {
@@ -129,8 +83,7 @@ async function loadProfiles(code: string): Promise<StudentMatch[]> {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !Array.isArray(payload.matches)) return [];
 
-  const raw = payload.matches as StudentMatch[];
-  return Promise.all(raw.map(async match => {
+  return Promise.all((payload.matches as StudentMatch[]).map(async match => {
     try {
       const profile = await fetch("/api/student/profile", {
         headers: { Authorization: `Bearer ${match.accessToken}` },
@@ -153,24 +106,25 @@ function latestTeacherNote(profile?: StudentProfile) {
 }
 
 function activeDeductions(profile?: StudentProfile) {
-  return (Array.isArray(profile?.gradeDeductions) ? profile!.gradeDeductions! : []).filter(item => !item.reversedAt && Number(item.amount || 0) > 0);
+  return (Array.isArray(profile?.gradeDeductions) ? profile!.gradeDeductions! : [])
+    .filter(item => !item.reversedAt && Number(item.amount || 0) > 0);
 }
 
 function buildAlerts(match: StudentMatch): AlertData[] {
   const profile = match.data || {};
   const alerts: AlertData[] = [];
-
   const gradeSnapshot = {
     gradeValues: profile.gradeValues,
     gradePlanValues: profile.gradePlanValues,
     units: profile.units,
     research: profile.researchScore ?? profile.research,
   };
+
   if (hasPositiveNumber(gradeSnapshot)) {
     alerts.push({
       kind: "grade",
-      title: `تم تحديث تحصيلك في ${match.subjectLabel}`,
-      text: "أضيفت أو عُدلت درجة جديدة. افتح تقدمي لمشاهدة أثرها على مستواك.",
+      title: `تحديث جديد في تحصيل ${match.subjectLabel}`,
+      text: "تمت إضافة أو تعديل درجة. افتح تقدمي لمشاهدة أثرها على مستواك.",
       signature: hash(stable(gradeSnapshot)),
       subjectKey: match.subjectKey,
       target: "progress",
@@ -183,7 +137,7 @@ function buildAlerts(match: StudentMatch): AlertData[] {
     alerts.push({
       kind: "deduction",
       title: `خصم جديد في ${match.subjectLabel}`,
-      text: `إجمالي الخصم المعتمد حاليًا ${total} درجة. راجع تفاصيل التحصيل لمعرفة الأثر.`,
+      text: `إجمالي الخصم المعتمد حاليًا ${total} درجة. افتح تقدمي لمراجعة التفاصيل.`,
       signature: hash(stable(deductions)),
       subjectKey: match.subjectKey,
       target: "progress",
@@ -216,18 +170,64 @@ function buildAlerts(match: StudentMatch): AlertData[] {
   return alerts;
 }
 
+function createAlert(alert: AlertData, onDismiss: () => void) {
+  const article = document.createElement("article");
+  article.className = `sta600-alert ${alert.kind}`;
+  article.tabIndex = 0;
+  article.setAttribute("role", "button");
+
+  const icon = document.createElement("span");
+  icon.className = "sta600-alert-icon";
+  icon.textContent = alert.kind === "grade" ? "↗" : alert.kind === "deduction" ? "−" : alert.kind === "counselor" ? "!" : "✦";
+
+  const body = document.createElement("div");
+  body.className = "sta600-alert-copy";
+  const eyebrow = document.createElement("small");
+  eyebrow.textContent = alert.kind === "grade" ? "تحصيل جديد" : alert.kind === "deduction" ? "خصم جديد" : alert.kind === "counselor" ? "إحالة للمرشد" : "ملاحظة جديدة";
+  const title = document.createElement("strong");
+  title.textContent = alert.title;
+  const text = document.createElement("p");
+  text.textContent = alert.text;
+  const action = document.createElement("span");
+  action.className = "sta600-alert-action";
+  action.textContent = alert.target === "notes" ? "فتح ملاحظاتي ←" : "فتح تقدمي ←";
+  body.append(eyebrow, title, text, action);
+
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.className = "sta600-alert-dismiss";
+  dismiss.setAttribute("aria-label", "إخفاء التنبيه");
+  dismiss.textContent = "×";
+  dismiss.addEventListener("click", event => {
+    event.stopPropagation();
+    onDismiss();
+    article.remove();
+  });
+
+  const openTarget = () => {
+    tabButton(alert.target === "notes" ? "ملاحظاتي" : "تقدمي")?.click();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  article.addEventListener("click", openTarget);
+  article.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") openTarget();
+  });
+  article.append(icon, body, dismiss);
+  return article;
+}
+
 function renderCounselorNotes(matches: StudentMatch[]) {
-  const notesHeading = [...document.querySelectorAll(".student-academy-v4 .sta4-card-head h2")]
+  const heading = [...document.querySelectorAll(".student-academy-v4 .sta4-card-head h2")]
     .find(node => clean(node.textContent) === "ملاحظاتي");
-  const card = notesHeading?.closest(".sta4-card") as HTMLElement | null;
+  const card = heading?.closest(".sta4-card") as HTMLElement | null;
   if (!card) return;
+
+  card.querySelectorAll(".sta600-counselor-note").forEach(node => node.remove());
+  const counselorMatches = matches.filter(match => clean(match.data?.parentCounselorLastNotice?.title) || clean(match.data?.parentCounselorLastNotice?.message));
+  if (!counselorMatches.length) return;
 
   let list = card.querySelector(".sta4-note-list") as HTMLElement | null;
   const empty = card.querySelector(".sta4-empty") as HTMLElement | null;
-  const counselorMatches = matches.filter(match => clean(match.data?.parentCounselorLastNotice?.title) || clean(match.data?.parentCounselorLastNotice?.message));
-
-  card.querySelectorAll(".sta600-counselor-note").forEach(node => node.remove());
-  if (!counselorMatches.length) return;
   if (!list) {
     list = document.createElement("div");
     list.className = "sta4-note-list sta600-created-note-list";
@@ -257,44 +257,34 @@ function renderCounselorNotes(matches: StudentMatch[]) {
 export default function StudentAcademicRuntime() {
   useEffect(() => {
     let interval = 0;
-    let polishTimer = 0;
     let loading = false;
     let profiles: StudentMatch[] = [];
     let currentCode = "";
+    let lastSubject = "";
     const sessionVisible = new Map<string, AlertData>();
     const dismissed = new Set<string>();
 
-    const renderAlertCenter = () => {
+    const renderCenter = () => {
+      removeOldCenters();
       const head = document.querySelector(".student-academy-v4 .sta4-subject-head");
       if (!head || !currentCode) return;
       const label = selectedSubjectLabel();
       const selected = profiles.find(match => clean(match.subjectLabel) === label) || profiles[0];
       if (!selected) return;
 
-      const candidates = buildAlerts(selected);
-      for (const alert of candidates) {
-        const id = `${alert.subjectKey}:${alert.kind}:${alert.signature}`;
-        const key = alertStorageKey(currentCode, alert.subjectKey, alert.kind);
-        const seen = localStorage.getItem(key);
-        if (seen !== alert.signature) {
-          localStorage.setItem(key, alert.signature);
-          sessionVisible.set(id, alert);
-        }
-      }
-
       const visible = [...sessionVisible.entries()]
         .filter(([id, alert]) => alert.subjectKey === selected.subjectKey && !dismissed.has(id));
-      document.querySelector(".sta500-alert-center,.sta600-alert-center")?.remove();
       if (!visible.length) return;
 
       const section = document.createElement("section");
-      section.className = "sta600-alert-center";
+      section.className = "sta600-alert-center sta700-alert-center";
+      section.dataset.subject = selected.subjectKey;
       const header = document.createElement("header");
       const copy = document.createElement("div");
       const small = document.createElement("small");
-      small.textContent = "مركز التحديثات";
+      small.textContent = "مركز التنبيهات";
       const h2 = document.createElement("h2");
-      h2.textContent = "لديك تحديث أكاديمي جديد";
+      h2.textContent = "لديك تحديثات جديدة في هذه المادة";
       copy.append(small, h2);
       const count = document.createElement("span");
       count.textContent = `${visible.length} جديد`;
@@ -306,24 +296,32 @@ export default function StudentAcademicRuntime() {
       head.insertAdjacentElement("afterend", section);
     };
 
-    const polish = () => {
-      document.querySelectorAll<HTMLButtonElement>(".student-academy-v4 .student-change-subject-v300").forEach(button => {
-        if ((button.textContent || "").trim() === "موادي") button.textContent = "تغيير المادة";
-      });
-      renderAlertCenter();
-      renderCounselorNotes(profiles);
+    const captureNewAlerts = () => {
+      if (!currentCode) return;
+      for (const match of profiles) {
+        for (const alert of buildAlerts(match)) {
+          const id = `${alert.subjectKey}:${alert.kind}:${alert.signature}`;
+          const key = storageKey(currentCode, alert.subjectKey, alert.kind);
+          if (localStorage.getItem(key) === alert.signature) continue;
+          localStorage.setItem(key, alert.signature);
+          sessionVisible.set(id, alert);
+        }
+      }
     };
 
-    const queuePolish = (delay = 60) => {
-      window.clearTimeout(polishTimer);
-      polishTimer = window.setTimeout(polish, delay);
+    const polish = () => {
+      document.querySelectorAll<HTMLButtonElement>(".student-academy-v4 .student-change-subject-v300").forEach(button => {
+        if (clean(button.textContent) === "موادي") button.textContent = "تغيير المادة";
+      });
+      renderCounselorNotes(profiles);
+      renderCenter();
     };
 
     const sync = async () => {
       if (loading || document.visibilityState !== "visible") return;
       const code = clean(document.querySelector(".student-academy-v4 .sta4-id code")?.textContent).toUpperCase();
       if (!/^TH[123]\d{3}$/.test(code)) {
-        queuePolish(20);
+        removeOldCenters();
         return;
       }
       loading = true;
@@ -331,11 +329,9 @@ export default function StudentAcademicRuntime() {
       try {
         const loaded = await loadProfiles(code);
         if (loaded.length) profiles = loaded;
-        // Keep the React screen in sync too; this uses the page's existing safe refresh path.
+        captureNewAlerts();
         window.dispatchEvent(new Event("focus"));
-        queuePolish(80);
-      } catch {
-        queuePolish(80);
+        window.setTimeout(polish, 120);
       } finally {
         loading = false;
       }
@@ -344,26 +340,30 @@ export default function StudentAcademicRuntime() {
     const onClick = (event: Event) => {
       const target = event.target as HTMLElement | null;
       if (!target) return;
-      if (target.closest(".student-subject-card-v300,.sta4-subject,.student-change-subject-v300,.sta4-nav")) {
-        window.setTimeout(() => void sync(), 120);
-        queuePolish(180);
+      if (target.closest(".student-subject-card-v300,.sta4-subject,.student-change-subject-v300")) {
+        window.setTimeout(() => {
+          const nextSubject = selectedSubjectLabel();
+          if (nextSubject !== lastSubject) {
+            lastSubject = nextSubject;
+            renderCenter();
+          }
+          void sync();
+        }, 160);
       }
+      if (target.closest(".sta4-nav")) window.setTimeout(() => renderCounselorNotes(profiles), 100);
     };
 
-    const observer = new MutationObserver(() => queuePolish());
-    observer.observe(document.documentElement, { subtree: true, childList: true });
+    removeOldCenters();
     document.addEventListener("click", onClick, true);
     window.addEventListener("focus", sync);
-    interval = window.setInterval(() => void sync(), 6000);
-    window.setTimeout(() => void sync(), 120);
-    queuePolish(20);
+    interval = window.setInterval(() => void sync(), 5000);
+    window.setTimeout(() => void sync(), 150);
 
     return () => {
-      observer.disconnect();
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("focus", sync);
       window.clearInterval(interval);
-      window.clearTimeout(polishTimer);
+      removeOldCenters();
     };
   }, []);
   return null;
