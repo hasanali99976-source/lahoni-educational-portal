@@ -1,0 +1,12 @@
+/* Keep the new academic notification center as the only notification surface. */
+.sta500-alert-center,
+.sta500-alert-grid,
+.sta500-alert,
+.sta4-note-now {
+  display: none !important;
+}
+
+/* The home area no longer reserves a second column for the legacy latest-note card. */
+.sta4-today-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
