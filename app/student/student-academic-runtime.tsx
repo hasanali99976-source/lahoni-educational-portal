@@ -11,6 +11,7 @@ type StudentProfile = {
   units?: unknown;
   research?: number;
   researchScore?: number;
+  timetableLessons?: Array<{ dayKey?: string; dayLabel?: string; dayIndex?: number; period?: number; className?: string; subject?: string; notes?: string }>;
   parentCounselorLastNotice?: { title?: string; message?: string };
 };
 
@@ -30,7 +31,9 @@ type AlertData = {
   text: string;
   signature: string;
   subjectKey: string;
+  subjectLabel: string;
   target: "progress" | "notes";
+  priority: number;
 };
 
 const clean = (value: unknown) => String(value || "").replace(/\s+/g, " ").trim();
@@ -56,15 +59,15 @@ function hash(value: string) {
 }
 
 function storageKey(code: string, subjectKey: string, kind: AlertKind) {
-  return `lahooni:student-alert:v800:${code}:${subjectKey}:${kind}`;
+  return `lahooni:student-alert:v900:${code}:${subjectKey}:${kind}`;
 }
 
 function slotKey(subjectKey: string, kind: AlertKind) {
   return `${subjectKey}:${kind}`;
 }
 
-function removeOldCenters() {
-  document.querySelectorAll(".sta500-alert-center,.sta600-alert-center,.sta700-alert-center,.sta800-alert-center").forEach(node => node.remove());
+function removeSmartSurfaces() {
+  document.querySelectorAll(".sta500-alert-center,.sta600-alert-center,.sta700-alert-center,.sta800-alert-center,.sta900-alert-center,.sta900-today").forEach(node => node.remove());
 }
 
 function selectedSubjectLabel() {
@@ -75,6 +78,21 @@ function selectedSubjectLabel() {
 function tabButton(label: string) {
   return [...document.querySelectorAll<HTMLButtonElement>(".student-academy-v4 .sta4-nav button")]
     .find(button => clean(button.textContent).includes(label));
+}
+
+function subjectButton(label: string) {
+  return [...document.querySelectorAll<HTMLButtonElement>(".student-academy-v4 .sta4-subject")]
+    .find(button => clean(button.querySelector("b")?.textContent) === label);
+}
+
+function isHomeActive() {
+  const active = document.querySelector<HTMLButtonElement>(".student-academy-v4 .sta4-nav button.active");
+  return clean(active?.textContent).includes("الرئيسية");
+}
+
+function riyadhDayKey() {
+  const english = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Riyadh", weekday: "long" }).format(new Date()).toLowerCase();
+  return english;
 }
 
 async function loadProfiles(code: string): Promise<StudentMatch[]> {
@@ -125,58 +143,30 @@ function buildAlerts(match: StudentMatch): AlertData[] {
   };
 
   if (hasPositiveNumber(gradeSnapshot)) {
-    alerts.push({
-      kind: "grade",
-      title: `تحديث جديد في تحصيل ${match.subjectLabel}`,
-      text: "تمت إضافة أو تعديل درجة. افتح تقدمي لمشاهدة أثرها على مستواك.",
-      signature: hash(stable(gradeSnapshot)),
-      subjectKey: match.subjectKey,
-      target: "progress",
-    });
+    alerts.push({ kind: "grade", title: `تحديث في تحصيل ${match.subjectLabel}`, text: "تمت إضافة أو تعديل درجة. افتح تقدمي لمشاهدة التفاصيل.", signature: hash(stable(gradeSnapshot)), subjectKey: match.subjectKey, subjectLabel: match.subjectLabel, target: "progress", priority: 2 });
   }
 
   const deductions = activeDeductions(profile);
   if (deductions.length) {
     const total = deductions.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    alerts.push({
-      kind: "deduction",
-      title: `خصم جديد في ${match.subjectLabel}`,
-      text: `إجمالي الخصم المعتمد حاليًا ${total} درجة. افتح تقدمي لمراجعة التفاصيل.`,
-      signature: hash(stable(deductions)),
-      subjectKey: match.subjectKey,
-      target: "progress",
-    });
+    alerts.push({ kind: "deduction", title: `خصم في ${match.subjectLabel}`, text: `إجمالي الخصم المعتمد حاليًا ${total} درجة. راجع تفاصيل التحصيل.`, signature: hash(stable(deductions)), subjectKey: match.subjectKey, subjectLabel: match.subjectLabel, target: "progress", priority: 4 });
   }
 
   const note = latestTeacherNote(profile);
   if (note) {
-    alerts.push({
-      kind: "note",
-      title: clean(note.label) || "ملاحظة جديدة من المعلم",
-      text: clean(note.message) || "لديك ملاحظة تعليمية جديدة من معلم المادة.",
-      signature: hash(stable(note)),
-      subjectKey: match.subjectKey,
-      target: "notes",
-    });
+    alerts.push({ kind: "note", title: clean(note.label) || "ملاحظة جديدة من المعلم", text: clean(note.message) || "لديك ملاحظة تعليمية جديدة من معلم المادة.", signature: hash(stable(note)), subjectKey: match.subjectKey, subjectLabel: match.subjectLabel, target: "notes", priority: 1 });
   }
 
   const counselor = profile.parentCounselorLastNotice;
   if (clean(counselor?.title) || clean(counselor?.message)) {
-    alerts.push({
-      kind: "counselor",
-      title: clean(counselor?.title) || "إحالة للمرشد الطلابي",
-      text: clean(counselor?.message) || "تم تسجيل إحالة للمرشد الطلابي لمتابعتك.",
-      signature: hash(stable(counselor)),
-      subjectKey: match.subjectKey,
-      target: "notes",
-    });
+    alerts.push({ kind: "counselor", title: clean(counselor?.title) || "إحالة للمرشد الطلابي", text: clean(counselor?.message) || "تم تسجيل إحالة للمرشد الطلابي لمتابعتك.", signature: hash(stable(counselor)), subjectKey: match.subjectKey, subjectLabel: match.subjectLabel, target: "notes", priority: 5 });
   }
   return alerts;
 }
 
 function createAlert(alert: AlertData, onDismiss: () => void) {
   const article = document.createElement("article");
-  article.className = `sta600-alert ${alert.kind}`;
+  article.className = `sta600-alert sta900-alert ${alert.kind}`;
   article.tabIndex = 0;
   article.setAttribute("role", "button");
 
@@ -187,14 +177,14 @@ function createAlert(alert: AlertData, onDismiss: () => void) {
   const body = document.createElement("div");
   body.className = "sta600-alert-copy";
   const eyebrow = document.createElement("small");
-  eyebrow.textContent = alert.kind === "grade" ? "تحصيل جديد" : alert.kind === "deduction" ? "خصم جديد" : alert.kind === "counselor" ? "إحالة للمرشد" : "ملاحظة جديدة";
+  eyebrow.textContent = `${alert.subjectLabel} • ${alert.kind === "grade" ? "تحصيل" : alert.kind === "deduction" ? "خصم" : alert.kind === "counselor" ? "تنبيه مهم" : "ملاحظة"}`;
   const title = document.createElement("strong");
   title.textContent = alert.title;
   const text = document.createElement("p");
   text.textContent = alert.text;
   const action = document.createElement("span");
   action.className = "sta600-alert-action";
-  action.textContent = alert.target === "notes" ? "فتح ملاحظاتي ←" : "فتح تقدمي ←";
+  action.textContent = alert.target === "notes" ? "فتح الملاحظات ←" : "فتح التقدم ←";
   body.append(eyebrow, title, text, action);
 
   const dismiss = document.createElement("button");
@@ -209,7 +199,8 @@ function createAlert(alert: AlertData, onDismiss: () => void) {
   });
 
   const openTarget = () => {
-    tabButton(alert.target === "notes" ? "ملاحظاتي" : "تقدمي")?.click();
+    subjectButton(alert.subjectLabel)?.click();
+    window.setTimeout(() => tabButton(alert.target === "notes" ? "ملاحظاتي" : "تقدمي")?.click(), 60);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   article.addEventListener("click", openTarget);
@@ -221,11 +212,9 @@ function createAlert(alert: AlertData, onDismiss: () => void) {
 }
 
 function renderCounselorNotes(matches: StudentMatch[]) {
-  const heading = [...document.querySelectorAll(".student-academy-v4 .sta4-card-head h2")]
-    .find(node => clean(node.textContent) === "ملاحظاتي");
+  const heading = [...document.querySelectorAll(".student-academy-v4 .sta4-card-head h2")].find(node => clean(node.textContent) === "ملاحظاتي");
   const card = heading?.closest(".sta4-card") as HTMLElement | null;
   if (!card) return;
-
   card.querySelectorAll(".sta600-counselor-note").forEach(node => node.remove());
   const counselorMatches = matches.filter(match => clean(match.data?.parentCounselorLastNotice?.title) || clean(match.data?.parentCounselorLastNotice?.message));
   if (!counselorMatches.length) return;
@@ -258,6 +247,64 @@ function renderCounselorNotes(matches: StudentMatch[]) {
   });
 }
 
+function renderTodayBrief(matches: StudentMatch[], alerts: AlertData[]) {
+  document.querySelectorAll(".sta900-today").forEach(node => node.remove());
+  if (!isHomeActive()) return;
+  const panel = document.querySelector(".student-academy-v4 .sta4-panel");
+  if (!panel) return;
+
+  const dayKey = riyadhDayKey();
+  const lessons = matches.flatMap(match => (match.data?.timetableLessons || [])
+    .filter(lesson => clean(lesson.dayKey).toLowerCase() === dayKey)
+    .map(lesson => ({ ...lesson, subjectLabel: match.subjectLabel, teacherName: match.teacherName })))
+    .sort((a, b) => Number(a.period || 0) - Number(b.period || 0));
+  const urgent = alerts.filter(alert => alert.priority >= 4);
+
+  const section = document.createElement("section");
+  section.className = "sta900-today";
+  const hero = document.createElement("div");
+  hero.className = "sta900-today-hero";
+  const copy = document.createElement("div");
+  const small = document.createElement("small");
+  small.textContent = "ماذا عليّ اليوم؟";
+  const title = document.createElement("h2");
+  title.textContent = lessons.length ? `لديك ${lessons.length} ${lessons.length === 1 ? "حصة اليوم" : "حصص اليوم"}` : "يومك الدراسي واضح";
+  const text = document.createElement("p");
+  text.textContent = urgent.length ? `ابدأ بمراجعة ${urgent.length} تنبيه مهم، ثم تابع جدولك.` : lessons.length ? "لا توجد تنبيهات عاجلة. تابع حصصك حسب الترتيب." : "لا توجد حصص منشورة أو تنبيهات عاجلة الآن.";
+  copy.append(small, title, text);
+  const badge = document.createElement("span");
+  badge.className = urgent.length ? "urgent" : "clear";
+  badge.textContent = urgent.length ? `${urgent.length} مهم` : "أمورك جيدة";
+  hero.append(copy, badge);
+
+  const strip = document.createElement("div");
+  strip.className = "sta900-today-strip";
+  lessons.slice(0, 4).forEach(lesson => {
+    const item = document.createElement("button");
+    item.type = "button";
+    const period = document.createElement("b");
+    period.textContent = `الحصة ${Number(lesson.period || 0)}`;
+    const subject = document.createElement("span");
+    subject.textContent = lesson.subjectLabel;
+    const teacher = document.createElement("small");
+    teacher.textContent = lesson.teacherName;
+    item.append(period, subject, teacher);
+    item.addEventListener("click", () => {
+      subjectButton(lesson.subjectLabel)?.click();
+      window.setTimeout(() => tabButton("جدولي")?.click(), 60);
+    });
+    strip.appendChild(item);
+  });
+  if (!lessons.length) {
+    const empty = document.createElement("div");
+    empty.className = "sta900-today-empty";
+    empty.textContent = "لا توجد حصص منشورة لهذا اليوم.";
+    strip.appendChild(empty);
+  }
+  section.append(hero, strip);
+  panel.prepend(section);
+}
+
 export default function StudentAcademicRuntime() {
   useEffect(() => {
     let interval = 0;
@@ -268,34 +315,45 @@ export default function StudentAcademicRuntime() {
     const sessionVisible = new Map<string, AlertData>();
     const dismissed = new Set<string>();
 
+    const visibleAlerts = () => {
+      const seen = new Set<string>();
+      return [...sessionVisible.entries()]
+        .filter(([slot]) => !dismissed.has(slot))
+        .map(([, alert]) => alert)
+        .filter(alert => {
+          const signature = `${alert.kind}:${alert.signature}:${clean(alert.text)}`;
+          if (seen.has(signature)) return false;
+          seen.add(signature);
+          return true;
+        })
+        .sort((a, b) => b.priority - a.priority);
+    };
+
     const renderCenter = () => {
-      removeOldCenters();
+      document.querySelectorAll(".sta500-alert-center,.sta600-alert-center,.sta700-alert-center,.sta800-alert-center,.sta900-alert-center").forEach(node => node.remove());
       const head = document.querySelector(".student-academy-v4 .sta4-subject-head");
       if (!head || !currentCode) return;
-      const label = selectedSubjectLabel();
-      const selected = profiles.find(match => clean(match.subjectLabel) === label) || profiles[0];
-      if (!selected) return;
-
-      const visible = [...sessionVisible.entries()]
-        .filter(([slot, alert]) => alert.subjectKey === selected.subjectKey && !dismissed.has(slot));
+      const visible = visibleAlerts();
       if (!visible.length) return;
 
       const section = document.createElement("section");
-      section.className = "sta600-alert-center sta800-alert-center";
-      section.dataset.subject = selected.subjectKey;
+      section.className = "sta600-alert-center sta900-alert-center";
       const header = document.createElement("header");
       const copy = document.createElement("div");
       const small = document.createElement("small");
-      small.textContent = "مركز التنبيهات";
+      small.textContent = "مركز التنبيهات الموحّد";
       const h2 = document.createElement("h2");
-      h2.textContent = "لديك تحديثات جديدة في هذه المادة";
+      h2.textContent = visible.some(alert => alert.priority >= 4) ? "ابدأ بالتنبيهات الأهم" : "آخر تحديثاتك الدراسية";
       copy.append(small, h2);
       const count = document.createElement("span");
       count.textContent = `${visible.length} جديد`;
       header.append(copy, count);
       const grid = document.createElement("div");
       grid.className = "sta600-alert-grid";
-      visible.forEach(([slot, alert]) => grid.appendChild(createAlert(alert, () => dismissed.add(slot))));
+      visible.forEach(alert => {
+        const slot = slotKey(alert.subjectKey, alert.kind);
+        grid.appendChild(createAlert(alert, () => { dismissed.add(slot); window.setTimeout(() => { renderCenter(); renderTodayBrief(profiles, visibleAlerts()); }, 20); }));
+      });
       section.append(header, grid);
       head.insertAdjacentElement("afterend", section);
     };
@@ -321,13 +379,14 @@ export default function StudentAcademicRuntime() {
       });
       renderCounselorNotes(profiles);
       renderCenter();
+      renderTodayBrief(profiles, visibleAlerts());
     };
 
     const sync = async () => {
       if (loading || document.visibilityState !== "visible") return;
       const code = clean(document.querySelector(".student-academy-v4 .sta4-id code")?.textContent).toUpperCase();
       if (!/^TH[123]\d{3}$/.test(code)) {
-        removeOldCenters();
+        removeSmartSurfaces();
         return;
       }
       loading = true;
@@ -336,7 +395,6 @@ export default function StudentAcademicRuntime() {
         const loaded = await loadProfiles(code);
         if (loaded.length) profiles = loaded;
         captureNewAlerts();
-        window.dispatchEvent(new Event("focus"));
         window.setTimeout(polish, 120);
       } finally {
         loading = false;
@@ -349,27 +407,29 @@ export default function StudentAcademicRuntime() {
       if (target.closest(".student-subject-card-v300,.sta4-subject,.student-change-subject-v300")) {
         window.setTimeout(() => {
           const nextSubject = selectedSubjectLabel();
-          if (nextSubject !== lastSubject) {
-            lastSubject = nextSubject;
-            renderCenter();
-          }
+          if (nextSubject !== lastSubject) lastSubject = nextSubject;
+          renderCenter();
+          renderTodayBrief(profiles, visibleAlerts());
           void sync();
         }, 160);
       }
-      if (target.closest(".sta4-nav")) window.setTimeout(() => renderCounselorNotes(profiles), 100);
+      if (target.closest(".sta4-nav")) window.setTimeout(() => {
+        renderCounselorNotes(profiles);
+        renderTodayBrief(profiles, visibleAlerts());
+      }, 100);
     };
 
-    removeOldCenters();
+    removeSmartSurfaces();
     document.addEventListener("click", onClick, true);
     window.addEventListener("focus", sync);
-    interval = window.setInterval(() => void sync(), 5000);
+    interval = window.setInterval(() => void sync(), 10000);
     window.setTimeout(() => void sync(), 150);
 
     return () => {
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("focus", sync);
       window.clearInterval(interval);
-      removeOldCenters();
+      removeSmartSurfaces();
     };
   }, []);
   return null;
