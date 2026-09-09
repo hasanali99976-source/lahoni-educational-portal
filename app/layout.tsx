@@ -49,6 +49,7 @@ import StudentSmartNotesRuntime from "./student-smart-notes-runtime";
 import TeacherNotesIdentityRuntime from "./teacher-notes-identity-runtime";
 import AdminStudentEditClassRuntime from "./admin-student-edit-class-runtime";
 import PortalVoiceGreetingRuntime from "./portal-voice-greeting-runtime";
+import PortalV302VisualRuntime from "./portal-v302-visual-runtime";
 
 const academyFont = Alexandria({ subsets: ["arabic"], weight: ["400", "500", "600", "700", "800", "900"], display: "swap" });
 
@@ -72,7 +73,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
-    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
+    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><PortalV302VisualRuntime />
     <StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentRiskCenterRuntime /><StudentAcademicRecordMaxRuntime /><StudentSmartNotesRuntime />
     <TeacherGradesCleanRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
     <PortalVoiceGreetingRuntime />
