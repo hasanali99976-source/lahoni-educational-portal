@@ -1,0 +1,6 @@
+.student-academy-v4 .sta900-today{display:none!important}
+.student-academy-v4 .sta4-panel>.sta4-today-grid+.sta4-glance+.sta4-card{display:none!important}
+.student-academy-v4 .sta4-note-now{background:linear-gradient(135deg,#fffdf7,#fff)!important}
+.student-academy-v4 button,.student-academy-v4 article,.student-academy-v4 .sta4-card{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease!important}
+.student-academy-v4 .sta4-card:hover{box-shadow:0 10px 26px rgba(12,58,78,.07)!important}
+@media(prefers-reduced-motion:reduce){.student-academy-v4 *{transition:none!important;animation:none!important}}
