@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { calculateGradePlanResult, normalizeGradePlan, type GradePlan } from "../../lib/grade-plan";
+import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type GradeStudentLike, type GradeValueMap, type LegacyUnit } from "../../lib/grade-plan";
 
 type Deduction = { id?: string; planId?: string; amount?: number; reason?: string; note?: string; reversedAt?: string };
 type Note = { id?: string; label?: string; message?: string; createdAt?: string; teacherName?: string };
 type AttendanceSummary = { disciplineRate?: number; absent?: number; late?: number; escaped?: number };
-type StudentData = {
+type StudentData = GradeStudentLike & {
   name?: string;
   class?: string;
   gradePlan?: GradePlan | null;
@@ -15,6 +15,11 @@ type StudentData = {
   teacherNote?: string;
   parentCounselorLastNotice?: { title?: string; message?: string; createdAt?: string };
   attendanceSummary?: AttendanceSummary;
+  gradeValues?: GradeValueMap;
+  gradePlanValues?: Record<string, GradeValueMap>;
+  units?: Record<string, LegacyUnit>;
+  research?: number;
+  researchScore?: number;
   [key: string]: unknown;
 };
 type Match = { id: string; subjectKey: string; subjectLabel: string; teacherName: string; accessToken: string; data: StudentData };
@@ -41,7 +46,7 @@ function scoreSummary(match: Match) {
   const deductions = activeDeductions(match.data);
   const deducted = deductions.reduce((sum, item) => sum + Math.max(0, Number(item.amount || 0)), 0);
   if (!plan) return { before: null as number | null, after: null as number | null, percent: null as number | null, deducted };
-  const result = calculateGradePlanResult(plan, match.data || {});
+  const result = calculateGradePlanResult(plan, match.data);
   const before = Number(result.earned || 0);
   const after = Math.max(0, before - deducted);
   const percent = result.maximum > 0 ? Math.round((after / result.maximum) * 100) : null;
