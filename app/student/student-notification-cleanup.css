@@ -2,7 +2,14 @@
 .sta500-alert-center,
 .sta500-alert-grid,
 .sta500-alert,
-.sta4-note-now {
+.sta4-note-now,
+.student-private-alerts,
+.student-private-context,
+.student-alert,
+.student-alert-counselor,
+.student-alert-deduction,
+.student-alert-note,
+#student-private-alert-mount {
   display: none !important;
 }
 
