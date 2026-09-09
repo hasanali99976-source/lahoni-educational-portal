@@ -6,6 +6,32 @@ function normalize(value: string) {
   return value.replace(/\s+/g, " ").trim().toLocaleLowerCase("ar");
 }
 
+function removeLegacyStudentAlerts() {
+  document.querySelectorAll<HTMLElement>(".student-academy-v4 section,.student-academy-v4 article,.student-academy-v4 div").forEach(node => {
+    if (node.closest(".sta600-alert-center,.sta800-alert-center")) return;
+    const text = normalize(node.textContent || "");
+    const isLegacyBanner = text.includes("يوجد تحديث مهم على تحصيلك")
+      || (text.includes("تنبيه مهم يحتاج انتباه") && text.includes("فتح المادة"));
+    if (!isLegacyBanner) return;
+
+    const parent = node.parentElement;
+    const parentText = normalize(parent?.textContent || "");
+    if (parent && !parent.closest(".sta600-alert-center,.sta800-alert-center")
+      && (parentText.includes("يوجد تحديث مهم على تحصيلك") || (parentText.includes("تنبيه مهم يحتاج انتباه") && parentText.includes("فتح المادة")))) {
+      const grand = parent.parentElement;
+      const grandText = normalize(grand?.textContent || "");
+      if (grand && !grand.closest(".sta600-alert-center,.sta800-alert-center")
+        && (grandText.includes("يوجد تحديث مهم على تحصيلك") || (grandText.includes("تنبيه مهم يحتاج انتباه") && grandText.includes("فتح المادة")))) {
+        grand.remove();
+      } else {
+        parent.remove();
+      }
+    } else {
+      node.remove();
+    }
+  });
+}
+
 export default function StudentUiCleanupRuntime() {
   useEffect(() => {
     let frame = 0;
@@ -16,6 +42,8 @@ export default function StudentUiCleanupRuntime() {
       const portal = document.querySelector(".student-academy-v4");
       const chooser = document.querySelector(".student-subject-choice-v300");
       if (!portal && !chooser) return;
+
+      removeLegacyStudentAlerts();
 
       document.querySelectorAll<HTMLButtonElement>(".student-change-subject-v300").forEach(button => {
         if (normalize(button.textContent || "") === "موادي") {
