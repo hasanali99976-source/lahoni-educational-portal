@@ -219,7 +219,7 @@ export default function StudentPage() {
 
   async function downloadReport() {
     if (printing) return; setPrinting(true); setReportMessage("");
-    try { await downloadStudentProgressPdf({ portalName:"بوابة أستاذ لحوني التعليمية", studentName, className:classLabel, studentCode:selected.id, overallAverage, overallDiscipline, statusLabel, subjects:subjectScores.map(i=>({subject:i.match.subjectLabel,teacher:i.match.teacherName,percentage:i.metrics.percentage,discipline:i.match.data.attendanceSummary?.disciplineRate??100,noteCount:i.match.data.teacherNotes?.length||(i.match.data.teacherNote?1:0),accent:i.theme.primary})), notes:allNotes.slice(0,6).map(n=>({subject:n.subjectLabel,text:n.message||n.label||"متابعة تعليمية",teacher:n.teacher,date:noteDate(n.createdAt)})), fileName:`بيان-تقدم-${studentName.replace(/\s+/g,"-")}.pdf` }); setReportMessage("تم تجهيز التقرير بنجاح."); }
+    try { await downloadStudentProgressPdf({ portalName:"بوابة أستاذ لحوني التعليمية", studentName, className:classLabel, studentCode:selected!.id, overallAverage, overallDiscipline, statusLabel, subjects:subjectScores.map(i=>({subject:i.match.subjectLabel,teacher:i.match.teacherName,percentage:i.metrics.percentage,discipline:i.match.data.attendanceSummary?.disciplineRate??100,noteCount:i.match.data.teacherNotes?.length||(i.match.data.teacherNote?1:0),accent:i.theme.primary})), notes:allNotes.slice(0,6).map(n=>({subject:n.subjectLabel,text:n.message||n.label||"متابعة تعليمية",teacher:n.teacher,date:noteDate(n.createdAt)})), fileName:`بيان-تقدم-${studentName.replace(/\s+/g,"-")}.pdf` }); setReportMessage("تم تجهيز التقرير بنجاح."); }
     catch { setReportMessage("تعذر تجهيز التقرير الآن."); } finally { setPrinting(false); }
   }
 
