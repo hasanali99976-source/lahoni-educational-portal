@@ -8,368 +8,77 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { getSubjectConfig, type SubjectKey } from "../../lib/subject-config";
 import { readLocalGradePlan, setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
-import {
-  TeacherClientContext,
-  type TeacherClientAssignment,
-  type TeacherClientSubject,
-} from "../../lib/teacher-client";
+import { TeacherClientContext, type TeacherClientAssignment, type TeacherClientSubject } from "../../lib/teacher-client";
 import TeacherCompetitionProgress from "./competition-progress";
 import "./print-theme.css";
-import "./teacher-academy-v12.css";
+import "./teacher-studio-v13.css";
 
-type TeacherTab = {
-  href: string;
-  key: string;
-  label: string;
-  group: "daily" | "learning" | "insight" | "setup";
-  badge?: string;
-};
+type TeacherTab = { href:string; key:string; label:string; group:"daily"|"learning"|"insight"|"setup"; badge?:string };
+type TeacherSession = { teacherId?:string; teacherName?:string; subjectKey?:SubjectKey; workspaceKey?:string; activeGrade?:number|null; activeGradeLabel?:string; subject?:string; subjects?:TeacherClientSubject[]; assignments?:TeacherClientAssignment[] };
 
-type TeacherSession = {
-  teacherId?: string;
-  teacherName?: string;
-  subjectKey?: SubjectKey;
-  workspaceKey?: string;
-  activeGrade?: number | null;
-  activeGradeLabel?: string;
-  subject?: string;
-  subjects?: TeacherClientSubject[];
-  assignments?: TeacherClientAssignment[];
-};
-
-const tabs: TeacherTab[] = [
-  { href: "/teacher/students", key: "students", label: "إدارة الطلاب", group: "daily" },
-  { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", group: "daily" },
-  { href: "/teacher/attendance", key: "attendance", label: "سجل المتابعة", group: "daily" },
-  { href: "/teacher/grades", key: "grades", label: "التحصيل العلمي", group: "daily" },
-  { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمهارة", group: "learning" },
-  { href: "/teacher/notes", key: "notes", label: "الملاحظات", group: "learning" },
-  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", group: "learning" },
-  { href: "/teacher/report", key: "report", label: "ملخص عمل المعلم", group: "insight" },
-  { href: "/teacher/reports", key: "reports", label: "مركز التقارير", group: "insight", badge: "جديد" },
-  { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", group: "insight" },
-  { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", group: "insight", badge: "AI" },
-  { href: "/teacher/grade-plan", key: "gradeplan", label: "الخطة الدراسية", group: "setup" },
+const tabs:TeacherTab[]=[
+  {href:"/teacher/students",key:"students",label:"إدارة الطلاب",group:"daily"},
+  {href:"/teacher/timetable",key:"timetable",label:"الجدول الدراسي",group:"daily"},
+  {href:"/teacher/attendance",key:"attendance",label:"الحضور والانضباط",group:"daily"},
+  {href:"/teacher/grades",key:"grades",label:"التحصيل العلمي",group:"daily"},
+  {href:"/teacher/follow-up",key:"follow",label:"الإتقان والمهارة",group:"learning"},
+  {href:"/teacher/notes",key:"notes",label:"الملاحظات والمتابعة",group:"learning"},
+  {href:"/teacher/diagnostics",key:"diagnostics",label:"الاختبارات والتشخيص",group:"learning",badge:"اختبار"},
+  {href:"/teacher/report",key:"report",label:"ملخص أداء المعلم",group:"insight"},
+  {href:"/teacher/reports",key:"reports",label:"مركز التقارير والطباعة",group:"insight",badge:"PDF"},
+  {href:"/teacher/portfolio",key:"portfolio",label:"ملف الإنجاز",group:"insight"},
+  {href:"/teacher/ai",key:"ai",label:"المساعد الذكي",group:"insight",badge:"AI"},
+  {href:"/teacher/grade-plan",key:"gradeplan",label:"خطة الدرجات",group:"setup"},
 ];
 
-function normalizedSubjectText(subjectId: string, subjectName = "") {
-  return `${subjectId} ${subjectName}`.trim().toLocaleLowerCase("ar");
+function normalizedSubjectText(subjectId:string,subjectName=""){return `${subjectId} ${subjectName}`.trim().toLocaleLowerCase("ar");}
+function semanticSubjectHue(subjectId:string,subjectName=""){
+  const value=normalizedSubjectText(subjectId,subjectName);
+  if(/تاريخ|history/.test(value))return 28;if(/تفكير|ناقد|critical/.test(value))return 274;if(/كيمياء|chem/.test(value))return 174;if(/فيزياء|phys/.test(value))return 218;if(/أحياء|احياء|biology/.test(value))return 112;if(/تنمية|مستدام|sustain/.test(value))return 148;if(/رياضيات|math/.test(value))return 232;if(/عربي|لغتي|arabic/.test(value))return 348;if(/انجليزي|إنجليزي|english/.test(value))return 202;if(/اسلام|إسلام|دين|islam/.test(value))return 158;if(/علوم|science/.test(value))return 188;if(/حاسب|تقنية|رقمي|computer|digital/.test(value))return 206;if(/فني|فن|art/.test(value))return 318;if(/بدني|رياضة|physical/.test(value))return 12;if(/جغراف|geograph/.test(value))return 194;
+  let hash=2166136261;const seed=value||"subject";for(let index=0;index<seed.length;index+=1){hash^=seed.charCodeAt(index);hash=Math.imul(hash,16777619);}return Math.abs(hash>>>0)%360;
 }
+function subjectVisualStyle(subjectId:string,subjectName="",identityIndex=0):CSSProperties{const baseHue=semanticSubjectHue(subjectId,subjectName);const hue=(baseHue+identityIndex*47)%360;const secondaryHue=(hue+18)%360;return{"--subject":`hsl(${hue} 58% 42%)`,"--subject-deep":`hsl(${secondaryHue} 54% 28%)`,"--subject-soft":`hsl(${hue} 48% 94%)`,"--subject-faint":`hsl(${hue} 42% 98%)`} as CSSProperties;}
+function subjectSymbol(subjectId:string,subjectName=""){const value=normalizedSubjectText(subjectId,subjectName);if(/تاريخ|history/.test(value))return"🏛️";if(/تفكير|ناقد|critical/.test(value))return"🧠";if(/كيمياء|chem/.test(value))return"⚗️";if(/فيزياء|phys/.test(value))return"⚛️";if(/أحياء|احياء|biology/.test(value))return"🧬";if(/تنمية|مستدام|sustain/.test(value))return"🌱";if(/رياضيات|math/.test(value))return"∑";if(/عربي|لغتي|arabic/.test(value))return"ض";if(/انجليزي|إنجليزي|english/.test(value))return"A";if(/اسلام|إسلام|دين|islam/.test(value))return"☪";if(/علوم|science/.test(value))return"🔬";if(/حاسب|تقنية|رقمي|computer|digital/.test(value))return"💻";if(/فني|فن|art/.test(value))return"🎨";if(/بدني|رياضة|physical/.test(value))return"🏃";if(/جغراف|geograph/.test(value))return"🌍";return"📘";}
+function NavIcon({type}:{type:string}){const common={width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};if(type==="dashboard")return <svg {...common}><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>;if(type==="students")return <svg {...common}><circle cx="8.5" cy="8" r="3"/><path d="M3.5 19v-1.2A4.8 4.8 0 0 1 8.3 13h.4a4.8 4.8 0 0 1 4.8 4.8V19M16 7a2.5 2.5 0 1 1 0 5M16.5 14.5c2.6.4 4 2 4 4.5"/></svg>;if(type==="timetable")return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 9.5h17M8 13h2M14 13h2M8 17h2M14 17h2"/></svg>;if(type==="attendance")return <svg {...common}><path d="M5 4h14v16H5zM8 8h8M8 12h5"/><path d="m13.5 16 1.7 1.7 3.3-3.7"/></svg>;if(type==="grades")return <svg {...common}><path d="M4 20h16M6.5 16V10M12 16V5M17.5 16v-4"/><path d="m5 7 4-3 3 2 6-3"/></svg>;if(type==="follow")return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;if(type==="notes")return <svg {...common}><path d="M5 4h14v13H9l-4 3z"/><path d="M8 8h8M8 12h6"/></svg>;if(type==="diagnostics")return <svg {...common}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8"/></svg>;if(type==="report")return <svg {...common}><path d="M5 3.5h14v17H5z"/><path d="M8 16v-3M12 16V9M16 16v-6"/></svg>;if(type==="reports")return <svg {...common}><path d="M7 3.5h10v4H7zM5 8h14v8H5zM8 16h8v4H8z"/><path d="M8 11h8"/></svg>;if(type==="portfolio")return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;if(type==="ai")return <svg {...common}><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m6 6 2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>;if(type==="gradeplan")return <svg {...common}><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/></svg>;return <svg {...common}><path d="M5 5h14v14H5z"/></svg>;}
+function pageContext(pathname:string){if(pathname.startsWith("/teacher/students"))return{eyebrow:"الفصول والطلاب",title:"إدارة الطلاب",question:"كل فصل وسجلاته في مساحة واحدة واضحة.",ai:"أبرز لك الحالات التي تحتاج انتباهك بدون تغيير أي سجل.",href:"/teacher/report",action:"تحليل الفصول"};if(pathname.startsWith("/teacher/timetable"))return{eyebrow:"أسبوعك الدراسي",title:"الجدول الدراسي",question:"انتقل بين حصصك وفصولك بسرعة ووضوح.",ai:"أقرأ ضغط الحصص وأرتب لك أولويات اليوم.",href:"/teacher/ai",action:"اسأل المساعد"};if(pathname.startsWith("/teacher/attendance"))return{eyebrow:"الحضور والانضباط",title:"المتابعة اليومية",question:"رصد سريع، واضح، ومتزامن مع بوابة الطالب.",ai:"أبرز الغياب والتأخير والهروب المتكرر دون المساس بسجلاتك.",href:"/teacher/follow-up",action:"الحالات المتكررة"};if(pathname.startsWith("/teacher/grades"))return{eyebrow:"الرصد الأكاديمي",title:"التحصيل العلمي",question:"الدرجة والخصم والسبب والنتيجة في شاشة عمل واحدة.",ai:"أقرأ اكتمال الرصد وأثر الخصومات وأبرز الطلاب الذين يحتاجون دعمًا.",href:"/teacher/report",action:"فتح التحليل"};if(pathname.startsWith("/teacher/follow-up"))return{eyebrow:"الإتقان والمهارة",title:"الإتقان والمهارة",question:"حوّل نتائج الطالب إلى تدخل علاجي أو إثرائي واضح.",ai:"أربط المهارات بالتحصيل والمتابعة مع بقاء القرار بيدك.",href:"/teacher/ai",action:"تحليل أعمق"};if(pathname.startsWith("/teacher/notes"))return{eyebrow:"الملاحظات والتواصل",title:"ملاحظات الطلاب",question:"ملاحظة واضحة تصل للطالب وتبقى محفوظة في سجله.",ai:"أقترح صياغة تربوية فقط؛ الحفظ والإرسال بيدك.",href:"/teacher/ai",action:"صياغة ذكية"};if(pathname.startsWith("/teacher/diagnostics"))return{eyebrow:"الاختبارات",title:"الاختبارات والتشخيص",question:"الاختبار والنتيجة والمهارة وخطة التدخل في تسلسل واحد.",ai:"أربط نتائج الاختبار بالمهارات والخطة العلاجية أو الإثرائية.",href:"/teacher/ai",action:"تحليل النتائج"};if(pathname.startsWith("/teacher/reports"))return{eyebrow:"الوثائق والطباعة",title:"مركز التقارير",question:"تقارير واضحة ورسمية، وفصل مستقل عند الطباعة.",ai:"أرتب البيانات المناسبة فقط داخل التقرير.",href:"/teacher/reports",action:"إنشاء تقرير"};if(pathname.startsWith("/teacher/report"))return{eyebrow:"قراءة الأداء",title:"ملخص أداء المعلم",question:"الحضور والتحصيل والإتقان في قراءة موحدة.",ai:"أجمع مؤشرات المادة والفصول لقراءة أسرع.",href:"/teacher/ai",action:"تفسير المؤشرات"};if(pathname.startsWith("/teacher/portfolio"))return{eyebrow:"التوثيق المهني",title:"ملف الإنجاز",question:"الشواهد والإنجازات في تنظيم واضح.",ai:"أرتب الشواهد حسب النوع والفترة.",href:"/teacher/portfolio",action:"فتح الإنجاز"};if(pathname.startsWith("/teacher/grade-plan"))return{eyebrow:"الإعداد الأكاديمي",title:"خطة الدرجات",question:"الخطة المعتمدة تبقى المصدر نفسه لكل الرصد والخصومات.",ai:"أعرض المقترحات دون اعتماد أي تغيير تلقائي.",href:"/teacher/ai",action:"اقتراح خطة"};return{eyebrow:"استوديو المعلم",title:"مركز اليوم",question:"مساحة حية تجمع موادك وفصولك وأعمالك دون إخفاء الأدوات المهمة.",ai:"أقرأ الجدول والتحصيل والمتابعة لأبرز أولويتك التالية.",href:"/teacher/ai",action:"افتح المساعد"};}
 
-function semanticSubjectHue(subjectId: string, subjectName = "") {
-  const value = normalizedSubjectText(subjectId, subjectName);
-  if (/تاريخ|history/.test(value)) return 28;
-  if (/تفكير|ناقد|critical/.test(value)) return 274;
-  if (/كيمياء|chem/.test(value)) return 174;
-  if (/فيزياء|phys/.test(value)) return 218;
-  if (/أحياء|احياء|biology/.test(value)) return 112;
-  if (/تنمية|مستدام|sustain/.test(value)) return 148;
-  if (/رياضيات|math/.test(value)) return 232;
-  if (/عربي|لغتي|arabic/.test(value)) return 348;
-  if (/انجليزي|إنجليزي|english/.test(value)) return 202;
-  if (/اسلام|إسلام|دين|islam/.test(value)) return 158;
-  if (/علوم|science/.test(value)) return 188;
-  if (/حاسب|تقنية|رقمي|computer|digital/.test(value)) return 206;
-  if (/فني|فن|art/.test(value)) return 318;
-  if (/بدني|رياضة|physical/.test(value)) return 12;
-  if (/جغراف|geograph/.test(value)) return 194;
-  let hash = 2166136261;
-  const seed = value || "subject";
-  for (let index = 0; index < seed.length; index += 1) {
-    hash ^= seed.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return Math.abs(hash >>> 0) % 360;
-}
-
-function subjectVisualStyle(subjectId: string, subjectName = "", identityIndex = 0): CSSProperties {
-  const baseHue = semanticSubjectHue(subjectId, subjectName);
-  const hue = (baseHue + identityIndex * 47) % 360;
-  const secondaryHue = (hue + 18) % 360;
-  return {
-    "--subject": `hsl(${hue} 58% 42%)`,
-    "--subject-deep": `hsl(${secondaryHue} 54% 28%)`,
-    "--subject-soft": `hsl(${hue} 48% 94%)`,
-    "--subject-faint": `hsl(${hue} 42% 98%)`,
-  } as CSSProperties;
-}
-
-function subjectSymbol(subjectId: string, subjectName = "") {
-  const value = normalizedSubjectText(subjectId, subjectName);
-  if (/تاريخ|history/.test(value)) return "🏛️";
-  if (/تفكير|ناقد|critical/.test(value)) return "🧠";
-  if (/كيمياء|chem/.test(value)) return "⚗️";
-  if (/فيزياء|phys/.test(value)) return "⚛️";
-  if (/أحياء|احياء|biology/.test(value)) return "🧬";
-  if (/تنمية|مستدام|sustain/.test(value)) return "🌱";
-  if (/رياضيات|math/.test(value)) return "∑";
-  if (/عربي|لغتي|arabic/.test(value)) return "ض";
-  if (/انجليزي|إنجليزي|english/.test(value)) return "A";
-  if (/اسلام|إسلام|دين|islam/.test(value)) return "☪";
-  if (/علوم|science/.test(value)) return "🔬";
-  if (/حاسب|تقنية|رقمي|computer|digital/.test(value)) return "💻";
-  if (/فني|فن|art/.test(value)) return "🎨";
-  if (/بدني|رياضة|physical/.test(value)) return "🏃";
-  if (/جغراف|geograph/.test(value)) return "🌍";
-  return "📘";
-}
-
-function NavIcon({ type }: { type: string }) {
-  const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (type === "dashboard") return <svg {...common}><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>;
-  if (type === "students") return <svg {...common}><circle cx="8.5" cy="8" r="3"/><path d="M3.5 19v-1.2A4.8 4.8 0 0 1 8.3 13h.4a4.8 4.8 0 0 1 4.8 4.8V19M16 7a2.5 2.5 0 1 1 0 5M16.5 14.5c2.6.4 4 2 4 4.5"/></svg>;
-  if (type === "timetable") return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 9.5h17M8 13h2M14 13h2M8 17h2M14 17h2"/></svg>;
-  if (type === "attendance") return <svg {...common}><path d="M5 4h14v16H5zM8 8h8M8 12h5"/><path d="m13.5 16 1.7 1.7 3.3-3.7"/></svg>;
-  if (type === "grades") return <svg {...common}><path d="M4 20h16M6.5 16V10M12 16V5M17.5 16v-4"/><path d="m5 7 4-3 3 2 6-3"/></svg>;
-  if (type === "follow") return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;
-  if (type === "notes") return <svg {...common}><path d="M5 4h14v13H9l-4 3z"/><path d="M8 8h8M8 12h6"/></svg>;
-  if (type === "diagnostics") return <svg {...common}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8"/></svg>;
-  if (type === "report") return <svg {...common}><path d="M5 3.5h14v17H5z"/><path d="M8 16v-3M12 16V9M16 16v-6"/></svg>;
-  if (type === "reports") return <svg {...common}><path d="M7 3.5h10v4H7zM5 8h14v8H5zM8 16h8v4H8z"/><path d="M8 11h8"/></svg>;
-  if (type === "portfolio") return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;
-  if (type === "ai") return <svg {...common}><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m6 6 2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>;
-  if (type === "gradeplan") return <svg {...common}><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/></svg>;
-  return <svg {...common}><path d="M5 5h14v14H5z"/></svg>;
-}
-
-function pageContext(pathname: string) {
-  if (pathname.startsWith("/teacher/students")) return { eyebrow: "الفصول والطلاب", title: "إدارة الطلاب", question: "اختر الفصل، والباقي يظهر لك في نفس المساحة.", ai: "أرتب لك الفصل كمساحة عمل واحدة بدل القوائم المتفرقة.", href: "/teacher/report", action: "تحليل الفصول" };
-  if (pathname.startsWith("/teacher/timetable")) return { eyebrow: "أسبوعك الدراسي", title: "الجدول الدراسي", question: "شاهد أسبوعك كاملًا وعدّل فقط عندما تحتاج.", ai: "أقرأ ضغط الحصص وتوزيع الفصول وأقترح تنظيمًا أبسط عند الحاجة.", href: "/teacher/ai", action: "اسأل المساعد" };
-  if (pathname.startsWith("/teacher/attendance")) return { eyebrow: "المتابعة اليومية", title: "سجل المتابعة", question: "عدّل الاستثناء فقط؛ البقية حاضر تلقائيًا.", ai: "أراقب تكرار الغياب والتأخر وأبرز الحالات التي تستحق المتابعة.", href: "/teacher/follow-up", action: "الحالات المتكررة" };
-  if (pathname.startsWith("/teacher/grades")) return { eyebrow: "الرصد الأكاديمي", title: "التحصيل العلمي", question: "اختر الوحدة أو الفترة ثم ابدأ الرصد مباشرة.", ai: "أقرأ اكتمال الرصد ومتوسط الفصل وأبرز النقص أو التراجع دون تغيير درجاتك.", href: "/teacher/report", action: "فتح التحليل" };
-  if (pathname.startsWith("/teacher/follow-up")) return { eyebrow: "مهارات الطلاب", title: "الإتقان والمهارة", question: "حوّل الرصد إلى قرار تعليمي واضح.", ai: "أربط النتيجة بالمهارة وأقترح دعمًا أو إثراءً مناسبًا.", href: "/teacher/ai", action: "تحليل أعمق" };
-  if (pathname.startsWith("/teacher/notes")) return { eyebrow: "التواصل التربوي", title: "الملاحظات", question: "اختر الطالب، اختر نوع الملاحظة، ثم راجع النص.", ai: "أقترح صياغة تربوية واضحة وتبقى الموافقة والحفظ بيدك.", href: "/teacher/ai", action: "صياغة ذكية" };
-  if (pathname.startsWith("/teacher/diagnostics")) return { eyebrow: "القياس والتشخيص", title: "الاختبارات التشخيصية", question: "من النتيجة إلى المهارة ثم خطة التدخل.", ai: "أربط نتيجة الاختبار بالمهارة والخطة العلاجية أو الإثرائية دون تغيير أي اختبار محفوظ.", href: "/teacher/ai", action: "تحليل النتائج" };
-  if (pathname.startsWith("/teacher/reports")) return { eyebrow: "الوثائق الأكاديمية", title: "مركز التقارير", question: "اختر التقرير والفصول والفترة ثم أنشئه.", ai: "أجهز لك التقرير بالمعلومات المناسبة فقط وبهوية موحدة للمنصة.", href: "/teacher/reports", action: "ابدأ التقرير" };
-  if (pathname.startsWith("/teacher/report")) return { eyebrow: "قراءة الأداء", title: "ملخص عمل المعلم", question: "قارن الفصول أو اقرأ أداء مجموعة طلاب.", ai: "أجمع الحضور والتحصيل والإتقان والملاحظات في قراءة واحدة.", href: "/teacher/ai", action: "تفسير المؤشرات" };
-  if (pathname.startsWith("/teacher/portfolio")) return { eyebrow: "التوثيق المهني", title: "ملف الإنجاز", question: "وثّق الشاهد في مكانه الصحيح.", ai: "أرتب الشواهد حسب النوع والفترة حتى يبقى الملف جاهزًا للعرض.", href: "/teacher/portfolio", action: "فتح الإنجاز" };
-  if (pathname.startsWith("/teacher/grade-plan")) return { eyebrow: "إعداد الخطة", title: "الخطة الدراسية", question: "الخطة للعرض أولًا، والتعديل بإذن منك فقط.", ai: "أقدم مقترحات عند الطلب فقط، ولا أعتمد أي تغيير دون مراجعتك.", href: "/teacher/ai", action: "اقتراح خطة" };
-  return { eyebrow: "أكاديمية المعلم", title: "مركز اليوم", question: "ابدأ بما يحتاج انتباهك الآن، وليس بما هو موجود في القائمة.", ai: "أربط جدولك وفصولك والتحصيل والمتابعة لأقترح الخطوة التالية.", href: "/teacher/ai", action: "افتح المساعد" };
-}
-
-export default function TeacherLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const isLoginPage = pathname === "/teacher";
-  const [ready, setReady] = useState(false);
-  const [hasGradePlan, setHasGradePlan] = useState<boolean | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [teacherId, setTeacherId] = useState<string>();
-  const [teacherName, setTeacherName] = useState("المعلم");
-  const [subjectKey, setSubjectKey] = useState<SubjectKey>("history");
-  const [workspaceKey, setWorkspaceKey] = useState("history");
-  const [activeGrade, setActiveGrade] = useState<number | null>(null);
-  const [activeGradeLabel, setActiveGradeLabel] = useState("");
-  const [subjectName, setSubjectName] = useState("التاريخ");
-  const [subjects, setSubjects] = useState<TeacherClientSubject[]>([]);
-  const [assignments, setAssignments] = useState<TeacherClientAssignment[]>([]);
-  const [switchingSubject, setSwitchingSubject] = useState(false);
-  const [switchingLabel, setSwitchingLabel] = useState("");
-  const [todayLabel, setTodayLabel] = useState("");
-  const subjectConfig = getSubjectConfig(subjectKey);
-  const context = useMemo(() => pageContext(pathname), [pathname]);
-
-  function applySession(session: TeacherSession) {
-    const nextSubjectKey = session.subjectKey || "history";
-    if (session.teacherId) setGradePlanCurrentTeacher(session.teacherId);
-    setTeacherId(session.teacherId);
-    setTeacherName(session.teacherName || "المعلم");
-    setSubjectKey(nextSubjectKey);
-    setWorkspaceKey(session.workspaceKey || nextSubjectKey);
-    setActiveGrade(session.activeGrade || null);
-    setActiveGradeLabel(session.activeGradeLabel || "");
-    setSubjectName(session.subject || getSubjectConfig(nextSubjectKey).label);
-    setSubjects(Array.isArray(session.subjects) ? session.subjects : []);
-    setAssignments(Array.isArray(session.assignments) ? session.assignments : []);
-  }
-
-  function clearSessionState() {
-    setTeacherId(undefined);
-    setTeacherName("المعلم");
-    setSubjectKey("history");
-    setWorkspaceKey("history");
-    setActiveGrade(null);
-    setActiveGradeLabel("");
-    setSubjectName("التاريخ");
-    setSubjects([]);
-    setAssignments([]);
-    setHasGradePlan(null);
-    setMenuOpen(false);
-  }
-
-  async function logout() {
-    setReady(false);
-    clearSessionState();
-    try {
-      await Promise.all([
-        fetch("/api/teacher-logout", { method: "POST", cache: "no-store" }),
-        signOut(auth),
-      ]);
-    } finally {
-      router.replace("/teacher");
-    }
-  }
-
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
-  useEffect(() => {
-    setTodayLabel(new Intl.DateTimeFormat("ar-SA", { timeZone: "Asia/Riyadh", weekday: "long", day: "numeric", month: "long" }).format(new Date()));
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    router.prefetch("/teacher/dashboard");
-    tabs.forEach(tab => router.prefetch(tab.href));
-  }, [ready, router]);
-
-  useEffect(() => {
-    if (isLoginPage) { setReady(false); clearSessionState(); return; }
-    setReady(false);
-    let active = true;
-    fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" })
-      .then(response => response.ok ? response.json() : Promise.reject(new Error("session_failed")))
-      .then((session: TeacherSession) => {
-        if (!active || !session.teacherId) throw new Error("missing_teacher_identity");
-        applySession(session);
-        setReady(true);
-        void fetch("/api/teacher/grade-plan", { cache: "no-store", credentials: "same-origin" })
-          .then(response => response.ok ? response.json() : Promise.reject(new Error("plan_failed")))
-          .then(planData => { if (active) setHasGradePlan(Boolean(planData?.activePlan || planData?.hasActivePlan)); })
-          .catch(() => { if (active) setHasGradePlan(Boolean(readLocalGradePlan(session.teacherId))); });
-      })
-      .catch(() => { if (active) router.replace("/teacher"); });
-    return () => { active = false; };
-  }, [isLoginPage, router]);
-
-  async function changeSubject(nextWorkspaceKey: string) {
-    if (nextWorkspaceKey === workspaceKey || switchingSubject) return;
-    const selected = subjects.find(subject => subject.workspaceKey === nextWorkspaceKey);
-    try {
-      setSwitchingSubject(true);
-      setSwitchingLabel(selected?.subjectName || "المادة");
-      const response = await fetch("/api/teacher-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceKey: nextWorkspaceKey }),
-        cache: "no-store",
-        credentials: "same-origin",
-      });
-      if (!response.ok) throw new Error();
-      if (selected) {
-        setWorkspaceKey(selected.workspaceKey);
-        setSubjectKey(selected.subjectId as SubjectKey);
-        setSubjectName(selected.subjectName || getSubjectConfig(selected.subjectId).label);
-        setActiveGrade(selected.grade || null);
-        setActiveGradeLabel(selected.gradeLabel || "");
-      }
-      router.replace("/teacher/dashboard");
-    } finally {
-      setSwitchingSubject(false);
-      setSwitchingLabel("");
-    }
-  }
-
-  if (isLoginPage) return <>{children}</>;
-  if (!ready) return <main className="teacher-academy-loading">جارٍ فتح أكاديمية المعلم…</main>;
-
-  const contextValue = {
-    authenticated: true,
-    teacherId,
-    teacherName,
-    subjectKey,
-    workspaceKey,
-    activeGrade,
-    activeGradeLabel,
-    subject: subjectName,
-    subjects,
-    assignments,
-    setSubject: changeSubject,
-    refresh: async () => {
-      const response = await fetch("/api/teacher-session", { cache: "no-store", credentials: "same-origin" });
-      if (response.ok) applySession(await response.json());
-    },
-  };
-
-  const availableSubjects = subjects.length
-    ? subjects
-    : [{ workspaceKey, subjectId: subjectKey, subjectName, grade: activeGrade || undefined, gradeLabel: activeGradeLabel } as TeacherClientSubject];
-  const activeIdentityIndex = Math.max(0, availableSubjects.findIndex(item => item.workspaceKey === workspaceKey));
-
-  const renderGroup = (group: TeacherTab["group"], title: string) => <section className="academy-v12-nav-group">
-    <small>{title}</small>
-    <nav>{tabs.filter(tab => tab.group === group).map(tab => {
-      const active = pathname.startsWith(tab.href);
-      const badge = tab.key === "gradeplan" && hasGradePlan ? "✓" : tab.badge;
-      return <Link key={tab.href} href={tab.href} prefetch className={active ? "active" : ""}>
-        <span className="academy-v12-nav-icon"><NavIcon type={tab.key}/></span>
-        <b>{tab.label}</b>
-        {badge ? <i>{badge}</i> : null}
-      </Link>;
-    })}</nav>
-  </section>;
-
-  return <TeacherClientContext.Provider key={`${teacherId || "teacher"}:${workspaceKey}`} value={contextValue}>
-    <div className={`teacher-academy-v12 ${subjectConfig.themeClass} ${menuOpen ? "menu-open" : ""}`} style={subjectVisualStyle(subjectKey, subjectName, activeIdentityIndex)} dir="rtl" data-subject={subjectKey}>
-      <aside className="academy-v12-rail">
-        <Link href="/teacher/dashboard" prefetch className="academy-v12-brand">
-          <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority />
-          <span><small>بوابة أستاذ لحوني التعليمية</small><strong>أكاديمية المعلم</strong></span>
-        </Link>
-
-        <Link href="/teacher/dashboard" prefetch className={`academy-v12-home ${pathname.startsWith("/teacher/dashboard") ? "active" : ""}`}>
-          <span className="academy-v12-nav-icon"><NavIcon type="dashboard"/></span><b>مركز اليوم</b><i>الرئيسية</i>
-        </Link>
-
-        <div className="academy-v12-nav-list">
-          {renderGroup("daily", "العمل اليومي")}
-          {renderGroup("learning", "التعليم والمتابعة")}
-          {renderGroup("insight", "التحليل والتقارير")}
-          {renderGroup("setup", "الإعداد")}
-        </div>
-
-        <footer className="academy-v12-footer"><Link href="/">الرئيسية العامة</Link><button type="button" onClick={() => void logout()}>خروج</button></footer>
+export default function TeacherLayout({children}:{children:ReactNode}){
+  const pathname=usePathname();const router=useRouter();const isLoginPage=pathname==="/teacher";
+  const [ready,setReady]=useState(false);const [hasGradePlan,setHasGradePlan]=useState<boolean|null>(null);const [menuOpen,setMenuOpen]=useState(false);const [teacherId,setTeacherId]=useState<string>();const [teacherName,setTeacherName]=useState("المعلم");const [subjectKey,setSubjectKey]=useState<SubjectKey>("history");const [workspaceKey,setWorkspaceKey]=useState("history");const [activeGrade,setActiveGrade]=useState<number|null>(null);const [activeGradeLabel,setActiveGradeLabel]=useState("");const [subjectName,setSubjectName]=useState("التاريخ");const [subjects,setSubjects]=useState<TeacherClientSubject[]>([]);const [assignments,setAssignments]=useState<TeacherClientAssignment[]>([]);const [switchingSubject,setSwitchingSubject]=useState(false);const [switchingLabel,setSwitchingLabel]=useState("");const [todayLabel,setTodayLabel]=useState("");
+  const subjectConfig=getSubjectConfig(subjectKey);const context=useMemo(()=>pageContext(pathname),[pathname]);
+  function applySession(session:TeacherSession){const nextSubjectKey=session.subjectKey||"history";if(session.teacherId)setGradePlanCurrentTeacher(session.teacherId);setTeacherId(session.teacherId);setTeacherName(session.teacherName||"المعلم");setSubjectKey(nextSubjectKey);setWorkspaceKey(session.workspaceKey||nextSubjectKey);setActiveGrade(session.activeGrade||null);setActiveGradeLabel(session.activeGradeLabel||"");setSubjectName(session.subject||getSubjectConfig(nextSubjectKey).label);setSubjects(Array.isArray(session.subjects)?session.subjects:[]);setAssignments(Array.isArray(session.assignments)?session.assignments:[]);}
+  function clearSessionState(){setTeacherId(undefined);setTeacherName("المعلم");setSubjectKey("history");setWorkspaceKey("history");setActiveGrade(null);setActiveGradeLabel("");setSubjectName("التاريخ");setSubjects([]);setAssignments([]);setHasGradePlan(null);setMenuOpen(false);}
+  async function logout(){setReady(false);clearSessionState();try{await Promise.all([fetch("/api/teacher-logout",{method:"POST",cache:"no-store"}),signOut(auth)]);}finally{router.replace("/teacher");}}
+  useEffect(()=>{setMenuOpen(false);},[pathname]);
+  useEffect(()=>{setTodayLabel(new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(new Date()));},[]);
+  useEffect(()=>{if(!ready)return;router.prefetch("/teacher/dashboard");tabs.forEach(tab=>router.prefetch(tab.href));},[ready,router]);
+  useEffect(()=>{if(isLoginPage){setReady(false);clearSessionState();return;}setReady(false);let active=true;fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"}).then(response=>response.ok?response.json():Promise.reject(new Error("session_failed"))).then((session:TeacherSession)=>{if(!active||!session.teacherId)throw new Error("missing_teacher_identity");applySession(session);setReady(true);void fetch("/api/teacher/grade-plan",{cache:"no-store",credentials:"same-origin"}).then(response=>response.ok?response.json():Promise.reject(new Error("plan_failed"))).then(planData=>{if(active)setHasGradePlan(Boolean(planData?.activePlan||planData?.hasActivePlan));}).catch(()=>{if(active)setHasGradePlan(Boolean(readLocalGradePlan(session.teacherId)));});}).catch(()=>{if(active)router.replace("/teacher");});return()=>{active=false;};},[isLoginPage,router]);
+  async function changeSubject(nextWorkspaceKey:string){if(nextWorkspaceKey===workspaceKey||switchingSubject)return;const selected=subjects.find(subject=>subject.workspaceKey===nextWorkspaceKey);try{setSwitchingSubject(true);setSwitchingLabel(selected?.subjectName||"المادة");const response=await fetch("/api/teacher-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceKey:nextWorkspaceKey}),cache:"no-store",credentials:"same-origin"});if(!response.ok)throw new Error();if(selected){setWorkspaceKey(selected.workspaceKey);setSubjectKey(selected.subjectId as SubjectKey);setSubjectName(selected.subjectName||getSubjectConfig(selected.subjectId).label);setActiveGrade(selected.grade||null);setActiveGradeLabel(selected.gradeLabel||"");}router.replace("/teacher/dashboard");}finally{setSwitchingSubject(false);setSwitchingLabel("");}}
+  if(isLoginPage)return <>{children}</>;if(!ready)return <main className="teacher-studio-loading">جارٍ فتح استوديو المعلم…</main>;
+  const contextValue={authenticated:true,teacherId,teacherName,subjectKey,workspaceKey,activeGrade,activeGradeLabel,subject:subjectName,subjects,assignments,setSubject:changeSubject,refresh:async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"});if(response.ok)applySession(await response.json());}};
+  const availableSubjects=subjects.length?subjects:[{workspaceKey,subjectId:subjectKey,subjectName,grade:activeGrade||undefined,gradeLabel:activeGradeLabel} as TeacherClientSubject];const activeIdentityIndex=Math.max(0,availableSubjects.findIndex(item=>item.workspaceKey===workspaceKey));
+  const renderGroup=(group:TeacherTab["group"],title:string)=><section className="ts-group"><small>{title}</small><nav className="ts-nav">{tabs.filter(tab=>tab.group===group).map(tab=>{const active=pathname.startsWith(tab.href);const badge=tab.key==="gradeplan"&&hasGradePlan?"✓":tab.badge;return <Link key={tab.href} href={tab.href} prefetch className={active?"active":""}><span className="ts-icon"><NavIcon type={tab.key}/></span><b>{tab.label}</b>{badge?<i>{badge}</i>:null}</Link>;})}</nav></section>;
+  return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
+    <div className={`teacher-studio ${subjectConfig.themeClass} ${menuOpen?"menu-open":""}`} style={subjectVisualStyle(subjectKey,subjectName,activeIdentityIndex)} dir="rtl" data-subject={subjectKey}>
+      <aside className="ts-rail">
+        <Link href="/teacher/dashboard" prefetch className="ts-brand"><Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority/><span><small>بوابة أستاذ لحوني التعليمية</small><strong>استوديو المعلم</strong><em>متصل ومتزامن</em></span></Link>
+        <Link href="/teacher/dashboard" prefetch className={`ts-home ${pathname.startsWith("/teacher/dashboard")?"active":""}`}><span className="ts-icon"><NavIcon type="dashboard"/></span><b>مركز اليوم</b><i>الرئيسية</i></Link>
+        <div className="ts-nav-list">{renderGroup("daily","العمل اليومي")}{renderGroup("learning","التعليم والمتابعة")}{renderGroup("insight","التحليل والتقارير")}{renderGroup("setup","الإعداد الأكاديمي")}</div>
+        <footer className="ts-footer"><Link href="/">الرئيسية العامة</Link><button type="button" onClick={()=>void logout()}>خروج</button></footer>
       </aside>
-
-      <button type="button" className="academy-v12-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/>
-
-      <section className="academy-v12-stage">
-        <header className="academy-v12-topbar">
-          <button className="academy-v12-menu" type="button" onClick={() => setMenuOpen(true)} aria-label="فتح القائمة">☰</button>
-
-          <section className="academy-v12-profile">
-            <div className="academy-v12-avatar" title={subjectName}>{subjectSymbol(subjectKey, subjectName)}</div>
-            <div className="academy-v12-profile-copy"><small>المعلم</small><h2>{teacherName}</h2><p>{subjectName} • {activeGradeLabel || "المرحلة الثانوية"}</p></div>
-            <span className="academy-v12-online"><i/> متصل</span>
-          </section>
-
-          <section className="academy-v12-subjects" aria-label="المواد المسندة">
-            <small>المواد المسندة</small>
-            <div>{availableSubjects.map((subject, index) => {
-              const active = subject.workspaceKey === workspaceKey;
-              return <button type="button" key={subject.workspaceKey} style={subjectVisualStyle(subject.subjectId, subject.subjectName, index)} className={active ? "active" : ""} disabled={switchingSubject} onClick={() => void changeSubject(subject.workspaceKey)}>
-                <span className="subject-ribbon" data-subject={subject.subjectId}/>
-                <span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1, marginInline: 4 }}>{subjectSymbol(subject.subjectId, subject.subjectName)}</span>
-                <span><b>{subject.subjectName}</b><em>{subject.gradeLabel || ""}</em></span>
-              </button>;
-            })}</div>
-          </section>
-
-          <div className="academy-v12-top-actions">
-            <span className="academy-v12-date">{todayLabel}</span>
-            <Link href="/teacher/reports" prefetch className="academy-v12-report"><NavIcon type="reports"/><span>مركز التقارير</span></Link>
-          </div>
+      <button type="button" className="ts-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
+      <section className="ts-stage">
+        <header className="ts-topbar">
+          <button className="ts-menu" type="button" onClick={()=>setMenuOpen(true)} aria-label="فتح القائمة">☰</button>
+          <section className="ts-teacher"><div className="ts-avatar" title={subjectName}>{subjectSymbol(subjectKey,subjectName)}</div><div><small>المعلم</small><h2>{teacherName}</h2><p>{subjectName} • {activeGradeLabel||"المرحلة الثانوية"}</p></div></section>
+          <section className="ts-subject-zone" aria-label="المواد المسندة"><header><small>المواد المسندة — انتقل دون فقد أي سجل</small><span>المزامنة فعالة</span></header><div className="ts-subjects">{availableSubjects.map((subject,index)=>{const active=subject.workspaceKey===workspaceKey;return <button type="button" key={subject.workspaceKey} style={subjectVisualStyle(subject.subjectId,subject.subjectName,index)} className={`ts-subject ${active?"active":""}`} disabled={switchingSubject} onClick={()=>void changeSubject(subject.workspaceKey)}><span className="symbol" aria-hidden="true">{subjectSymbol(subject.subjectId,subject.subjectName)}</span><span><b>{subject.subjectName}</b><em>{subject.gradeLabel||"المادة المسندة"}</em></span>{active?<i className="live" aria-label="المادة الحالية"/>:null}</button>;})}</div></section>
+          <div className="ts-actions"><span className="ts-date">{todayLabel}</span><Link href="/teacher/reports" prefetch className="ts-report"><NavIcon type="reports"/><span>التقارير</span></Link></div>
         </header>
-
-        <section className="academy-v12-headline">
-          <div><small><span aria-hidden="true">{subjectSymbol(subjectKey, subjectName)}</span> {subjectName} • {context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p></div>
-          <div className="academy-v12-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href} prefetch>{context.action}</Link></div>
-        </section>
-
-        <div className="academy-v12-competition"><TeacherCompetitionProgress compact/></div>
-
-        <main className="academy-v12-canvas">{children}</main>
+        <section className="ts-context"><div className="ts-context-main"><small>{subjectSymbol(subjectKey,subjectName)} {subjectName} • {context.eyebrow}</small><h1>{context.title}</h1><p>{context.question}</p><span className="ts-live-line">البيانات متصلة ببوابة الطالب</span></div><div className="ts-ai"><span>AI</span><p>{context.ai}</p><Link href={context.href} prefetch>{context.action}</Link></div></section>
+        <div className="ts-competition"><TeacherCompetitionProgress compact/></div>
+        <main className="ts-canvas">{children}</main>
       </section>
-
-      {switchingLabel ? <div className="academy-v12-switching"><span>فتح مادة</span><b>{switchingLabel}</b></div> : null}
+      {switchingLabel?<div className="ts-switching"><div><div className="orbit"/><small>جارٍ الانتقال مع الحفاظ على نفس سجلات المادة</small><b>{switchingLabel}</b><p>الطلاب • الحضور • الدرجات • الخصومات • الملاحظات</p></div></div>:null}
     </div>
   </TeacherClientContext.Provider>;
 }
