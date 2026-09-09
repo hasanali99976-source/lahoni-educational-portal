@@ -56,11 +56,15 @@ function hash(value: string) {
 }
 
 function storageKey(code: string, subjectKey: string, kind: AlertKind) {
-  return `lahooni:student-alert:v700:${code}:${subjectKey}:${kind}`;
+  return `lahooni:student-alert:v800:${code}:${subjectKey}:${kind}`;
+}
+
+function slotKey(subjectKey: string, kind: AlertKind) {
+  return `${subjectKey}:${kind}`;
 }
 
 function removeOldCenters() {
-  document.querySelectorAll(".sta500-alert-center,.sta600-alert-center,.sta700-alert-center").forEach(node => node.remove());
+  document.querySelectorAll(".sta500-alert-center,.sta600-alert-center,.sta700-alert-center,.sta800-alert-center").forEach(node => node.remove());
 }
 
 function selectedSubjectLabel() {
@@ -273,11 +277,11 @@ export default function StudentAcademicRuntime() {
       if (!selected) return;
 
       const visible = [...sessionVisible.entries()]
-        .filter(([id, alert]) => alert.subjectKey === selected.subjectKey && !dismissed.has(id));
+        .filter(([slot, alert]) => alert.subjectKey === selected.subjectKey && !dismissed.has(slot));
       if (!visible.length) return;
 
       const section = document.createElement("section");
-      section.className = "sta600-alert-center sta700-alert-center";
+      section.className = "sta600-alert-center sta800-alert-center";
       section.dataset.subject = selected.subjectKey;
       const header = document.createElement("header");
       const copy = document.createElement("div");
@@ -291,7 +295,7 @@ export default function StudentAcademicRuntime() {
       header.append(copy, count);
       const grid = document.createElement("div");
       grid.className = "sta600-alert-grid";
-      visible.forEach(([id, alert]) => grid.appendChild(createAlert(alert, () => dismissed.add(id))));
+      visible.forEach(([slot, alert]) => grid.appendChild(createAlert(alert, () => dismissed.add(slot))));
       section.append(header, grid);
       head.insertAdjacentElement("afterend", section);
     };
@@ -300,11 +304,13 @@ export default function StudentAcademicRuntime() {
       if (!currentCode) return;
       for (const match of profiles) {
         for (const alert of buildAlerts(match)) {
-          const id = `${alert.subjectKey}:${alert.kind}:${alert.signature}`;
+          const slot = slotKey(alert.subjectKey, alert.kind);
           const key = storageKey(currentCode, alert.subjectKey, alert.kind);
-          if (localStorage.getItem(key) === alert.signature) continue;
+          const previousSignature = localStorage.getItem(key);
+          if (previousSignature === alert.signature) continue;
           localStorage.setItem(key, alert.signature);
-          sessionVisible.set(id, alert);
+          sessionVisible.set(slot, alert);
+          dismissed.delete(slot);
         }
       }
     };
