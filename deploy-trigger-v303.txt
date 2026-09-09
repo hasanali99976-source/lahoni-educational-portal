@@ -1,0 +1,2 @@
+Production deploy trigger v303
+Includes Today attendance report tab wiring, educational jingle priming, student subject selection shown once after login.
