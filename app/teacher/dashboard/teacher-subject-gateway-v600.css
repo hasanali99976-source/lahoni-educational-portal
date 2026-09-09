@@ -1,0 +1,108 @@
+.teacher-subject-modal-v500{
+  position:fixed!important;
+  inset:0!important;
+  z-index:999999!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:24px!important;
+  overflow:auto!important;
+  isolation:isolate;
+}
+.teacher-subject-backdrop-v500{
+  position:fixed!important;
+  inset:0!important;
+  z-index:-1!important;
+  width:100%!important;
+  height:100%!important;
+  border:0!important;
+  background:rgba(4,18,26,.68)!important;
+  backdrop-filter:blur(10px)!important;
+  cursor:default!important;
+}
+.teacher-subject-panel-v500{
+  position:relative!important;
+  z-index:2!important;
+  width:min(920px,calc(100vw - 36px))!important;
+  max-height:min(88vh,760px)!important;
+  overflow:auto!important;
+  margin:0!important;
+  border-radius:30px!important;
+  border:1px solid rgba(255,255,255,.26)!important;
+  background:linear-gradient(145deg,#ffffff 0%,#f5f9f9 100%)!important;
+  box-shadow:0 38px 100px rgba(0,0,0,.38)!important;
+  padding:0!important;
+  transform:none!important;
+  top:auto!important;
+  right:auto!important;
+  left:auto!important;
+  bottom:auto!important;
+}
+.teacher-subject-panel-v500>header{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:20px!important;
+  padding:26px 28px 22px!important;
+  background:linear-gradient(135deg,#092f3f,#0b6f70)!important;
+  color:#fff!important;
+  border-radius:30px 30px 0 0!important;
+}
+.teacher-subject-panel-v500>header small{display:block!important;color:#b9eeea!important;font-weight:900!important;margin-bottom:5px!important}
+.teacher-subject-panel-v500>header h2{margin:0 0 7px!important;color:#fff!important;font-size:30px!important}
+.teacher-subject-panel-v500>header p{margin:0!important;color:#d7eef0!important;font-size:14px!important}
+.teacher-subject-panel-v500>header>button{
+  width:38px!important;
+  height:38px!important;
+  border-radius:12px!important;
+  border:1px solid rgba(255,255,255,.22)!important;
+  background:rgba(255,255,255,.12)!important;
+  color:#fff!important;
+  font-size:25px!important;
+  cursor:pointer!important;
+}
+.teacher-subject-grid-v500{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr))!important;
+  gap:14px!important;
+  padding:22px!important;
+}
+.teacher-subject-grid-v500>button{
+  min-height:122px!important;
+  border:1px solid hsl(var(--subject-hue,180) 35% 86%)!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,#fff,hsl(var(--subject-hue,180) 45% 97%))!important;
+  color:#17383b!important;
+  padding:18px!important;
+  display:grid!important;
+  grid-template-columns:52px 1fr auto!important;
+  gap:13px!important;
+  align-items:center!important;
+  text-align:right!important;
+  box-shadow:0 10px 24px rgba(19,57,60,.07)!important;
+  cursor:pointer!important;
+  transition:.18s ease!important;
+}
+.teacher-subject-grid-v500>button:hover{transform:translateY(-3px)!important;box-shadow:0 18px 34px rgba(19,57,60,.13)!important}
+.teacher-subject-grid-v500>button.active{border-color:hsl(var(--subject-hue,180) 50% 58%)!important;box-shadow:0 0 0 3px hsl(var(--subject-hue,180) 55% 92%),0 14px 28px rgba(19,57,60,.1)!important}
+.teacher-subject-symbol-v500{
+  width:50px!important;
+  height:50px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:15px!important;
+  background:hsl(var(--subject-hue,180) 55% 94%)!important;
+  font-size:24px!important;
+}
+.teacher-subject-grid-v500>button strong{display:block!important;font-size:17px!important;color:#17383b!important;margin-bottom:4px!important}
+.teacher-subject-grid-v500>button small{display:block!important;color:#6c8081!important;font-size:12px!important}
+.teacher-subject-grid-v500>button i{font-style:normal!important;font-size:11px!important;font-weight:900!important;color:hsl(var(--subject-hue,180) 55% 35%)!important;background:hsl(var(--subject-hue,180) 55% 94%)!important;border-radius:999px!important;padding:7px 9px!important;white-space:nowrap!important}
+.teacher-subject-trigger-v500{position:fixed!important;z-index:9990!important;left:24px!important;bottom:24px!important;box-shadow:0 14px 30px rgba(0,0,0,.2)!important}
+@media(max-width:720px){
+  .teacher-subject-modal-v500{padding:12px!important}
+  .teacher-subject-panel-v500{width:calc(100vw - 24px)!important;max-height:90vh!important;border-radius:24px!important}
+  .teacher-subject-panel-v500>header{padding:22px 18px 18px!important;border-radius:24px 24px 0 0!important}
+  .teacher-subject-panel-v500>header h2{font-size:24px!important}
+  .teacher-subject-grid-v500{grid-template-columns:1fr!important;padding:14px!important}
+  .teacher-subject-grid-v500>button{min-height:100px!important;grid-template-columns:46px 1fr auto!important;padding:14px!important}
+  .teacher-subject-trigger-v500{left:14px!important;bottom:14px!important}
+}
