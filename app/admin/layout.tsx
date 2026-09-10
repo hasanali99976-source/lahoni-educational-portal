@@ -11,6 +11,7 @@ import "./admin-clarity-v5.css";
 import "./admin-dashboard-premium.css";
 import "./admin-final.css";
 import "./admin-premium-2026.css";
+import "./admin-living-v13.css";
 
 function AdminIcon({ type }: { type: "home" | "teachers" | "students" | "competition" }) {
   const common = { width: 21, height: 21, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -42,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (pathname === "/admin" && authenticated !== true) return <>{children}</>;
   if (authenticated !== true) return <main className="admin-shell-gate" dir="rtl"><Image src="/icons/lahooni-identity-320.jpg" alt="بوابة أستاذ لحوني التعليمية" width={72} height={72}/><strong>بوابة الإدارة</strong><span>جارٍ التحقق من جلسة الدخول…</span></main>;
 
-  const title = pathname.startsWith("/admin/teachers") ? "إدارة المعلمين" : pathname.startsWith("/admin/students") ? "إدارة الطلاب والفصول" : pathname.startsWith("/admin/competition") ? "التنافس بين المعلمين" : "لوحة الإدارة";
+  const title = pathname.startsWith("/admin/teachers") ? "إدارة المعلمين" : pathname.startsWith("/admin/students") ? "إدارة الطلاب والفصول" : pathname.startsWith("/admin/competition") ? "ساحة التنافس" : "مركز الإدارة الذكي";
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", cache: "no-store" }).catch(() => undefined);
@@ -51,28 +52,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return <div className="admin-v4-frame" dir="rtl">
     <aside className="admin-v4-sidebar">
-      <div className="admin-v4-sidebrand">
-        <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={64} height={64} priority />
-        <div><small>منصة</small><strong>أستاذ لحوني التعليمية</strong></div>
-      </div>
-      <nav className="admin-v4-side-nav" aria-label="أقسام الإدارة">
-        {sections.map(item => {
-          const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
-          return <Link key={item.href} href={item.href} className={active ? "active" : ""}><AdminIcon type={item.type}/><span>{item.label}</span></Link>;
-        })}
-      </nav>
-      <div className="admin-v4-sidequote"><span>إدارة واضحة • قرار أسرع</span><i/></div>
+      <div className="admin-v4-sidebrand"><Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={64} height={64} priority /><div><small>منصة</small><strong>أستاذ لحوني التعليمية</strong></div></div>
+      <nav className="admin-v4-side-nav" aria-label="أقسام الإدارة">{sections.map(item => {const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);return <Link key={item.href} href={item.href} className={active ? "active" : ""}><AdminIcon type={item.type}/><span>{item.label}</span></Link>;})}</nav>
+      <div className="admin-v4-sidequote"><span>بيانات أوضح • إدارة أذكى</span><i/></div>
       <div className="admin-v4-side-signature">تصميم وتنفيذ<br/><b>الأستاذ حسن علي الطويل</b></div>
     </aside>
-
     <section className="admin-v4-main">
       <section className="admin-v4-identity" aria-label="هوية مدير المنصة">
-        <div className="admin-v4-identity-copy"><small>بوابة الإدارة</small><h1>{title}</h1><p>متابعة مدرسية ذكية مرتبطة مباشرة ببيانات المنصة.</p></div>
-        <div className="admin-v4-person">
-          <Image src="/icons/lahooni-identity-320.jpg" alt="أ. حسن علي الطويل" width={58} height={58}/>
-          <div><strong>أ. حسن علي الطويل</strong><small>مدير المنصة</small></div>
-          <button type="button" onClick={logout}>تسجيل الخروج</button>
-        </div>
+        <div className="admin-v4-identity-copy"><small>بوابة الإدارة التعليمية</small><h1>{title}</h1><p>المعلمون والطلاب والمواد في مشهد إداري واحد، واضح ومترابط.</p></div>
+        <div className="admin-v4-person"><Image src="/icons/lahooni-identity-320.jpg" alt="أ. حسن علي الطويل" width={58} height={58}/><div><strong>أ. حسن علي الطويل</strong><small>مدير المنصة</small></div><button type="button" onClick={logout}>تسجيل الخروج</button></div>
       </section>
       <main className="admin-v4-workspace">{children}</main>
     </section>
