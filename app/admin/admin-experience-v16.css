@@ -1,0 +1,50 @@
+/* V16 — visual refinement only. No data/auth behavior changes. */
+:root{--a16-navy:#0d344b;--a16-teal:#2d8581;--a16-gold:#d7ad58;--a16-cream:#fbf5e8;--a16-ink:#153746}
+
+/* Unified school-management scene */
+.admin-v4-frame{background:
+radial-gradient(circle at 82% 12%,rgba(247,208,126,.30),transparent 23%),
+radial-gradient(circle at 20% 78%,rgba(75,174,168,.22),transparent 25%),
+linear-gradient(120deg,rgba(5,35,52,.88),rgba(20,78,88,.60) 45%,rgba(245,238,218,.72) 100%),
+url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&fm=jpg&q=92&w=2600') center/cover fixed!important}
+.admin-v4-frame:after{background:
+linear-gradient(90deg,rgba(5,31,47,.20),transparent 30%,rgba(255,250,240,.08)),
+repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 38px),
+repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0 1px,transparent 1px 38px)!important}
+.admin-v4-sidebar{width:250px!important;padding:18px 14px!important;background:linear-gradient(180deg,rgba(7,35,52,.90),rgba(15,66,76,.78))!important}
+.admin-v4-main{padding:18px 22px 28px!important}
+.admin-v4-identity{min-height:108px!important;margin-bottom:12px!important}
+.admin-v4-identity-copy h1{font-size:clamp(23px,2vw,31px)!important}.admin-v4-identity-copy p{font-size:12px!important;max-width:700px!important}
+.admin-v4-person{grid-template-columns:58px minmax(160px,1fr) auto!important}.admin-v4-person img{width:56px!important;height:56px!important;border-radius:18px!important}
+.admin-v4-workspace{padding:16px!important;border-radius:24px!important;background:linear-gradient(145deg,rgba(255,254,250,.94),rgba(240,248,246,.91))!important;box-shadow:0 26px 70px rgba(1,26,41,.22)!important}
+
+/* Dashboard: calmer hierarchy, stronger command-center feeling */
+.adm15{gap:14px!important}.adm15-hero{min-height:126px!important;padding:21px 23px!important;border-radius:22px!important;background:linear-gradient(120deg,#12394f 0%,#236879 54%,#4e8e86 100%)!important}
+.adm15-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 54%,rgba(255,255,255,.05));pointer-events:none}
+.adm15-kpis{gap:12px!important}.adm15-kpis article{min-height:108px!important;padding:15px 16px!important;border-radius:18px!important}.adm15-kpi-copy>strong{font-size:28px!important}.adm15-panel,.adm15-summary{border-radius:18px!important;padding:15px 16px!important}.adm15-panel{min-height:280px!important}
+
+/* Login: same behavior, stronger visual identity */
+.admin2-login-only{min-height:100dvh!important;display:grid!important;place-items:center!important;padding:28px!important;background:
+radial-gradient(circle at 82% 16%,rgba(236,196,109,.30),transparent 24%),
+linear-gradient(120deg,rgba(6,37,54,.90),rgba(21,79,88,.72)),
+url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&fm=jpg&q=90&w=2200') center/cover!important}
+.admin2-login-card{position:relative!important;width:min(430px,100%)!important;padding:34px 32px!important;border-radius:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(245,250,248,.90))!important;border:1px solid rgba(255,255,255,.58)!important;box-shadow:0 34px 90px rgba(2,28,43,.32)!important;backdrop-filter:blur(22px) saturate(1.12)!important;overflow:hidden!important}
+.admin2-login-card:before{content:"";position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,var(--a16-gold),#65aaa4,var(--a16-navy))}
+.admin2-login-logo{width:86px!important;height:86px!important;border-radius:26px!important;box-shadow:0 16px 32px rgba(12,56,72,.18),0 0 0 7px rgba(215,173,88,.11)!important}
+.admin2-name-login h1{font-size:28px!important;color:#11384b!important;margin:12px 0 7px!important}.admin2-name-login>p{font-size:13px!important;line-height:1.8!important;color:#617982!important}.admin2-name-login label{font-size:12px!important;font-weight:800!important;color:#294d5c!important}.admin2-name-login input{height:49px!important;border-radius:15px!important;border:1px solid #d7e5e5!important;background:#fbfdfc!important;font-size:14px!important}.admin2-name-login input:focus{outline:0!important;border-color:#559d97!important;box-shadow:0 0 0 4px rgba(69,145,140,.10)!important}.admin2-name-login .admin2-btn.primary{height:49px!important;border-radius:15px!important;background:linear-gradient(120deg,#123f56,#2b807d)!important;box-shadow:0 12px 24px rgba(17,69,85,.18)!important}.admin2-back{font-size:11px!important;color:#426673!important}
+
+/* Teachers: less cramped and cleaner */
+.admin2{color:var(--a16-ink)!important}.admin2 .admin2-card,.admin2 .admin2-panel{border-radius:18px!important;box-shadow:0 9px 24px rgba(18,59,76,.06)!important}.admin2-assignment-row{gap:10px!important}.admin2-assignment-row label{min-width:0!important}.admin2 input,.admin2 select,.admin2 textarea{border-radius:12px!important;min-height:42px!important}
+
+/* Students — corrected four-column roster */
+.roster-v3{display:grid!important;gap:14px!important;color:var(--a16-ink)!important}.roster-v3-hero{padding:20px 22px!important;border-radius:22px!important;background:linear-gradient(120deg,#133c53,#26727d 60%,#5b978e)!important;box-shadow:0 16px 36px rgba(13,61,78,.16)!important}.roster-v3-hero h1{font-size:25px!important;line-height:1.35!important}.roster-v3-step,.roster-v3-panel,.roster-v3-list{border-radius:18px!important;background:rgba(255,255,255,.95)!important;border:1px solid rgba(20,65,82,.08)!important;box-shadow:0 9px 24px rgba(18,59,76,.055)!important}
+.roster-v3-table{width:100%!important;border:1px solid #dce7e6!important;border-radius:16px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 8px 22px rgba(17,58,73,.055)!important}
+.roster-v3-table .head,.roster-v3-table .row{display:grid!important;grid-template-columns:64px minmax(260px,1fr) 150px 184px!important;align-items:center!important;column-gap:12px!important;padding:0 14px!important}
+.roster-v3-table .head{min-height:46px!important;background:linear-gradient(90deg,#e9f2f0,#f4f0e3)!important;border-bottom:1px solid #d7e3e1!important;color:#355764!important;font-size:11px!important;font-weight:900!important;position:sticky!important;top:0!important;z-index:3!important}
+.roster-v3-table .row{min-height:58px!important;border-bottom:1px solid #edf2f1!important;font-size:12px!important;transition:background .18s ease,transform .18s ease!important}.roster-v3-table .row:last-child{border-bottom:0!important}.roster-v3-table .row:hover{background:#f8fbfa!important}.roster-v3-table .row>span:first-child{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;border-radius:11px!important;background:#eef5f3!important;color:#2b6b69!important;font-weight:900!important}.roster-v3-table .row strong{font-size:13px!important;line-height:1.6!important;color:#203f4d!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.roster-v3-table code{direction:ltr!important;justify-self:start!important;min-width:96px!important;padding:6px 10px!important;border-radius:10px!important;background:#f5f7f6!important;border:1px solid #e2e9e7!important;color:#395765!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;font-size:11px!important;text-align:center!important}.roster-v3-table .row>div{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;white-space:nowrap!important}.roster-v3-table .row button{min-width:72px!important;height:34px!important;padding:0 10px!important;border-radius:10px!important;font-size:11px!important;font-weight:800!important}.roster-v3-table .row button:not(.danger){background:#e9f3f1!important;color:#246862!important;border:1px solid #cee2df!important}.roster-v3-table .row button.danger{background:#fff0ee!important;color:#a7463f!important;border:1px solid #f0d1cd!important}
+
+/* Competition: stronger game energy without visual clutter */
+.admin-competition-arena{border-radius:22px!important;overflow:hidden!important}.arena-hero{min-height:138px!important;border-radius:22px!important;background:radial-gradient(circle at 78% 16%,rgba(240,190,82,.26),transparent 22%),linear-gradient(125deg,#071f34,#0e4756 55%,#1b6969)!important;box-shadow:0 18px 40px rgba(4,31,48,.22)!important}.arena-stage{border-radius:22px!important;background:linear-gradient(150deg,#071b2c,#0d3446 58%,#102d3a)!important}.race4-card,.race4-row{backdrop-filter:blur(10px)!important}.race4-row{transition:transform .18s ease,background .18s ease!important}.race4-row:hover{transform:translateY(-2px)!important}
+
+@media(max-width:900px){.admin-v4-sidebar{width:220px!important}.roster-v3-table{overflow-x:auto!important}.roster-v3-table .head,.roster-v3-table .row{min-width:760px!important}}
+@media(max-width:720px){.admin2-login-card{padding:28px 20px!important}.adm15-kpis{grid-template-columns:1fr!important}.adm15-grid{grid-template-columns:1fr!important}.admin-v4-main{padding:12px!important}.admin-v4-workspace{padding:11px!important}.roster-v3-hero{padding:17px!important}}
