@@ -13,3 +13,5 @@ export default function AdminCompetitionPage(){
     <div className="arena-stage"><div className="arena-glow one"/><div className="arena-glow two"/><TeacherActivityLeaderboard/></div>
   </section>;
 }
+
+// deployment trigger: admin v15 production refresh
