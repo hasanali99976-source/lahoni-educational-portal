@@ -1,12 +1,5 @@
 import "./globals.css";
 import "./print.css";
-import "./attendance-students-v31.css";
-import "./roster-pdf-v4.css";
-import "./teacher-attendance-calendar-v21.css";
-import "./student/academic-record/academic-record-v2.css";
-import "./student-portal-academic-enhancer.css";
-import "./student-subject-achievement-runtime.css";
-import "./student-risk-center-runtime.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -15,7 +8,6 @@ import MobileWindowBridge from "./mobile-window-bridge";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
 import PortalPrintRuntime from "./portal-print-runtime";
-import DesignLabSmartAssist from "./design-lab-smart-assist";
 import TeacherAttendanceScheduleNav from "./teacher-attendance-schedule-nav";
 import TeacherAttendancePrintV21 from "./teacher-attendance-print-v21";
 import TeacherGradesCleanRuntime from "./teacher-grades-clean-runtime";
@@ -48,7 +40,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#073b45", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#071d2f", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={academyFont.className}>
@@ -62,7 +54,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <PortalCommandRuntime />
     </PortalRuntimeGate>
     <div className="portal-stage">{children}</div>
-    <DesignLabSmartAssist />
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
   </body></html>;
 }
