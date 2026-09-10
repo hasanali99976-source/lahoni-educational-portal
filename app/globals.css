@@ -1,1 +1,9 @@
-html,body{margin:0;padding:0;width:100%;min-height:100%}body{min-height:100dvh;overflow-x:hidden;background:#fff;color:#111}.portal-stage{display:block;width:100%;min-height:100dvh;margin:0;padding:0}.portal-stage>*:not(#lahooni-new-home),.portal-stage>*:not(#lahooni-new-home) *{all:revert!important;box-sizing:border-box!important}.portal-stage>*:not(#lahooni-new-home){display:block!important;direction:rtl!important;min-height:100dvh!important;background:#fff!important;color:#111!important;padding:16px!important}.portal-stage>*:not(#lahooni-new-home) img{max-width:100%!important;height:auto!important}.portal-stage>*:not(#lahooni-new-home) button,.portal-stage>*:not(#lahooni-new-home) input,.portal-stage>*:not(#lahooni-new-home) select,.portal-stage>*:not(#lahooni-new-home) textarea{font:inherit!important}.portal-stage>*:not(#lahooni-new-home) table{border-collapse:collapse!important}
+html,body{margin:0;padding:0;width:100%;min-height:100%}
+*{box-sizing:border-box}
+html{background:#edf1f1}
+body{min-height:100dvh;overflow-x:hidden;background:#edf1f1;color:#142d42}
+button,input,select,textarea{font:inherit}
+a{color:inherit}
+img{max-width:100%;height:auto}
+.portal-stage{display:block;width:100%;min-height:100dvh;margin:0;padding:0}
+table{border-collapse:collapse}
