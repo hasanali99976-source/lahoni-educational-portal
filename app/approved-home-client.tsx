@@ -2,111 +2,45 @@
 
 import Link from "next/link";
 
-const portals = [
-  {
-    href: "/admin",
-    title: "الإدارة",
-    subtitle: "مركز القيادة والمتابعة",
-    text: "إدارة المعلمين والطلاب والفصول والتقارير من بوابة واحدة واضحة.",
-    icon: "⌘",
-    stat: "إدارة ذكية",
-  },
-  {
-    href: "/teacher",
-    title: "المعلم",
-    subtitle: "مساحة العمل اليومية",
-    text: "الحضور والتحصيل والانضباط والملاحظات والاختبارات والتقارير في مسار مترابط.",
-    icon: "✦",
-    stat: "عمل مترابط",
-  },
-  {
-    href: "/student",
-    title: "الطالب وولي الأمر",
-    subtitle: "متابعة واضحة ومباشرة",
-    text: "رؤية التحصيل والحضور والملاحظات والخطط والتواصل لكل مادة بصورة مستقلة.",
-    icon: "◎",
-    stat: "متابعة مستمرة",
-  },
+const cards = [
+  { href: "/admin", cls: "admin", icon: "▥", title: "بوابة الإدارة", text: "إدارة شاملة لبيئة تعليمية فعّالة", action: "دخول الإدارة" },
+  { href: "/teacher", cls: "teacher", icon: "♟", title: "بوابة المعلم", text: "معًا نصنع الفرق في تعليم أبنائنا", action: "دخول المعلم" },
+  { href: "/student", cls: "student", icon: "♜", title: "بوابة الطالب / ولي الأمر", text: "شراكة حقيقية لرحلة نجاح متميزة", action: "دخول الطالب / ولي الأمر" },
 ] as const;
 
 const css = `
-#lahooni-home-v2{--navy:#061625;--navy2:#0a2840;--navy3:#0c3954;--gold:#d7b36b;--gold2:#f1d99a;--ink:#eef6f8;min-height:100dvh;position:relative;isolation:isolate;overflow:hidden;color:var(--ink);background:#061625;font-family:inherit}
-#lahooni-home-v2 *{box-sizing:border-box}
-#lahooni-home-v2:before{content:"";position:absolute;inset:0;z-index:-4;background:linear-gradient(110deg,rgba(3,14,25,.96) 0%,rgba(5,25,42,.91) 43%,rgba(7,42,59,.74) 100%),url('/saudi-classroom.svg') center/cover no-repeat;transform:scale(1.025)}
-#lahooni-home-v2:after{content:"";position:absolute;inset:0;z-index:-3;background:radial-gradient(circle at 16% 14%,rgba(229,194,117,.2),transparent 24%),radial-gradient(circle at 85% 58%,rgba(66,176,197,.14),transparent 28%),linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:auto,auto,48px 48px,48px 48px;mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.7) 70%,transparent 100%)}
-.home-orb{position:absolute;border-radius:999px;filter:blur(4px);pointer-events:none;z-index:-2;animation:orbFloat 10s ease-in-out infinite}.home-orb.one{width:310px;height:310px;top:-145px;right:-75px;background:radial-gradient(circle,rgba(240,213,146,.22),rgba(240,213,146,0) 70%)}.home-orb.two{width:420px;height:420px;bottom:-220px;left:-110px;background:radial-gradient(circle,rgba(45,142,168,.22),rgba(45,142,168,0) 70%);animation-delay:-4s}
-.home-shell{width:min(1440px,calc(100% - 40px));margin:auto;padding:24px 0 28px;position:relative;z-index:2}
-.home-top{height:78px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:linear-gradient(115deg,rgba(9,31,49,.72),rgba(7,26,42,.46));backdrop-filter:blur(22px) saturate(1.25);box-shadow:0 18px 55px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08)}
-.home-brand{display:flex;align-items:center;gap:13px}.home-mark{width:52px;height:52px;position:relative;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#f1db9f,#b98e42);color:#082137;font-size:25px;font-weight:950;box-shadow:0 11px 30px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.85);transform:perspective(180px) rotateY(-7deg) rotateX(4deg)}.home-mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(7,32,51,.2);border-radius:12px}.home-brand strong{display:block;font-size:18px;letter-spacing:-.25px}.home-brand small{display:block;margin-top:4px;color:#9fb7c6;font-size:11px}.home-status{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);font-size:11px;color:#cfe0e7}.home-status i{width:8px;height:8px;border-radius:50%;background:#65d5a1;box-shadow:0 0 0 5px rgba(101,213,161,.1),0 0 18px rgba(101,213,161,.55)}
-.home-hero{min-height:500px;margin-top:18px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(400px,.92fr);gap:18px}
-.hero-copy,.hero-visual{border:1px solid rgba(255,255,255,.13);border-radius:34px;box-shadow:0 28px 80px rgba(0,0,0,.27);overflow:hidden;position:relative}
-.hero-copy{padding:56px 58px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(145deg,rgba(7,27,45,.93),rgba(7,47,65,.76));backdrop-filter:blur(18px)}.hero-copy:before{content:"";position:absolute;width:360px;height:360px;border-radius:50%;top:-220px;left:-90px;background:radial-gradient(circle,rgba(230,193,113,.2),transparent 70%)}
-.hero-kicker{display:inline-flex;width:max-content;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(226,191,113,.25);border-radius:999px;background:rgba(217,180,103,.08);color:#edd291;font-size:11px;font-weight:800}.hero-kicker:before{content:"✦";font-size:10px}
-.hero-copy h1{max-width:790px;margin:18px 0 15px;font-size:clamp(43px,5.1vw,75px);line-height:1.12;letter-spacing:-2px;font-weight:950}.hero-copy h1 span{color:#e8c982;text-shadow:0 10px 40px rgba(217,179,107,.18)}.hero-copy p{max-width:720px;margin:0;color:#c4d4dc;font-size:15px;line-height:2}.hero-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:25px}.hero-actions a{min-height:49px;padding:0 19px;border-radius:15px;display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-size:12px;font-weight:850;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.hero-actions a:hover{transform:translateY(-3px)}.hero-actions .gold{color:#092238;background:linear-gradient(135deg,#f0d89b,#cfa557);box-shadow:0 14px 35px rgba(202,158,80,.22)}.hero-actions .glass{color:#fff;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.14)}
-.hero-visual{min-height:500px;background:linear-gradient(160deg,rgba(14,55,73,.68),rgba(4,22,36,.88)),url('/saudi-classroom.svg') center/cover no-repeat;perspective:900px}.hero-visual:before{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(3,17,29,.82),transparent 62%)}.visual-grid{position:absolute;inset:0;opacity:.18;background:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:38px 38px;transform:perspective(500px) rotateX(58deg) scale(1.45);transform-origin:center bottom}.visual-core{position:absolute;left:50%;top:47%;width:180px;height:180px;transform:translate(-50%,-50%) rotateX(58deg) rotateZ(45deg);border-radius:40px;background:linear-gradient(145deg,rgba(241,216,154,.96),rgba(153,113,49,.86));box-shadow:0 38px 70px rgba(0,0,0,.36),inset 0 2px rgba(255,255,255,.7);animation:coreFloat 6s ease-in-out infinite}.visual-core:after{content:"ل";position:absolute;inset:18px;display:grid;place-items:center;border-radius:28px;background:linear-gradient(145deg,#0a334b,#061a2a);color:#ebcf8b;font-size:62px;font-weight:950;transform:translateZ(20px) rotateZ(-45deg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.visual-chip{position:absolute;padding:11px 13px;border-radius:15px;background:rgba(7,25,41,.72);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(14px);font-size:11px;color:#d5e3e8;box-shadow:0 14px 35px rgba(0,0,0,.2);animation:chipFloat 7s ease-in-out infinite}.visual-chip b{display:block;color:#f0d292;font-size:12px;margin-bottom:3px}.visual-chip.c1{right:25px;top:27%;animation-delay:-1s}.visual-chip.c2{left:24px;top:19%;animation-delay:-3s}.visual-chip.c3{left:31px;bottom:27%;animation-delay:-5s}.visual-caption{position:absolute;z-index:3;right:22px;left:22px;bottom:20px;padding:17px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-radius:20px;background:linear-gradient(120deg,rgba(255,255,255,.13),rgba(255,255,255,.075));border:1px solid rgba(255,255,255,.17);backdrop-filter:blur(22px)}.visual-caption strong{display:block;font-size:14px}.visual-caption small{display:block;color:#a9bfca;margin-top:4px;font-size:10px}.visual-caption span{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:rgba(232,202,132,.13);color:#efd697;border:1px solid rgba(232,202,132,.2)}
-.portal-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:28px 4px 13px}.portal-head h2{margin:0;font-size:23px}.portal-head p{margin:5px 0 0;color:#96aebb;font-size:11px}.portal-head span{font-size:10px;color:#8ea8b7}
-.portal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.portal-card{min-height:245px;padding:23px;border-radius:28px;text-decoration:none;color:#f7fbfc;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.13);background:linear-gradient(145deg,rgba(255,255,255,.115),rgba(255,255,255,.055));backdrop-filter:blur(19px);box-shadow:0 20px 55px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.075);transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}.portal-card:before{content:"";position:absolute;width:170px;height:170px;border-radius:50%;left:-80px;top:-80px;background:radial-gradient(circle,rgba(225,190,112,.13),transparent 70%)}.portal-card:hover{transform:translateY(-7px);border-color:rgba(231,199,127,.38);box-shadow:0 30px 70px rgba(0,0,0,.29)}.portal-card-top{display:flex;align-items:start;justify-content:space-between;gap:16px}.portal-icon{width:55px;height:55px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,#e5c77e,#a67a35);color:#071f32;font-size:25px;font-weight:900;box-shadow:0 13px 30px rgba(0,0,0,.23),inset 0 1px rgba(255,255,255,.7);transform:perspective(180px) rotateY(-8deg) rotateX(5deg)}.portal-stat{font-size:9px;padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#9fb5c2}.portal-card h3{margin:20px 0 3px;font-size:22px}.portal-card .sub{display:block;color:#dfc078;font-size:10px;font-weight:700}.portal-card p{margin:9px 0 0;max-width:92%;color:#aebfc8;line-height:1.75;font-size:11px}.portal-open{position:absolute;right:23px;left:23px;bottom:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;color:#dce7eb;font-size:10px;font-weight:800}.portal-open b{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.075);font-size:15px;transition:transform .22s ease}.portal-card:hover .portal-open b{transform:translateX(-4px)}
-.home-footer{text-align:center;padding:23px 0 2px;color:#7f9aaa;font-size:10px}
-@keyframes coreFloat{0%,100%{transform:translate(-50%,-50%) rotateX(58deg) rotateZ(45deg) translateY(0)}50%{transform:translate(-50%,-50%) rotateX(58deg) rotateZ(45deg) translateY(-12px)}}@keyframes chipFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes orbFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(16px,14px,0)}}
-@media(max-width:1000px){.home-hero{grid-template-columns:1fr}.hero-visual{min-height:390px}.portal-grid{grid-template-columns:1fr}.portal-card{min-height:215px}.hero-copy{padding:48px 42px}}
-@media(max-width:640px){.home-shell{width:min(100% - 18px,1440px);padding:9px 0 18px}.home-top{height:68px;padding:0 13px;border-radius:18px}.home-mark{width:45px;height:45px;border-radius:14px}.home-brand strong{font-size:14px}.home-brand small{font-size:9px}.home-status{display:none}.home-hero{margin-top:9px;gap:9px}.hero-copy,.hero-visual{border-radius:23px}.hero-copy{min-height:455px;padding:34px 24px}.hero-copy h1{font-size:42px;letter-spacing:-1.3px}.hero-copy p{font-size:13px}.hero-actions a{width:100%}.hero-visual{min-height:350px}.visual-core{width:140px;height:140px}.visual-core:after{font-size:48px}.visual-chip{font-size:9px}.visual-chip.c2{left:12px;top:16%}.visual-chip.c1{right:12px;top:23%}.visual-chip.c3{left:13px;bottom:28%}.portal-head{align-items:start;flex-direction:column;gap:6px;margin-top:22px}.portal-card{border-radius:22px}.portal-card p{max-width:100%}}
-@media(prefers-reduced-motion:reduce){.home-orb,.visual-core,.visual-chip{animation:none}.portal-card,.hero-actions a,.portal-open b{transition:none}}
+#lahooni-ref{min-height:100dvh;direction:rtl;color:#102a45;background:#e8e4df;position:relative;overflow:hidden;font-family:inherit}
+#lahooni-ref *{box-sizing:border-box}
+#lahooni-ref:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(248,245,240,.18),rgba(250,248,245,.72) 29%,rgba(255,255,255,.88) 50%,rgba(249,246,241,.64) 72%,rgba(231,222,210,.2)),url('/saudi-classroom.svg') center/cover no-repeat;filter:saturate(.7);transform:scale(1.02)}
+.ref-shade{position:absolute;inset:0;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.45),transparent 42%),linear-gradient(to bottom,transparent 72%,rgba(12,37,58,.18));pointer-events:none}
+.ref-shell{position:relative;z-index:2;width:min(1280px,94%);margin:auto;padding:18px 0 0;min-height:100dvh;display:flex;flex-direction:column}
+.ref-nav{align-self:flex-start;display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#173a58,#0c2942);padding:8px 12px;border-radius:0 0 22px 22px;box-shadow:0 14px 30px rgba(12,35,55,.24);color:#fff}
+.ref-nav span{padding:10px 16px;font-size:13px;white-space:nowrap;opacity:.88}.ref-nav .active{color:#f1d08a;background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(216,175,91,.08));border:1px solid rgba(232,197,126,.28);border-radius:16px;font-weight:800}
+.ref-hero{text-align:center;padding:28px 20px 14px}.ref-hero .mini{font-size:25px;margin-bottom:3px}.ref-hero h1{margin:0;color:#0b3157;font-size:clamp(38px,5.2vw,72px);font-weight:950;letter-spacing:-2px;text-shadow:0 5px 14px rgba(255,255,255,.75)}.ref-hero p{margin:6px 0 0;font-size:18px;color:#263a4c}.gold-line{width:110px;height:3px;margin:18px auto 0;border-radius:20px;background:linear-gradient(90deg,transparent,#d6a846,transparent)}
+.ref-main{display:grid;grid-template-columns:150px 1fr 150px;gap:24px;align-items:center;flex:1}.side-copy{font-size:23px;line-height:1.75;color:#253849;text-align:center}.side-copy:after{content:"";display:block;width:70px;height:3px;background:#d9a743;margin:13px auto;border-radius:10px}.side-books{align-self:end;padding-bottom:115px}.book{background:linear-gradient(90deg,#0d263c,#172f45);color:#d8b563;border-radius:3px;margin:6px 0;padding:8px 12px;text-align:center;font-weight:800;box-shadow:0 7px 13px rgba(0,0,0,.18);font-size:13px}
+.ref-center{min-width:0}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;direction:ltr}.portal{direction:rtl;min-height:365px;border-radius:24px;padding:28px 23px 22px;text-decoration:none;color:#17212c;display:flex;flex-direction:column;align-items:center;text-align:center;border:1px solid rgba(255,255,255,.78);box-shadow:0 18px 32px rgba(31,49,63,.19),inset 0 1px rgba(255,255,255,.9);transition:.25s ease;backdrop-filter:blur(15px)}.portal:hover{transform:translateY(-8px) scale(1.015);box-shadow:0 27px 45px rgba(25,43,58,.25)}.portal.admin{background:linear-gradient(150deg,rgba(255,249,235,.92),rgba(239,223,190,.83))}.portal.teacher{background:linear-gradient(150deg,rgba(230,245,255,.94),rgba(186,220,247,.84))}.portal.student{background:linear-gradient(150deg,rgba(229,255,248,.94),rgba(180,235,219,.85))}
+.portal-icon{width:128px;height:112px;margin:2px 0 13px;border-radius:25px;display:grid;place-items:center;font-size:67px;font-weight:900;color:#153f67;text-shadow:0 8px 12px rgba(0,0,0,.18);filter:drop-shadow(0 10px 10px rgba(0,0,0,.12))}.student .portal-icon{color:#08745b}.admin .portal-icon{color:#8b641e}.portal h2{font-size:25px;margin:4px 0 7px;font-weight:950}.portal p{font-size:14px;line-height:1.8;margin:0;color:#33404a}.enter{margin-top:auto;width:100%;min-height:50px;border-radius:28px;display:flex;align-items:center;justify-content:center;position:relative;color:#fff;font-weight:850;font-size:14px;box-shadow:0 11px 18px rgba(0,0,0,.18)}.admin .enter{background:linear-gradient(90deg,#bb8b2d,#d8af5b)}.teacher .enter{background:linear-gradient(90deg,#15538b,#1e72b2)}.student .enter{background:linear-gradient(90deg,#078361,#12a077)}.enter b{position:absolute;left:-3px;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#f7fbfb;color:#183a54;font-size:25px;box-shadow:0 6px 14px rgba(0,0,0,.18)}
+.features{margin:27px auto 0;width:min(760px,100%);display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,.62);backdrop-filter:blur(16px);border-radius:22px;box-shadow:0 15px 35px rgba(32,49,62,.12);overflow:hidden}.feature{padding:18px 13px;text-align:center;border-left:1px solid rgba(35,58,77,.12);font-size:11px;line-height:1.65;color:#293b4b}.feature:last-child{border-left:0}.feature b{display:block;font-size:31px;color:#2d4b64;margin-bottom:5px}
+.ref-footer{margin-top:25px;background:#102d45;color:#e8edf1;text-align:center;padding:15px 20px;font-size:12px;border-radius:70% 70% 0 0/18px 18px 0 0}.ref-footer span{color:#d9b462;margin:0 14px}
+@media(max-width:950px){.ref-main{grid-template-columns:1fr}.side-copy,.side-books{display:none}.cards{gap:12px}.portal{min-height:330px;padding:20px 15px}.portal h2{font-size:20px}.portal-icon{width:100px;height:90px;font-size:54px}.ref-nav{align-self:center}.ref-hero{padding-top:20px}}
+@media(max-width:700px){.ref-shell{width:96%;padding-top:8px}.ref-nav{width:100%;justify-content:center;border-radius:18px;padding:5px}.ref-nav span{padding:8px 7px;font-size:9px}.ref-hero h1{font-size:36px;letter-spacing:-1px}.ref-hero .mini{font-size:17px}.ref-hero p{font-size:13px}.cards{grid-template-columns:1fr;direction:rtl}.portal{min-height:250px;display:grid;grid-template-columns:82px 1fr;grid-template-rows:auto auto 55px;text-align:right;column-gap:15px;align-items:center}.portal-icon{grid-row:1/3;width:82px;height:82px;font-size:45px;margin:0}.portal h2{margin:0;font-size:20px}.portal p{font-size:12px}.enter{grid-column:1/3;margin-top:8px}.features{grid-template-columns:repeat(2,1fr)}.feature{border-bottom:1px solid rgba(35,58,77,.12)}.ref-footer{border-radius:25px 25px 0 0}}
 `;
 
-export default function ApprovedHomeClient() {
-  return (
-    <main id="lahooni-home-v2" dir="rtl">
-      <style>{css}</style>
-      <span className="home-orb one" />
-      <span className="home-orb two" />
-      <div className="home-shell">
-        <header className="home-top">
-          <div className="home-brand">
-            <div className="home-mark" aria-hidden="true">ل</div>
-            <div><strong>بوابة أستاذ لحوني التعليمية</strong><small>بيئة تعليمية ذكية ومترابطة</small></div>
-          </div>
-          <div className="home-status"><i /> النظام جاهز للعمل</div>
-        </header>
-
-        <section className="home-hero">
-          <div className="hero-copy">
-            <span className="hero-kicker">منصة تعليمية موحّدة</span>
-            <h1>كل رحلة تعليمية تبدأ من <span>بوابة أوضح.</span></h1>
-            <p>مساحة ذكية تجمع الإدارة والمعلم والطالب وولي الأمر، وتحافظ على ترابط التحصيل والحضور والانضباط والملاحظات والتقارير دون تغيير طريقة عمل النظام.</p>
-            <div className="hero-actions">
-              <Link className="gold" href="/teacher"><span>دخول بوابة المعلم</span><b>←</b></Link>
-              <Link className="glass" href="/student"><span>الطالب وولي الأمر</span><b>←</b></Link>
-            </div>
-          </div>
-
-          <div className="hero-visual" aria-label="مشهد تعليمي رقمي ثلاثي الأبعاد">
-            <div className="visual-grid" />
-            <div className="visual-core" />
-            <div className="visual-chip c1"><b>التحصيل</b>متابعة مترابطة</div>
-            <div className="visual-chip c2"><b>الحضور</b>رؤية يومية واضحة</div>
-            <div className="visual-chip c3"><b>التقارير</b>قراءة أسرع للأداء</div>
-            <div className="visual-caption"><div><strong>منظومة واحدة · ثلاث بوابات</strong><small>اختيار البوابة المناسبة دون تشتيت أو تداخل</small></div><span>✦</span></div>
-          </div>
-        </section>
-
-        <div className="portal-head">
-          <div><h2>اختر بوابتك</h2><p>كل بوابة مستقلة في مهامها ومتصلة بالنظام نفسه.</p></div>
-          <span>الإدارة · المعلم · الطالب وولي الأمر</span>
+export default function ApprovedHomeClient(){
+  return <main id="lahooni-ref" dir="rtl">
+    <style>{css}</style><div className="ref-shade" />
+    <div className="ref-shell">
+      <nav className="ref-nav" aria-label="التنقل الرئيسي"><span className="active">⌂ الرئيسية</span><span>ⓘ عن المنصة</span><span>◉ مركز المعرفة</span><span>▤ مركز المساعدة</span></nav>
+      <header className="ref-hero"><div className="mini">منصة</div><h1>أستاذ لحوني التعليمية</h1><p>بيئة رقمية لمتابعة الطلاب وتحقيق التميز الدراسي</p><div className="gold-line" /></header>
+      <section className="ref-main">
+        <aside className="side-copy">بالعلم<br/>نصنع<br/>المستقبل</aside>
+        <div className="ref-center">
+          <div className="cards">{cards.map(c=><Link key={c.href} href={c.href} className={`portal ${c.cls}`}><div className="portal-icon" aria-hidden="true">{c.icon}</div><h2>{c.title}</h2><p>{c.text}</p><div className="enter">{c.action}<b>←</b></div></Link>)}</div>
+          <div className="features"><div className="feature"><b>⌁</b>متابعة مستمرة<br/>للنمو الدراسي</div><div className="feature"><b>◎</b>أدوات ذكية<br/>لتحقيق الأهداف</div><div className="feature"><b>♟</b>تواصل فعّال<br/>بين جميع الأطراف</div><div className="feature"><b>♢</b>بيئة آمنة<br/>وخصوصية عالية</div></div>
         </div>
-
-        <section className="portal-grid">
-          {portals.map((portal) => (
-            <Link key={portal.href} href={portal.href} className="portal-card">
-              <div className="portal-card-top"><div className="portal-icon">{portal.icon}</div><span className="portal-stat">{portal.stat}</span></div>
-              <h3>{portal.title}</h3>
-              <span className="sub">{portal.subtitle}</span>
-              <p>{portal.text}</p>
-              <div className="portal-open"><span>فتح البوابة</span><b>←</b></div>
-            </Link>
-          ))}
-        </section>
-        <footer className="home-footer">بوابة أستاذ لحوني التعليمية</footer>
-      </div>
-    </main>
-  );
+        <aside className="side-books"><div className="book">معرفة</div><div className="book">مهارة</div><div className="book">تطوير</div><div className="book">مستقبل</div></aside>
+      </section>
+      <footer className="ref-footer"><span>ــــ</span> تصميم وتنفيذ: الأستاذ حسن علي الطويل <span>ــــ</span></footer>
+    </div>
+  </main>
 }
