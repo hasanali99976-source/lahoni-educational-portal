@@ -9,6 +9,7 @@ import "./admin-command-v3.css";
 import "./admin-command-v4.css";
 import "./admin-clarity-v5.css";
 import "./admin-dashboard-premium.css";
+import "./admin-refined-v2.css";
 
 function AdminIcon({ type }: { type: "home" | "teachers" | "students" | "competition" }) {
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
