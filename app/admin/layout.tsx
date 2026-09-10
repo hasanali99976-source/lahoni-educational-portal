@@ -3,10 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AdminOverview from "./admin-overview";
 import "./admin-privacy.css";
 import "./admin-command-v3.css";
 import "./admin-command-v4.css";
 import "./admin-clarity-v5.css";
+import "./admin-dashboard-premium.css";
 
 function AdminIcon({ type }: { type: "home" | "teachers" | "students" | "competition" | "classes" | "reports" | "settings" }) {
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -31,11 +33,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       <nav className="admin-v4-side-nav" aria-label="أقسام الإدارة">
-        <Link href="/admin" className={!students ? "active" : ""}><AdminIcon type="home"/><span>الرئيسية</span></Link>
-        <Link href="/admin" className={!students ? "active-secondary" : ""}><AdminIcon type="teachers"/><span>المعلمون</span></Link>
-        <Link href="/admin/students" className={students ? "active" : ""}><AdminIcon type="students"/><span>الطلاب والفصول</span></Link>
+        <Link href="/admin#overview" className={!students ? "active" : ""}><AdminIcon type="home"/><span>الرئيسية</span></Link>
+        <Link href="/admin#teachers-management"><AdminIcon type="teachers"/><span>إدارة المعلمين</span></Link>
+        <Link href="/admin/students"><AdminIcon type="students"/><span>إدارة الطلاب</span></Link>
         <a href="/admin#competition"><AdminIcon type="competition"/><span>المسابقة التنافسية</span></a>
-        <Link href="/admin/students"><AdminIcon type="classes"/><span>إدارة الفصول</span></Link>
+        <Link href="/admin/students#classes"><AdminIcon type="classes"/><span>الفصول الدراسية</span></Link>
         <a href="/admin#reports"><AdminIcon type="reports"/><span>التقارير والإحصائيات</span></a>
         <a href="/admin#settings"><AdminIcon type="settings"/><span>الإعدادات</span></a>
       </nav>
@@ -46,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     <section className="admin-v4-main">
       <header className="admin-v4-topbar">
-        <div className="admin-v4-welcome"><small>مرحبًا بك في بوابة الإدارة</small><strong>{students ? "إدارة الطلاب والفصول" : "مركز الإدارة الذكي"}</strong><span>معًا نحو متابعة أوضح وتعليم أكثر أثرًا</span></div>
+        <div className="admin-v4-welcome"><small>{students ? "إدارة الطلاب والفصول" : "مرحبًا بك في بوابة الإدارة"}</small><strong>{students ? "الطلاب والفصول" : "مركز الإدارة الذكي"}</strong><span>متابعة واضحة، بيانات مترابطة، وقرارات أسرع</span></div>
         <div className="admin-v4-profile">
           <div><strong>أ. حسن علي الطويل</strong><small>مدير المنصة</small></div>
           <Image src="/icons/lahooni-identity-320.jpg" alt="مدير المنصة" width={50} height={50}/>
@@ -54,12 +56,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </header>
 
-      <nav className="admin-v4-module-switch" aria-label="المعلمون والطلاب">
-        <Link href="/admin" className={!students ? "active" : ""}><AdminIcon type="teachers"/><div><b>المعلمون</b><small>الحسابات • التكليفات • المنافسة</small></div></Link>
-        <Link href="/admin/students" className={students ? "active" : ""}><AdminIcon type="students"/><div><b>الطلاب</b><small>الأسماء • الفصول • الرفع والإضافة والبحث</small></div></Link>
-      </nav>
-
-      <main className={`admin-v4-workspace ${students ? "is-students" : "is-teachers"}`}>{children}</main>
+      {!students && <AdminOverview />}
+      <main className={`admin-v4-workspace ${students ? "is-students" : "is-teachers"}`} id={students ? "students-management" : "teachers-management"}>{children}</main>
     </section>
   </div>;
 }
