@@ -6,6 +6,7 @@ import "./admin-student-modal-fix.css";
 import "./students-readable-v10.css";
 import "./students-table-v11.css";
 import "../admin-premium-2026.css";
+import "../admin-experience-v15.css";
 
 export default async function AdminStudentsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession("admin");
