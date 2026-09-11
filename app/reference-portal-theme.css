@@ -1,5 +1,5 @@
-/* Unified visual system rebuilt from the approved light educational workspace reference.
-   Visual overrides only: no data, auth, storage, routing, calculation or print logic. */
+/* Unified visual system for admin + student only.
+   Teacher portal is intentionally excluded and owns its styling in teacher-platform-v34.css. */
 
 :root{
   --ref-navy:#102b45;
@@ -15,7 +15,6 @@
 
 html,body{background:#edf1f1!important;color:var(--ref-ink)}
 body:has(.admin-v3-frame),
-body:has([class*="teacher-"]),
 body:has([class*="student-"]){
   background:
     radial-gradient(circle at 12% 15%,rgba(202,157,75,.16),transparent 28%),
@@ -25,7 +24,6 @@ body:has([class*="student-"]){
 }
 
 body:has(.admin-v3-frame)::before,
-body:has([class*="teacher-"])::before,
 body:has([class*="student-"])::before{
   content:"";position:fixed;inset:0;z-index:-5;pointer-events:none;
   background:
@@ -68,28 +66,6 @@ body:has([class*="student-"])::before{
 .admin-v3-switch>a.active,.admin-v4-switch>a.active{background:linear-gradient(135deg,#fff8eb,#f2dfba)!important;border-color:rgba(184,139,63,.24)!important;box-shadow:0 10px 28px rgba(149,108,43,.15)!important;color:#714f20!important}
 .admin-v3-workspace,.admin-v4-workspace{margin-top:16px!important;background:rgba(255,255,255,.70)!important;border:1px solid var(--ref-line)!important;border-radius:30px!important;box-shadow:var(--ref-shadow)!important;backdrop-filter:blur(20px)!important;padding:clamp(16px,2vw,26px)!important}
 
-/* TEACHER — soft blue */
-[class*="teacher-"][class*="shell"], [class*="teacher-"][class*="frame"], main[class*="teacher-"]{
-  --role:#356da5;--role-deep:#194b7d;--role-soft:#eaf3fc;
-}
-body:has([class*="teacher-"]) header:not(.print-header),
-body:has([class*="teacher-"]) nav:not(.print-header){
-  border-radius:24px!important;
-}
-body:has([class*="teacher-"]) [class*="topbar"],
-body:has([class*="teacher-"]) [class*="header"]:not(.print-header),
-body:has([class*="teacher-"]) [class*="sidebar"]{
-  background:linear-gradient(140deg,rgba(16,43,69,.97),rgba(24,61,92,.95))!important;color:#fff!important;border-color:rgba(255,255,255,.15)!important;box-shadow:0 16px 42px rgba(23,47,67,.17)!important;
-}
-body:has([class*="teacher-"]) [class*="workspace"],
-body:has([class*="teacher-"]) [class*="panel"],
-body:has([class*="teacher-"]) [class*="card"],
-body:has([class*="teacher-"]) [class*="section"]{
-  border-color:rgba(32,73,105,.12)!important;box-shadow:0 14px 38px rgba(34,62,82,.08)!important;border-radius:22px!important;
-}
-body:has([class*="teacher-"]) [class*="workspace"],body:has([class*="teacher-"]) main{background:rgba(255,255,255,.72)!important;backdrop-filter:blur(18px)!important}
-body:has([class*="teacher-"]) a[class*="active"],body:has([class*="teacher-"]) button[class*="active"]{background:linear-gradient(135deg,#eaf4ff,#cfe3f6)!important;color:#194b7d!important;border-color:rgba(53,109,165,.25)!important}
-
 /* STUDENT / PARENT — mint green */
 body:has([class*="student-"]) [class*="student-"][class*="shell"],
 body:has([class*="student-"]) [class*="student-"][class*="portal"],
@@ -100,17 +76,14 @@ body:has([class*="student-"]) [class*="top"],body:has([class*="student-"]) [clas
 body:has([class*="student-"]) [class*="card"],body:has([class*="student-"]) [class*="panel"],body:has([class*="student-"]) [class*="subject"],body:has([class*="student-"]) [class*="content"]{border-color:rgba(25,112,91,.13)!important;border-radius:22px!important;box-shadow:0 14px 38px rgba(35,71,65,.08)!important}
 body:has([class*="student-"]) a[class*="active"],body:has([class*="student-"]) button[class*="active"]{background:linear-gradient(135deg,#e7f8f2,#cceee3)!important;color:#14634f!important;border-color:rgba(43,148,121,.22)!important}
 
-/* Shared controls: replace legacy harsh boxes with soft glass/3D reference language. */
+/* Shared controls — admin + student only. Teacher is isolated. */
 body:has(.admin-v3-frame) :is(button,input,select,textarea),
-body:has([class*="teacher-"]) :is(button,input,select,textarea),
 body:has([class*="student-"]) :is(button,input,select,textarea){font:inherit!important;border-radius:13px!important}
-body:has(.admin-v3-frame) :is(input,select,textarea),body:has([class*="teacher-"]) :is(input,select,textarea),body:has([class*="student-"]) :is(input,select,textarea){background:rgba(255,255,255,.88)!important;border:1px solid rgba(29,64,87,.15)!important;color:var(--ref-ink)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.8)!important}
-body:has(.admin-v3-frame) table,body:has([class*="teacher-"]) table,body:has([class*="student-"]) table{background:rgba(255,255,255,.78)!important;border-radius:18px!important;overflow:hidden!important;border-color:var(--ref-line)!important}
-body:has(.admin-v3-frame) th,body:has([class*="teacher-"]) th,body:has([class*="student-"]) th{background:#edf3f6!important;color:var(--ref-navy)!important}
-body:has(.admin-v3-frame) td,body:has([class*="teacher-"]) td,body:has([class*="student-"]) td{border-color:rgba(28,62,83,.08)!important}
-
-/* Keep status semantics readable while removing legacy neon/black visual skins. */
-body:has(.admin-v3-frame) :is(.card,.panel,section),body:has([class*="teacher-"]) :is(.card,.panel,section),body:has([class*="student-"]) :is(.card,.panel,section){color:var(--ref-ink)}
+body:has(.admin-v3-frame) :is(input,select,textarea),body:has([class*="student-"]) :is(input,select,textarea){background:rgba(255,255,255,.88)!important;border:1px solid rgba(29,64,87,.15)!important;color:var(--ref-ink)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.8)!important}
+body:has(.admin-v3-frame) table,body:has([class*="student-"]) table{background:rgba(255,255,255,.78)!important;border-radius:18px!important;overflow:hidden!important;border-color:var(--ref-line)!important}
+body:has(.admin-v3-frame) th,body:has([class*="student-"]) th{background:#edf3f6!important;color:var(--ref-navy)!important}
+body:has(.admin-v3-frame) td,body:has([class*="student-"]) td{border-color:rgba(28,62,83,.08)!important}
+body:has(.admin-v3-frame) :is(.card,.panel,section),body:has([class*="student-"]) :is(.card,.panel,section){color:var(--ref-ink)}
 
 @media(max-width:800px){
  .admin-v3-frame{width:min(100% - 14px,1480px)!important;margin:7px auto 24px!important}
