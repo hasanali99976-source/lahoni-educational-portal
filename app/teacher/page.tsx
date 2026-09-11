@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
+import "./teacher-login-v24.css";
 
 export default function TeacherLoginPage(){
   const [name,setName]=useState("");
