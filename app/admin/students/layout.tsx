@@ -9,6 +9,7 @@ import "../admin-premium-2026.css";
 import "../admin-experience-v15.css";
 import "../admin-experience-v16.css";
 import "../admin-experience-v17.css";
+import "../admin-experience-v18.css";
 
 export default async function AdminStudentsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession("admin");
