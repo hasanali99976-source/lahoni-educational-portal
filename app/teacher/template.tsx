@@ -6,6 +6,7 @@ import TeacherSubjectGate, { TeacherNavigationLoading } from "./teacher-subject-
 import "./teacher-v400.css";
 import "./teacher-ux-v510.css";
 import "./teacher-command-v21.css";
+import "./teacher-command-v22.css";
 
 export default function TeacherTemplate({ children }: { children: ReactNode }) {
   return <><TeacherV24RuntimeFixes /><TeacherSubjectGate /><TeacherNavigationLoading />{children}</>;
