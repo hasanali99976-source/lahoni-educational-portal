@@ -8,6 +8,7 @@ import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-login-v14.css";
+import "./teacher-login-v15.css";
 
 export default function TeacherLoginPage(){
   const [name,setName]=useState("");
