@@ -14,7 +14,6 @@ type Student=GradeStudentLike&{id:string;code?:string;name?:string;class?:string
 type AttendanceStatus="present"|"absent"|"late"|"excused"|"escaped";
 type AttendanceRecord={class?:string;date?:string;records?:Record<string,AttendanceStatus>};
 type Lesson={subject?:string;className?:string;notes?:string};
-
 type StudentRow=Student&{score:number;completion:number;hasGrade:boolean;deduction:number};
 
 function baseSubject(value:string){return String(value||"").trim().split("--")[0];}
@@ -34,7 +33,6 @@ export default function TeacherDashboardV29(){
   const [message,setMessage]=useState("");
 
   useEffect(()=>{setNow(new Date());const timer=window.setInterval(()=>setNow(new Date()),30000);return()=>window.clearInterval(timer);},[]);
-
   useEffect(()=>{
     if(!session?.teacherId||!session?.subjectKey)return;
     const subjectId=baseSubject(session.subjectKey);
@@ -61,44 +59,60 @@ export default function TeacherDashboardV29(){
   const lessons=useMemo(()=>Object.entries(timetable).flatMap(([cell,lesson])=>{const match=cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/);if(!match||match[1]!==weekday||!lesson.className)return[];return[{period:Number(match[2]),className:String(lesson.className),notes:String(lesson.notes||"")}];}).sort((a,b)=>a.period-b.period),[timetable,weekday]);
   const todayRecords=useMemo(()=>attendance.filter(item=>item.date===today),[attendance,today]);
   const attendanceSummary=useMemo(()=>{const result={present:0,absent:0,late:0,escaped:0,excused:0,total:0};todayRecords.forEach(item=>Object.values(item.records||{}).forEach(status=>{if(status in result){result[status as keyof typeof result]+=1;result.total+=1;}}));return result;},[todayRecords]);
+  const attendanceByClass=useMemo(()=>{const map:Record<string,{present:number;absent:number;late:number;escaped:number;excused:number;total:number}>={};todayRecords.forEach(item=>{const key=String(item.class||"");if(!key)return;const row={present:0,absent:0,late:0,escaped:0,excused:0,total:0};Object.values(item.records||{}).forEach(status=>{if(status in row){row[status as keyof typeof row]+=1;row.total+=1;}});map[key]=row;});return map;},[todayRecords]);
 
   const studentRows=useMemo<StudentRow[]>(()=>students.map(student=>{const result=activePlan?calculateGradePlanResult(activePlan,student):null;const deduction=result&&activePlan?deductionTotal(student,activePlan.id):0;const score=result?Math.max(0,Math.round(result.earned-deduction)):0;return{...student,score,completion:Math.round(result?.completion||0),hasGrade:Boolean(result&&result.recordedMaximum>0),deduction};}),[students,activePlan]);
-  const classRows=useMemo(()=>classes.map(className=>{const rows=studentRows.filter(student=>student.class===className);const graded=rows.filter(student=>student.hasGrade);const average=graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;const completion=graded.length?Math.round(graded.reduce((sum,item)=>sum+item.completion,0)/graded.length):0;const deduction=rows.reduce((sum,item)=>sum+item.deduction,0);return{className,students:rows.length,average,completion,deduction,scheduled:lessons.some(lesson=>lesson.className===className)};}),[classes,studentRows,lessons]);
+  const classRows=useMemo(()=>classes.map(className=>{const rows=studentRows.filter(student=>student.class===className);const graded=rows.filter(student=>student.hasGrade);const average=graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;const completion=graded.length?Math.round(graded.reduce((sum,item)=>sum+item.completion,0)/graded.length):0;const deduction=rows.reduce((sum,item)=>sum+item.deduction,0);const todayInfo=attendanceByClass[className];return{className,students:rows.length,average,completion,deduction,scheduled:lessons.some(lesson=>lesson.className===className),attendanceDone:Boolean(todayInfo?.total),absent:todayInfo?.absent||0,late:todayInfo?.late||0,escaped:todayInfo?.escaped||0};}),[classes,studentRows,lessons,attendanceByClass]);
+
+  const graded=studentRows.filter(student=>student.hasGrade);
+  const overall=graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;
+  const completion=graded.length?Math.round(graded.reduce((sum,item)=>sum+item.completion,0)/graded.length):0;
+  const support=graded.filter(item=>item.score<60).length;
+  const nextLesson=lessons.find(lesson=>!attendanceByClass[lesson.className]?.total)||lessons[0];
+  const smartText=support?`${support} طالب يحتاجون متابعة أكاديمية. ابدأ بالأقل تحصيلًا ثم راجع اكتمال الرصد.`:attendanceSummary.absent?`لديك ${attendanceSummary.absent} حالة غياب اليوم. راجع الفصول قبل إغلاق المتابعة.`:lessons.length&&!attendanceSummary.total?"ابدأ بالحصة الأولى وسجل المتابعة مباشرة من جدول اليوم.":"الوضع مستقر. راجع التحصيل واكتمال الرصد للفصول الأقل من المتوسط.";
 
   const stats=[
-    {key:"present",label:"الحضور",value:attendanceSummary.present},
-    {key:"absent",label:"الغياب",value:attendanceSummary.absent},
-    {key:"late",label:"التأخير",value:attendanceSummary.late},
-    {key:"escaped",label:"الهروب",value:attendanceSummary.escaped},
-    {key:"excused",label:"الاستئذان",value:attendanceSummary.excused},
+    {key:"present",label:"حاضر",value:attendanceSummary.present},
+    {key:"absent",label:"غائب",value:attendanceSummary.absent},
+    {key:"late",label:"متأخر",value:attendanceSummary.late},
+    {key:"escaped",label:"هروب",value:attendanceSummary.escaped},
+    {key:"excused",label:"استئذان",value:attendanceSummary.excused},
   ];
 
   return <main className="teacher-dashboard-v29" dir="rtl">
-    <header className="td29-page-head">
-      <div><small>{now?dateLabel(now):"المتابعة اليومية"}</small><h1>متابعة اليوم</h1><p>{session.subject||"المادة الحالية"} • {session.activeGradeLabel||"المرحلة الثانوية"}</p></div>
-      <div className="td29-clock"><span>{now?timeLabel(now):"—"}</span><small>آخر تحديث تلقائي</small></div>
-    </header>
+    <section className="td29-commandbar">
+      <div><small>{now?dateLabel(now):"اليوم الدراسي"}</small><h1>لوحة المعلم</h1><p>{session.subject||"المادة الحالية"} • {session.activeGradeLabel||"المرحلة الثانوية"}</p></div>
+      <div className="td29-command-actions"><span>{now?timeLabel(now):"—"}</span><Link href="/teacher/attendance">فتح المتابعة</Link></div>
+    </section>
     {message?<p className="td29-message">{message}</p>:null}
 
-    <section className="td29-stats" aria-label="ملخص حضور اليوم">
-      {stats.map(item=><article key={item.key} data-state={item.key}><span>{item.label}</span><b>{item.value}</b><small>طالب</small></article>)}
+    <section className="td29-summary-line">
+      <div className="td29-attendance-strip">{stats.map(item=><span key={item.key} data-state={item.key}><b>{item.value}</b><small>{item.label}</small></span>)}</div>
+      <div className="td29-smart-note"><strong>تنبيه ذكي</strong><p>{smartText}</p></div>
     </section>
 
-    <section className="td29-top-grid">
-      <article className="td29-panel td29-today">
-        <header><div><small>جدول اليوم</small><h2>الحصص المجدولة</h2></div><Link href="/teacher/timetable">عرض الجدول كاملًا</Link></header>
-        <div className="td29-lessons">{lessons.length?lessons.map(lesson=><Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`}><span>{lesson.period}</span><div><b>{lesson.className}</b><small>{lesson.notes||session.subject||"الحصة الدراسية"}</small></div><em>فتح المتابعة</em></Link>):<div className="td29-empty"><b>لا توجد حصص مسجلة اليوم</b><span>يمكنك إضافة الجدول من صفحة الجدول الدراسي.</span></div>}</div>
+    <section className="td29-overview">
+      <article><small>الحصة التالية</small><b>{nextLesson?.className||"لا توجد"}</b><span>{nextLesson?`الحصة ${nextLesson.period}`:"لا توجد حصة مجدولة"}</span></article>
+      <article><small>إجمالي الطلاب</small><b>{students.length}</b><span>{classes.length} فصول مرتبطة</span></article>
+      <article><small>متوسط التحصيل</small><b>{graded.length?`${overall}٪`:"—"}</b><span>{support} يحتاجون دعمًا</span></article>
+      <article><small>اكتمال الرصد</small><b>{graded.length?`${completion}٪`:"—"}</b><span>{activePlan?"الخطة فعالة":"بانتظار خطة الدرجات"}</span></article>
+    </section>
+
+    <section className="td29-workspace-grid">
+      <article className="td29-block td29-day">
+        <header><div><small>متابعة اليوم</small><h2>الجدول والتحضير</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header>
+        <div className="td29-day-list">{lessons.length?lessons.map(lesson=>{const info=attendanceByClass[lesson.className];return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={info?.total?"done":""}><span className="period">{lesson.period}</span><div><b>{lesson.className}</b><small>{lesson.notes||session.subject||"الحصة الدراسية"}</small></div><div className="lesson-state">{info?.total?<><strong>تم</strong><small>{info.absent} غياب • {info.late} تأخير</small></>:<><strong>لم يسجل</strong><small>فتح التحضير</small></>}</div></Link>}):<div className="td29-empty"><b>لا توجد حصص لليوم</b><span>أضف جدولك وسيظهر هنا تلقائيًا.</span></div>}</div>
       </article>
 
-      <article className="td29-panel td29-classes">
-        <header><div><small>قوائم الطلاب</small><h2>الفصول المرتبطة</h2></div><Link href="/teacher/students">إدارة القوائم</Link></header>
-        <div>{classRows.length?classRows.map(item=><Link href="/teacher/students" key={item.className}><span className={item.scheduled?"today":""}>{item.className}</span><div><b>{item.students} طالب</b><small>{item.scheduled?"ضمن جدول اليوم":"فصل مسند"}</small></div><em>عرض القائمة</em></Link>):<div className="td29-empty"><b>لا توجد فصول مرتبطة</b><span>أضف فصولك من إدارة الطلاب.</span></div>}</div>
+      <article className="td29-block td29-class-list">
+        <header><div><small>قوائم الطلاب</small><h2>الفصول</h2></div><Link href="/teacher/students">إدارة الطلاب</Link></header>
+        <div>{classRows.length?classRows.map(item=><Link href="/teacher/students" key={item.className}><span className="class-pill">{item.className}</span><div><b>{item.students} طالب</b><small>{item.scheduled?"ضمن جدول اليوم":"فصل مسند"}</small></div><em>{item.attendanceDone?"متابعة مكتملة":"عرض"}</em></Link>):<div className="td29-empty"><b>لا توجد فصول مرتبطة</b><span>أضف الفصول من إدارة الطلاب.</span></div>}</div>
       </article>
     </section>
 
-    <section className="td29-panel td29-achievement">
-      <header><div><small>التحصيل العلمي</small><h2>ملخص الفصول</h2><p>المتوسط بعد الخصومات المسجلة في خطة المادة.</p></div><Link href="/teacher/grades">فتح سجل التحصيل</Link></header>
-      <div className="td29-table-wrap"><table><thead><tr><th>الفصل</th><th>الطلاب</th><th>متوسط التحصيل</th><th>اكتمال الرصد</th><th>الخصومات</th><th>الحالة</th></tr></thead><tbody>{classRows.map(item=><tr key={item.className}><td><b>{item.className}</b></td><td>{item.students}</td><td><strong>{item.average?`${item.average} / 100`:"—"}</strong></td><td>{item.completion?`${item.completion}٪`:"—"}</td><td>{item.deduction?`−${item.deduction}`:"—"}</td><td><span className={item.average>=90?"excellent":item.average>=60?"stable":item.average?"support":"empty"}>{item.average>=90?"متميز":item.average>=60?"مستقر":item.average?"يحتاج متابعة":"بانتظار الرصد"}</span></td></tr>)}</tbody></table></div>
+    <section className="td29-block td29-achievement">
+      <header><div><small>التحصيل العلمي</small><h2>قراءة سريعة للفصول</h2><p>بدون جدول مزدحم؛ كل فصل يظهر حالته ومتوسطه واكتمال الرصد بوضوح.</p></div><Link href="/teacher/grades">فتح سجل الدرجات</Link></header>
+      <div className="td29-achievement-list">{classRows.length?classRows.map(item=>{const state=item.average>=90?"excellent":item.average>=60?"stable":item.average?"support":"empty";return <Link href="/teacher/grades" key={item.className} className="td29-achievement-row" data-state={state}><div className="td29-class-title"><span>{item.className}</span><small>{item.students} طالب</small></div><div className="td29-score"><b>{item.average?`${item.average}٪`:"—"}</b><i><u style={{width:`${Math.min(100,item.average)}%`}}/></i><small>متوسط التحصيل</small></div><div className="td29-completion"><b>{item.completion?`${item.completion}٪`:"—"}</b><span>اكتمال الرصد</span></div><div className="td29-deduction"><b>{item.deduction?`−${item.deduction}`:"0"}</b><span>خصومات</span></div><div className="td29-status"><b>{state==="excellent"?"متميز":state==="stable"?"مستقر":state==="support"?"يحتاج متابعة":"بانتظار الرصد"}</b><small>{item.absent||item.late||item.escaped?`${item.absent} غياب • ${item.late} تأخير • ${item.escaped} هروب`:"لا ملاحظات يومية"}</small></div></Link>}):<div className="td29-empty"><b>لا توجد بيانات تحصيل بعد</b><span>عند رصد الدرجات ستظهر قراءة الفصول هنا.</span></div>}</div>
     </section>
   </main>;
 }
