@@ -6,7 +6,7 @@ import TeacherSubjectGate, { TeacherNavigationLoading } from "./teacher-subject-
 import "./print-theme.css";
 import "./teacher-shell-v38.css";
 
-// Structural teacher preview V39.
+// Production deployment trigger for structural teacher V39.
 export default function TeacherTemplate({ children }: { children: ReactNode }) {
   return <><TeacherV24RuntimeFixes /><TeacherSubjectGate /><TeacherNavigationLoading />{children}</>;
 }
