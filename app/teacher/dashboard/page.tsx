@@ -1,6 +1,6 @@
 "use client";
 
-import TeacherDashboardV29 from "./dashboard-v29";
-import "./dashboard-v29.css";
+import TeacherDashboardV30 from "./dashboard-v30";
+import "./dashboard-v30.css";
 
-export default TeacherDashboardV29;
+export default TeacherDashboardV30;
