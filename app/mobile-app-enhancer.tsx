@@ -63,15 +63,10 @@ export default function MobileAppEnhancer() {
   }, []);
 
   const links = useMemo<MobileLink[]>(() => {
-    if (pathname.startsWith("/teacher")) return [
-      { href: "/teacher/dashboard", label: "الرئيسية", icon: "home" },
-      { href: "/teacher/students", label: "الطلاب", icon: "students" },
-      { href: "/teacher/attendance", label: "الحضور", icon: "attendance" },
-      { href: "/teacher/grades", label: "الدرجات", icon: "grades" },
-      { href: "/teacher/grade-plan", label: "التوزيع", icon: "gradeplan" },
-      { href: "/teacher/diagnostics", label: "التشخيصي", icon: "tests" },
-      { href: "/teacher/ai", label: "الذكي", icon: "ai" },
-    ];
+    // Teacher owns its navigation entirely inside app/teacher/layout.tsx.
+    // Keeping this global legacy navigation disabled prevents the old UI
+    // from being rendered on top of the new teacher shell.
+    if (pathname.startsWith("/teacher")) return [];
     if (pathname.startsWith("/admin")) return [
       { href: "/admin", label: "الإدارة", icon: "admin" },
       { href: "/", label: "الرئيسية", icon: "back" },
