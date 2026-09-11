@@ -1,0 +1,40 @@
+/* Teacher platform v30 — rebuilt preview shell. Visual/layout only; auth/data untouched. */
+body:has(.teacher-studio){background:#f4f7fa!important}
+body:has(.teacher-studio) .teacher-studio{--rail-w:238px;min-height:100vh!important;background:linear-gradient(135deg,#f5f8fb 0%,#eef4f8 100%)!important}
+body:has(.teacher-studio) .ts-stage{margin-right:calc(var(--rail-w) + 24px)!important;padding:12px 22px 28px!important;min-height:100vh!important;background:transparent!important}
+body:has(.teacher-studio) .ts-topbar{height:34px!important;min-height:34px!important;margin:0 0 6px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+body:has(.teacher-studio) .ts-subject-zone,body:has(.teacher-studio) .ts-actions{display:none!important}
+body:has(.teacher-studio) .ts-teacher{position:absolute!important;left:2px!important;top:0!important;display:flex!important;align-items:center!important;gap:7px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+body:has(.teacher-studio) .ts-teacher .ts-avatar{width:27px!important;height:27px!important;border-radius:8px!important;background:#fff!important;border:1px solid #dce6ec!important;box-shadow:none!important;font-size:13px!important}
+body:has(.teacher-studio) .ts-teacher small{display:none!important}body:has(.teacher-studio) .ts-teacher h2{font-size:10.5px!important;margin:0!important;color:#173b55!important;font-weight:900!important}body:has(.teacher-studio) .ts-teacher p{font-size:8.5px!important;margin:1px 0 0!important;color:#7b8f9f!important}
+body:has(.teacher-studio) .ts-menu{right:0!important;top:0!important;width:30px!important;height:30px!important;border-radius:9px!important;background:#fff!important;border:1px solid #dce6ec!important;color:#244e6b!important;box-shadow:none!important}
+
+body:has(.teacher-studio) .ts-rail{width:var(--rail-w)!important;right:12px!important;top:12px!important;bottom:12px!important;height:auto!important;padding:10px!important;border-radius:22px!important;background:#ffffff!important;border:1px solid #dce6ec!important;box-shadow:0 16px 42px rgba(37,65,88,.09)!important;overflow:auto!important;color:#17344c!important}
+body:has(.teacher-studio) .ts-brand{min-height:56px!important;padding:5px 6px 10px!important;margin-bottom:7px!important;border-bottom:1px solid #e7edf2!important;background:transparent!important;box-shadow:none!important;text-decoration:none!important}
+body:has(.teacher-studio) .ts-brand img{width:38px!important;height:38px!important;border-radius:11px!important;box-shadow:none!important}body:has(.teacher-studio) .ts-brand small{display:none!important}body:has(.teacher-studio) .ts-brand strong{font-size:12px!important;color:#153c58!important}body:has(.teacher-studio) .ts-brand em{font-size:8px!important;color:#7890a2!important;margin-top:2px!important}
+body:has(.teacher-studio) .ts-home{min-height:40px!important;margin-bottom:7px!important;padding:6px 8px!important;border-radius:12px!important;background:#edf5fb!important;border:1px solid #d8e9f5!important;color:#1f5d88!important;box-shadow:none!important}
+body:has(.teacher-studio) .ts-home .ts-icon{background:#dceffc!important;color:#236993!important}
+body:has(.teacher-studio) .ts-home b{font-size:10.5px!important}body:has(.teacher-studio) .ts-home i{font-size:7px!important}
+
+body:has(.teacher-studio) .ts-nav-list{display:grid!important;gap:8px!important}
+body:has(.teacher-studio) .ts-group{margin:0!important;padding:7px!important;border-radius:14px!important;border:1px solid transparent!important}
+body:has(.teacher-studio) .ts-group:nth-child(1){background:#eef9f4!important;border-color:#d9eee4!important}
+body:has(.teacher-studio) .ts-group:nth-child(2){background:#eef5fd!important;border-color:#dbe9f8!important}
+body:has(.teacher-studio) .ts-group:nth-child(3){background:#f5f0fb!important;border-color:#e7dcf5!important}
+body:has(.teacher-studio) .ts-group:nth-child(4){background:#fff7e8!important;border-color:#f2e3bd!important}
+body:has(.teacher-studio) .ts-group>small{display:block!important;margin:0 4px 5px!important;font-size:8px!important;font-weight:950!important;letter-spacing:.15px!important}
+body:has(.teacher-studio) .ts-group:nth-child(1)>small{color:#16805f!important}body:has(.teacher-studio) .ts-group:nth-child(2)>small{color:#2f6fa3!important}body:has(.teacher-studio) .ts-group:nth-child(3)>small{color:#7957ad!important}body:has(.teacher-studio) .ts-group:nth-child(4)>small{color:#9a6a17!important}
+body:has(.teacher-studio) .ts-nav{display:grid!important;gap:3px!important}
+body:has(.teacher-studio) .ts-nav a{min-height:35px!important;padding:5px 6px!important;border-radius:10px!important;border:1px solid transparent!important;background:rgba(255,255,255,.58)!important;color:#405a6d!important;box-shadow:none!important;transition:.15s ease!important}
+body:has(.teacher-studio) .ts-nav a:hover{background:#fff!important;color:#173b55!important;transform:none!important}
+body:has(.teacher-studio) .ts-nav a.active{background:#fff!important;color:#173b55!important;border-color:#dfe8ee!important;box-shadow:0 4px 12px rgba(45,72,92,.06)!important}
+body:has(.teacher-studio) .ts-icon{width:26px!important;height:26px!important;border-radius:8px!important;background:#eef2f5!important;color:#5d7487!important}
+body:has(.teacher-studio) .ts-icon svg{width:16px!important;height:16px!important}
+body:has(.teacher-studio) .ts-group:nth-child(1) .ts-icon{background:#dff3e9!important;color:#16805f!important}body:has(.teacher-studio) .ts-group:nth-child(2) .ts-icon{background:#deebfa!important;color:#2f6fa3!important}body:has(.teacher-studio) .ts-group:nth-child(3) .ts-icon{background:#eadff6!important;color:#7957ad!important}body:has(.teacher-studio) .ts-group:nth-child(4) .ts-icon{background:#f9ebc9!important;color:#9a6a17!important}
+body:has(.teacher-studio) .ts-nav b{font-size:9.8px!important;font-weight:800!important}body:has(.teacher-studio) .ts-nav i{font-size:6.8px!important;opacity:.72!important}
+/* Reduce duplication: keep core teacher workflows visible in rail. */
+body:has(.teacher-studio) .ts-nav a[href="/teacher/portfolio"],body:has(.teacher-studio) .ts-nav a[href="/teacher/report"]{display:none!important}
+body:has(.teacher-studio) .ts-footer{display:flex!important;gap:5px!important;margin-top:8px!important;padding-top:8px!important;border-top:1px solid #e6edf2!important}body:has(.teacher-studio) .ts-footer a,body:has(.teacher-studio) .ts-footer button{flex:1!important;min-height:29px!important;padding:4px!important;border:1px solid #e0e8ee!important;border-radius:8px!important;background:#f7fafc!important;color:#607889!important;font-size:8px!important}
+body:has(.teacher-studio) main{background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+@media(max-width:980px){body:has(.teacher-studio) .ts-stage{margin-right:0!important;padding:11px 12px 24px!important}body:has(.teacher-studio) .ts-rail{right:auto!important;top:0!important;bottom:0!important;height:100vh!important;border-radius:0!important}body:has(.teacher-studio) .ts-menu{display:grid!important}}
+@media(max-width:620px){body:has(.teacher-studio) .ts-stage{padding:9px 8px 20px!important}body:has(.teacher-studio) .ts-teacher p{max-width:145px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}}
