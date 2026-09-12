@@ -22,7 +22,7 @@ type CompetitionPayload = {
   topThree?: CompetitionRow[];
 };
 
-const REFRESH_AFTER_MS = 60 * 1000;
+const REFRESH_AFTER_MS = 5 * 60 * 1000;
 const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab").format(value || 0);
 
 export default function TeacherCompetitionProgress({ compact = false }: { compact?: boolean }) {
@@ -53,7 +53,6 @@ export default function TeacherCompetitionProgress({ compact = false }: { compac
     };
 
     void load(true);
-    const timer = window.setInterval(() => void load(false), REFRESH_AFTER_MS);
     const refreshWhenVisible = () => {
       if (document.visibilityState === "visible") void load(false);
     };
@@ -62,7 +61,6 @@ export default function TeacherCompetitionProgress({ compact = false }: { compac
 
     return () => {
       active = false;
-      window.clearInterval(timer);
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
