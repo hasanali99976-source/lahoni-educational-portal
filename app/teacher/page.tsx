@@ -36,37 +36,43 @@ export default function TeacherLoginPage(){
   }
 
   return <main className="teacher-login-unified" dir="rtl">
-    <div className="tlu-orb tlu-orb-a"/><div className="tlu-orb tlu-orb-b"/>
-
     <header className="tlu-top">
       <Link href="/" className="tlu-brand">
-        <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={56} height={56} priority/>
-        <span><strong>بوابة أستاذ لحوني التعليمية</strong><small>بيئة تعليمية ذكية للمعلم</small></span>
+        <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority/>
+        <span><strong>بوابة أستاذ لحوني التعليمية</strong><small>مساحة المعلم الذكية</small></span>
       </Link>
-      <Link href="/" className="tlu-back">الرئيسية</Link>
+      <Link href="/" className="tlu-back">العودة للرئيسية</Link>
     </header>
 
     <section className="tlu-stage">
       <section className="tlu-intro">
-        <div className="tlu-badge">بوابة تعليمية ذكية</div>
-        <h1>مساحة واحدة لعملك التعليمي اليومي.</h1>
-        <p>فصولك، حضور طلابك، التحصيل، المتابعة، التقارير والمساعد الذكي في تجربة واضحة ومتكاملة.</p>
-        <div className="tlu-pills"><span>الحضور</span><span>التحصيل</span><span>المتابعة</span><span>التقارير</span><span>الذكاء التعليمي</span></div>
-        <div className="tlu-visual"><img src="/saudi-classroom.svg" alt="بيئة تعليمية سعودية"/></div>
+        <div className="tlu-intro-copy">
+          <div className="tlu-badge">بوابة المعلم</div>
+          <h1>يومك الدراسي<br/>في شاشة واحدة.</h1>
+          <p>حضور، تحضير، متابعة، تحصيل، تقارير وانضباط؛ مرتبة لتصل لما تحتاجه بسرعة ووضوح.</p>
+        </div>
+        <div className="tlu-smart-grid" aria-label="أدوات البوابة">
+          <article><span>01</span><b>الحضور والتحضير</b><small>تسجيل سريع ومتابعة مباشرة</small></article>
+          <article><span>02</span><b>التحصيل والدرجات</b><small>قراءة أوضح لمستوى الطلاب</small></article>
+          <article><span>03</span><b>الانضباط</b><small>مؤشرات مختصرة للحالات المهمة</small></article>
+          <article><span>04</span><b>التقارير</b><small>طباعة وملخصات منظمة</small></article>
+        </div>
+        <div className="tlu-live-strip"><i/><span>بيئة عمل موحدة لجميع مواد المعلم</span><b>جاهزة للاستخدام</b></div>
       </section>
 
       <section className="tlu-login-card">
-        <div className="tlu-login-head"><small>دخول المعلم</small><h2>مرحبًا بك</h2><p>ادخل إلى مساحة عملك التعليمية المحفوظة.</p></div>
+        <div className="tlu-login-mark">دخول آمن</div>
+        <div className="tlu-login-head"><small>مرحبًا بك</small><h2>دخول المعلم</h2><p>استخدم بياناتك الحالية كما هي للدخول إلى مساحة عملك.</p></div>
         <form className="tlu-form" onSubmit={submit}>
-          <label><span>اسم المستخدم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoFocus required placeholder="اسم المستخدم"/></label>
-          <label><span>كلمة المرور</span><div className="tlu-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" required placeholder="كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
+          <label><span>اسم المستخدم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoFocus required placeholder="اكتب اسم المستخدم"/></label>
+          <label><span>كلمة المرور</span><div className="tlu-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" required placeholder="اكتب كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
           {error?<p className="tlu-error">{error}</p>:null}
-          <button className="tlu-submit" disabled={loading||!name||!password}>{loading?"جارٍ فتح البوابة…":"دخول البوابة التعليمية"}</button>
+          <button className="tlu-submit" disabled={loading||!name||!password}>{loading?"جارٍ فتح البوابة…":"دخول بوابة المعلم"}</button>
         </form>
-        <div className="tlu-trust"><span>حساب واحد لكل موادك</span><span>بياناتك محفوظة</span></div>
+        <div className="tlu-trust"><span>نفس بياناتك الحالية</span><span>لا تغيير على حسابك</span></div>
       </section>
     </section>
 
-    <footer className="tlu-footer"><span>منصة تعليمية للمتابعة والتحصيل والتقارير</span><b>إعداد الأستاذ حسن علي الطويل</b></footer>
+    <footer className="tlu-footer"><span>بوابة تعليمية للمتابعة والتحصيل والتقارير</span><b>إعداد الأستاذ حسن علي الطويل</b></footer>
   </main>;
 }
