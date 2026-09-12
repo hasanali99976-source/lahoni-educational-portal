@@ -1,0 +1,118 @@
+/* Teacher Smart V41 — preview refinement. One final visual layer only; no data/auth behavior changes. */
+:root{
+  --ts41-ink:#163647;
+  --ts41-muted:#6f8490;
+  --ts41-line:rgba(38,78,99,.11);
+  --ts41-glass:rgba(255,255,255,.58);
+  --ts41-glass-strong:rgba(255,255,255,.76);
+  --ts41-teal:#187f78;
+  --ts41-blue:#2b6f92;
+  --ts41-shadow:0 18px 50px rgba(28,66,87,.07);
+}
+
+html,body{font-family:"Tajawal","Noto Kufi Arabic","Segoe UI",Arial,sans-serif!important}
+body:has(.teacher-studio),body:has(.teacher-login-v14){
+  background:
+    radial-gradient(circle at 84% 12%,rgba(50,132,139,.13),transparent 31rem),
+    radial-gradient(circle at 10% 92%,rgba(52,106,151,.10),transparent 34rem),
+    linear-gradient(150deg,#f5f9fa 0%,#f8fbfb 45%,#f2f7fa 100%)!important;
+}
+body:has(.teacher-studio)::after,body:has(.teacher-login-v14)::after{
+  content:"";position:fixed;inset:0;z-index:-4;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.20) 1px,transparent 1px);
+  background-size:34px 34px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.28),transparent 72%);
+}
+
+/* LOGIN — educational, contemporary and integrated with the portal */
+.teacher-login-v14{padding:14px clamp(14px,2.4vw,34px) 16px!important;gap:12px!important;min-height:100dvh!important}
+.tl14-top{max-width:1180px!important}
+.tl14-brand{gap:11px!important}
+.tl14-brand img{width:42px!important;height:42px!important;border-radius:12px!important;box-shadow:0 10px 28px rgba(24,79,96,.12)!important}
+.tl14-brand strong{font-size:14px!important;font-weight:900!important;letter-spacing:-.25px!important}
+.tl14-brand small{font-size:9px!important;font-weight:700!important;color:#6b838e!important}
+.tl14-brand small::after{content:" • بيئة تعليمية ذكية";color:#268279!important}
+.tl14-back{font-size:9px!important;padding:8px 11px!important;background:rgba(255,255,255,.5)!important;backdrop-filter:blur(12px)!important}
+.tl14-stage{width:min(1080px,100%)!important;grid-template-columns:minmax(0,1.03fr) minmax(330px,.77fr)!important;gap:12px!important;align-items:center!important}
+.tl14-visual,.tl14-access{border-radius:22px!important;border:1px solid rgba(255,255,255,.56)!important;box-shadow:var(--ts41-shadow)!important;backdrop-filter:blur(20px)!important}
+.tl14-visual{min-height:430px!important;background:linear-gradient(145deg,rgba(13,66,86,.93),rgba(18,117,112,.86))!important}
+.tl14-visual>img{opacity:.26!important;filter:saturate(.72) contrast(.94)!important}
+.tl14-visual:before{content:"بوابة تعليمية • متابعة • تحليل • أثر";position:absolute;z-index:3;top:20px;right:22px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);font-size:8px;font-weight:800;color:#e6f6f4;letter-spacing:.1px}
+.tl14-visual:after{background:linear-gradient(180deg,rgba(9,44,60,.06),rgba(7,44,56,.84))!important}
+.tl14-visual-copy{right:24px!important;left:24px!important;bottom:74px!important}
+.tl14-visual-copy span{font-size:9px!important;letter-spacing:.1px!important}
+.tl14-visual-copy h1{font-size:clamp(25px,3.2vw,37px)!important;line-height:1.35!important;letter-spacing:-.8px!important;margin:5px 0 7px!important}
+.tl14-visual-copy p{font-size:10.5px!important;line-height:1.75!important;max-width:610px!important;color:rgba(236,247,249,.86)!important}
+.tl14-visual-tags{right:24px!important;left:24px!important;bottom:22px!important;gap:5px!important}
+.tl14-visual-tags span{font-size:7.5px!important;padding:5px 8px!important;background:rgba(255,255,255,.07)!important}
+.tl14-access{padding:24px!important;background:rgba(255,255,255,.60)!important}
+.tl14-access-head{margin-bottom:14px!important;padding-bottom:10px!important}
+.tl14-access-head span{font-size:9px!important}.tl14-access-head b{font-size:8px!important}
+.tl14-access h2{font-size:23px!important;letter-spacing:-.4px!important}.tl14-access>p{font-size:10px!important;margin-bottom:15px!important}
+.tl14-form{gap:10px!important}.tl14-form label>span{font-size:9px!important;margin-bottom:5px!important}
+.tl14-form input{height:43px!important;font-size:11px!important;border-radius:11px!important;background:rgba(255,255,255,.82)!important}
+.tl14-password button{height:31px!important;font-size:8px!important}.tl14-submit{height:44px!important;font-size:11px!important;border-radius:11px!important}
+.tl14-secure{margin-top:11px!important;gap:5px!important}.tl14-secure span{font-size:7px!important;padding:5px 7px!important;background:rgba(243,248,249,.72)!important}
+.tl14-footer{max-width:1080px!important;font-size:7.5px!important;opacity:.88!important}
+
+/* PORTAL SHELL — translucent, blended, compact */
+.teacher-studio{--rail-w:248px!important;color:var(--ts41-ink)!important}
+.teacher-studio .ts-rail{
+  width:var(--rail-w)!important;padding:9px 9px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.61),rgba(247,251,252,.48))!important;
+  border-left:1px solid rgba(255,255,255,.68)!important;
+  box-shadow:-12px 0 40px rgba(33,71,92,.05)!important;
+  backdrop-filter:blur(22px) saturate(125%)!important;
+}
+.teacher-studio .ts-brand{min-height:43px!important;padding:1px 2px 7px!important;gap:7px!important}
+.teacher-studio .ts-brand img{width:31px!important;height:31px!important;border-radius:9px!important}
+.teacher-studio .ts-brand strong{font-size:11px!important;line-height:1.2!important;letter-spacing:-.15px!important}
+.teacher-studio .ts-brand small{font-size:7px!important;line-height:1.2!important;color:#78909b!important}
+.teacher-studio .ts-brand small::after{content:" • بوابة تعليمية";color:#268279!important}
+.teacher-studio .ts-teacher-card{margin:5px 0!important;padding:7px!important;grid-template-columns:31px minmax(0,1fr)!important;border-radius:11px!important;background:rgba(255,255,255,.42)!important;border:1px solid rgba(255,255,255,.62)!important;box-shadow:none!important}
+.teacher-studio .ts-avatar{width:31px!important;height:31px!important;border-radius:9px!important;font-size:13px!important}
+.teacher-studio .ts-teacher-card h2{font-size:9.5px!important;line-height:1.25!important}.teacher-studio .ts-teacher-card p{font-size:7px!important;line-height:1.3!important}
+.teacher-studio .ts-home{min-height:36px!important;margin:4px 0!important;grid-template-columns:25px 1fr!important;gap:6px!important;padding:4px 6px!important;border-radius:9px!important;background:rgba(255,255,255,.34)!important}
+.teacher-studio .ts-home .ts-icon{width:24px!important;height:24px!important}.teacher-studio .ts-home .ts-icon svg{width:13px!important;height:13px!important}
+.teacher-studio .ts-home b{font-size:9px!important}.teacher-studio .ts-home small{display:none!important}
+.teacher-studio .ts-nav-list{gap:3px!important}
+.teacher-studio .ts-nav-group{border-radius:10px!important;background:rgba(255,255,255,.28)!important;border:1px solid rgba(255,255,255,.50)!important;overflow:hidden!important;box-shadow:none!important}
+.teacher-studio .ts-group-head{min-height:35px!important;padding:4px 6px!important;grid-template-columns:minmax(0,1fr) 19px!important;gap:4px!important}
+.teacher-studio .ts-group-head b{font-size:9px!important;line-height:1.15!important;white-space:nowrap!important}
+.teacher-studio .ts-group-head small{display:none!important}
+.teacher-studio .ts-group-head>i{width:18px!important;height:18px!important;font-size:10px!important}
+.teacher-studio .ts-nav{padding:2px 4px 4px!important;gap:1px!important}
+.teacher-studio .ts-nav a{min-height:31px!important;grid-template-columns:23px minmax(0,1fr) auto!important;gap:5px!important;padding:2px 5px!important;border-radius:8px!important;background:transparent!important}
+.teacher-studio .ts-nav .ts-icon{width:22px!important;height:22px!important;border-radius:7px!important}.teacher-studio .ts-nav .ts-icon svg{width:12px!important;height:12px!important}
+.teacher-studio .ts-nav a b{font-size:8.3px!important;line-height:1.15!important;font-weight:800!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.teacher-studio .ts-nav a:hover{background:rgba(255,255,255,.54)!important}.teacher-studio .ts-nav a.active{background:linear-gradient(120deg,color-mix(in srgb,var(--subject,#2c7886) 10%,white),rgba(255,255,255,.72))!important}
+.teacher-studio .ts-footer{padding-top:5px!important;font-size:7px!important}
+.teacher-studio .ts-stage{margin-right:var(--rail-w)!important;padding:12px 16px 22px!important;min-width:0!important}
+.teacher-studio .ts-page-head{min-height:55px!important;margin-bottom:8px!important;padding:7px 10px!important;border-radius:13px!important;background:rgba(255,255,255,.42)!important;border:1px solid rgba(255,255,255,.64)!important;backdrop-filter:blur(18px)!important;box-shadow:0 8px 24px rgba(25,65,85,.035)!important}
+.teacher-studio .ts-page-head h1{font-size:15px!important;line-height:1.2!important;letter-spacing:-.25px!important}.teacher-studio .ts-page-head p{font-size:7.8px!important;line-height:1.35!important;color:#738995!important}.teacher-studio .ts-page-head>a{min-height:27px!important;padding:0 8px!important;font-size:7.8px!important;border-radius:8px!important}
+
+/* Page surfaces — merge cards into the background and prevent visual collisions */
+.teacher-studio main,.teacher-studio section,.teacher-studio article,.teacher-studio div{min-width:0}
+.teacher-studio :is(.td31-welcome,.td31-next,.td31-kpis>div,.td31-centers article,.td31-lower>article,.attendance-overview article,.grades-panel,.grade-panel,.report-panel){
+  background:rgba(255,255,255,.46)!important;border-color:rgba(255,255,255,.66)!important;backdrop-filter:blur(14px)!important;box-shadow:0 8px 26px rgba(28,68,89,.035)!important;
+}
+.teacher-dashboard-v31{gap:8px!important}.td31-hero,.td31-kpis,.td31-centers,.td31-lower{gap:7px!important}
+.td31-welcome,.td31-next{padding:11px!important}.td31-welcome h1{font-size:18px!important;line-height:1.25!important}.td31-welcome p,.td31-next p{font-size:8px!important;line-height:1.5!important}
+.td31-kpis>div{padding:8px 9px!important}.td31-kpis>div b{font-size:18px!important}.td31-kpis>div span,.td31-kpis>div small{font-size:7.5px!important}
+.td31-centers article,.td31-today,.td31-alerts{padding:9px!important}.td31-centers article h2{font-size:12px!important}.td31-centers article p{font-size:7.8px!important}.td31-centers article a{font-size:7.7px!important;padding:5px 7px!important}
+
+/* Keep forms and tables readable at normal zoom */
+.teacher-studio table{font-size:9px!important}.teacher-studio th{font-size:8px!important}.teacher-studio td,.teacher-studio th{padding-top:7px!important;padding-bottom:7px!important}
+.teacher-studio input,.teacher-studio select,.teacher-studio textarea,.teacher-studio button{font-family:inherit!important}
+.teacher-studio input,.teacher-studio select{font-size:9px!important;min-height:34px!important}.teacher-studio textarea{font-size:9px!important}
+
+@media(max-width:980px){
+  .teacher-studio{--rail-w:0px!important}.teacher-studio .ts-stage{margin-right:0!important;padding:10px!important}.teacher-studio .ts-rail{width:min(290px,88vw)!important}
+  .teacher-studio .ts-teacher-card{position:static!important;width:auto!important}
+  .tl14-stage{grid-template-columns:1fr!important;max-width:620px!important}.tl14-visual{min-height:290px!important}.tl14-visual-copy h1{font-size:25px!important}.tl14-access{padding:20px!important}.tl14-footer{max-width:620px!important;flex-direction:column!important}
+}
+
+@media(max-width:620px){
+  .teacher-login-v14{padding:10px!important}.tl14-brand strong{font-size:11px!important}.tl14-brand small{font-size:7px!important}.tl14-back{font-size:7px!important;padding:6px 8px!important}.tl14-visual{min-height:250px!important;border-radius:17px!important}.tl14-visual-copy{right:18px!important;left:18px!important;bottom:60px!important}.tl14-visual-copy h1{font-size:21px!important}.tl14-visual-copy p{font-size:9px!important}.tl14-visual-tags{right:18px!important;left:18px!important;bottom:14px!important}.tl14-access{border-radius:17px!important;padding:16px!important}
+}
+
+@media print{.teacher-login-v14 .tl14-visual,.teacher-studio .ts-rail{display:none!important}.teacher-studio .ts-stage{margin:0!important;padding:0!important}}
