@@ -60,8 +60,6 @@ async function saveTeacherSummaryPdf(button: HTMLButtonElement) {
   const margin = 9;
   const usableW = 210 - margin * 2;
   const usableH = 297 - margin * 2;
-  let y = margin;
-  let hasContent = false;
   const original = button.textContent;
   button.disabled = true;
   try {
@@ -84,15 +82,10 @@ async function saveTeacherSummaryPdf(button: HTMLButtonElement) {
         renderW *= factor;
         renderH *= factor;
       }
-      if (hasContent && y + renderH > 297 - margin) {
-        pdf.addPage("a4", "portrait");
-        y = margin;
-        hasContent = false;
-      }
+      if (index) pdf.addPage("a4", "portrait");
       const x = margin + (usableW - renderW) / 2;
+      const y = margin + Math.max(0, (usableH - renderH) / 2);
       pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, renderW, renderH, undefined, "FAST");
-      y += renderH + 5;
-      hasContent = true;
       canvas.width = 1;
       canvas.height = 1;
     }
