@@ -60,6 +60,7 @@ export default function TeacherLoginPage(){
       </section>
 
       <section className="tlc-card">
+        <div className="tlc-teacher-avatar"><Image src="/teacher/teacher-avatar.svg" alt="أيقونة المعلم" width={82} height={82} priority/></div>
         <div className="tlc-mark">دخول آمن</div>
         <div className="tlc-head"><small>مرحبًا بك</small><h2>دخول المعلم</h2><p>استخدم بياناتك الحالية كما هي للدخول إلى مساحة عملك.</p></div>
         <form className="tlc-form" onSubmit={submit}>
