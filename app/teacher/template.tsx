@@ -6,6 +6,7 @@ import FollowUpEnhancerCurrent from "./follow-up/follow-up-enhancer-current";
 import "./teacher-typography-current.css";
 import "./teacher-current-experience.css";
 import "./teacher-avatar-current.css";
+import "./teacher-shell-refinement-v41.css";
 
 export default function TeacherTemplate({ children }: { children: ReactNode }) {
   return <>
