@@ -60,7 +60,7 @@ export default function TeacherDashboardV31(){
   const overall=useMemo(()=>{const graded=studentRows.filter(item=>item.hasGrade);return graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;},[studentRows]);
   const support=studentRows.filter(item=>item.hasGrade&&item.score<60).length;
   const uncompletedLessons=lessons.filter(item=>!completedClasses.has(item.className));
-  const teacherFirstName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").split(/\s+/)[0]||"المعلم";
+  const teacherDisplayName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").trim()||"المعلم";
   const hour=now?Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",hour:"2-digit",hour12:false}).format(now)):12;
   const greeting=hour<12?"صباح الخير":hour<18?"مساء الخير":"مساء الخير";
   const subjectItems=(session.subjects||[]).slice(0,6);
@@ -71,14 +71,17 @@ export default function TeacherDashboardV31(){
     {message?<p className="td31-message">{message}</p>:null}
 
     <section className="td31-hero">
-      <div className="td31-welcome">
-        <small>{greeting}</small>
-        <h1>أ. {teacherFirstName}</h1>
-        <div className="td31-meta"><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div>
+      <div className="td31-identity">
+        <div className="td31-portrait" aria-hidden="true" />
+        <div className="td31-welcome">
+          <small>{greeting}</small>
+          <h1>أ. {teacherDisplayName}</h1>
+          <div className="td31-meta"><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div>
+        </div>
       </div>
       <div className="td31-subject-strip" aria-label="اختيار المادة">
         <div className="td31-current-subject"><span>المادة الحالية</span><strong>{session.subject||"المادة"}</strong><small>{session.activeGradeLabel||"المرحلة الثانوية"}</small></div>
-        {subjectItems.length>1?<div className="td31-subject-pills">{subjectItems.map(item=><button type="button" key={item.workspaceKey} disabled={Boolean(switching)} onClick={()=>void selectSubject(item.workspaceKey)} className={item.workspaceKey===session.workspaceKey?"active":""}>{switching===item.workspaceKey?"…":item.subjectName}</button>)}</div>:null}
+        {subjectItems.length>1?<div className="td31-subject-pills" aria-label="مواد المعلم">{subjectItems.map(item=><button type="button" key={item.workspaceKey} disabled={Boolean(switching)} onClick={()=>void selectSubject(item.workspaceKey)} className={item.workspaceKey===session.workspaceKey?"active":""}>{switching===item.workspaceKey?"…":item.subjectName}</button>)}</div>:null}
       </div>
     </section>
 
