@@ -17,6 +17,30 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
+      - name: Generate health notification sound
+        run: |
+          mkdir -p health-android/app/src/main/res/raw
+          python3 - <<'PY'
+          import wave, math, struct
+          sr=44100
+          dur=2.8
+          notes=[(0.00,0.20,659.25,.42),(0.24,0.22,783.99,.42),(0.52,0.28,987.77,.46),(0.92,0.18,783.99,.28),(1.14,0.30,1046.50,.38),(1.55,0.24,1318.51,.34),(1.86,0.62,987.77,.28)]
+          samples=[]
+          for i in range(int(sr*dur)):
+              t=i/sr
+              x=0.0
+              for start,length,freq,amp in notes:
+                  if start <= t <= start+length:
+                      u=(t-start)/length
+                      env=(math.sin(math.pi*u)**2)
+                      x += math.sin(2*math.pi*freq*(t-start))*env*amp
+                      x += math.sin(2*math.pi*(freq*2)*(t-start))*env*amp*.12
+              x=max(-.92,min(.92,x))
+              samples.append(int(x*32767))
+          with wave.open('health-android/app/src/main/res/raw/health_chime.wav','wb') as w:
+              w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
+              w.writeframes(b''.join(struct.pack('<h',s) for s in samples))
+          PY
       - name: Build APK
         working-directory: health-android
         run: gradle assembleDebug --no-daemon
