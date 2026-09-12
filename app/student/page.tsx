@@ -6,7 +6,7 @@ import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type Grad
 import "./student-portal-v1000.css";
 
 type GradeDeduction={id?:string;planId?:string;scope?:"plan"|"section"|"item";sectionId?:string;itemId?:string;amount?:number;reason?:string;note?:string;reversedAt?:string};
-type AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number};
+type AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number;latestDate?:string};
 type TeacherNote={id?:string;label?:string;message?:string;createdAt?:string;teacherName?:string;subject?:string};
 type CounselorReferral={id?:string;referralType?:string;referralTypeLabel?:string;reason?:string;status?:string;teacherName?:string;subject?:string;createdAt?:string;severity?:string};
 type CounselorNotice={title?:string;message?:string;referralType?:string;subject?:string;teacherName?:string;referralId?:string;createdAt?:string};
