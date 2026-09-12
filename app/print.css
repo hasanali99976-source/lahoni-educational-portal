@@ -1,5 +1,5 @@
 @page{size:A4 portrait;margin:18mm 12mm 16mm}
-.print-header,.print-footer{display:none}
+.print-header,.print-footer,.teacher-section-print-head{display:none}
 
 @media print{
   html,body{direction:rtl!important;width:auto!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important;color:#153b49!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
@@ -7,21 +7,12 @@
   body *{text-shadow:none!important;animation:none!important;transition:none!important;box-shadow:none!important}
 
   .mobile-app-nav,.mobile-install-card,.mobile-network-status,.student-portal-tabs,nav,aside,button,.no-print,.portal-back,.student-head-actions,.teacher-head-actions,.v3-row-actions,[aria-label="التنقل السريع في التطبيق"],[aria-label="أقسام بوابة الطالب"]{display:none!important}
-
   .portal-stage{width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;overflow:visible!important;transform:none!important}
 
-  /* Teacher print must not inherit the interactive desktop/mobile shell geometry. */
   body:has(.teacher-studio) .teacher-studio{display:block!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#153b49!important;overflow:visible!important;transform:none!important;direction:rtl!important}
-  body:has(.teacher-studio) .teacher-studio .ts-rail,
-  body:has(.teacher-studio) .teacher-studio .ts-mobile-toggle,
-  body:has(.teacher-studio) .teacher-studio .ts-overlay,
-  body:has(.teacher-studio) .teacher-studio .ts-page-head,
-  body:has(.teacher-studio) .teacher-studio .ts-footer{display:none!important}
-  body:has(.teacher-studio) .teacher-studio .ts-stage,
-  body:has(.teacher-studio) .teacher-studio .ts-canvas{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;position:static!important;transform:none!important;background:#fff!important;direction:rtl!important}
-  body:has(.teacher-studio) .teacher-studio main,
-  body:has(.teacher-studio) .teacher-studio section,
-  body:has(.teacher-studio) .teacher-studio article{max-width:100%!important;min-width:0!important;transform:none!important}
+  body:has(.teacher-studio) .teacher-studio .ts-rail,body:has(.teacher-studio) .teacher-studio .ts-mobile-toggle,body:has(.teacher-studio) .teacher-studio .ts-overlay,body:has(.teacher-studio) .teacher-studio .ts-page-head,body:has(.teacher-studio) .teacher-studio .ts-footer{display:none!important}
+  body:has(.teacher-studio) .teacher-studio .ts-stage,body:has(.teacher-studio) .teacher-studio .ts-canvas{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;position:static!important;transform:none!important;background:#fff!important;direction:rtl!important}
+  body:has(.teacher-studio) .teacher-studio main,body:has(.teacher-studio) .teacher-studio section,body:has(.teacher-studio) .teacher-studio article{max-width:100%!important;min-width:0!important;transform:none!important}
 
   .print-header{display:grid!important;grid-template-columns:18mm minmax(0,1fr) auto!important;align-items:center!important;gap:4mm!important;position:fixed!important;top:-14mm!important;right:0!important;left:0!important;min-height:12mm!important;padding:1.5mm 4mm 1.5mm 22mm!important;border:1px solid #d8e5e2!important;border-right:3mm solid #0a8178!important;border-radius:2.4mm!important;background:#fff url('/icons/lahooni-identity-320.jpg') right 3mm center/15mm 15mm no-repeat!important;color:#123d49!important;font-size:12.5pt!important;font-weight:900!important;z-index:9999!important}
   .print-header::after{content:"بوابة المعلم • تقرير رسمي";font-size:8.5pt!important;font-weight:800!important;color:#9a701f!important;white-space:nowrap!important}
@@ -30,7 +21,6 @@
 
   h1{font-size:20pt!important}h2{font-size:16pt!important}h3{font-size:13pt!important}h1,h2,h3,h4{break-after:avoid-page;page-break-after:avoid}
   a{color:#153b49!important;text-decoration:none!important}
-
   table{width:100%!important;max-width:100%!important;table-layout:auto!important;border-collapse:collapse!important;font-size:10.5pt!important;color:#153b49!important;direction:rtl!important}
   thead{display:table-header-group!important}tfoot{display:table-footer-group!important}
   th{background:#0b746e!important;color:#fff!important;font-size:10.3pt!important;font-weight:900!important;vertical-align:middle!important}
@@ -39,15 +29,32 @@
   tbody tr:nth-child(even) td{background:#f5faf9!important}
   tr,img,svg,canvas,.result-card,.plan-card{break-inside:avoid-page;page-break-inside:avoid}
   img{max-width:100%!important;height:auto!important;object-fit:contain!important}svg,canvas{max-width:100%!important;height:auto!important}
-
   .student-table-scroll,.teacher-table-scroll,[class*="table-scroll"],[class*="overflow"]{width:100%!important;max-width:100%!important;overflow:visible!important}
 
-  /* Every explicit report/print page is one A4 page/section. */
-  .print-page,
-  [data-print-page],
-  #teacher-report-v9-print>*,
-  .teacher-report-page,
-  .report-print-page{break-before:page!important;page-break-before:always!important;break-after:page!important;page-break-after:always!important;break-inside:avoid-page!important;page-break-inside:avoid!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important}
+  /* Mastery/follow-up print is a dedicated visible report. */
+  body:has(.follow-page) .print-header,body:has(.follow-page) .print-footer{display:none!important}
+  body:has(.follow-page) .teacher-section-print-head{display:block!important;margin:0 0 8mm!important;padding:0 0 5mm!important;border-bottom:1.2mm solid #0b8178!important;background:#fff!important;color:#153b49!important;break-inside:avoid!important}
+  body:has(.follow-page) .teacher-section-print-head small{display:block!important;color:#0b8178!important;font-size:9.5pt!important;font-weight:900!important}
+  body:has(.follow-page) .teacher-section-print-head h1{margin:2mm 0 1mm!important;color:#153b49!important;font-size:20pt!important}
+  body:has(.follow-page) .teacher-section-print-head p{margin:0!important;color:#526e78!important;font-size:9.5pt!important;font-weight:700!important}
+  body:has(.follow-page) .follow-page{display:block!important;width:100%!important;color:#153b49!important;background:#fff!important;overflow:visible!important}
+  body:has(.follow-page) .follow-head{display:block!important;margin:0 0 5mm!important;padding:4mm!important;background:#eef7f5!important;border:1px solid #c8ddd8!important;color:#153b49!important}
+  body:has(.follow-page) .follow-head h1{color:#153b49!important;font-size:15pt!important}.follow-head p{color:#526e78!important;font-size:9pt!important}.follow-filters{display:none!important}
+  body:has(.follow-page) .follow-overview{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:2mm!important;overflow:visible!important;margin-bottom:5mm!important}
+  body:has(.follow-page) .follow-overview article{display:block!important;min-width:0!important;min-height:18mm!important;padding:3mm!important;background:#f7faf9!important;border:1px solid #d4e1de!important;color:#153b49!important}
+  body:has(.follow-page) .follow-overview span,body:has(.follow-page) .follow-overview small{display:block!important;color:#526e78!important;font-size:8pt!important;white-space:normal!important;overflow:visible!important}body:has(.follow-page) .follow-overview strong{display:block!important;margin-top:2mm!important;color:#0b746e!important;font-size:17pt!important}
+  body:has(.follow-page) .students-follow-card{display:block!important;overflow:visible!important;background:#fff!important;border:0!important}
+  body:has(.follow-page) .students-follow-card>header{display:block!important;padding:0 0 3mm!important;margin-bottom:3mm!important;background:#fff!important;border-bottom:1px solid #d4e1de!important}body:has(.follow-page) .students-follow-card h2{color:#153b49!important;font-size:14pt!important}body:has(.follow-page) .students-follow-card header p{color:#526e78!important;font-size:8.5pt!important}
+  body:has(.follow-page) .follow-actions,body:has(.follow-page) .row-actions,body:has(.follow-page) .referral-manager-v510,body:has(.follow-page) .follow-modal,body:has(.follow-page) .follow-toast{display:none!important}
+  body:has(.follow-page) .follow-table-wrap{display:block!important;width:100%!important;overflow:visible!important;background:#fff!important}
+  body:has(.follow-page) .follow-table-wrap table{display:table!important;min-width:0!important;width:100%!important;table-layout:fixed!important;background:#fff!important}
+  body:has(.follow-page) .follow-table-wrap thead{display:table-header-group!important}body:has(.follow-page) .follow-table-wrap tbody{display:table-row-group!important}body:has(.follow-page) .follow-table-wrap tr{display:table-row!important}
+  body:has(.follow-page) .follow-table-wrap th,body:has(.follow-page) .follow-table-wrap td{display:table-cell!important;position:static!important;background:#fff!important;color:#153b49!important;font-size:8.6pt!important;padding:2.2mm 1.8mm!important;border:1px solid #d4e1de!important;white-space:normal!important}
+  body:has(.follow-page) .follow-table-wrap th{background:#0b746e!important;color:#fff!important;font-size:8.4pt!important}body:has(.follow-page) .follow-table-wrap tbody tr:nth-child(even) td{background:#f5faf9!important}
+  body:has(.follow-page) .student-name-cell{position:static!important;min-width:0!important;max-width:none!important;box-shadow:none!important;background:#fff!important;color:#153b49!important}
+  body:has(.follow-page) .completion>span{width:24mm!important;background:#e5eeee!important}.follow-page .completion b{color:#153b49!important}.follow-page .level{border:1px solid #c6d8d5!important;background:#eef7f5!important;color:#153b49!important}
+
+  .print-page,[data-print-page],#teacher-report-v9-print>*,.teacher-report-page,.report-print-page{break-before:page!important;page-break-before:always!important;break-after:page!important;page-break-after:always!important;break-inside:avoid-page!important;page-break-inside:avoid!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important}
   .print-page:first-child,[data-print-page]:first-child,#teacher-report-v9-print>*:first-child,.teacher-report-page:first-child,.report-print-page:first-child{break-before:auto!important;page-break-before:auto!important}
   .print-page:last-child,[data-print-page]:last-child,#teacher-report-v9-print>*:last-child,.teacher-report-page:last-child,.report-print-page:last-child{break-after:auto!important;page-break-after:auto!important}
 }
