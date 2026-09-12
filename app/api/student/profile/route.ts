@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculateGradePlanResult } from "../../../../lib/grade-plan";
+import { calculateGradePlanResult, type GradeStudentLike } from "../../../../lib/grade-plan";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
@@ -137,7 +137,7 @@ export async function GET(request: Request) {
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
 
   const activePlan = gradePlanState.activePlan;
-  const masteryResult = activePlan ? calculateGradePlanResult(activePlan, studentData) : null;
+  const masteryResult = activePlan ? calculateGradePlanResult(activePlan, studentData as GradeStudentLike) : null;
   const masteryCompletion = Math.round(masteryResult?.completion || 0);
   const masteryPerformance = Math.round(masteryResult?.percentage || 0);
   const masteryFinalScore = masteryResult?.finalScore === null || masteryResult?.finalScore === undefined ? null : Math.round(masteryResult.finalScore);
