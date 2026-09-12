@@ -1,0 +1,59 @@
+/* Final contrast pass: dashboard readability + competition names. */
+body:has(.admin-v4-frame) .adm15-bars .adm15-bar,
+body:has(.admin-v4-frame) .adm15-subjects>div,
+body:has(.admin-v4-frame) .adm15-summary-row{
+  background:rgba(248,252,251,.96)!important;
+  border:1px solid rgba(210,228,225,.95)!important;
+  border-radius:12px!important;
+  color:#173f49!important;
+}
+body:has(.admin-v4-frame) .adm15-bar-name b,
+body:has(.admin-v4-frame) .adm15-bar-name small,
+body:has(.admin-v4-frame) .adm15-subjects>div>span,
+body:has(.admin-v4-frame) .adm15-subjects>div>strong,
+body:has(.admin-v4-frame) .adm15-summary-row b,
+body:has(.admin-v4-frame) .adm15-summary-row strong,
+body:has(.admin-v4-frame) .adm15-summary-row span{
+  color:#163f49!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+body:has(.admin-v4-frame) .adm15-subjects>div>span{font-weight:900!important;font-size:10.5px!important}
+body:has(.admin-v4-frame) .adm15-subjects>div>strong{color:#9b6b1d!important;font-size:11px!important}
+body:has(.admin-v4-frame) .adm15-bar-name b{font-weight:900!important;font-size:10.5px!important}
+body:has(.admin-v4-frame) .adm15-bar-name small{color:#607980!important}
+body:has(.admin-v4-frame) .adm15-bar-track,
+body:has(.admin-v4-frame) .adm15-subjects>div>div{background:#dbe9e6!important}
+body:has(.admin-v4-frame) .adm15-panel header h2,
+body:has(.admin-v4-frame) .adm15-summary header h2{color:#fff4dc!important}
+body:has(.admin-v4-frame) .adm15-panel header small,
+body:has(.admin-v4-frame) .adm15-summary header small{color:#d8e5e7!important}
+
+/* Competition names must stay readable regardless of inherited legacy colors. */
+body:has(.admin-v4-frame) .race-lane-person b,
+body:has(.admin-v4-frame) .race-lane-person strong,
+body:has(.admin-v4-frame) .race-lane-copy b,
+body:has(.admin-v4-frame) .race-lane-copy strong,
+body:has(.admin-v4-frame) .race-lane .race-name,
+body:has(.admin-v4-frame) .race-lane h3{
+  color:#123f49!important;
+  font-weight:900!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+body:has(.admin-v4-frame) .race-lane-person small,
+body:has(.admin-v4-frame) .race-lane-copy small,
+body:has(.admin-v4-frame) .race-lane p{
+  color:#5c747b!important;
+  opacity:1!important;
+}
+body:has(.admin-v4-frame) .race-lane.leader .race-lane-person b,
+body:has(.admin-v4-frame) .race-lane.leader .race-lane-person strong,
+body:has(.admin-v4-frame) .race-lane.leader .race-lane-copy b,
+body:has(.admin-v4-frame) .race-lane.leader .race-lane-copy strong{color:#6d4a0d!important}
+body:has(.admin-v4-frame) .race-leader-copy h2,
+body:has(.admin-v4-frame) .race-leader-copy strong{color:#fff!important;text-shadow:0 2px 8px rgba(0,0,0,.34)!important}
+body:has(.admin-v4-frame) .race-leader-copy p,
+body:has(.admin-v4-frame) .race-leader-copy small{color:#fff4cf!important;opacity:1!important}
+body:has(.admin-v4-frame) .race-lane-score,
+body:has(.admin-v4-frame) .race-lane-gap{color:#173f49!important;font-weight:900!important}
