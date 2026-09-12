@@ -10,6 +10,10 @@ public final class NotificationScheduler {
     private NotificationScheduler() {}
 
     public static void scheduleDaily(Context context, String hhmm, String title, String body, int req) {
+        scheduleDailyConditional(context, hhmm, title, body, req, "");
+    }
+
+    public static void scheduleDailyConditional(Context context, String hhmm, String title, String body, int req, String condition) {
         try {
             String[] p = hhmm.split(":");
             Calendar c = Calendar.getInstance();
@@ -24,6 +28,7 @@ public final class NotificationScheduler {
             i.putExtra("daily", true);
             i.putExtra("time", hhmm);
             i.putExtra("req", req);
+            i.putExtra("condition", condition == null ? "" : condition);
             PendingIntent pi = PendingIntent.getBroadcast(context, req, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             schedule(context, c.getTimeInMillis(), pi);
         } catch (Exception ignored) {}
@@ -40,6 +45,22 @@ public final class NotificationScheduler {
             PendingIntent pi = PendingIntent.getBroadcast(context, req, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             schedule(context, parsed.getTime(), pi);
         } catch (Exception ignored) {}
+    }
+
+    public static void scheduleAfter(Context context, long delayMs, String title, String body, int req) {
+        Intent i = new Intent(context, NotificationReceiver.class);
+        i.putExtra("title", title);
+        i.putExtra("body", body);
+        PendingIntent pi = PendingIntent.getBroadcast(context, req, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        schedule(context, System.currentTimeMillis() + Math.max(1000, delayMs), pi);
+    }
+
+    public static void cancel(Context context, int req) {
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+        Intent i = new Intent(context, NotificationReceiver.class);
+        PendingIntent pi = PendingIntent.getBroadcast(context, req, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_NO_CREATE);
+        if (pi != null) am.cancel(pi);
     }
 
     private static void schedule(Context context, long when, PendingIntent pi) {
