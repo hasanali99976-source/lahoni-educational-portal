@@ -1,244 +1,100 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { ACADEMIC_UNITS, FINAL_MAX, RESEARCH_MAX, UNIT_MAX, calculatePercentage, calculateUnitTotal } from "../../lib/academic-config";
+import Link from "next/link";
 import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type GradeValueMap } from "../../lib/grade-plan";
-import { downloadStudentProgressPdf } from "../../lib/student-progress-pdf";
-import StudentDiagnostics from "./student-diagnostics";
-import "./student-diagnostics.css";
 import "./student-portal-v1000.css";
 
-type UnitRecord = { total?: number; attendance?: number; participation?: number; homework?: number; unitExam?: number; exam1?: number; exam2?: number };
-type AttendanceSummary = { present: number; absent: number; late: number; excused: number; escaped: number; total: number; disciplineRate: number; latestDate?: string };
-type TeacherNoteEntry = { id?: string; type?: string; label?: string; message?: string; createdAt?: string; teacherName?: string; subject?: string };
-type TimetableLesson = { dayKey: string; dayLabel: string; dayIndex: number; period: number; className: string; subject: string; notes: string };
-type GradeDeduction = { id?: string; planId?: string; scope?: "plan" | "section" | "item"; sectionId?: string; itemId?: string; amount?: number; reversedAt?: string };
-type StudentRecord = {
-  gradePlan?: GradePlan | null;
-  gradeValues?: GradeValueMap;
-  gradePlanValues?: Record<string, GradeValueMap>;
-  gradeDeductions?: GradeDeduction[];
-  name?: string;
-  class?: string;
-  accessCode?: string;
-  teacherName?: string;
-  research?: number;
-  researchScore?: number;
-  teacherNote?: string;
-  teacherNoteCount?: number;
-  teacherNotes?: TeacherNoteEntry[];
-  absences?: number;
-  late?: number;
-  attendanceSummary?: AttendanceSummary;
-  timetableLessons?: TimetableLesson[];
-  units?: Record<string, UnitRecord>;
-  parentCounselorLastNotice?: { title?: string; message?: string };
-};
-type Match = { id: string; teacherId: string; subjectKey: string; subjectLabel: string; teacherName: string; icon: string; accessToken: string; data: StudentRecord };
-type StudentTab = "home" | "progress" | "notes" | "schedule" | "tests" | "report";
-type SubjectTheme = { primary: string; deep: string; soft: string; eyebrow: string; title: string };
-type AlertView = { id: string; tone: "urgent" | "info" | "note"; icon: string; title: string; text: string; meta: string };
+type GradeDeduction={id?:string;planId?:string;scope?:"plan"|"section"|"item";sectionId?:string;itemId?:string;amount?:number;reason?:string;note?:string;reversedAt?:string};
+type AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number;latestDate?:string};
+type TeacherNote={id?:string;label?:string;message?:string;createdAt?:string;teacherName?:string;subject?:string};
+type CounselorReferral={id?:string;referralType?:string;referralTypeLabel?:string;reason?:string;status?:string;teacherName?:string;subject?:string;createdAt?:string;severity?:string};
+type CounselorNotice={title?:string;message?:string;referralType?:string;subject?:string;teacherName?:string;referralId?:string;createdAt?:string};
+type StudentRecord={gradePlan?:GradePlan|null;gradeValues?:GradeValueMap;gradePlanValues?:Record<string,GradeValueMap>;gradeDeductions?:GradeDeduction[];name?:string;class?:string;accessCode?:string;teacherName?:string;teacherNotes?:TeacherNote[];teacherNote?:string;attendanceSummary?:AttendanceSummary;counselorReferrals?:CounselorReferral[];parentCounselorLastNotice?:CounselorNotice;parentCounselorNoticeCount?:number};
+type Match={id:string;teacherId:string;subjectKey:string;subjectLabel:string;teacherName:string;icon?:string;accessToken:string;data:StudentRecord};
+type StudentView="home"|"grades"|"notes"|"report"|"certificate";
+type SubjectMetric={match:Match;plan:GradePlan|null;result:ReturnType<typeof calculateGradePlanResult>|null;earned:number;maximum:number;percentage:number;completion:number;deducted:number;hasData:boolean};
+type FeedItem={id:string;kind:"referral"|"note"|"alert";subject:string;title:string;text:string;meta:string;createdAt:string;tone:"violet"|"teal"|"gold"|"red"};
 
-const CODE_PATTERN = /^TH[123]\d{3}$/;
-const STUDENT_CODE_EXAMPLE = "TH1234";
-const PORTAL_LOGO = "/icons/lahooni-identity-320.jpg";
-const LEARNING_ART = "/student/learning-scene.svg";
-const DAY_ORDER = ["sunday", "monday", "tuesday", "wednesday", "thursday"];
-const DAY_LABELS: Record<string, string> = { sunday: "الأحد", monday: "الاثنين", tuesday: "الثلاثاء", wednesday: "الأربعاء", thursday: "الخميس" };
-const ar = (value: number) => new Intl.NumberFormat("ar-SA-u-nu-arab", { maximumFractionDigits: 1 }).format(Number.isFinite(value) ? value : 0);
+const CODE_PATTERN=/^TH[123]\d{3}$/;
+const LOGO="/icons/lahooni-identity-320.jpg";
+const AVATAR="/student/student-avatar.svg";
+const ar=(value:number)=>new Intl.NumberFormat("ar-SA-u-nu-arab",{maximumFractionDigits:2}).format(Number.isFinite(value)?value:0);
+const gradeWord=(value:number)=>value>=90?"ممتاز":value>=80?"جيد جدًا":value>=70?"جيد":value>=60?"مقبول":"يحتاج دعمًا";
 
-const tabs: Array<{ key: StudentTab; label: string }> = [
-  { key: "home", label: "مساحتي" },
-  { key: "progress", label: "تقدمي" },
-  { key: "notes", label: "المتابعات" },
-  { key: "schedule", label: "الجدول" },
-  { key: "tests", label: "الاختبارات" },
-  { key: "report", label: "التقرير" },
-];
-
-function normalizeStudentCode(value: string) {
-  return value
-    .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
-    .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-    .toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+function normalizeStudentCode(value:string){return value.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);}
+function activeDeductions(data:StudentRecord,plan:GradePlan){return (Array.isArray(data.gradeDeductions)?data.gradeDeductions:[]).filter(item=>!item.reversedAt&&Number(item.amount||0)>0&&(!item.planId||item.planId===plan.id));}
+function metricFor(match:Match):SubjectMetric{
+  const data=match.data||{};const plan=normalizeGradePlan(data.gradePlan);
+  if(!plan)return{match,plan:null,result:null,earned:0,maximum:100,percentage:0,completion:0,deducted:0,hasData:false};
+  const values=data.gradePlanValues?.[plan.id]||data.gradeValues||{};
+  const result=calculateGradePlanResult(plan,{...data,gradeValues:values});
+  const deductions=activeDeductions(data,plan);const deducted=Number(deductions.reduce((sum,item)=>sum+Math.max(0,Number(item.amount||0)),0).toFixed(2));
+  const earned=Math.max(0,Number((result.earned-deducted).toFixed(2)));const maximum=result.maximum||100;
+  return{match,plan,result,earned,maximum,percentage:maximum?Math.round(earned/maximum*100):0,completion:Math.round(result.completion||0),deducted,hasData:result.recordedMaximum>0};
 }
+function statusLabel(metric:SubjectMetric){if(!metric.plan)return"بانتظار الخطة";if(!metric.hasData)return"بانتظار الرصد";if(metric.completion<100)return"الرصد مستمر";if(metric.percentage>=90)return"متميز";if(metric.percentage>=80)return"متقدم";if(metric.percentage>=70)return"جيد";return"يحتاج دعمًا";}
+function subjectSymbol(key:string){const value=key.split("--")[0];if(value==="history")return"🏛️";if(value==="critical-thinking")return"🧠";if(/math|financial/.test(value))return"∑";if(/science|physics|chemistry|biology/.test(value))return"⚗️";if(/arabic|linguistic/.test(value))return"ض";if(value==="english")return"A";if(/islam|quran|hadith|fiqh|tawhid|tafsir/.test(value))return"☪";if(/digital|computer/.test(value))return"⌘";return"📘";}
+function compactDate(){return new Intl.DateTimeFormat("ar-SA",{year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Riyadh"}).format(new Date());}
+function feedDate(value:string){if(!value)return"بدون تاريخ";const date=new Date(value);if(Number.isNaN(date.getTime()))return value;return new Intl.DateTimeFormat("ar-SA",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Riyadh"}).format(date);}
 
-function subjectTheme(subjectKey: string, subjectLabel: string): SubjectTheme {
-  const key = subjectKey.split("--")[0];
-  if (["history", "geography", "social-studies", "social-sciences", "citizenship"].includes(key)) return { primary: "#9a6a2b", deep: "#593d24", soft: "#f7f0e4", eyebrow: "التاريخ والوعي", title: "اربط الحدث بسببه ونتيجته، وابنِ فهمك خطوة بخطوة" };
-  if (key === "critical-thinking") return { primary: "#7158c6", deep: "#433679", soft: "#f0edfb", eyebrow: "التحليل والاستدلال", title: "حلّل الأدلة، اختبر الفكرة، ثم ابنِ حكمك بوعي" };
-  if (["mathematics", "financial-literacy"].includes(key)) return { primary: "#2d72d4", deep: "#174b8c", soft: "#edf4ff", eyebrow: "الحل والتطبيق", title: "قسّم المسألة إلى خطوات صغيرة وواضحة حتى تصل للحل" };
-  if (["science", "physics", "chemistry", "biology", "earth-science", "environmental-science"].includes(key)) return { primary: "#138b79", deep: "#0b5a55", soft: "#eaf7f3", eyebrow: "الاستكشاف العلمي", title: "لاحظ، جرّب، قارن ثم فسّر ما يحدث حولك" };
-  if (["arabic", "linguistic-competencies"].includes(key)) return { primary: "#a54e61", deep: "#6d3041", soft: "#fbf0f3", eyebrow: "اللغة والتعبير", title: "اقرأ بفهم، استخرج المعنى، وعبّر بثقة" };
-  if (key === "english") return { primary: "#4266b2", deep: "#2a4379", soft: "#eef2fb", eyebrow: "Learning & Communication", title: "Read, practise, and communicate with confidence" };
-  if (["islamic-studies", "quran", "quran-tafsir", "tafsir", "hadith", "fiqh", "tawhid"].includes(key)) return { primary: "#2c825a", deep: "#1b513b", soft: "#edf7f1", eyebrow: "العلم والقيم", title: "افهم المعرفة واربطها بالسلوك اليومي" };
-  if (["digital-technology", "computer-science"].includes(key)) return { primary: "#278da7", deep: "#185b72", soft: "#eaf7fa", eyebrow: "المهارات الرقمية", title: "تعلّم، طبّق، وابنِ حلًا رقميًا عمليًا" };
-  return { primary: "#0b7f78", deep: "#153d50", soft: "#eaf6f4", eyebrow: "مسار التحصيل", title: `تعلّم ${subjectLabel} بطريقة واضحة ومرتبة` };
-}
+export default function StudentPage(){
+  const [accessCode,setAccessCode]=useState("");const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);
+  const [matches,setMatches]=useState<Match[]>([]);const [selectedKey,setSelectedKey]=useState("");const [subjectGate,setSubjectGate]=useState(false);const [view,setView]=useState<StudentView>("home");const automaticLoginStarted=useRef(false);
 
-function SubjectMark({ subjectKey }: { subjectKey: string }) {
-  const key = subjectKey.split("--")[0];
-  const common = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (["history", "geography", "social-studies", "social-sciences", "citizenship"].includes(key)) return <svg {...common}><path d="M3 21h18M5 18h14M6 8h12M8 8v10M12 8v10M16 8v10M4 8l8-5 8 5"/></svg>;
-  if (key === "critical-thinking") return <svg {...common}><path d="M9 18h6M10 22h4M8 14.5A6 6 0 1 1 16 14.5c-1 .8-1.5 1.7-1.5 2.5h-5c0-.8-.5-1.7-1.5-2.5Z"/><path d="m9.5 10.5 1.5 1.5 3.5-4"/></svg>;
-  if (["mathematics", "financial-literacy"].includes(key)) return <svg {...common}><path d="M4 5h16M12 3v4M5 12h6M8 9v6M14 10l6 6M20 10l-6 6M4 20h16"/></svg>;
-  if (["science", "physics", "chemistry", "biology", "earth-science", "environmental-science"].includes(key)) return <svg {...common}><path d="M9 3h6M10 3v5l-5 9a3 3 0 0 0 2.6 4.5h8.8A3 3 0 0 0 19 17l-5-9V3"/><path d="M8 15h8M9.5 12h5"/></svg>;
-  if (["digital-technology", "computer-science"].includes(key)) return <svg {...common}><rect x="4" y="4" width="16" height="12" rx="2"/><path d="M8 20h8M12 16v4M8 9h3M13 9h3"/></svg>;
-  return <svg {...common}><path d="M4 5.5A4.5 4.5 0 0 1 8.5 4H12v16H8.5A4.5 4.5 0 0 0 4 21.5v-16ZM20 5.5A4.5 4.5 0 0 0 15.5 4H12v16h3.5a4.5 4.5 0 0 1 4.5 1.5v-16Z"/></svg>;
-}
+  async function hydrate(match:Match){try{const response=await fetch("/api/student/profile",{headers:{Authorization:`Bearer ${match.accessToken}`},cache:"no-store"});const payload=await response.json().catch(()=>({}));return response.ok&&payload.data?{...match,data:payload.data as StudentRecord}:match;}catch{return match;}}
+  function speakWelcome(name:string){try{if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(`مرحبًا ${name}. أهلًا بك في بوابة أستاذ لحوني التعليمية. نتمنى لك يومًا دراسيًا مميزًا.`);utterance.lang="ar-SA";utterance.rate=.94;utterance.pitch=1;window.speechSynthesis.speak(utterance);}catch{}}
+  async function hydrateAll(raw:Match[]){const enriched=await Promise.all(raw.map(hydrate));setMatches(current=>current.length?enriched:current);}
+  async function lookup(value:string,allowVoice=true){const code=normalizeStudentCode(value);setMessage("");if(!CODE_PATTERN.test(code))return setMessage("أدخل كود الطالب الصحيح المكوّن من 6 خانات.");setLoading(true);try{const response=await fetch("/api/student/lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessCode:code}),cache:"no-store"});const payload=await response.json().catch(()=>({}));if(!response.ok)return setMessage(payload.message||"تعذر الدخول بكود الطالب.");const raw=Array.isArray(payload.matches)?payload.matches as Match[]:[];if(!raw.length)return setMessage("لا توجد مواد مرتبطة بهذا الطالب حتى الآن.");setAccessCode(code);setMatches(raw);setSelectedKey("");setView("home");setSubjectGate(true);setLoading(false);const knownName=raw[0]?.data?.name||"طالبنا";if(allowVoice)window.setTimeout(()=>speakWelcome(knownName),120);void hydrateAll(raw);}catch{setMessage("تعذر الاتصال بالبوابة الآن.");setLoading(false);}}
+  function submit(event:FormEvent){event.preventDefault();void lookup(accessCode,true);}
+  function chooseSubject(key:string){setSelectedKey(key);setSubjectGate(false);setView("home");window.scrollTo({top:0,behavior:"smooth"});}
+  function logout(){try{window.speechSynthesis?.cancel();}catch{}setMatches([]);setSelectedKey("");setSubjectGate(false);setView("home");setAccessCode("");setMessage("");}
 
-function TabIcon({ tab }: { tab: StudentTab }) {
-  const common = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (tab === "home") return <svg {...common}><path d="m3 11 9-8 9 8v9H3v-9Z"/><path d="M9 20v-6h6v6"/></svg>;
-  if (tab === "progress") return <svg {...common}><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/><path d="m4 8 6-4 6 5 5-4"/></svg>;
-  if (tab === "notes") return <svg {...common}><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>;
-  if (tab === "schedule") return <svg {...common}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>;
-  if (tab === "tests") return <svg {...common}><path d="M6 3h12v18H6zM9 8h6M9 12h3M9 16h6"/><path d="m14 12 1 1 2-2"/></svg>;
-  return <svg {...common}><path d="M4 20V4h16v16H4Z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>;
-}
+  useEffect(()=>{const query=new URLSearchParams(window.location.search);const code=normalizeStudentCode(query.get("code")||"");if(code)setAccessCode(code);if(query.size)window.history.replaceState({},"","/student");if(CODE_PATTERN.test(code)&&!automaticLoginStarted.current){automaticLoginStarted.current=true;void lookup(code,false);}},[]);
+  useEffect(()=>{if(!selectedKey)return;let active=true;let busy=false;const refresh=async()=>{if(!active||busy||document.visibilityState!=="visible")return;const current=matches.find(item=>item.subjectKey===selectedKey);if(!current)return;busy=true;const updated=await hydrate(current);if(active)setMatches(list=>list.map(item=>item.subjectKey===selectedKey?updated:item));busy=false;};const onFocus=()=>void refresh();const onVisible=()=>{if(document.visibilityState==="visible")void refresh();};window.addEventListener("focus",onFocus);document.addEventListener("visibilitychange",onVisible);return()=>{active=false;window.removeEventListener("focus",onFocus);document.removeEventListener("visibilitychange",onVisible);};},[selectedKey,matches]);
 
-function activeDeductions(match: Match, plan: GradePlan) {
-  return (Array.isArray(match.data.gradeDeductions) ? match.data.gradeDeductions : []).filter(item => !item.reversedAt && (!item.planId || item.planId === plan.id));
-}
-function deductionTotal(items: GradeDeduction[]) { return Number(items.reduce((sum, item) => sum + Math.max(0, Number(item.amount || 0)), 0).toFixed(2)); }
+  const metrics=useMemo(()=>matches.map(metricFor),[matches]);
+  const selectedMetric=useMemo(()=>metrics.find(item=>item.match.subjectKey===selectedKey)||null,[metrics,selectedKey]);
+  const studentName=matches[0]?.data?.name||"الطالب";const className=matches[0]?.data?.class||"الفصل غير محدد";
+  const scored=metrics.filter(item=>item.hasData);const overall=scored.length?Math.round(scored.reduce((sum,item)=>sum+item.percentage,0)/scored.length):0;
+  const overallCompletion=metrics.length?Math.round(metrics.reduce((sum,item)=>sum+item.completion,0)/metrics.length):0;
+  const discipline=metrics.length?Math.round(metrics.reduce((sum,item)=>sum+Number(item.match.data.attendanceSummary?.disciplineRate??100),0)/metrics.length):100;
+  const feed=useMemo(()=>{
+    const rows:FeedItem[]=[];
+    matches.forEach(match=>{
+      const subject=match.subjectLabel;const data=match.data||{};
+      const notes=Array.isArray(data.teacherNotes)?data.teacherNotes:[];
+      notes.forEach((note,index)=>rows.push({id:`note-${match.subjectKey}-${note.id||index}`,kind:"note",subject,title:note.label||"ملاحظة من المعلم",text:note.message||"تم تسجيل ملاحظة تعليمية.",meta:note.teacherName||match.teacherName,createdAt:note.createdAt||"",tone:"teal"}));
+      if(!notes.length&&data.teacherNote)rows.push({id:`legacy-note-${match.subjectKey}`,kind:"note",subject,title:"ملاحظة من المعلم",text:data.teacherNote,meta:match.teacherName,createdAt:"",tone:"teal"});
+      const referrals=Array.isArray(data.counselorReferrals)?data.counselorReferrals:[];
+      if(referrals.length)referrals.forEach((ref,index)=>rows.push({id:`ref-${match.subjectKey}-${ref.id||index}`,kind:"referral",subject,title:ref.referralTypeLabel||"إحالة للمرشد الطلابي",text:ref.reason||"إحالة للمتابعة مع المرشد الطلابي.",meta:`${ref.status||"جديدة"} • ${ref.teacherName||match.teacherName}`,createdAt:ref.createdAt||"",tone:"violet"}));
+      else if(data.parentCounselorLastNotice?.message)rows.push({id:`notice-${match.subjectKey}-${data.parentCounselorLastNotice.referralId||"latest"}`,kind:"referral",subject,title:data.parentCounselorLastNotice.title||"إحالة للمرشد الطلابي",text:data.parentCounselorLastNotice.message,meta:data.parentCounselorLastNotice.teacherName||match.teacherName,createdAt:data.parentCounselorLastNotice.createdAt||"",tone:"violet"});
+      const active=normalizeGradePlan(data.gradePlan);if(active){const deductions=activeDeductions(data,active);if(deductions.length){const total=deductions.reduce((sum,item)=>sum+Number(item.amount||0),0);rows.push({id:`deduction-${match.subjectKey}`,kind:"alert",subject,title:"تنبيه تحصيلي",text:`يوجد خصم معتمد بمقدار ${ar(total)} درجة في هذه المادة.`,meta:"التحصيل العلمي",createdAt:"",tone:"gold"});}}
+      const attendance=data.attendanceSummary;if(Number(attendance?.absent||0)>0||Number(attendance?.late||0)>0||Number(attendance?.escaped||0)>0)rows.push({id:`attendance-${match.subjectKey}`,kind:"alert",subject,title:"تنبيه الحضور والانضباط",text:`الغياب ${ar(Number(attendance?.absent||0))} • التأخر ${ar(Number(attendance?.late||0))} • الهروب ${ar(Number(attendance?.escaped||0))}`,meta:"متابعة الانضباط",createdAt:attendance?.latestDate||"",tone:"red"});
+    });
+    return rows.sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  },[matches]);
 
-function metricsFor(match: Match) {
-  const plan = normalizeGradePlan(match.data.gradePlan);
-  if (plan) {
-    const result = calculateGradePlanResult(plan, match.data || {});
-    const deductions = activeDeductions(match, plan);
-    const deducted = deductionTotal(deductions);
-    const total = Math.max(0, Number((result.earned - deducted).toFixed(2)));
-    return {
-      percentage: result.maximum ? Math.round((total / result.maximum) * 100) : 0,
-      total,
-      completion: result.completion || 0,
-      deducted,
-      sections: result.sections.map(section => {
-        const sectionDeducted = deductionTotal(deductions.filter(item => item.sectionId === section.id));
-        const earned = Math.max(0, Number((section.earned - sectionDeducted).toFixed(2)));
-        return { label: section.label, earned, max: section.maximum, percentage: section.maximum ? Math.round(earned / section.maximum * 100) : 0 };
-      }),
-    };
-  }
-  const sections = ACADEMIC_UNITS.map(unit => {
-    const row = match.data.units?.[unit.key] || {};
-    const attendance = Number(row.attendance || 0), participation = Number(row.participation || 0), homework = Number(row.homework || 0), unitExam = Number(row.unitExam ?? row.exam1 ?? row.exam2 ?? 0);
-    const earned = Math.min(UNIT_MAX, Number(row.total ?? calculateUnitTotal({ attendance, participation, homework, unitExam })));
-    return { label: unit.label, earned, max: UNIT_MAX, percentage: Math.round(earned / Math.max(UNIT_MAX, 1) * 100) };
-  });
-  const research = Math.min(RESEARCH_MAX, Number(match.data.researchScore ?? match.data.research ?? 0));
-  const total = Math.min(FINAL_MAX, sections.reduce((sum, item) => sum + item.earned, 0) + research);
-  return { percentage: calculatePercentage(total, FINAL_MAX), total, completion: calculatePercentage(total, FINAL_MAX), deducted: 0, sections };
-}
-function noteDate(value?: string) { if (!value) return ""; const d = new Date(value); return Number.isNaN(d.getTime()) ? "" : new Intl.DateTimeFormat("ar-SA", { day: "numeric", month: "short" }).format(d); }
-function riyadhDayKey() { return new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: "Asia/Riyadh" }).format(new Date()).toLowerCase(); }
+  if(!matches.length)return <main className="student-current-login" dir="rtl"><div className="student-scene"/><section className="scl-frame"><header className="scl-brand"><Link href="/"><img src={LOGO} alt="بوابة أستاذ لحوني التعليمية"/><span><small>بوابة أستاذ لحوني التعليمية</small><strong>بوابة الطالب وولي الأمر</strong></span></Link><Link href="/" className="scl-back">الرئيسية العامة</Link></header><div className="scl-grid"><section className="scl-intro"><span className="scl-kicker">● المساحة التعليمية الذكية</span><h1>كل تقدمك الدراسي<br/><em>أمامك بصورة أوضح</em></h1><p>نفس هوية بوابة أستاذ لحوني، ولكن بمساحة مخصصة للطالب: موادك، تحصيلك، تحليلك الدراسي وشهادتك في تجربة واحدة.</p><div className="scl-features"><article><i>↗</i><b>تحليل حي</b><span>رسوم وإحصائيات للتقدم</span></article><article><i>◎</i><b>خطة المعلم</b><span>درجات مرتبطة بالخطة الفعلية</span></article><article><i>✦</i><b>شهادة ذكية</b><span>جميع المواد في صفحة واحدة</span></article></div></section><form className="scl-card" onSubmit={submit}><div className="scl-card-glow"/><img src={LOGO} alt="هوية البوابة"/><small>دخول آمن وسريع</small><h2>أهلًا بك في بوابتك</h2><p>أدخل كود الطالب، وسنفتح قائمة موادك مباشرة بينما تُحمّل التفاصيل في الخلفية.</p><label><span>كود الطالب</span><div className="scl-input"><b>◈</b><input value={accessCode} onChange={e=>setAccessCode(normalizeStudentCode(e.target.value))} placeholder="TH1234" autoCapitalize="characters" autoComplete="off" inputMode="text" autoFocus/></div></label>{message?<p className="scl-error">{message}</p>:null}<button type="submit" disabled={loading}><span>{loading?"جارٍ التحقق…":"دخول بوابة الطالب"}</span><b>←</b></button><em>يتم عرض المواد والبيانات المرتبطة بك فقط.</em></form></div><footer><b>أستاذ لحوني</b> • تعليم أذكى، متابعة أوضح</footer></section></main>;
 
-export default function StudentPage() {
-  const [accessCode, setAccessCode] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [selected, setSelected] = useState<Match | null>(null);
-  const [activeTab, setActiveTab] = useState<StudentTab>("home");
-  const [printing, setPrinting] = useState(false);
-  const [reportMessage, setReportMessage] = useState("");
-  const automaticLoginStarted = useRef(false);
+  if(subjectGate||!selectedKey)return <main className="student-current-gate" dir="rtl"><div className="student-scene"/><section className="scg-shell"><header><Link href="/" className="scg-brand"><img src={LOGO} alt="هوية البوابة"/><span><small>بوابة أستاذ لحوني التعليمية</small><strong>اختر مسارك الدراسي</strong></span></Link><div className="scg-student"><img src={AVATAR} alt="طالب"/><span><small>مرحبًا</small><strong>{studentName}</strong><b>{className}</b></span><button onClick={()=>speakWelcome(studentName)} title="تشغيل الترحيب">🔊</button></div></header><section className="scg-title"><span>موادك المرتبطة</span><h1>اختر المادة وابدأ متابعة تقدمك</h1><p>كل بطاقة تعرض قراءة سريعة للتحصيل، وبعد الدخول تظهر لك الإحصائيات التفصيلية وخطة المعلم.</p></section><div className="scg-subjects">{metrics.map((item,index)=><button key={item.match.subjectKey} onClick={()=>chooseSubject(item.match.subjectKey)} style={{"--delay":`${index*55}ms`} as CSSProperties}><i>{subjectSymbol(item.match.subjectKey)}</i><span><small>المادة</small><b>{item.match.subjectLabel}</b><em>{item.match.teacherName}</em></span><div className="scg-score"><strong>{item.hasData?`${ar(item.percentage)}٪`:"—"}</strong><small>{statusLabel(item)}</small></div><u style={{"--p":`${item.percentage}%`} as CSSProperties}/></button>)}</div><footer><button onClick={logout}>تسجيل الخروج</button><Link href="/">العودة للبوابة الرئيسية</Link></footer></section></main>;
 
-  async function hydrateMatch(match: Match) {
-    try {
-      const response = await fetch("/api/student/profile", { headers: { Authorization: `Bearer ${match.accessToken}` }, cache: "no-store" });
-      const payload = await response.json().catch(() => ({}));
-      return response.ok && payload.data ? { ...match, data: payload.data as StudentRecord } : match;
-    } catch { return match; }
-  }
-  async function lookup(codeValue: string) {
-    const code = normalizeStudentCode(codeValue); setMessage(""); setMatches([]); setSelected(null);
-    if (!CODE_PATTERN.test(code)) return setMessage(`أدخل كودًا صحيحًا مثل ${STUDENT_CODE_EXAMPLE}.`);
-    setLoading(true);
-    try {
-      const response = await fetch("/api/student/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accessCode: code }), cache: "no-store" });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) return setMessage(payload.message || "كود الدخول غير صحيح، أو لم تُربط لك مادة بعد.");
-      const raw = Array.isArray(payload.matches) ? payload.matches as Match[] : [];
-      if (!raw.length) return setMessage("لم تُربط مواد الطالب بالمعلمين بعد.");
-      const enriched = await Promise.all(raw.map(hydrateMatch));
-      setMatches(enriched); setSelected(null); setActiveTab("home");
-    } catch { setMessage("تعذر الوصول إلى بيانات الطالب الآن. حاول مرة أخرى."); }
-    finally { setLoading(false); }
-  }
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search); const code = normalizeStudentCode(query.get("code") || "");
-    if (code) setAccessCode(code); if (query.size) window.history.replaceState({}, "", "/student");
-    if (CODE_PATTERN.test(code) && !automaticLoginStarted.current) { automaticLoginStarted.current = true; void lookup(code); }
-  }, []);
-  useEffect(() => {
-    if (!selected?.accessToken) return; let active = true; let refreshing = false;
-    const refresh = async () => { if (!active || refreshing || document.visibilityState !== "visible") return; refreshing = true; try { const updated = await hydrateMatch(selected); if (!active) return; setSelected(current => current?.subjectKey === updated.subjectKey ? updated : current); setMatches(current => current.map(item => item.subjectKey === updated.subjectKey ? updated : item)); } finally { refreshing = false; } };
-    const onFocus = () => void refresh(); const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
-    window.addEventListener("focus", onFocus); document.addEventListener("visibilitychange", onVisible);
-    return () => { active = false; window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVisible); };
-  }, [selected?.accessToken]);
+  if(!selectedMetric)return null;
+  const plan=selectedMetric.plan;const result=selectedMetric.result;const sections=result?.sections||[];const dimensions=result?.dimensions||[];
+  const nav:Array<{key:StudentView;label:string;hint:string;icon:string;count?:number}>=[{key:"home",label:"الرئيسية",hint:"الإحصائيات والتقدم",icon:"⌂"},{key:"grades",label:"درجاتي",hint:"تفاصيل المادة",icon:"◫"},{key:"notes",label:"الملاحظات والتنبيهات",hint:"المعلم والمرشد",icon:"!",count:feed.length},{key:"report",label:"تقرير التحصيل",hint:"خطة المعلم كاملة",icon:"≡"},{key:"certificate",label:"الشهادة",hint:"جميع المواد",icon:"✦"}];
+  const bestSubject=[...metrics].filter(m=>m.hasData).sort((a,b)=>b.percentage-a.percentage)[0];
+  const attendance=selectedMetric.match.data.attendanceSummary;
 
-  const subjectScores = useMemo(() => matches.map(match => ({ match, metrics: metricsFor(match), theme: subjectTheme(match.subjectKey, match.subjectLabel) })), [matches]);
-  const graded = subjectScores.filter(item => item.metrics.completion > 0 || item.metrics.percentage > 0);
-  const overallAverage = graded.length ? Math.round(graded.reduce((sum, item) => sum + item.metrics.percentage, 0) / graded.length) : 0;
-  const overallDiscipline = subjectScores.length ? Math.round(subjectScores.reduce((sum, item) => sum + (item.match.data.attendanceSummary?.disciplineRate ?? 100), 0) / subjectScores.length) : 100;
-  const allNotes = useMemo(() => matches.flatMap(match => {
-    const direct = (match.data.teacherNotes || []).map((note, index) => ({ ...note, id: note.id || `${match.subjectKey}-${index}`, subjectLabel: match.subjectLabel, teacher: note.teacherName || match.teacherName }));
-    if (!direct.length && match.data.teacherNote) direct.push({ id: `${match.subjectKey}-legacy`, label: "ملاحظة المعلم", message: match.data.teacherNote, createdAt: "", subjectLabel: match.subjectLabel, teacher: match.teacherName });
-    return direct;
-  }).sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||""))), [matches]);
-  const allLessons = useMemo(() => matches.flatMap(match => (match.data.timetableLessons || []).map(lesson => ({ ...lesson, subjectKey: match.subjectKey, subjectLabel: match.subjectLabel, teacherName: match.teacherName }))).sort((a,b)=>a.dayIndex-b.dayIndex||a.period-b.period), [matches]);
+  return <main className="student-current-shell" dir="rtl"><div className="student-scene"/><aside className="sc-sidebar"><Link href="/" className="sc-brand"><img src={LOGO} alt="هوية البوابة"/><span><small>أستاذ لحوني</small><b>بوابة الطالب</b></span></Link><section className="sc-profile"><div className="sc-avatar"><img src={AVATAR} alt="صورة الطالب"/><i/></div><div><small>الطالب</small><strong>{studentName}</strong><span>{className}</span></div></section><button className="sc-subject" onClick={()=>setSubjectGate(true)}><i>{subjectSymbol(selectedMetric.match.subjectKey)}</i><span><small>المادة الحالية</small><b>{selectedMetric.match.subjectLabel}</b><em>تغيير المادة ←</em></span></button><nav>{nav.map(item=><button key={item.key} className={view===item.key?"active":""} onClick={()=>setView(item.key)}><i>{item.icon}</i><span><b>{item.label}</b><small>{item.hint}</small></span>{typeof item.count==="number"&&item.count>0?<em className="sc-nav-count">{ar(item.count)}</em>:null}</button>)}</nav><section className="sc-side-progress"><header><span>مؤشر المادة</span><b>{selectedMetric.hasData?`${ar(selectedMetric.percentage)}٪`:"—"}</b></header><u><i style={{width:`${selectedMetric.percentage}%`}}/></u><small>{statusLabel(selectedMetric)}</small></section><footer><button onClick={()=>speakWelcome(studentName)}>🔊 الترحيب</button><button onClick={logout}>خروج</button></footer></aside><section className="sc-stage"><header className="sc-head"><div><span className="sc-breadcrumb">{selectedMetric.match.subjectLabel} / {selectedMetric.match.teacherName}</span><h1>{nav.find(item=>item.key===view)?.label}</h1></div><div className="sc-head-tools"><span>{compactDate()}</span><button onClick={()=>setSubjectGate(true)}>المواد</button></div></header>
 
-  function submit(event: FormEvent) { event.preventDefault(); void lookup(accessCode); }
-  function exitStudentPortal() { setSelected(null); setMatches([]); setAccessCode(""); setMessage(""); setActiveTab("home"); window.location.replace(`/student?logout=${Date.now()}`); }
+  {view==="home"?<div className="sc-home"><section className="sc-hero"><div><span className="sc-kicker">قراءة ذكية للتحصيل</span><h2>{studentName}، هذه صورتك التعليمية الآن</h2><p>{selectedMetric.plan?`تعتمد هذه المؤشرات مباشرة على خطة ${selectedMetric.match.subjectLabel} التي اختارها المعلم، ويبلغ اكتمال الرصد ${ar(selectedMetric.completion)}٪.`:"بانتظار اعتماد خطة التحصيل من معلم المادة."}</p><div className="sc-hero-chips"><span>أفضل مادة: <b>{bestSubject?.match.subjectLabel||"بانتظار الرصد"}</b></span><span>الانضباط: <b>{ar(discipline)}٪</b></span></div></div><div className="sc-ring" style={{"--p":`${selectedMetric.percentage}%`} as CSSProperties}><span><b>{selectedMetric.hasData?ar(selectedMetric.percentage):"—"}</b><small>٪</small></span></div></section><section className="sc-kpis"><article className="teal"><i>↗</i><span>متوسط المواد</span><b>{scored.length?`${ar(overall)}٪`:"—"}</b><small>{gradeWord(overall)}</small></article><article className="gold"><i>◎</i><span>اكتمال الرصد</span><b>{ar(overallCompletion)}٪</b><small>لجميع المواد</small></article><article className="blue"><i>✓</i><span>الانضباط</span><b>{ar(discipline)}٪</b><small>{Number(attendance?.absent||0)} غياب • {Number(attendance?.late||0)} تأخر</small></article><article className="violet"><i>!</i><span>الملاحظات والتنبيهات</span><b>{ar(feed.length)}</b><small>من جميع المواد</small></article></section><div className="sc-analytics-grid"><section className="sc-chart-card"><header><div><small>مقارنة المواد</small><h3>مؤشر التحصيل العام</h3></div><b>{scored.length?`${ar(overall)}٪`:"—"}</b></header><div className="sc-subject-bars">{metrics.map(item=><div key={item.match.subjectKey}><span>{item.match.subjectLabel}</span><u><i style={{width:`${item.percentage}%`}}/></u><b>{item.hasData?`${ar(item.percentage)}٪`:"—"}</b></div>)}</div></section><section className="sc-chart-card"><header><div><small>المادة الحالية</small><h3>توزيع خطة التحصيل</h3></div><b>{ar(selectedMetric.completion)}٪</b></header><div className="sc-column-chart">{(sections.length?sections:[{id:"none",label:"بانتظار الرصد",percentage:0}]).map((section:any)=><div key={section.id}><b>{ar(section.percentage||0)}٪</b><u><i style={{height:`${Math.max(5,section.percentage||0)}%`}}/></u><span>{section.label}</span></div>)}</div></section></div></div>:null}
 
-  if (!selected && matches.length) {
-    const name = matches[0]?.data.name?.trim() || "الطالب", className = matches[0]?.data.class?.trim() || "الفصل غير محدد";
-    return <main className="student-v1000 sv10-chooser" dir="rtl"><div className="sv10-chooser-shell">
-      <header className="sv10-chooser-head"><div><small>مساحتك التعليمية</small><h1>مرحبًا {name}</h1><p>{className} — اختر المادة لتفتح مساحة مستقلة خاصة بها.</p></div><button onClick={exitStudentPortal}>تسجيل الخروج</button></header>
-      <div className="sv10-chooser-grid">{subjectScores.map(item => <button key={item.match.subjectKey} className="sv10-chooser-card" style={{"--sub":item.theme.primary} as CSSProperties} onClick={()=>{setSelected(item.match);setActiveTab("home");window.scrollTo({top:0})}}><span className="ico"><SubjectMark subjectKey={item.match.subjectKey}/></span><h2>{item.match.subjectLabel}</h2><p>{item.match.teacherName}</p><footer><span>{item.metrics.percentage>0?`التحصيل ${ar(item.metrics.percentage)}٪`:"بانتظار الرصد"}</span><span>{item.match.data.teacherNotes?.length || (item.match.data.teacherNote?1:0)} متابعة</span></footer></button>)}</div>
-    </div></main>;
-  }
+  {view==="grades"?<section className="sc-page sc-grades"><header className="sc-page-title"><div><span>درجات المادة</span><h2>{selectedMetric.match.subjectLabel}</h2><p>عرض بصري للدرجات المسجلة، مع توضيح درجة كل عنصر وسقفه المحدد في خطة المعلم.</p></div><div className="sc-score-orb"><b>{selectedMetric.hasData?ar(selectedMetric.earned):"—"}</b><span>من {ar(selectedMetric.maximum)}</span></div></header>{!plan?<div className="sc-empty">لم يعتمد المعلم خطة تحصيل لهذه المادة حتى الآن.</div>:<div className="sc-grade-sections">{sections.map((section,index)=><article key={section.id} style={{"--section-index":index} as CSSProperties}><header><div><small>محور التحصيل {ar(index+1)}</small><h3>{section.label}</h3></div><span><b>{ar(section.earned)}</b> / {ar(section.maximum)}</span></header><div className="sc-section-meter"><i style={{width:`${section.percentage}%`}}/></div><div className="sc-grade-items">{section.items.map(item=><div key={item.key} className={item.recorded?"recorded":"pending"}><span><i>{item.recorded?"✓":"•"}</i><b>{item.item.label}</b><small>{item.recorded?"تم الرصد":"بانتظار الرصد"}</small></span><strong>{item.recorded?ar(item.value):"—"}<em>/ {ar(item.maximum)}</em></strong><u><i style={{width:`${item.maximum?Math.min(100,item.counted/item.maximum*100):0}%`}}/></u></div>)}</div></article>)}</div>}{selectedMetric.deducted>0?<aside className="sc-deduction"><b>خصم معتمد</b><span>تم تطبيق خصم قدره {ar(selectedMetric.deducted)} درجة على النتيجة الحالية.</span></aside>:null}</section>:null}
 
-  if (!selected) return <main className="student-v1000 sv10-gateway" dir="rtl"><section className="sv10-gate-shell"><div className="sv10-gate-form"><div className="sv10-brand"><img src={PORTAL_LOGO} alt="هوية البوابة"/><div><b>بوابة أستاذ لحوني التعليمية</b><small>مساحة الطالب وولي الأمر</small></div></div><small style={{color:"#0b7f78",fontWeight:900,fontSize:10}}>تعلم • متابعة • تقدم</small><h1>ادخل لمساحتك التعليمية</h1><p>كل مادة لها مساحة مستقلة تعرض معلمك، تقدمك، متابعاتك، حضورك واختباراتك بوضوح.</p><form onSubmit={submit}><label>كود الطالب</label><div className="sv10-input"><span>TH</span><input dir="ltr" value={accessCode} onChange={e=>setAccessCode(normalizeStudentCode(e.target.value))} placeholder={STUDENT_CODE_EXAMPLE} maxLength={6} autoFocus/></div>{message?<p className="sv10-error">{message}</p>:null}<button className="sv10-submit" disabled={loading}>{loading?"جارٍ فتح المساحة…":"دخول البوابة"}</button></form></div><div className="sv10-gate-art"><img src={LEARNING_ART} alt="مشهد تعليمي"/></div></section></main>;
+  {view==="notes"?<section className="sc-page sc-notes"><header className="sc-page-title"><div><span>الملاحظات والتنبيهات</span><h2>مركز المتابعة الخاص بك</h2><p>يجمع ملاحظات المعلمين، تنبيهات التحصيل والانضباط، وجميع إحالات المرشد الطلابي الظاهرة لك من كل المواد.</p></div><div className="sc-notes-total"><b>{ar(feed.length)}</b><span>إجمالي السجل</span></div></header><div className="sc-notes-stats"><article><i className="violet">◆</i><span><small>إحالات المرشد</small><b>{ar(feed.filter(i=>i.kind==="referral").length)}</b></span></article><article><i className="teal">✎</i><span><small>ملاحظات المعلمين</small><b>{ar(feed.filter(i=>i.kind==="note").length)}</b></span></article><article><i className="gold">!</i><span><small>تنبيهات المتابعة</small><b>{ar(feed.filter(i=>i.kind==="alert").length)}</b></span></article></div>{feed.length?<div className="sc-feed">{feed.map(item=><article key={item.id} className={`sc-feed-item ${item.tone}`}><i className="sc-feed-icon">{item.kind==="referral"?"◆":item.kind==="note"?"✎":"!"}</i><div><header><span>{item.subject}</span><small>{feedDate(item.createdAt)}</small></header><h3>{item.title}</h3><p>{item.text}</p><footer>{item.kind==="referral"?<b>المرشد الطلابي</b>:item.kind==="note"?<b>ملاحظة تعليمية</b>:<b>تنبيه متابعة</b>}<span>{item.meta}</span></footer></div></article>)}</div>:<div className="sc-empty">لا توجد ملاحظات أو تنبيهات أو إحالات مسجلة حاليًا.</div>}</section>:null}
 
-  const theme = subjectTheme(selected.subjectKey, selected.subjectLabel), metrics = metricsFor(selected), studentName = selected.data.name?.trim() || "الطالب", classLabel = selected.data.class?.trim() || "الفصل غير محدد", attendance = selected.data.attendanceSummary || {present:0,absent:0,late:0,excused:0,escaped:0,total:0,disciplineRate:100};
-  const currentNotes = (selected.data.teacherNotes || []).map((note,index)=>({...note,id:note.id||String(index)})); if (!currentNotes.length && selected.data.teacherNote) currentNotes.push({id:"legacy",label:"ملاحظة المعلم",message:selected.data.teacherNote,createdAt:""});
-  const counselor = selected.data.parentCounselorLastNotice;
-  const plan = normalizeGradePlan(selected.data.gradePlan); const deductions = plan ? activeDeductions(selected, plan) : []; const deduction = deductionTotal(deductions);
-  const alerts: AlertView[] = [];
-  if (counselor?.title || counselor?.message) alerts.push({id:"counselor",tone:"urgent",icon:"!",title:counselor.title||"متابعة من المرشد الطلابي",text:counselor.message||"لديك متابعة مسجلة لدى المرشد الطلابي.",meta:"متابعة مهمة"});
-  if (deduction>0) alerts.push({id:"deduction",tone:"urgent",icon:"−",title:`يوجد خصم ${ar(deduction)} درجة`,text:"راجع تبويب تقدمي لمعرفة أثر الخصم على درجتك الحالية.",meta:selected.subjectLabel});
-  if (currentNotes[0]) alerts.push({id:"note",tone:"note",icon:"✦",title:currentNotes[0].label||"آخر ملاحظة من المعلم",text:currentNotes[0].message||"لديك متابعة جديدة من معلم المادة.",meta:noteDate(currentNotes[0].createdAt)});
-  if (!alerts.length) alerts.push({id:"clear",tone:"info",icon:"✓",title:"لا توجد متابعات تحتاج إجراء الآن",text:"استمر في متابعة تقدمك وجدولك واختباراتك من هذه المساحة.",meta:"حالتك محدثة"});
-  const todayKey = riyadhDayKey(), todayLessons = allLessons.filter(l=>l.dayKey===todayKey);
-  const style = {"--brand":theme.primary,"--deep":theme.deep,"--soft":theme.soft} as CSSProperties;
-  const statusLabel = overallAverage>=90?"متميز":overallAverage>=80?"متقدم":overallAverage>=70?"جيد":overallAverage>0?"يحتاج تركيزًا":"بانتظار الرصد";
+  {view==="report"?<section className="sc-page sc-report"><header className="sc-page-title"><div><span>تقرير التحصيل العلمي</span><h2>قراءة كاملة لخطة {selectedMetric.match.subjectLabel}</h2><p>التقرير مبني مباشرة على الخطة التي اعتمدها المعلم، ويعرض المحاور والعناصر ومؤشرات القوة والتقدم.</p></div><div className="sc-report-status"><small>الحالة</small><b>{statusLabel(selectedMetric)}</b><span>اكتمال {ar(selectedMetric.completion)}٪</span></div></header><div className="sc-report-summary"><article><span>الدرجة الحالية</span><b>{selectedMetric.hasData?ar(selectedMetric.earned):"—"}<small> / {ar(selectedMetric.maximum)}</small></b></article><article><span>النسبة</span><b>{selectedMetric.hasData?`${ar(selectedMetric.percentage)}٪`:"—"}</b></article><article><span>الخطة</span><b className="text">{plan?.mode==="periods"?"الفترتان":plan?.mode==="units"?"الوحدات":plan?.mode==="custom"?"مخصصة":"من 100"}</b></article><article><span>الخصومات</span><b>{ar(selectedMetric.deducted)}</b></article></div>{plan?<><section className="sc-report-table"><header><span>المحور</span><span>المسجل</span><span>الدرجة</span><span>النسبة</span><span>الحالة</span></header>{sections.map(section=><div key={section.id}><strong>{section.label}</strong><span>{ar(section.recordedMaximum)} / {ar(section.maximum)}</span><span>{ar(section.earned)} / {ar(section.maximum)}</span><b>{ar(section.percentage)}٪</b><em className={section.complete?"done":"live"}>{section.complete?"مكتمل":"مستمر"}</em></div>)}</section><section className="sc-dimensions"><header><small>تحليل نوعي</small><h3>مؤشرات عناصر التقييم</h3></header><div>{dimensions.map(d=><article key={d.key}><span>{d.label}</span><b>{ar(d.percentage)}٪</b><u><i style={{width:`${d.percentage}%`}}/></u><small>{ar(d.earned)} من {ar(d.maximum)}</small></article>)}</div></section></>:<div className="sc-empty">بانتظار اعتماد خطة المعلم.</div>}</section>:null}
 
-  async function downloadReport() {
-    if (printing) return; setPrinting(true); setReportMessage("");
-    try { await downloadStudentProgressPdf({ portalName:"بوابة أستاذ لحوني التعليمية", studentName, className:classLabel, studentCode:selected!.id, overallAverage, overallDiscipline, statusLabel, subjects:subjectScores.map(i=>({subject:i.match.subjectLabel,teacher:i.match.teacherName,percentage:i.metrics.percentage,discipline:i.match.data.attendanceSummary?.disciplineRate??100,noteCount:i.match.data.teacherNotes?.length||(i.match.data.teacherNote?1:0),accent:i.theme.primary})), notes:allNotes.slice(0,6).map(n=>({subject:n.subjectLabel,text:n.message||n.label||"متابعة تعليمية",teacher:n.teacher,date:noteDate(n.createdAt)})), fileName:`بيان-تقدم-${studentName.replace(/\s+/g,"-")}.pdf` }); setReportMessage("تم تجهيز التقرير بنجاح."); }
-    catch { setReportMessage("تعذر تجهيز التقرير الآن."); } finally { setPrinting(false); }
-  }
-
-  return <main className="student-v1000" style={style} dir="rtl"><div className="sv10-wrap">
-    <header className="sv10-topbar"><div className="sv10-brand"><img src={PORTAL_LOGO} alt="هوية البوابة"/><div><b>أستاذ لحوني</b><small>بوابة الطالب التعليمية</small></div></div><nav className="sv10-nav">{tabs.map(tab=><button key={tab.key} className={activeTab===tab.key?"active":""} onClick={()=>{setActiveTab(tab.key);window.scrollTo({top:0,behavior:"smooth"})}}><TabIcon tab={tab.key}/><span>{tab.label}</span></button>)}</nav><div className="sv10-actions"><button onClick={()=>{setSelected(null);setActiveTab("home")}}>المواد</button><button className="primary" onClick={()=>setActiveTab("report")}>تقريري</button><button onClick={exitStudentPortal}>خروج</button></div></header>
-    <div className="sv10-studentbar"><div className="sv10-student"><span className="sv10-avatar">{studentName.charAt(0)}</span><div><b>{studentName}</b><small>{classLabel} • بيانات مباشرة من معلميك</small></div></div><code className="sv10-code">{selected.id}</code></div>
-    <div className="sv10-subjectrail">{subjectScores.map(item=><button key={item.match.subjectKey} className={selected.subjectKey===item.match.subjectKey?"active":""} style={{"--sub":item.theme.primary} as CSSProperties} onClick={()=>{setSelected(item.match);setActiveTab("home")}}><span className="ico"><SubjectMark subjectKey={item.match.subjectKey}/></span><span><b>{item.match.subjectLabel}</b><small>{item.metrics.percentage>0?`${ar(item.metrics.percentage)}٪`:`${item.match.teacherName}`}</small></span></button>)}</div>
-    <section className="sv10-hero" style={{"--sub":theme.primary} as CSSProperties}><div className="sv10-hero-copy"><span className="sv10-eyebrow">{theme.eyebrow}</span><h1>{selected.subjectLabel}</h1><p>{theme.title}. هذه الصفحة تعرض فقط بيانات هذه المادة لتبقى تجربتك واضحة بدون تكرار أو تشتيت.</p><div className="sv10-meta"><span>{selected.teacherName}</span><span>{classLabel}</span><span>اكتمال الرصد {ar(metrics.completion)}٪</span>{deduction>0?<span>خصم {ar(deduction)}</span>:null}</div></div><div className="sv10-hero-visual"><img src={LEARNING_ART} alt="مشهد تعليمي"/><div className="sv10-score"><div><strong>{metrics.percentage>0?`${ar(metrics.percentage)}٪`:"—"}</strong><span>مستواي الآن</span></div></div></div></section>
-
-    {activeTab==="home"&&<div className="sv10-grid"><section className="sv10-sections"><div className="sv10-today"><article className="sv10-dayhero"><small>لوحة اليوم</small><h2>{todayLessons.length?`لديك ${todayLessons.length} ${todayLessons.length===1?"حصة":"حصص"} اليوم`:"ابدأ من أهم ما لديك"}</h2><p>{todayLessons.length?`أول حصة منشورة اليوم: ${todayLessons[0].subjectLabel} — الحصة ${todayLessons[0].period}.`:"راجع التنبيهات ثم انتقل لتقدمك أو اختباراتك."}</p><div className="sv10-quick"><button onClick={()=>setActiveTab("schedule")}>جدولي اليوم</button><button onClick={()=>setActiveTab("progress")}>تقدمي</button><button onClick={()=>setActiveTab("tests")}>اختباراتي</button></div></article><div className="sv10-glance"><button className="sv10-metric click" onClick={()=>setActiveTab("progress")}><small>تحصيلي</small><strong>{metrics.percentage>0?`${ar(metrics.percentage)}٪`:"—"}</strong><span>{metrics.percentage>=90?"متميز":metrics.percentage>=80?"متقدم":metrics.percentage>0?"واصل التحسن":"بانتظار الرصد"}</span></button><div className="sv10-metric"><small>انضباطي</small><strong>{ar(attendance.disciplineRate)}٪</strong><span>في هذه المادة</span></div><button className="sv10-metric click" onClick={()=>setActiveTab("notes")}><small>المتابعات</small><strong>{ar(currentNotes.length+(counselor?1:0))}</strong><span>ملاحظات وإرشاد</span></button><button className="sv10-metric click" onClick={()=>setActiveTab("tests")}><small>الاختبارات</small><strong>فتح</strong><span>تدريب وتشخيص</span></button></div></div><section className="sv10-card"><header className="sv10-card-head"><div><small>حصص اليوم</small><h2>{DAY_LABELS[todayKey]||"اليوم"}</h2></div><span>{todayLessons.length} منشورة</span></header><div className="sv10-card-body sv10-lessons">{todayLessons.length?todayLessons.map((lesson,index)=><div className="sv10-lesson" key={`${lesson.subjectKey}-${lesson.period}-${index}`}><span className="sv10-period">الحصة {lesson.period}</span><div><b>{lesson.subjectLabel}</b><span>{lesson.teacherName}</span></div><small>{lesson.notes||""}</small></div>):<div className="sv10-empty">لا توجد حصص منشورة لهذا اليوم.</div>}</div></section></section><aside className="sv10-card"><header className="sv10-card-head"><div><small>مركز المتابعة</small><h2>تنبيهاتك الآن</h2></div><span>{alerts.length}</span></header><div className="sv10-card-body sv10-alerts">{alerts.map(alert=><article key={alert.id} className={`sv10-alert ${alert.tone}`}><span className="sv10-alert-icon">{alert.icon}</span><div><b>{alert.title}</b><p>{alert.text}</p></div><small>{alert.meta}</small></article>)}</div></aside></div>}
-
-    {activeTab==="progress"&&<div className="sv10-grid"><section className="sv10-card"><header className="sv10-card-head"><div><small>رحلة التحصيل</small><h2>تقدمي في {selected.subjectLabel}</h2></div><span>{metrics.percentage>0?`${ar(metrics.percentage)}٪`:"بانتظار الرصد"}</span></header><div className="sv10-card-body sv10-progress">{metrics.sections.length?metrics.sections.map(section=><div className="sv10-progress-row" key={section.label}><b>{section.label}</b><div className="sv10-track"><i style={{"--p":`${Math.max(0,Math.min(100,section.percentage))}%`} as CSSProperties}/></div><span>{section.percentage>0?`${ar(section.percentage)}٪`:"—"}</span></div>):<div className="sv10-empty">لم يبدأ رصد الدرجات بعد.</div>}</div></section><section className="sv10-card"><header className="sv10-card-head"><div><small>الحضور والانضباط</small><h2>انضباطي</h2></div></header><div className="sv10-card-body sv10-att"><div className="sv10-ring" style={{"--r":Math.max(0,Math.min(100,attendance.disciplineRate))} as CSSProperties}><div><strong>{ar(attendance.disciplineRate)}٪</strong><span>الانضباط</span></div></div><div className="sv10-attstats"><span><b>{ar(attendance.present)}</b>حضور</span><span><b>{ar(attendance.absent)}</b>غياب</span><span><b>{ar(attendance.late)}</b>تأخير</span><span><b>{ar(attendance.excused)}</b>استئذان</span></div></div></section></div>}
-
-    {activeTab==="notes"&&<section className="sv10-card" style={{marginTop:12}}><header className="sv10-card-head"><div><small>من المعلم والمرشد</small><h2>المتابعات الخاصة بالمادة</h2></div><span>{currentNotes.length+(counselor?1:0)}</span></header><div className="sv10-card-body sv10-notelist">{counselor?<article className="sv10-note"><header><b>{counselor.title||"متابعة المرشد الطلابي"}</b><small>المرشد الطلابي</small></header><p>{counselor.message||"متابعة إرشادية مسجلة."}</p></article>:null}{currentNotes.length?currentNotes.map((note,index)=><article className="sv10-note" key={note.id||index}><header><b>{note.label||"ملاحظة المعلم"}</b><small>{noteDate(note.createdAt)}</small></header><p>{note.message||"متابعة تعليمية من معلم المادة."}</p></article>):!counselor?<div className="sv10-empty">لا توجد متابعات مسجلة حاليًا.</div>:null}</div></section>}
-
-    {activeTab==="schedule"&&<section className="sv10-card" style={{marginTop:12}}><header className="sv10-card-head"><div><small>الأسبوع الدراسي</small><h2>جدولي</h2></div><span>{allLessons.length} حصة منشورة</span></header><div className="sv10-card-body"><div className="sv10-week">{DAY_ORDER.map(day=><article className={`sv10-day ${day===todayKey?"today":""}`} key={day}><header>{DAY_LABELS[day]}</header><div className="sv10-daylist">{allLessons.filter(l=>l.dayKey===day).length?allLessons.filter(l=>l.dayKey===day).map((lesson,index)=><div className="sv10-daylesson" key={`${lesson.subjectKey}-${lesson.period}-${index}`}><b>{lesson.subjectLabel}</b><span>الحصة {lesson.period} • {lesson.teacherName}</span></div>):<div className="sv10-empty">لا توجد حصة</div>}</div></article>)}</div></div></section>}
-
-    {activeTab==="tests"&&<section className="sv10-card" style={{marginTop:12}}><header className="sv10-card-head"><div><small>{selected.subjectLabel}</small><h2>اختباراتي وتدريباتي</h2></div><span>{selected.teacherName}</span></header><div className="sv10-card-body"><StudentDiagnostics accessToken={selected.accessToken}/></div></section>}
-
-    {activeTab==="report"&&<div className="sv10-sections" style={{marginTop:12}}><section className="sv10-report-action"><div><h2>تقريري الأكاديمي</h2><p>ملخص التحصيل والانضباط والمتابعات من جميع المواد في ملف PDF واحد.</p></div><button disabled={printing} onClick={()=>void downloadReport()}>{printing?"جارٍ التجهيز…":"تحميل التقرير PDF"}</button></section>{reportMessage?<div className="sv10-card"><div className="sv10-card-body">{reportMessage}</div></div>:null}<div className="sv10-report-grid"><article className="sv10-report-metric"><small>متوسط التحصيل</small><strong>{overallAverage>0?`${ar(overallAverage)}٪`:"—"}</strong></article><article className="sv10-report-metric"><small>متوسط الانضباط</small><strong>{ar(overallDiscipline)}٪</strong></article><article className="sv10-report-metric"><small>المستوى العام</small><strong>{statusLabel}</strong></article></div></div>}
-  </div></main>;
+  {view==="certificate"?<section className="sc-page sc-certificate-page"><div className="sc-cert-toolbar"><div><span>الشهادة الأكاديمية الموحدة</span><b>تشمل جميع المواد المرتبطة بالطالب</b></div><button onClick={()=>window.print()}>🖨 طباعة الشهادة</button></div><article className="sc-certificate" id="student-certificate"><div className="cert-watermark">لـحـونـي</div><header><img src={LOGO} alt="هوية البوابة"/><div><small>بوابة أستاذ لحوني التعليمية</small><h2>شهادة بيان التحصيل الدراسي</h2><span>وثيقة إلكترونية صادرة من بوابة الطالب</span></div><b>◈</b></header><section className="cert-student"><div><small>اسم الطالب</small><b>{studentName}</b></div><div><small>الصف / الفصل</small><b>{className}</b></div><div><small>كود الطالب</small><b>{accessCode}</b></div><div><small>تاريخ الإصدار</small><b>{compactDate()}</b></div></section><section className="cert-summary"><div className="cert-ring" style={{"--p":`${overall}%`} as CSSProperties}><span><b>{scored.length?ar(overall):"—"}</b><small>٪</small></span></div><div><small>المعدل العام للمواد المرصودة</small><h3>{scored.length?gradeWord(overall):"بانتظار الرصد"}</h3><p>اكتمال الرصد العام {ar(overallCompletion)}٪ • مؤشر الانضباط {ar(discipline)}٪</p></div></section><section className="cert-table"><header><span>المادة</span><span>المعلم</span><span>الدرجة</span><span>النسبة</span><span>التقدير</span></header>{metrics.map(item=><div key={item.match.subjectKey}><b>{item.match.subjectLabel}</b><span>{item.match.teacherName}</span><span>{item.hasData?`${ar(item.earned)} / ${ar(item.maximum)}`:"بانتظار الرصد"}</span><strong>{item.hasData?`${ar(item.percentage)}٪`:"—"}</strong><em>{item.hasData?gradeWord(item.percentage):"—"}</em></div>)}</section><footer><div><small>ملاحظة</small><p>تعكس هذه الشهادة البيانات المرصودة في خطط التحصيل المعتمدة من معلمي المواد وقت إصدارها.</p></div><div className="cert-seal"><span>ختم البوابة</span><b>أستاذ<br/>لحوني</b><small>معتمد إلكترونيًا</small></div><div className="cert-sign"><small>إعداد وإشراف</small><b>الأستاذ حسن علي الطويل</b><span>بوابة أستاذ لحوني التعليمية</span></div></footer></article></section>:null}
+  </section></main>;
 }

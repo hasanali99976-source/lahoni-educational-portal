@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap');
+
+/* Clear Arabic typography authority for the authenticated teacher workspace. */
+body:has(.teacher-studio),
+.teacher-studio,
+.teacher-studio * {
+  font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important;
+  letter-spacing:0!important;
+  font-synthesis:none;
+}
+.teacher-studio{font-size:14px!important;line-height:1.65!important}
+.teacher-studio h1,.teacher-studio h2,.teacher-studio h3,.teacher-studio h4,
+.teacher-studio strong,.teacher-studio b{font-weight:800!important;line-height:1.5!important}
+.teacher-studio p,.teacher-studio small,.teacher-studio span,.teacher-studio label{line-height:1.6!important}
+.teacher-studio button,.teacher-studio input,.teacher-studio select,.teacher-studio textarea{font-family:inherit!important}

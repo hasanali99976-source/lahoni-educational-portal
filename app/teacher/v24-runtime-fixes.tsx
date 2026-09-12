@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useTeacherClient } from "../../lib/teacher-client";
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, character => ({
@@ -44,8 +45,42 @@ function printableTimetable() {
   popup.document.close();
 }
 
+function updateCumulativeAttendance(teacherId: string, subjectKey: string) {
+  const stats = document.querySelector<HTMLElement>(".attendance-page .attendance-stats");
+  const classSelect = document.querySelector<HTMLSelectElement>(".attendance-page [data-attendance-class-select='true']");
+  if (!stats || !classSelect?.value || !teacherId || !subjectKey) return;
+  const selectedClass = classSelect.value.trim();
+  const totals = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0 };
+  try {
+    const raw = localStorage.getItem(`lahooni-attendance-index:${teacherId}:${subjectKey}`) || "{}";
+    const index = JSON.parse(raw) as Record<string, { class?: string; records?: Record<string, keyof typeof totals> }>;
+    Object.values(index).forEach(item => {
+      if (String(item?.class || "").trim() !== selectedClass || !item?.records) return;
+      Object.values(item.records).forEach(status => {
+        if (status in totals) totals[status] += 1;
+      });
+    });
+  } catch {
+    return;
+  }
+  const labels: Record<keyof typeof totals, string> = {
+    present: "إجمالي الحضور",
+    absent: "إجمالي الغياب",
+    late: "إجمالي التأخير",
+    excused: "إجمالي الاستئذان",
+    escaped: "إجمالي الهروب",
+  };
+  (Object.keys(totals) as Array<keyof typeof totals>).forEach(key => {
+    const node = stats.querySelector<HTMLElement>(`.${key}`);
+    if (node) node.textContent = `${labels[key]}: ${totals[key]}`;
+  });
+  stats.dataset.cumulative = "true";
+}
+
 export default function TeacherV24RuntimeFixes() {
   const pathname = usePathname();
+  const session = useTeacherClient();
+
   useEffect(() => {
     if (pathname !== "/teacher/timetable") return;
     const onClick = (event: MouseEvent) => {
@@ -59,6 +94,22 @@ export default function TeacherV24RuntimeFixes() {
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
   }, [pathname]);
+
+  useEffect(() => {
+    const teacherId = String(session?.teacherId || "");
+    const subjectKey = String(session?.subjectKey || "");
+    if (pathname !== "/teacher/attendance" || !teacherId || !subjectKey) return;
+    const refresh = () => window.setTimeout(() => updateCumulativeAttendance(teacherId, subjectKey), 40);
+    refresh();
+    const timer = window.setInterval(() => updateCumulativeAttendance(teacherId, subjectKey), 1200);
+    document.addEventListener("change", refresh, true);
+    window.addEventListener("lahooni:attendance-updated", refresh as EventListener);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("change", refresh, true);
+      window.removeEventListener("lahooni:attendance-updated", refresh as EventListener);
+    };
+  }, [pathname, session?.teacherId, session?.subjectKey]);
 
   return null;
 }

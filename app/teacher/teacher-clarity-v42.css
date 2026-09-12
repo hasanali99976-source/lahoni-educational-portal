@@ -1,0 +1,148 @@
+/* Teacher clarity v42 — page-specific clarity only. Sidebar intentionally untouched. */
+
+/* =========================
+   NOTES — bright, readable, color-coded
+   ========================= */
+.teacher-studio .notes-v13{
+  display:grid!important;
+  gap:14px!important;
+  color:#173f49!important;
+  font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important;
+}
+.teacher-studio .notes-v13 :is(h2,h3,b,strong){color:#153f49!important}
+.teacher-studio .notes-v13 :is(p,span,small,label){text-shadow:none!important;opacity:1!important}
+
+.teacher-studio .nv13-classbar{
+  display:grid!important;
+  grid-template-columns:minmax(190px,auto) minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:14px!important;
+  padding:15px 17px!important;
+  border-radius:18px!important;
+  background:#f7fbfc!important;
+  border:1px solid #d7e6e9!important;
+  box-shadow:0 10px 28px rgba(21,67,77,.08)!important;
+  backdrop-filter:none!important;
+}
+.teacher-studio .nv13-classbar-title small{font-size:11px!important;color:#277d76!important;font-weight:800!important}
+.teacher-studio .nv13-classbar-title strong{font-size:14px!important;color:#173f49!important;font-weight:900!important}
+.teacher-studio .nv13-class-tabs{display:flex!important;gap:8px!important;overflow:auto!important;padding:2px!important}
+.teacher-studio .nv13-class-tabs button{
+  min-width:96px!important;height:42px!important;padding:0 11px!important;border-radius:11px!important;
+  border:1px solid #cadde1!important;background:#fff!important;color:#274e58!important;
+  font-size:11px!important;font-weight:800!important;box-shadow:none!important
+}
+.teacher-studio .nv13-class-tabs button.active{background:#16877e!important;color:#fff!important;border-color:#16877e!important}
+.teacher-studio .nv13-class-tabs button span{min-width:23px!important;height:23px!important;font-size:9px!important;background:#e8f2f3!important;color:#315e67!important}
+.teacher-studio .nv13-class-tabs button.active span{background:rgba(255,255,255,.23)!important;color:#fff!important}
+.teacher-studio .nv13-class-summary{display:flex!important;gap:8px!important;flex-wrap:wrap!important}
+.teacher-studio .nv13-class-summary span{padding:8px 10px!important;border-radius:10px!important;background:#fff!important;border:1px solid #d4e3e6!important;color:#42636b!important;font-size:10px!important}
+.teacher-studio .nv13-class-summary b{font-size:13px!important;color:#137d74!important}
+
+.teacher-studio .nv13-layout{display:grid!important;grid-template-columns:minmax(275px,315px) minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
+.teacher-studio .nv13-roster,.teacher-studio .nv13-focus{
+  border:1px solid #d7e5e8!important;border-radius:17px!important;background:#fff!important;
+  box-shadow:0 10px 26px rgba(26,72,82,.07)!important;backdrop-filter:none!important;overflow:hidden!important
+}
+.teacher-studio .nv13-roster>header{padding:13px 14px!important;background:#edf8f6!important;border-bottom:1px solid #d8e7e8!important;color:#173f49!important}
+.teacher-studio .nv13-roster>header small{font-size:10px!important;color:#4d7976!important}
+.teacher-studio .nv13-roster>header h2{font-size:17px!important;color:#173f49!important;margin:1px 0!important}
+.teacher-studio .nv13-roster>header>span{min-width:31px!important;height:31px!important;background:#16877e!important;color:#fff!important;font-size:11px!important}
+.teacher-studio .nv13-search{padding:10px!important;background:#f8fbfc!important;border-bottom:1px solid #e1ecee!important}
+.teacher-studio .nv13-search input{height:40px!important;padding:0 12px!important;font-size:11px!important;border:1px solid #c9dade!important;border-radius:10px!important;background:#fff!important;color:#173f49!important}
+.teacher-studio .nv13-search>span{display:grid!important;place-items:center!important;padding:0 12px!important;border-radius:9px!important;background:#16877e!important;color:#fff!important;font-size:10px!important;font-weight:800!important}
+.teacher-studio .nv13-student-list{display:grid!important;gap:6px!important;padding:8px!important;background:#fbfdfd!important;max-height:calc(100dvh - 300px)!important;overflow:auto!important}
+.teacher-studio .nv13-student-list>button{
+  display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:9px!important;align-items:center!important;
+  min-height:58px!important;padding:8px 9px!important;border:1px solid #dfe9eb!important;border-radius:11px!important;
+  background:#fff!important;color:#173f49!important;text-align:right!important
+}
+.teacher-studio .nv13-student-list>button:hover{border-color:#8ec6bf!important;background:#f5fbf9!important}
+.teacher-studio .nv13-student-list>button.active{background:#e8f7f3!important;border-color:#4ca89e!important;box-shadow:inset 4px 0 0 #16877e!important}
+.teacher-studio .nv13-student-list>button>i{width:36px!important;height:36px!important;border-radius:10px!important;background:#dff1ee!important;color:#14766f!important;font-size:13px!important;font-weight:900!important}
+.teacher-studio .nv13-student-list>button span b{display:block!important;font-size:12px!important;color:#173f49!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.teacher-studio .nv13-student-list>button span small{display:block!important;font-size:9px!important;color:#657f86!important}
+.teacher-studio .nv13-student-list>button em{min-width:28px!important;height:28px!important;font-size:9px!important;background:#edf3f4!important;color:#526f77!important}
+.teacher-studio .nv13-student-list>button em.has-notes{background:#daf2e5!important;color:#126d49!important}
+
+.teacher-studio .nv13-student-hero{display:grid!important;grid-template-columns:58px minmax(0,1fr) auto!important;gap:12px!important;align-items:center!important;padding:15px 16px!important;background:#f0f8fa!important;border-bottom:1px solid #dce9eb!important}
+.teacher-studio .nv13-student-avatar{width:54px!important;height:54px!important;border-radius:14px!important;background:#f4cf6c!important;color:#264b54!important;font-size:21px!important;font-weight:900!important}
+.teacher-studio .nv13-student-copy small{font-size:10px!important;color:#4f7e79!important}
+.teacher-studio .nv13-student-copy h2{font-size:19px!important;color:#173f49!important;margin:1px 0!important}
+.teacher-studio .nv13-student-copy p{font-size:10.5px!important;color:#617a82!important}
+.teacher-studio .nv13-student-state{min-width:170px!important;padding:9px 11px!important;border:1px solid #d4e3e6!important;border-radius:12px!important;background:#fff!important;text-align:center!important}
+.teacher-studio .nv13-student-state b{font-size:21px!important;color:#137d74!important}
+.teacher-studio .nv13-student-state span{font-size:10px!important;color:#3f656d!important}
+.teacher-studio .nv13-student-state small{font-size:8.5px!important;color:#73888e!important}
+
+.teacher-studio .nv13-compose-card,.teacher-studio .nv13-history{margin:11px!important;padding:14px!important;border-radius:14px!important;background:#fff!important;border:1px solid #dce8ea!important;color:#173f49!important}
+.teacher-studio .nv13-section-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin-bottom:11px!important}
+.teacher-studio .nv13-section-head small{font-size:9.5px!important;color:#607b82!important}
+.teacher-studio .nv13-section-head h3{font-size:15px!important;color:#173f49!important;margin:2px 0!important}
+.teacher-studio .nv13-section-head>span{font-size:9.5px!important;color:#6d8288!important}
+.teacher-studio .nv13-presets{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important}
+.teacher-studio .nv13-presets button{display:grid!important;grid-template-columns:34px minmax(0,1fr)!important;gap:8px!important;align-items:center!important;min-height:62px!important;padding:8px 9px!important;border-radius:11px!important;background:#fff!important;color:#173f49!important;text-align:right!important}
+.teacher-studio .nv13-presets button>i{width:32px!important;height:32px!important;border-radius:9px!important;font-size:11px!important;font-weight:900!important}
+.teacher-studio .nv13-presets button span small{display:block!important;font-size:8.5px!important;color:#627a81!important}
+.teacher-studio .nv13-presets button span b{display:block!important;font-size:10px!important;color:#173f49!important;white-space:normal!important;line-height:1.35!important}
+.teacher-studio .nv13-presets button[data-tone="good"]{border:2px solid #b8e0c9!important;background:#f0fbf5!important}.teacher-studio .nv13-presets button[data-tone="good"]>i{background:#d5f0df!important;color:#19734d!important}
+.teacher-studio .nv13-presets button[data-tone="academic"]{border:2px solid #c4d8f0!important;background:#f2f7fd!important}.teacher-studio .nv13-presets button[data-tone="academic"]>i{background:#dceafb!important;color:#32689c!important}
+.teacher-studio .nv13-presets button[data-tone="care"]{border:2px solid #ecd4a8!important;background:#fff8ea!important}.teacher-studio .nv13-presets button[data-tone="care"]>i{background:#fae8c5!important;color:#946316!important}
+.teacher-studio .nv13-presets button[data-tone="contact"]{border:2px solid #d8c7eb!important;background:#faf5ff!important}.teacher-studio .nv13-presets button[data-tone="contact"]>i{background:#eadff6!important;color:#744d9f!important}
+.teacher-studio .nv13-presets button.active{outline:3px solid #16877e!important;outline-offset:1px!important;box-shadow:0 6px 16px rgba(22,135,126,.13)!important}
+.teacher-studio .nv13-editor-wrap{margin-top:12px!important;padding:12px!important;border-radius:12px!important;background:#f4f9fa!important;border:1px solid #d6e4e7!important}
+.teacher-studio .nv13-editor-head small{font-size:9px!important;color:#657f86!important}.teacher-studio .nv13-editor-head b{font-size:11.5px!important;color:#173f49!important}
+.teacher-studio .nv13-editor-head button{min-height:32px!important;padding:0 9px!important;border:1px solid #cbdce0!important;border-radius:8px!important;background:#fff!important;color:#315b65!important;font-size:9px!important}
+.teacher-studio .nv13-editor-wrap textarea{width:100%!important;min-height:112px!important;margin-top:7px!important;padding:11px!important;font-size:12px!important;line-height:1.8!important;border:1px solid #c7d9dd!important;border-radius:10px!important;background:#fff!important;color:#173f49!important}
+.teacher-studio .nv13-live-preview{margin-top:7px!important;padding:10px!important;border:1px solid #d7e4e7!important;border-radius:10px!important;background:#fff!important}
+.teacher-studio .nv13-live-preview span{font-size:9px!important;color:#657c83!important}.teacher-studio .nv13-live-preview p{font-size:11px!important;line-height:1.7!important;color:#173f49!important}
+.teacher-studio .nv13-actions span{font-size:9.5px!important;color:#607880!important}.teacher-studio .nv13-actions button{height:40px!important;padding:0 16px!important;border-radius:10px!important;background:#16877e!important;color:#fff!important;font-size:11px!important;font-weight:900!important}
+.teacher-studio .nv13-timeline{display:grid!important;gap:8px!important}.teacher-studio .nv13-timeline article{display:grid!important;grid-template-columns:9px minmax(0,1fr)!important;gap:9px!important;padding:11px!important;border:1px solid #dbe7e9!important;border-radius:11px!important;background:#fbfdfd!important}.teacher-studio .nv13-timeline article>i{background:#16877e!important}.teacher-studio .nv13-timeline article header b{font-size:11px!important;color:#173f49!important}.teacher-studio .nv13-timeline article header small{font-size:9px!important;color:#6c8288!important}.teacher-studio .nv13-timeline article p{font-size:11px!important;line-height:1.7!important;color:#294f58!important}
+
+/* =========================
+   MASTERY / FOLLOW-UP — simple bright table
+   ========================= */
+.teacher-studio .follow-page{display:grid!important;gap:14px!important;color:#173f49!important}
+.teacher-studio .follow-head{padding:15px 17px!important;border-radius:18px!important;background:#f5fafb!important;border:1px solid #d7e6e9!important;box-shadow:0 10px 28px rgba(21,67,77,.08)!important}
+.teacher-studio .follow-head h1{font-size:21px!important;color:#173f49!important;margin:1px 0!important}.teacher-studio .follow-head p{font-size:11px!important;color:#5d777f!important;line-height:1.7!important}.teacher-studio .follow-head>div>span{font-size:10px!important;color:#147b72!important;font-weight:800!important}
+.teacher-studio .follow-filters label{font-size:10px!important;color:#385f68!important;font-weight:800!important}.teacher-studio .follow-filters select{height:39px!important;min-width:135px!important;padding:0 10px!important;font-size:11px!important;border:1px solid #c9dade!important;border-radius:9px!important;background:#fff!important;color:#173f49!important}
+.teacher-studio .follow-overview{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important}.teacher-studio .follow-overview article{min-height:88px!important;padding:12px 13px!important;border-radius:14px!important;background:#fff!important;border:1px solid #dbe7e9!important;box-shadow:0 7px 18px rgba(24,72,82,.06)!important}.teacher-studio .follow-overview article:nth-child(1){border-top:5px solid #16877e!important}.teacher-studio .follow-overview article:nth-child(2){border-top:5px solid #4d8ed6!important}.teacher-studio .follow-overview article:nth-child(3){border-top:5px solid #e0a039!important}.teacher-studio .follow-overview article:nth-child(4){border-top:5px solid #9365bd!important}.teacher-studio .follow-overview article:nth-child(5){border-top:5px solid #dc686f!important}.teacher-studio .follow-overview span{font-size:10px!important;color:#59727a!important}.teacher-studio .follow-overview strong{font-size:27px!important;color:#173f49!important}.teacher-studio .follow-overview small{font-size:9px!important;color:#74878d!important}
+.teacher-studio .students-follow-card{padding:0!important;border:1px solid #d7e5e8!important;border-radius:16px!important;background:#fff!important;box-shadow:0 10px 28px rgba(23,71,81,.07)!important;overflow:hidden!important}
+.teacher-studio .students-follow-card>header{padding:13px 15px!important;border:0!important;border-bottom:1px solid #dce8ea!important;border-radius:0!important;background:#eef7f8!important}.teacher-studio .students-follow-card>header h2{font-size:16px!important;color:#173f49!important;margin:0!important}.teacher-studio .students-follow-card>header p{font-size:10px!important;color:#627a82!important;margin:2px 0 0!important}.teacher-studio .students-follow-card .follow-actions button{min-height:35px!important;padding:0 11px!important;font-size:9.5px!important;border-radius:9px!important}
+
+.teacher-studio .students-follow-card .follow-table-wrap{overflow:auto!important;max-height:64vh!important;background:#fff!important}
+.teacher-studio .students-follow-card table{display:table!important;width:100%!important;min-width:920px!important;border-collapse:separate!important;border-spacing:0!important;background:#fff!important}
+.teacher-studio .students-follow-card thead{display:table-header-group!important;position:sticky!important;top:0!important;z-index:4!important;background:#dfeff0!important}
+.teacher-studio .students-follow-card tbody{display:table-row-group!important;padding:0!important}
+.teacher-studio .students-follow-card tr{display:table-row!important;background:#fff!important;box-shadow:none!important;border:0!important;padding:0!important}
+.teacher-studio .students-follow-card tbody tr:nth-child(even){background:#f8fbfc!important}
+.teacher-studio .students-follow-card tbody tr:hover{background:#eef8f6!important}
+.teacher-studio .students-follow-card th,.teacher-studio .students-follow-card td{display:table-cell!important;padding:11px 10px!important;border:0!important;border-bottom:1px solid #e1eaec!important;color:#173f49!important;vertical-align:middle!important;background:transparent!important;white-space:nowrap!important}
+.teacher-studio .students-follow-card th{font-size:10px!important;font-weight:900!important;color:#214c55!important;background:#dfeff0!important}
+.teacher-studio .students-follow-card td{font-size:10.5px!important}
+.teacher-studio .students-follow-card .student-name-cell b{font-size:12px!important;color:#153f49!important}
+.teacher-studio .students-follow-card .completion{display:grid!important;grid-template-columns:minmax(90px,1fr) auto!important;align-items:center!important;gap:7px!important;min-width:150px!important}
+.teacher-studio .students-follow-card .completion>span{height:9px!important;border-radius:99px!important;background:#dbe7e8!important;overflow:hidden!important}.teacher-studio .students-follow-card .completion>span i{display:block!important;height:100%!important;background:#16877e!important}
+.teacher-studio .students-follow-card .completion b{font-size:9.5px!important;color:#496a72!important}
+.teacher-studio .students-follow-card .level{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:78px!important;padding:6px 9px!important;border-radius:999px!important;font-size:9.5px!important;font-weight:900!important}
+.teacher-studio .students-follow-card .row-actions{display:flex!important;gap:6px!important;min-width:170px!important}.teacher-studio .students-follow-card .row-actions button{min-height:32px!important;padding:0 10px!important;font-size:9.5px!important;border-radius:8px!important}
+
+/* Referral block should visually belong to mastery page, but remain distinct. */
+.teacher-studio .follow-up-enhancer-current{display:grid!important;gap:9px!important}
+.teacher-studio .fue-toolbar{padding:12px 14px!important;border-radius:14px!important;background:#eef7f8!important;border:1px solid #d7e5e8!important;color:#173f49!important}
+.teacher-studio .fue-toolbar small{font-size:9px!important;color:#5b777e!important}.teacher-studio .fue-toolbar strong{font-size:13px!important;color:#173f49!important}.teacher-studio .fue-toolbar p{font-size:9.5px!important;color:#667d84!important}.teacher-studio .fue-toolbar>button{min-height:35px!important;padding:0 12px!important;background:#f0c95f!important;border:1px solid #d7ae3e!important;color:#294a52!important;font-size:10px!important}
+
+@media(max-width:1100px){
+  .teacher-studio .nv13-classbar{grid-template-columns:1fr!important}
+  .teacher-studio .nv13-layout{grid-template-columns:1fr!important}
+  .teacher-studio .nv13-student-list{max-height:320px!important}
+  .teacher-studio .nv13-presets{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .teacher-studio .follow-overview{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:680px){
+  .teacher-studio .nv13-student-hero{grid-template-columns:48px minmax(0,1fr)!important}
+  .teacher-studio .nv13-student-state{grid-column:1/-1!important}
+  .teacher-studio .nv13-presets{grid-template-columns:1fr!important}
+  .teacher-studio .nv13-section-head,.teacher-studio .nv13-editor-head,.teacher-studio .nv13-actions{align-items:flex-start!important;flex-direction:column!important}
+  .teacher-studio .follow-overview{grid-template-columns:1fr!important}
+}

@@ -16,6 +16,10 @@ import "./admin-polish-v14.css";
 import "./admin-experience-v15.css";
 import "./admin-experience-v16.css";
 import "./admin-experience-v17.css";
+import "./admin-canonical-current.css";
+import "./admin-last-fix.css";
+import "./admin-refinement-v2.css";
+import "./admin-contrast-final.css";
 
 function AdminIcon({ type }: { type: "home" | "teachers" | "students" | "competition" }) {
   const common = { width: 21, height: 21, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -38,7 +42,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     let live = true;
-    fetch("/api/admin/teachers", { cache: "no-store", credentials: "same-origin" })
+    setAuthenticated(null);
+    fetch("/api/auth/admin-session", { cache: "no-store", credentials: "same-origin" })
       .then(response => { if (live) setAuthenticated(response.ok); })
       .catch(() => { if (live) setAuthenticated(false); });
     return () => { live = false; };
@@ -56,6 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return <div className="admin-v4-frame" dir="rtl">
+    <div className="admin-main-scene" aria-hidden="true"/>
     <aside className="admin-v4-sidebar">
       <div className="admin-v4-sidebrand"><Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={64} height={64} priority /><div><small>بوابة الإدارة</small><strong>أستاذ لحوني التعليمية</strong></div></div>
       <nav className="admin-v4-side-nav" aria-label="أقسام الإدارة">{sections.map(item => {const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);return <Link key={item.href} href={item.href} className={active ? "active" : ""}><AdminIcon type={item.type}/><span>{item.label}</span></Link>;})}</nav>
@@ -65,7 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <section className="admin-v4-main">
       <section className="admin-v4-identity" aria-label="هوية مدير البوابة">
         <div className="admin-v4-identity-copy"><small>مركز الإدارة المدرسية الذكي</small><h1>{title}</h1><p>{description}</p></div>
-        <div className="admin-v4-person"><Image src="/icons/lahooni-identity-320.jpg" alt="الأستاذ حسن علي الطويل" width={64} height={64}/><div><strong>الأستاذ حسن علي الطويل</strong><small>مدير بوابة أستاذ لحوني التعليمية</small></div><button type="button" onClick={logout}>تسجيل الخروج</button></div>
+        <div className="admin-v4-person"><Image src="/teacher/teacher-avatar.svg" alt="أيقونة المعلم" width={64} height={64}/><div><strong>الأستاذ حسن علي الطويل</strong><small>مدير بوابة أستاذ لحوني التعليمية</small></div><button type="button" onClick={logout}>تسجيل الخروج</button></div>
       </section>
       <main className="admin-v4-workspace">{children}</main>
     </section>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="طالب">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123f53"/>
+      <stop offset="1" stop-color="#0b776f"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2d083"/>
+      <stop offset="1" stop-color="#c89a42"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" rx="72" fill="url(#bg)"/>
+  <circle cx="160" cy="128" r="65" fill="#e3b38e"/>
+  <path d="M96 120c4-50 30-79 68-79 45 0 66 31 63 82-15-10-29-25-39-43-17 24-48 39-92 40Z" fill="#172c36"/>
+  <path d="M91 319c5-77 36-116 69-116s65 39 70 116Z" fill="url(#shirt)"/>
+  <path d="M122 211l38 34 39-34" fill="none" stroke="#f8efe4" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="137" cy="130" r="5" fill="#21313a"/>
+  <circle cx="184" cy="130" r="5" fill="#21313a"/>
+  <path d="M142 163c12 10 26 10 38 0" fill="none" stroke="#8b5543" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="258" cy="61" r="24" fill="#f1cb73" opacity=".95"/>
+  <path d="M247 61h22M258 50v22" stroke="#173b48" stroke-width="5" stroke-linecap="round"/>
+</svg>

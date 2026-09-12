@@ -1,0 +1,39 @@
+/* Additive student notes center + overlap guards only.
+   Keep the approved student shell visual identity from student-portal-v1000.css. */
+
+/* Sidebar safety: preserve the previous design, only prevent collisions. */
+.sc-sidebar{overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(239,199,105,.28) transparent}
+.sc-sidebar::-webkit-scrollbar{width:4px}.sc-sidebar::-webkit-scrollbar-thumb{background:rgba(239,199,105,.28);border-radius:999px}
+.sc-brand span,.sc-profile>div:last-child,.sc-subject span,.sc-sidebar nav button span{min-width:0}
+.sc-brand b,.sc-profile strong,.sc-profile span,.sc-subject b,.sc-subject em,.sc-sidebar nav button b,.sc-sidebar nav button small{overflow:hidden;text-overflow:ellipsis}
+.sc-profile strong,.sc-profile span,.sc-subject b,.sc-subject em{white-space:nowrap}
+.sc-sidebar nav{flex:0 0 auto}
+.sc-sidebar nav button{position:relative;grid-template-columns:31px minmax(0,1fr) auto}
+.sc-sidebar nav button span{overflow:hidden}
+.sc-sidebar nav button b,.sc-sidebar nav button small{white-space:nowrap}
+.sc-nav-count{min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:grid;place-items:center;background:#f0c96c;color:#173945;font-size:7.2px;font-style:normal;font-weight:900;box-shadow:0 5px 12px rgba(190,132,45,.18)}
+.sc-side-progress{flex:0 0 auto}.sc-sidebar footer{flex:0 0 auto}
+
+/* Notes and alerts center. */
+.sc-notes{display:grid;gap:12px}
+.sc-notes-total{min-width:112px;padding:12px 16px;border-radius:18px;text-align:center;background:linear-gradient(145deg,rgba(117,78,168,.78),rgba(65,43,105,.82));border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 32px rgba(0,0,0,.15)}
+.sc-notes-total b{display:block;font-size:25px;color:#fff4d9}.sc-notes-total span{font-size:8px;color:#e7dff2}
+.sc-notes-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.sc-notes-stats article{display:flex;align-items:center;gap:10px;min-height:76px;padding:12px 14px;border-radius:17px;background:rgba(247,251,251,.95);border:1px solid rgba(255,255,255,.68);color:#173e4a;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+.sc-notes-stats article>i{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-style:normal;font-weight:900;color:#fff}.sc-notes-stats i.violet{background:linear-gradient(145deg,#8c68ba,#604184)}.sc-notes-stats i.teal{background:linear-gradient(145deg,#20a897,#107267)}.sc-notes-stats i.gold{background:linear-gradient(145deg,#d5aa51,#9b6f1f)}
+.sc-notes-stats span{display:grid}.sc-notes-stats small{font-size:8px;color:#6b858c}.sc-notes-stats b{font-size:20px;color:#173e4a}
+.sc-feed{display:grid;gap:9px}
+.sc-feed-item{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;padding:14px;border-radius:18px;background:rgba(247,251,251,.96);border:1px solid rgba(255,255,255,.7);color:#173e4a;box-shadow:0 11px 27px rgba(0,0,0,.08);overflow:hidden}
+.sc-feed-item:before{content:"";position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--feed)}.sc-feed-item.violet{--feed:#7b56a8}.sc-feed-item.teal{--feed:#159886}.sc-feed-item.gold{--feed:#c49738}.sc-feed-item.red{--feed:#b95656}
+.sc-feed-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:17px;font-weight:900;background:color-mix(in srgb,var(--feed) 16%,white);color:var(--feed);border:1px solid color-mix(in srgb,var(--feed) 24%,white)}
+.sc-feed-item>div>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.sc-feed-item>div>header span{display:inline-flex;padding:4px 8px;border-radius:999px;background:#edf4f4;color:#3e6872;font-size:7.5px;font-weight:800}.sc-feed-item>div>header small{font-size:7.5px;color:#879ca1}.sc-feed-item h3{margin:6px 0 3px;font-size:13px;color:#173f4b}.sc-feed-item p{margin:0;color:#58727a;font-size:9px;line-height:1.8}.sc-feed-item footer{display:flex;align-items:center;gap:8px;margin-top:8px}.sc-feed-item footer b{font-size:7.5px;color:var(--feed)}.sc-feed-item footer span{font-size:7.3px;color:#71898f}
+
+@media(max-width:720px){
+  .sc-sidebar{overflow:visible}
+  .sc-sidebar nav button{grid-template-columns:1fr}
+  .sc-nav-count{position:absolute;top:2px;left:2px;min-width:17px;height:17px;padding:0 4px;font-size:5.8px}
+  .sc-notes-stats{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .sc-feed-item{grid-template-columns:40px minmax(0,1fr);padding:11px}.sc-feed-icon{width:38px;height:38px;border-radius:12px}.sc-feed-item>div>header{align-items:flex-start;flex-direction:column;gap:4px}.sc-notes-total{min-width:90px;padding:9px 12px}
+}
