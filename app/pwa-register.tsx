@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v114-stability";
-const RELOAD_KEY = "ostadh-lahooni-v114-stability";
+const CURRENT_CACHE = "ostadh-lahooni-v115-no-legacy";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -23,7 +22,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        registration = await navigator.serviceWorker.register("/sw.js?v=114-stability", {
+        registration = await navigator.serviceWorker.register("/sw.js?v=115-no-legacy", {
           scope: "/",
           updateViaCache: "none",
         });
@@ -32,7 +31,6 @@ export default function PwaRegister() {
         });
         await registration.update();
         activateWaitingWorker();
-        sessionStorage.setItem(RELOAD_KEY, "1");
       } catch {
         // تبقى المنصة متاحة حتى لو تعذر تشغيل وضع التطبيق.
       }
@@ -40,7 +38,7 @@ export default function PwaRegister() {
 
     if (document.readyState === "complete") void register();
     else window.addEventListener("load", register, { once: true });
-    const interval = window.setInterval(checkForUpdate, 10 * 60 * 1000);
+    const interval = window.setInterval(checkForUpdate, 15 * 60 * 1000);
 
     return () => {
       window.clearInterval(interval);

@@ -1,12 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v114-stability";
+const CACHE_NAME = "ostadh-lahooni-v115-no-legacy";
 const STATIC_FILES = [
-  "/",
   "/manifest.webmanifest",
   "/icon.svg",
   "/icons/lahooni-identity-320.jpg",
   "/icons/ostadh-lahooni-192.jpg",
   "/saudi-classroom.svg",
-  "/teacher-mobile-critical-v113.css",
 ];
 
 self.addEventListener("message", event => {
@@ -35,37 +33,29 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname.startsWith("/api/") || url.searchParams.has("_rsc")) {
+  const mustBeFresh =
+    request.mode === "navigate" ||
+    request.destination === "style" ||
+    request.destination === "script" ||
+    request.destination === "font" ||
+    url.pathname.startsWith("/_next/") ||
+    url.pathname.startsWith("/api/") ||
+    url.searchParams.has("_rsc");
+
+  if (mustBeFresh) {
     event.respondWith(fetch(request, { cache: "no-store" }));
-    return;
-  }
-
-  if (url.pathname.startsWith("/_next/static/immutable/")) {
-    event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(response => {
-        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
-        return response;
-      })),
-    );
-    return;
-  }
-
-  if (request.mode === "navigate") {
-    event.respondWith(fetch(request, { cache: "no-store" }).catch(async () => (await caches.match("/")) || Response.error()));
-    return;
-  }
-
-  if (["style", "script", "font"].includes(request.destination)) {
-    event.respondWith(fetch(request, { cache: "no-store" }).catch(() => caches.match(request)));
     return;
   }
 
   if (["image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(response => {
-        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
-        return response;
-      })),
+      caches.match(request).then(cached => {
+        const fresh = fetch(request).then(response => {
+          if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+          return response;
+        });
+        return cached || fresh;
+      }),
     );
   }
 });
