@@ -31,6 +31,7 @@ export default function TeacherDashboardV31(){
   const [timetable,setTimetable]=useState<Record<string,Lesson>>({});
   const [now,setNow]=useState<Date|null>(null);
   const [message,setMessage]=useState("");
+  const [switching,setSwitching]=useState("");
 
   useEffect(()=>{setNow(new Date());const timer=window.setInterval(()=>setNow(new Date()),30000);return()=>window.clearInterval(timer);},[]);
   useEffect(()=>{
@@ -62,8 +63,9 @@ export default function TeacherDashboardV31(){
   const teacherFirstName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").split(/\s+/)[0]||"المعلم";
   const hour=now?Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",hour:"2-digit",hour12:false}).format(now)):12;
   const greeting=hour<12?"صباح الخير":hour<18?"مساء الخير":"مساء الخير";
+  const subjectItems=(session.subjects||[]).slice(0,6);
 
-  const subjectItems=(session.subjects||[]).slice(0,5);
+  async function selectSubject(workspaceKey:string){if(!session.setSubject||workspaceKey===session.workspaceKey)return;setSwitching(workspaceKey);try{await session.setSubject(workspaceKey);}finally{setSwitching("");}}
 
   return <main className="teacher-dashboard-v31" dir="rtl">
     {message?<p className="td31-message">{message}</p>:null}
@@ -74,11 +76,9 @@ export default function TeacherDashboardV31(){
         <h1>أ. {teacherFirstName}</h1>
         <div className="td31-meta"><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div>
       </div>
-      <div className="td31-subject-strip" aria-label="المواد">
-        <span className="td31-subject-label">المادة الحالية</span>
-        <strong>{session.subject||"المادة"}</strong>
-        <small>{session.activeGradeLabel||"المرحلة الثانوية"}</small>
-        {subjectItems.length>1?<div className="td31-subject-pills">{subjectItems.map((item,index)=><span key={`${item.subjectKey||item.subject||index}`} className={String(item.subjectKey||"")===String(session.subjectKey||"")?"active":""}>{item.subject||item.subjectKey||"مادة"}</span>)}</div>:null}
+      <div className="td31-subject-strip" aria-label="اختيار المادة">
+        <div className="td31-current-subject"><span>المادة الحالية</span><strong>{session.subject||"المادة"}</strong><small>{session.activeGradeLabel||"المرحلة الثانوية"}</small></div>
+        {subjectItems.length>1?<div className="td31-subject-pills">{subjectItems.map(item=><button type="button" key={item.workspaceKey} disabled={Boolean(switching)} onClick={()=>void selectSubject(item.workspaceKey)} className={item.workspaceKey===session.workspaceKey?"active":""}>{switching===item.workspaceKey?"…":item.subjectName}</button>)}</div>:null}
       </div>
     </section>
 
@@ -99,15 +99,8 @@ export default function TeacherDashboardV31(){
     </section>
 
     <section className="td31-lower">
-      <article className="td31-today">
-        <header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header>
-        <div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم":"ابدأ"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div>
-      </article>
-
-      <article className="td31-alerts">
-        <header><small>قراءة سريعة</small><h2>ما يحتاج انتباهك</h2></header>
-        <div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div>
-      </article>
+      <article className="td31-today"><header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header><div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم":"ابدأ"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div></article>
+      <article className="td31-alerts"><header><small>قراءة سريعة</small><h2>ما يحتاج انتباهك</h2></header><div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div></article>
     </section>
   </main>;
 }
