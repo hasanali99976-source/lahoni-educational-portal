@@ -2,85 +2,34 @@
   position:relative;
   z-index:5;
   display:grid;
-  gap:14px;
-  margin:0 0 16px;
-  padding:16px;
-  border:1px solid #b9d9df;
-  border-radius:20px;
-  background:linear-gradient(135deg,#f4fbfc,#eef8f5);
-  box-shadow:0 12px 32px rgba(18,72,84,.09);
-  color:#183e4b;
-}
-.attendance-schedule-guard.locked{
-  border-color:#e5b5a8;
-  background:linear-gradient(135deg,#fff8f5,#fff1eb);
-}
-.attendance-schedule-guard.saved-legacy{
-  border-color:#d4c178;
-  background:linear-gradient(135deg,#fffdf2,#fff8d9);
-}
-.attendance-schedule-copy{display:grid;gap:5px}
-.attendance-schedule-copy>span{font-size:13px;font-weight:900;color:#147487}
-.attendance-schedule-copy>strong{font-size:15px;line-height:1.65}
-.attendance-schedule-copy>small{font-size:12px;font-weight:700;color:#596d75;line-height:1.55}
-.attendance-schedule-guard.locked .attendance-schedule-copy>span,
-.attendance-schedule-guard.locked .attendance-schedule-copy>strong{color:#9a3f2c}
-.attendance-schedule-dates{
-  display:flex;
+  grid-template-columns:minmax(240px,.7fr) minmax(0,2.3fr);
+  align-items:center;
   gap:8px;
-  overflow-x:auto;
-  padding:2px 1px 6px;
-  scrollbar-width:thin;
-}
-.attendance-schedule-dates button{
-  flex:0 0 auto;
-  display:grid;
-  min-width:88px;
-  gap:2px;
-  padding:9px 10px;
-  border:1px solid #c9dde1;
-  border-radius:14px;
-  background:#fff;
-  color:#244854;
-  box-shadow:0 5px 14px rgba(28,77,88,.07);
-  cursor:pointer;
-}
-.attendance-schedule-dates button:hover,
-.attendance-schedule-dates button.active{
-  border-color:#148095;
-  background:#e7f7f8;
-  color:#0b6374;
-  transform:translateY(-1px);
-}
-.attendance-schedule-dates button b{font-size:12px}
-.attendance-schedule-dates button span{font-size:12px;font-weight:800}
-.attendance-schedule-dates button small{font-size:10px;font-weight:800;color:inherit}
-.attendance-page.attendance-date-locked .status-buttons button[data-schedule-locked="true"],
-.attendance-page.attendance-date-locked .attendance-controls button[data-schedule-locked="true"]{
-  opacity:.45!important;
-  filter:grayscale(.45);
-  cursor:not-allowed!important;
-  pointer-events:none!important;
-}
-.attendance-page.attendance-date-locked .attendance-list{
-  position:relative;
-}
-.attendance-page.attendance-date-locked .attendance-list::before{
-  content:"اختر تاريخًا توجد فيه حصة لهذا الفصل من الشريط أعلاه";
-  display:block;
-  margin-bottom:10px;
-  padding:10px 12px;
-  border:1px dashed #d7a18f;
+  margin:0 0 7px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.18);
   border-radius:12px;
-  background:#fff6f1;
-  color:#8d3c2b;
-  font-weight:800;
-  text-align:center;
+  background:linear-gradient(110deg,rgba(5,42,56,.88),rgba(10,92,95,.58));
+  box-shadow:0 8px 22px rgba(8,40,55,.13);
+  backdrop-filter:blur(16px);
+  color:#fff;
 }
-@media(max-width:760px){
-  .attendance-schedule-guard{margin-bottom:12px;padding:13px;border-radius:16px}
-  .attendance-schedule-copy>strong{font-size:13px}
-  .attendance-schedule-dates{margin-inline:-3px}
-  .attendance-schedule-dates button{min-width:82px;padding:8px}
-}
+.attendance-schedule-guard.locked{border-color:rgba(230,151,125,.42);background:linear-gradient(110deg,rgba(68,37,35,.84),rgba(117,61,45,.58))}
+.attendance-schedule-guard.saved-legacy{border-color:rgba(223,190,92,.38);background:linear-gradient(110deg,rgba(66,55,25,.86),rgba(105,83,29,.58))}
+.attendance-schedule-copy{display:grid;gap:2px;min-width:0}
+.attendance-schedule-copy>span{font-size:9px;font-weight:900;color:#ffd36f}
+.attendance-schedule-copy>strong{font-size:11px;line-height:1.45;color:#fff}
+.attendance-schedule-copy>small{font-size:8px;font-weight:700;color:#d8e8ea;line-height:1.4}
+.attendance-schedule-guard.locked .attendance-schedule-copy>span,.attendance-schedule-guard.locked .attendance-schedule-copy>strong{color:#ffd4c9}
+.attendance-schedule-dates{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;overflow:visible;padding:0;min-width:0}
+.attendance-schedule-dates button{min-width:0;display:grid;gap:1px;padding:5px 4px;border:1px solid #dbe7ea;border-radius:8px;background:#fff;color:#244854;box-shadow:none;cursor:pointer;text-align:center;transition:.15s ease}
+.attendance-schedule-dates button:hover,.attendance-schedule-dates button.active{border-color:#1d8b91;background:#e8f8f6;color:#0b6374;transform:translateY(-1px);box-shadow:0 4px 10px rgba(15,108,113,.11)}
+.attendance-schedule-dates button b{font-size:8px;color:#b98a2e}
+.attendance-schedule-dates button span{font-size:9px;font-weight:900;white-space:nowrap}
+.attendance-schedule-dates button small{font-size:7px;font-weight:800;color:inherit}
+.attendance-page.attendance-date-locked .status-buttons button[data-schedule-locked="true"],.attendance-page.attendance-date-locked .attendance-controls button[data-schedule-locked="true"]{opacity:.45!important;filter:grayscale(.45);cursor:not-allowed!important;pointer-events:none!important}
+.attendance-page.attendance-date-locked .attendance-list{position:relative}
+.attendance-page.attendance-date-locked .attendance-list::before{content:"اختر تاريخًا توجد فيه حصة لهذا الفصل من الشريط أعلاه";display:block;margin:4px 6px;padding:6px 8px;border:1px dashed #d7a18f;border-radius:8px;background:#fff6f1;color:#8d3c2b;font-size:9px;font-weight:800;text-align:center}
+@media(max-width:1050px){.attendance-schedule-guard{grid-template-columns:1fr}.attendance-schedule-dates{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:760px){.attendance-schedule-guard{margin-bottom:6px;padding:7px;border-radius:10px}.attendance-schedule-copy>strong{font-size:10px}.attendance-schedule-dates{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.attendance-schedule-dates button{padding:5px}}
 @media print{.attendance-schedule-guard{display:none!important}}
