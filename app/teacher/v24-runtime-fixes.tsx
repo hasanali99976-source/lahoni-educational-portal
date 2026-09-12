@@ -96,10 +96,12 @@ export default function TeacherV24RuntimeFixes() {
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname !== "/teacher/attendance" || !session?.teacherId || !session?.subjectKey) return;
-    const refresh = () => window.setTimeout(() => updateCumulativeAttendance(session.teacherId, String(session.subjectKey)), 40);
+    const teacherId = String(session?.teacherId || "");
+    const subjectKey = String(session?.subjectKey || "");
+    if (pathname !== "/teacher/attendance" || !teacherId || !subjectKey) return;
+    const refresh = () => window.setTimeout(() => updateCumulativeAttendance(teacherId, subjectKey), 40);
     refresh();
-    const timer = window.setInterval(() => updateCumulativeAttendance(session.teacherId, String(session.subjectKey)), 1200);
+    const timer = window.setInterval(() => updateCumulativeAttendance(teacherId, subjectKey), 1200);
     document.addEventListener("change", refresh, true);
     window.addEventListener("lahooni:attendance-updated", refresh as EventListener);
     return () => {
