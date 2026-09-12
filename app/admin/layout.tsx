@@ -16,6 +16,7 @@ import "./admin-polish-v14.css";
 import "./admin-experience-v15.css";
 import "./admin-experience-v16.css";
 import "./admin-experience-v17.css";
+import "./admin-main-identity-current.css";
 
 function AdminIcon({ type }: { type: "home" | "teachers" | "students" | "competition" }) {
   const common = { width: 21, height: 21, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -65,7 +66,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <section className="admin-v4-main">
       <section className="admin-v4-identity" aria-label="هوية مدير البوابة">
         <div className="admin-v4-identity-copy"><small>مركز الإدارة المدرسية الذكي</small><h1>{title}</h1><p>{description}</p></div>
-        <div className="admin-v4-person"><Image src="/icons/lahooni-identity-320.jpg" alt="الأستاذ حسن علي الطويل" width={64} height={64}/><div><strong>الأستاذ حسن علي الطويل</strong><small>مدير بوابة أستاذ لحوني التعليمية</small></div><button type="button" onClick={logout}>تسجيل الخروج</button></div>
+        <div className="admin-v4-person"><Image src="/teacher/teacher-avatar.svg" alt="أيقونة المعلم" width={64} height={64}/><div><strong>الأستاذ حسن علي الطويل</strong><small>مدير بوابة أستاذ لحوني التعليمية</small></div><button type="button" onClick={logout}>تسجيل الخروج</button></div>
       </section>
       <main className="admin-v4-workspace">{children}</main>
     </section>
