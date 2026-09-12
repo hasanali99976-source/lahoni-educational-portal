@@ -10,7 +10,7 @@ import "./admin-login-current.css";
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeout = 10000) {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeout);
-  try { return await fetch(input, { ...init, signal: controller.signal, cache: "no-store" }); }
+  try { return await fetch(input, { ...init, signal: controller.signal, cache: "no-store", credentials: "same-origin" }); }
   finally { window.clearTimeout(timer); }
 }
 
@@ -22,7 +22,7 @@ export default function AdminPage() {
 
   const check = useCallback(async () => {
     try {
-      const response = await fetchWithTimeout("/api/admin/teachers");
+      const response = await fetchWithTimeout("/api/auth/admin-session");
       setAuthenticated(response.ok);
     } catch {
       setAuthenticated(false);
@@ -46,7 +46,7 @@ export default function AdminPage() {
         setMessage(data.message || "اسم المدير غير صحيح");
         return;
       }
-      window.location.assign("/admin");
+      window.location.replace("/admin");
     } catch {
       setMessage("تعذر تسجيل الدخول الآن. حاول مرة أخرى.");
     } finally {
