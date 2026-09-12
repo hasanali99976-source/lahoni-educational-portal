@@ -5,25 +5,38 @@ import android.app.*;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.*;
+import android.provider.Settings;
 import android.webkit.*;
 import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
 
 public class MainActivity extends Activity {
     WebView web;
+    SharedPreferences prefs;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         getWindow().setStatusBarColor(Color.rgb(6,25,19));
         getWindow().setNavigationBarColor(Color.rgb(4,20,15));
+        prefs = getSharedPreferences("health_native_notify", MODE_PRIVATE);
+
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
         }
+        if (Build.VERSION.SDK_INT >= 31) {
+            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+            if (am != null && !am.canScheduleExactAlarms() && !prefs.getBoolean("asked_exact", false)) {
+                prefs.edit().putBoolean("asked_exact", true).apply();
+                try {
+                    Intent i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getPackageName()));
+                    startActivity(i);
+                } catch (Exception ignored) {}
+            }
+        }
+
         web = new WebView(this);
         web.setBackgroundColor(Color.rgb(6,25,19));
         WebSettings s = web.getSettings();
@@ -40,28 +53,30 @@ public class MainActivity extends Activity {
 
     public class Bridge {
         @JavascriptInterface public void scheduleNotifications(String morning, String water, String prep) {
-            scheduleRepeating(morning, "صباح صحة حسون 🌤️", "ابدأ يومك بماء وفطور بسيط وخلك ثابت.", 701);
-            scheduleRepeating(water, "موية يا حسن 💧", "شيك على هدف الماء وكمل أكوابك اليوم.", 702);
-            scheduleRepeating(prep, "جهّز بكرة 🛒", "حان وقت تجهيز خطة وأكل بكرة.", 703);
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "تم تفعيل تنبيهات صحة حسون ✅", Toast.LENGTH_SHORT).show());
+            prefs.edit().putString("morning", morning).putString("water", water).putString("prep", prep).apply();
+            NotificationScheduler.scheduleDaily(MainActivity.this, morning, "صباح صحة حسون 🌤️", "ابدأ يومك بماء وفطور بسيط وخلك ثابت.", 701);
+            NotificationScheduler.scheduleDaily(MainActivity.this, water, "موية يا حسن 💧", "شيك على هدف الماء وكمل أكوابك اليوم.", 702);
+            NotificationScheduler.scheduleDaily(MainActivity.this, prep, "جهّز بكرة 🛒", "حان وقت تجهيز خطة وأكل بكرة.", 703);
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, "تم تفعيل التنبيهات الصوتية ✅", Toast.LENGTH_SHORT).show());
         }
 
         @JavascriptInterface public void schedulePlan(String date, String json) {
             try {
                 JSONArray arr = new JSONArray(json);
+                prefs.edit().putString("plan_" + date, json).apply();
                 int base = 20000 + Math.abs(date.hashCode() % 5000) * 10;
                 AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
                 for (int i = 0; i < 8; i++) {
                     Intent oldIntent = new Intent(MainActivity.this, NotificationReceiver.class);
                     PendingIntent oldPi = PendingIntent.getBroadcast(MainActivity.this, base + i, oldIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_NO_CREATE);
-                    if (oldPi != null) am.cancel(oldPi);
+                    if (oldPi != null && am != null) am.cancel(oldPi);
                 }
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject o = arr.getJSONObject(i);
                     String time = o.optString("time", "");
                     String title = o.optString("title", "موعد خطتك");
                     String body = o.optString("body", "حان وقت المهمة المحفوظة في خطة صحة حسون.");
-                    if (!time.isEmpty()) scheduleOneShot(date, time, title, body, base + i);
+                    if (!time.isEmpty()) NotificationScheduler.scheduleOneShot(MainActivity.this, date, time, title, body, base + i);
                 }
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "تم ضبط تنبيهات الخطة ✅", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
@@ -78,38 +93,11 @@ public class MainActivity extends Activity {
     }
 
     private void scheduleDefaults(){
-        scheduleRepeating("08:00","صباح صحة حسون 🌤️","ابدأ يومك بماء وفطور بسيط وخلك ثابت.",701);
-        scheduleRepeating("13:30","موية يا حسن 💧","شيك على هدف الماء وكمل أكوابك اليوم.",702);
-        scheduleRepeating("20:30","جهّز بكرة 🛒","حان وقت تجهيز خطة وأكل بكرة.",703);
-    }
-
-    private void scheduleRepeating(String hhmm, String title, String body, int req){
-        try {
-            String[] p=hhmm.split(":");
-            int h=Integer.parseInt(p[0]), m=Integer.parseInt(p[1]);
-            Calendar c=Calendar.getInstance();
-            c.set(Calendar.HOUR_OF_DAY,h); c.set(Calendar.MINUTE,m); c.set(Calendar.SECOND,0); c.set(Calendar.MILLISECOND,0);
-            if(c.getTimeInMillis()<=System.currentTimeMillis()) c.add(Calendar.DAY_OF_YEAR,1);
-            Intent i=new Intent(this, NotificationReceiver.class);
-            i.putExtra("title",title); i.putExtra("body",body);
-            PendingIntent pi=PendingIntent.getBroadcast(this, req, i, PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager am=(AlarmManager)getSystemService(ALARM_SERVICE);
-            am.setInexactRepeating(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),AlarmManager.INTERVAL_DAY,pi);
-        } catch(Exception ignored){}
-    }
-
-    private void scheduleOneShot(String date, String hhmm, String title, String body, int req){
-        try {
-            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
-            long when = f.parse(date + " " + hhmm).getTime();
-            if (when <= System.currentTimeMillis()) return;
-            Intent i = new Intent(this, NotificationReceiver.class);
-            i.putExtra("title", title);
-            i.putExtra("body", body);
-            PendingIntent pi = PendingIntent.getBroadcast(this, req, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-            if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pi);
-            else am.set(AlarmManager.RTC_WAKEUP, when, pi);
-        } catch (Exception ignored) {}
+        String morning = prefs.getString("morning", "08:00");
+        String water = prefs.getString("water", "13:30");
+        String prep = prefs.getString("prep", "20:30");
+        NotificationScheduler.scheduleDaily(this, morning, "صباح صحة حسون 🌤️", "ابدأ يومك بماء وفطور بسيط وخلك ثابت.", 701);
+        NotificationScheduler.scheduleDaily(this, water, "موية يا حسن 💧", "شيك على هدف الماء وكمل أكوابك اليوم.", 702);
+        NotificationScheduler.scheduleDaily(this, prep, "جهّز بكرة 🛒", "حان وقت تجهيز خطة وأكل بكرة.", 703);
     }
 }
