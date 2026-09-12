@@ -3,13 +3,6 @@ import { requireSession } from "../../../lib/server/portal-auth";
 import BulkRosterImport from "./bulk-roster-import";
 import ClassControlPanel from "./class-control-panel";
 import "./admin-student-modal-fix.css";
-import "./students-readable-v10.css";
-import "./students-table-v11.css";
-import "../admin-premium-2026.css";
-import "../admin-experience-v15.css";
-import "../admin-experience-v16.css";
-import "../admin-experience-v17.css";
-import "../admin-experience-v18.css";
 
 export default async function AdminStudentsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession("admin");
