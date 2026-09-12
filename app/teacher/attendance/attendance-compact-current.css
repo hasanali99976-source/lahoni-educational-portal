@@ -1,0 +1,30 @@
+/* Attendance compact controls — production refinement. */
+.attendance-page [class*="tabs"]{gap:5px!important;align-items:center!important;flex-wrap:wrap!important}
+.attendance-page [class*="tabs"] button,.attendance-page [role="tab"]{min-height:30px!important;height:30px!important;padding:0 9px!important;border-radius:9px!important;font-size:9px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important}
+.attendance-page [class*="tabs"] button small,.attendance-page [role="tab"] small{font-size:7px!important;line-height:1!important}
+.attendance-page .attendance-setup-panel{padding:8px 10px!important;gap:8px!important}
+.attendance-page .attendance-primary-controls{gap:7px!important}
+.attendance-page .attendance-primary-controls label>span{font-size:9px!important;margin-bottom:3px!important}
+.attendance-page .attendance-primary-controls select,.attendance-page .attendance-primary-controls input{height:32px!important;min-height:32px!important;font-size:9.5px!important;border-radius:8px!important}
+.attendance-page .attendance-main-actions button{height:30px!important;min-height:30px!important;padding-inline:9px!important;font-size:8.5px!important}
+.attendance-page .attendance-overview{gap:6px!important}.attendance-page .attendance-overview article{height:54px!important;min-height:54px!important;padding:6px 8px!important}
+.attendance-page .attendance-list-head{padding:8px 10px!important}.attendance-page .attendance-list-head h2{font-size:13px!important}.attendance-page .attendance-list-head p{font-size:8.6px!important}
+.attendance-page .attendance-stats{gap:4px!important;padding:5px 7px!important}.attendance-page .attendance-stats span{min-height:27px!important;padding:3px 6px!important;font-size:7.8px!important}
+.attendance-page .attendance-student-card{min-height:40px!important;padding:4px 6px!important}.attendance-page .status-buttons button{height:26px!important;min-height:26px!important;font-size:7.6px!important}
+@media(max-width:760px){
+  .attendance-page{padding-bottom:env(safe-area-inset-bottom)!important}
+  .attendance-page [class*="tabs"]{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;padding-bottom:3px!important;scrollbar-width:none!important}
+  .attendance-page [class*="tabs"]::-webkit-scrollbar{display:none!important}
+  .attendance-page [class*="tabs"] button,.attendance-page [role="tab"]{flex:0 0 auto!important;min-width:auto!important;padding-inline:9px!important}
+  .attendance-page .attendance-setup-panel{grid-template-columns:1fr!important;padding:7px!important}
+  .attendance-page .attendance-primary-controls{grid-template-columns:1fr 1fr!important}
+  .attendance-page .attendance-main-actions{display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important}
+  .attendance-page .attendance-main-actions button{flex:0 0 auto!important}
+  .attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .attendance-page .attendance-list-head{align-items:flex-start!important;flex-direction:column!important}
+  .attendance-page .attendance-date-chip{min-width:0!important;width:100%!important}
+  .attendance-page .attendance-stats{grid-template-columns:repeat(5,minmax(92px,1fr))!important;overflow-x:auto!important;scrollbar-width:none!important}
+  .attendance-page .attendance-stats::-webkit-scrollbar{display:none!important}
+  .attendance-page .status-buttons{grid-template-columns:repeat(5,minmax(72px,1fr))!important;overflow-x:auto!important;padding-bottom:2px!important;scrollbar-width:none!important}
+  .attendance-page .status-buttons::-webkit-scrollbar{display:none!important}
+}
