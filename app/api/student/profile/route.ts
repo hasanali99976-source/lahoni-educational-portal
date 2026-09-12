@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { calculateGradePlanResult } from "../../../../lib/grade-plan";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
@@ -14,6 +15,7 @@ const ATTENDANCE_START_DATE = "2026-08-23";
 const SCHOOL_WEEKDAYS = [0, 1, 2, 3, 4] as const;
 const DAY_INDEX: Record<string, number> = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4 };
 const DAY_LABELS: Record<string, string> = { sunday: "الأحد", monday: "الاثنين", tuesday: "الثلاثاء", wednesday: "الأربعاء", thursday: "الخميس" };
+const MASTERY_THRESHOLD = 80;
 
 function riyadhDateInput(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
@@ -134,5 +136,21 @@ export async function GET(request: Request) {
   }
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
 
-  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, automaticThrough: today, attendanceMode: "automatic_until_teacher_override", attendanceSource }, timetableLessons, gradePlan: gradePlanState.activePlan, gradePlanSource: gradePlanState.source }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+  const activePlan = gradePlanState.activePlan;
+  const masteryResult = activePlan ? calculateGradePlanResult(activePlan, studentData) : null;
+  const masteryCompletion = Math.round(masteryResult?.completion || 0);
+  const masteryPerformance = Math.round(masteryResult?.percentage || 0);
+  const masteryFinalScore = masteryResult?.finalScore === null || masteryResult?.finalScore === undefined ? null : Math.round(masteryResult.finalScore);
+  const followUpSummary = {
+    threshold: MASTERY_THRESHOLD,
+    completion: masteryCompletion,
+    performance: masteryPerformance,
+    finalScore: masteryFinalScore,
+    status: !activePlan ? "بانتظار خطة التقييم" : masteryCompletion < 100 ? "الرصد غير مكتمل" : Number(masteryFinalScore || 0) >= MASTERY_THRESHOLD ? "متقن" : "يحتاج دعمًا",
+    mastered: Boolean(activePlan && masteryCompletion === 100 && Number(masteryFinalScore || 0) >= MASTERY_THRESHOLD),
+    needsSupport: Boolean(activePlan && masteryCompletion === 100 && Number(masteryFinalScore || 0) < MASTERY_THRESHOLD),
+    referralCount: counselorReferrals.length,
+  };
+
+  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, automaticThrough: today, attendanceMode: "automatic_until_teacher_override", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 }
