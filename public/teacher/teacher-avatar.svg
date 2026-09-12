@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="أيقونة معلم">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0a5360"/><stop offset="1" stop-color="#062b3c"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4d784"/><stop offset="1" stop-color="#b9802b"/></linearGradient>
+  </defs>
+  <rect width="320" height="320" rx="76" fill="url(#bg)"/>
+  <circle cx="160" cy="105" r="52" fill="#f1c8a8"/>
+  <path d="M110 103c4-47 26-68 52-68 29 0 51 24 52 69-14-18-34-26-54-26-21 0-37 8-50 25Z" fill="#173846"/>
+  <path d="M124 113c8 18 20 29 36 29 17 0 30-10 37-29-2 31-15 52-37 52-21 0-34-20-36-52Z" fill="#d9a989" opacity=".38"/>
+  <path d="M88 292c4-76 28-112 72-112 45 0 69 36 73 112Z" fill="#f7fbfb"/>
+  <path d="M125 183l35 39 35-39 13 109h-96Z" fill="#173846"/>
+  <path d="M148 213h24l8 79h-40Z" fill="url(#gold)"/>
+  <rect x="62" y="55" width="196" height="210" rx="48" fill="none" stroke="#f0cc72" stroke-width="6" opacity=".65"/>
+  <circle cx="250" cy="69" r="18" fill="url(#gold)"/>
+  <path d="M242 69h16M250 61v16" stroke="#173846" stroke-width="4" stroke-linecap="round"/>
+</svg>
