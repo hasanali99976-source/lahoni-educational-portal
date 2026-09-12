@@ -1,3 +1,5 @@
 .teacher-studio .ts-avatar{background:linear-gradient(145deg,rgba(247,220,147,.96),rgba(200,139,49,.92)),url('/teacher/teacher-avatar.svg') center/88% no-repeat!important;background-blend-mode:soft-light!important;font-size:0!important;overflow:hidden!important}
 .teacher-studio .ts-avatar::after{content:"";display:block;width:100%;height:100%;background:url('/teacher/teacher-avatar.svg') center/88% no-repeat}
 .teacher-dashboard-v31 .td31-portrait{background:linear-gradient(145deg,rgba(247,220,147,.18),rgba(17,58,71,.24)),url('/teacher/teacher-avatar.svg') center/92% no-repeat!important;background-color:rgba(255,255,255,.08)!important;border:1px solid rgba(239,198,108,.42)!important;box-shadow:0 12px 28px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.12)!important}
+/* The subject picker is the only visible subject-selection window. */
+.teacher-studio .ts-switching{display:none!important}
