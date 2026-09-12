@@ -19,6 +19,7 @@ import "./admin-experience-v17.css";
 import "./admin-canonical-current.css";
 import "./admin-last-fix.css";
 import "./admin-refinement-v2.css";
+import "./admin-contrast-final.css";
 
 function AdminIcon({ type }: { type: "home" | "teachers" | "students" | "competition" }) {
   const common = { width: 21, height: 21, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
