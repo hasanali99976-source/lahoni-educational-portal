@@ -20,6 +20,7 @@ function baseSubject(value:string){return String(value||"").trim().split("--")[0
 function dateKey(value:Date){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(value);const map=Object.fromEntries(parts.map(part=>[part.type,part.value]));return `${map.year}-${map.month}-${map.day}`;}
 function weekdayKey(value:Date){return new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",weekday:"long"}).format(value).toLowerCase();}
 function dateLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(value);}
+function timeLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"}).format(value);}
 function deductionTotal(student:Student,planId:string){return (Array.isArray(student.gradeDeductions)?student.gradeDeductions:[]).filter(item=>!item.reversedAt&&(!item.planId||item.planId===planId)).reduce((sum,item)=>sum+Math.max(0,Number(item.amount||0)),0);}
 
 export default function TeacherDashboardV31(){
@@ -58,36 +59,55 @@ export default function TeacherDashboardV31(){
   const overall=useMemo(()=>{const graded=studentRows.filter(item=>item.hasGrade);return graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;},[studentRows]);
   const support=studentRows.filter(item=>item.hasGrade&&item.score<60).length;
   const uncompletedLessons=lessons.filter(item=>!completedClasses.has(item.className));
-  const nextLesson=uncompletedLessons[0];
   const teacherFirstName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").split(/\s+/)[0]||"المعلم";
   const hour=now?Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",hour:"2-digit",hour12:false}).format(now)):12;
   const greeting=hour<12?"صباح الخير":hour<18?"مساء الخير":"مساء الخير";
-  const smartAction=nextLesson?{title:`تحضير ${nextLesson.className}`,text:`الحصة ${nextLesson.period} لم يكتمل تحضيرها بعد.`,href:"/teacher/attendance",label:"فتح التحضير"}:support?{title:`متابعة ${support} طالب`,text:"لديهم تحصيل أقل من 60% ويحتاجون تدخلًا تعليميًا.",href:"/teacher/follow-up",label:"فتح المتابعة"}:attendanceSummary.absent?{title:`مراجعة ${attendanceSummary.absent} حالة غياب`,text:"راجع الغياب المسجل اليوم قبل إغلاق المتابعة.",href:"/teacher/attendance",label:"مراجعة الغياب"}:{title:"اليوم مستقر",text:"لا توجد أولوية عاجلة الآن. يمكنك متابعة التحصيل أو التقارير.",href:"/teacher/grades",label:"فتح التحصيل"};
+
+  const subjectItems=(session.subjects||[]).slice(0,5);
 
   return <main className="teacher-dashboard-v31" dir="rtl">
     {message?<p className="td31-message">{message}</p>:null}
+
     <section className="td31-hero">
-      <div className="td31-welcome"><small>{now?dateLabel(now):"اليوم الدراسي"}</small><h1>{greeting} أ. {teacherFirstName}</h1><p>{session.subject||"المادة"} • {session.activeGradeLabel||"المرحلة الثانوية"}</p></div>
-      <div className="td31-next"><span>الخطوة التالية</span><strong>{smartAction.title}</strong><p>{smartAction.text}</p><Link href={smartAction.href}>{smartAction.label}</Link></div>
+      <div className="td31-welcome">
+        <small>{greeting}</small>
+        <h1>أ. {teacherFirstName}</h1>
+        <div className="td31-meta"><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div>
+      </div>
+      <div className="td31-subject-strip" aria-label="المواد">
+        <span className="td31-subject-label">المادة الحالية</span>
+        <strong>{session.subject||"المادة"}</strong>
+        <small>{session.activeGradeLabel||"المرحلة الثانوية"}</small>
+        {subjectItems.length>1?<div className="td31-subject-pills">{subjectItems.map((item,index)=><span key={`${item.subjectKey||item.subject||index}`} className={String(item.subjectKey||"")===String(session.subjectKey||"")?"active":""}>{item.subject||item.subjectKey||"مادة"}</span>)}</div>:null}
+      </div>
     </section>
 
     <section className="td31-kpis">
-      <div><span>حصص اليوم</span><b>{lessons.length}</b><small>{uncompletedLessons.length?`${uncompletedLessons.length} بانتظار التحضير`:"مكتملة"}</small></div>
-      <div><span>الطلاب</span><b>{students.length}</b><small>{classes.length} فصول</small></div>
-      <div><span>الحضور</span><b>{attendanceSummary.present}</b><small>{attendanceSummary.absent} غياب • {attendanceSummary.late} تأخير</small></div>
-      <div><span>التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>{support?`${support} يحتاجون دعمًا`:"مستقر"}</small></div>
+      <div data-kpi="lessons"><span>حصص اليوم</span><b>{lessons.length}</b><small>{uncompletedLessons.length?`${uncompletedLessons.length} بانتظار التحضير`:"مكتملة"}</small></div>
+      <div data-kpi="students"><span>الطلاب</span><b>{students.length}</b><small>{classes.length} فصول</small></div>
+      <div data-kpi="attendance"><span>الحضور</span><b>{attendanceSummary.present}</b><small>{attendanceSummary.absent} غياب • {attendanceSummary.late} تأخير</small></div>
+      <div data-kpi="grades"><span>التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>{support?`${support} يحتاجون دعمًا`:"مستقر"}</small></div>
     </section>
 
-    <section className="td31-centers" aria-label="مراكز عمل المعلم">
-      <article data-center="day"><header><span>01</span><div><small>مركز العمل اليومي</small><h2>اليوم الدراسي</h2></div></header><p>ابدأ من الحصة، ثم التحضير، ثم الحالات السلوكية عند الحاجة.</p><div><Link href="/teacher/timetable">الجدول</Link><Link href="/teacher/attendance">الحضور</Link><Link href="/teacher/discipline">الانضباط</Link></div></article>
-      <article data-center="students"><header><span>02</span><div><small>مركز الطالب</small><h2>طلابي</h2></div></header><p>كل طالب وفصله وملاحظاته ومتابعته التعليمية في مكان واحد.</p><div><Link href="/teacher/students">الفصول</Link><Link href="/teacher/notes">الملاحظات</Link><Link href="/teacher/follow-up">المتابعة</Link></div></article>
-      <article data-center="grades"><header><span>03</span><div><small>مركز التعلم</small><h2>التحصيل</h2></div></header><p>الرصد والاختبارات والإتقان وخطة الدرجات من مسار واحد واضح.</p><div><Link href="/teacher/grades">الدرجات</Link><Link href="/teacher/diagnostics">التشخيص</Link><Link href="/teacher/grade-plan">الخطة</Link></div></article>
-      <article data-center="insight"><header><span>04</span><div><small>مركز القرار</small><h2>التقارير والذكاء</h2></div></header><p>حوّل البيانات إلى قراءة واضحة وتقارير ومساعدة ذكية قابلة للتنفيذ.</p><div><Link href="/teacher/reports">التقارير</Link><Link href="/teacher/report">التحليل</Link><Link href="/teacher/ai">المساعد الذكي</Link></div></article>
+    <section className="td31-centers" aria-label="اختصارات العمل">
+      <Link href="/teacher/timetable" data-center="day"><b>الجدول</b><small>حصص اليوم</small></Link>
+      <Link href="/teacher/attendance" data-center="attendance"><b>الحضور</b><small>تسجيل سريع</small></Link>
+      <Link href="/teacher/students" data-center="students"><b>الطلاب</b><small>الفصول والسجلات</small></Link>
+      <Link href="/teacher/grades" data-center="grades"><b>الدرجات</b><small>الرصد والتحصيل</small></Link>
+      <Link href="/teacher/follow-up" data-center="follow"><b>المتابعة</b><small>دعم وإتقان</small></Link>
+      <Link href="/teacher/reports" data-center="reports"><b>التقارير</b><small>طباعة وتحليل</small></Link>
     </section>
 
     <section className="td31-lower">
-      <article className="td31-today"><header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">عرض الجدول</Link></header><div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم التحضير":"ابدأ التحضير"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div></article>
-      <article className="td31-alerts"><header><small>ما يحتاج انتباهك</small><h2>قراءة ذكية مختصرة</h2></header><div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div></article>
+      <article className="td31-today">
+        <header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header>
+        <div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم":"ابدأ"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div>
+      </article>
+
+      <article className="td31-alerts">
+        <header><small>قراءة سريعة</small><h2>ما يحتاج انتباهك</h2></header>
+        <div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div>
+      </article>
     </section>
   </main>;
 }
