@@ -1,0 +1,34 @@
+/* Critical teacher mobile shell: loaded before route hydration to prevent legacy flash on iPhone/WebView. */
+@media (max-width:980px){
+  html,body{min-height:100%;background:#f4f8fa}
+  body:has(.teacher-studio){overflow-x:hidden!important;background:#f4f8fa!important}
+  .teacher-studio{--rail-w:min(320px,88vw)!important;min-height:100dvh!important;overflow-x:hidden!important;background:#f4f8fa!important;color:#163e48!important}
+  .teacher-studio .ts-stage{margin-right:0!important;min-width:0!important;width:100%!important;padding:calc(10px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom))!important;overflow-x:hidden!important}
+  .teacher-studio .ts-canvas{min-width:0!important;width:100%!important;overflow-x:hidden!important}
+  .teacher-studio .ts-rail{width:var(--rail-w)!important;max-width:88vw!important;padding:12px!important;padding-top:calc(12px + env(safe-area-inset-top))!important;padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;background:#082d3a!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 18px 44px rgba(0,0,0,.22)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+  .teacher-studio .ts-brand{display:grid!important;grid-template-columns:46px minmax(0,1fr)!important;align-items:center!important;gap:10px!important;min-height:66px!important;overflow:visible!important}
+  .teacher-studio .ts-brand>span{display:grid!important;min-width:0!important;overflow:visible!important}
+  .teacher-studio .ts-brand strong{display:block!important;color:#fff!important;font-size:13px!important;line-height:1.45!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  .teacher-studio .ts-brand small{display:block!important;color:#cfe0e3!important;font-size:10px!important;line-height:1.4!important;white-space:normal!important;overflow:visible!important}
+  .teacher-studio .ts-nav-list{gap:6px!important}
+  .teacher-studio .ts-nav-group{border-radius:13px!important;overflow:hidden!important}
+  .teacher-studio .ts-group-head{min-height:46px!important;padding:6px 9px!important}
+  .teacher-studio .ts-group-head b{font-size:11.5px!important;color:#fff!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  .teacher-studio .ts-group-head small{font-size:8.5px!important;color:#bfd2d6!important;white-space:normal!important}
+  .teacher-studio .ts-nav{gap:3px!important;padding:0 6px 7px!important}
+  .teacher-studio .ts-nav a{grid-template-columns:31px minmax(0,1fr) 24px!important;min-height:40px!important;padding:5px 7px!important;gap:8px!important;border-radius:10px!important;transform:none!important}
+  .teacher-studio .ts-nav a b{font-size:11px!important;line-height:1.5!important;color:#f7fbfc!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  .teacher-studio .ts-nav .ts-icon{width:30px!important;height:30px!important;min-width:30px!important}
+  .teacher-studio .ts-page-head,.teacher-studio .ts-canvas table,.teacher-studio .discipline-v40 .dv40-hero,.teacher-studio .discipline-v40 .dv40-controls,.teacher-studio .discipline-v40 .dv40-table{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .teacher-studio *, .teacher-studio *::before, .teacher-studio *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+  .teacher-studio .ts-rail,.teacher-studio .ts-stage,.teacher-studio .ts-nav a{transition:none!important}
+  .teacher-studio input,.teacher-studio select,.teacher-studio textarea{font-size:16px!important}
+  .teacher-studio table{max-width:100%!important}
+  .teacher-studio [class*="table-wrap"],.teacher-studio [class*="tableWrap"]{max-width:100%!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}
+}
+@media (max-width:520px){
+  .teacher-studio{--rail-w:min(306px,90vw)!important}
+  .teacher-studio .ts-stage{padding-inline:8px!important}
+  .teacher-studio .ts-brand strong{font-size:12.5px!important}
+  .teacher-studio .ts-nav a b{font-size:10.8px!important}
+}
