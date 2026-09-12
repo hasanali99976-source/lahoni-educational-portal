@@ -31,7 +31,6 @@ export default function TeacherDashboardV31(){
   const [timetable,setTimetable]=useState<Record<string,Lesson>>({});
   const [now,setNow]=useState<Date|null>(null);
   const [message,setMessage]=useState("");
-  const [switching,setSwitching]=useState("");
 
   useEffect(()=>{setNow(new Date());const timer=window.setInterval(()=>setNow(new Date()),30000);return()=>window.clearInterval(timer);},[]);
   useEffect(()=>{
@@ -63,9 +62,6 @@ export default function TeacherDashboardV31(){
   const teacherDisplayName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").trim()||"المعلم";
   const hour=now?Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",hour:"2-digit",hour12:false}).format(now)):12;
   const greeting=hour<12?"صباح الخير":hour<18?"مساء الخير":"مساء الخير";
-  const subjectItems=(session.subjects||[]).slice(0,6);
-
-  async function selectSubject(workspaceKey:string){if(!session.setSubject||workspaceKey===session.workspaceKey)return;setSwitching(workspaceKey);try{await session.setSubject(workspaceKey);}finally{setSwitching("");}}
 
   return <main className="teacher-dashboard-v31" dir="rtl">
     {message?<p className="td31-message">{message}</p>:null}
@@ -78,10 +74,6 @@ export default function TeacherDashboardV31(){
           <h1>أ. {teacherDisplayName}</h1>
           <div className="td31-meta"><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div>
         </div>
-      </div>
-      <div className="td31-subject-strip" aria-label="اختيار المادة">
-        <div className="td31-current-subject"><span>المادة الحالية</span><strong>{session.subject||"المادة"}</strong><small>{session.activeGradeLabel||"المرحلة الثانوية"}</small></div>
-        {subjectItems.length>1?<div className="td31-subject-pills" aria-label="مواد المعلم">{subjectItems.map(item=><button type="button" key={item.workspaceKey} disabled={Boolean(switching)} onClick={()=>void selectSubject(item.workspaceKey)} className={item.workspaceKey===session.workspaceKey?"active":""}>{switching===item.workspaceKey?"…":item.subjectName}</button>)}</div>:null}
       </div>
     </section>
 
