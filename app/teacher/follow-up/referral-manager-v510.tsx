@@ -62,7 +62,25 @@ export default function ReferralManagerV510() {
   }
 
   return <section className="referral-manager-v510" dir="rtl">
-    <header><div><small>سجل المتابعة مع المرشد</small><h2>إحالاتي للمرشد الطلابي</h2><p>راجع كل إحالات هذه المادة، اطبعها دفعة واحدة، أو احذف إحالة غير مطلوبة.</p></div><button type="button" onClick={printAll} disabled={loading || !items.length}>طباعة جميع الإحالات</button></header>
-    {loading ? <div className="referral-loading-v510">جارٍ تحميل سجل الإحالات…</div> : <div className="referral-table-v510"><table><thead><tr><th>الطالب</th><th>الفصل</th><th>نوع الإحالة</th><th>السبب</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>{items.map(item => <tr key={item.id}><td><b>{item.studentName || "—"}</b></td><td>{item.className || "—"}</td><td>{item.referralTypeLabel || "إحالة للمرشد"}</td><td>{item.reason || "—"}</td><td>{dateLabel(item.createdAt)}</td><td><button type="button" className="delete" disabled={deleting === item.id} onClick={() => void removeReferral(item)}>{deleting === item.id ? "جارٍ الحذف…" : "حذف الإحالة"}</button></td></tr>)}{!items.length ? <tr><td colSpan={6}>لا توجد إحالات مسجلة في هذه المادة.</td></tr> : null}</tbody></table></div>}
+    <details className="referral-drawer-v511">
+      <summary>
+        <div className="referral-summary-main-v511">
+          <span className="referral-summary-icon-v511" aria-hidden="true">↗</span>
+          <div><small>سجل المتابعة مع المرشد</small><strong>جميع الإحالات</strong><p>{loading ? "جارٍ تحميل سجل الإحالات…" : items.length ? "اضغط لعرض الإحالات كاملة بدون فتح جدول إضافي." : "لا توجد إحالات مسجلة في هذه المادة."}</p></div>
+        </div>
+        <div className="referral-summary-actions-v511"><b className="referral-total-v511">{loading ? "…" : items.length}</b><span className="referral-open-label-v511">عرض السجل</span></div>
+      </summary>
+      <div className="referral-drawer-body-v511">
+        <div className="referral-toolbar-v511"><div><b>إحالاتي للمرشد الطلابي</b><small>{items.length} إحالة محفوظة لهذه المادة</small></div><button type="button" onClick={printAll} disabled={loading || !items.length}>طباعة جميع الإحالات</button></div>
+        {loading ? <div className="referral-loading-v510">جارٍ تحميل سجل الإحالات…</div> : items.length ? <div className="referral-list-v511">{items.map((item, index) => <article key={item.id} className="referral-item-v511">
+          <span className="referral-index-v511">{index + 1}</span>
+          <div className="referral-person-v511"><strong>{item.studentName || "—"}</strong><small>{item.className || "الفصل غير محدد"}</small></div>
+          <div className="referral-kind-v511"><span>{item.referralTypeLabel || "إحالة للمرشد"}</span><small>{item.status || "جديدة"}</small></div>
+          <p className="referral-reason-v511">{item.reason || "بدون سبب مسجل"}</p>
+          <time className="referral-date-v511">{dateLabel(item.createdAt)}</time>
+          <button type="button" className="referral-delete-v511" disabled={deleting === item.id} onClick={() => void removeReferral(item)}>{deleting === item.id ? "جارٍ الحذف…" : "حذف"}</button>
+        </article>)}</div> : <div className="referral-empty-v511">لا توجد إحالات مسجلة في هذه المادة.</div>}
+      </div>
+    </details>
   </section>;
 }
