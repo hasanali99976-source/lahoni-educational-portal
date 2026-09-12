@@ -28,11 +28,20 @@
 .sc-feed-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-style:normal;font-size:17px;font-weight:900;background:color-mix(in srgb,var(--feed) 16%,white);color:var(--feed);border:1px solid color-mix(in srgb,var(--feed) 24%,white)}
 .sc-feed-item>div>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.sc-feed-item>div>header span{display:inline-flex;padding:4px 8px;border-radius:999px;background:#edf4f4;color:#3e6872;font-size:7.5px;font-weight:800}.sc-feed-item>div>header small{font-size:7.5px;color:#879ca1}.sc-feed-item h3{margin:6px 0 3px;font-size:13px;color:#173f4b}.sc-feed-item p{margin:0;color:#58727a;font-size:9px;line-height:1.8}.sc-feed-item footer{display:flex;align-items:center;gap:8px;margin-top:8px}.sc-feed-item footer b{font-size:7.5px;color:var(--feed)}.sc-feed-item footer span{font-size:7.3px;color:#71898f}
 
+/* iPhone / PWA safe-area and viewport refinements. */
+.student-current-login,.student-current-gate,.student-current-shell{padding-top:max(14px,env(safe-area-inset-top))!important;padding-right:max(14px,env(safe-area-inset-right))!important;padding-bottom:max(14px,env(safe-area-inset-bottom))!important;padding-left:max(14px,env(safe-area-inset-left))!important;min-height:100dvh!important}
+.student-current-login button,.student-current-gate button,.student-current-shell button,.student-current-login a,.student-current-gate a,.student-current-shell a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.student-current-shell input,.student-current-gate input,.student-current-login input{font-size:16px!important}
+.sc-shell,.scg-shell,.scl-frame{max-width:100%!important}
+@supports(-webkit-touch-callout:none){body:has(.student-current-shell),body:has(.student-current-gate),body:has(.student-current-login){min-height:-webkit-fill-available}.student-current-shell,.student-current-gate,.student-current-login{min-height:-webkit-fill-available!important}}
+
 @media(max-width:720px){
   .sc-sidebar{overflow:visible}
   .sc-sidebar nav button{grid-template-columns:1fr}
   .sc-nav-count{position:absolute;top:2px;left:2px;min-width:17px;height:17px;padding:0 4px;font-size:5.8px}
   .sc-notes-stats{grid-template-columns:1fr}
+  .student-current-login,.student-current-gate,.student-current-shell{padding-top:max(10px,env(safe-area-inset-top))!important;padding-right:max(9px,env(safe-area-inset-right))!important;padding-bottom:max(12px,env(safe-area-inset-bottom))!important;padding-left:max(9px,env(safe-area-inset-left))!important}
+  .scg-shell,.scl-frame{border-radius:24px!important}
 }
 @media(max-width:600px){
   .sc-feed-item{grid-template-columns:40px minmax(0,1fr);padding:11px}.sc-feed-icon{width:38px;height:38px;border-radius:12px}.sc-feed-item>div>header{align-items:flex-start;flex-direction:column;gap:4px}.sc-notes-total{min-width:90px;padding:9px 12px}
