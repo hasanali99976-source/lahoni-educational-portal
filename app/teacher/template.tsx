@@ -11,7 +11,7 @@ import "./teacher-shell-refinement-v41.css";
 export default function TeacherTemplate({ children }: { children: ReactNode }) {
   return <>
     <TeacherV24RuntimeFixes />
-    {children}
     <FollowUpEnhancerCurrent />
+    {children}
   </>;
 }
