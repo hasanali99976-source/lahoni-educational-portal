@@ -22,6 +22,7 @@ function weekdayKey(value:Date){return new Intl.DateTimeFormat("en-US",{timeZone
 function dateLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(value);}
 function timeLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"}).format(value);}
 function deductionTotal(student:Student,planId:string){return (Array.isArray(student.gradeDeductions)?student.gradeDeductions:[]).filter(item=>!item.reversedAt&&(!item.planId||item.planId===planId)).reduce((sum,item)=>sum+Math.max(0,Number(item.amount||0)),0);}
+function pct(value:number,total:number){return total?Math.max(0,Math.min(100,Math.round(value/total*100))):0;}
 
 export default function TeacherDashboardV31(){
   const session=useTeacherClient();
@@ -51,14 +52,21 @@ export default function TeacherDashboardV31(){
 
   const today=now?dateKey(now):"";const weekday=now?weekdayKey(now):"";
   const classes=useMemo(()=>[...new Set(students.map(student=>String(student.class||"")).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})),[students]);
+  const classCounts=useMemo(()=>classes.map(className=>({className,count:students.filter(student=>String(student.class||"")===className).length})).sort((a,b)=>b.count-a.count),[classes,students]);
+  const maxClass=Math.max(1,...classCounts.map(item=>item.count));
   const lessons=useMemo(()=>Object.entries(timetable).flatMap(([cell,lesson])=>{const match=cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/);if(!match||match[1]!==weekday||!lesson.className)return[];return[{period:Number(match[2]),className:String(lesson.className),notes:String(lesson.notes||"")}];}).sort((a,b)=>a.period-b.period),[timetable,weekday]);
   const todayRecords=useMemo(()=>attendance.filter(item=>item.date===today),[attendance,today]);
   const attendanceSummary=useMemo(()=>{const result={present:0,absent:0,late:0,escaped:0,excused:0,total:0};todayRecords.forEach(item=>Object.values(item.records||{}).forEach(status=>{if(status in result){result[status as keyof typeof result]+=1;result.total+=1;}}));return result;},[todayRecords]);
   const completedClasses=useMemo(()=>new Set(todayRecords.filter(item=>item.class).map(item=>String(item.class))),[todayRecords]);
   const studentRows=useMemo<StudentRow[]>(()=>students.map(student=>{const result=activePlan?calculateGradePlanResult(activePlan,student):null;const deduction=result&&activePlan?deductionTotal(student,activePlan.id):0;const score=result?Math.max(0,Math.round(result.earned-deduction)):0;return{...student,score,completion:Math.round(result?.completion||0),hasGrade:Boolean(result&&result.recordedMaximum>0),deduction};}),[students,activePlan]);
+  const gradedStudents=studentRows.filter(item=>item.hasGrade).length;
   const overall=useMemo(()=>{const graded=studentRows.filter(item=>item.hasGrade);return graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;},[studentRows]);
   const support=studentRows.filter(item=>item.hasGrade&&item.score<60).length;
   const uncompletedLessons=lessons.filter(item=>!completedClasses.has(item.className));
+  const attendanceRate=pct(attendanceSummary.present,attendanceSummary.total);
+  const gradingRate=pct(gradedStudents,students.length);
+  const lessonRate=pct(lessons.length-uncompletedLessons.length,lessons.length);
+  const supportRate=pct(Math.max(0,gradedStudents-support),Math.max(1,gradedStudents));
   const teacherDisplayName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").trim()||"المعلم";
   const hour=now?Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",hour:"2-digit",hour12:false}).format(now)):12;
   const greeting=hour<12?"صباح الخير":hour<18?"مساء الخير":"مساء الخير";
@@ -67,35 +75,31 @@ export default function TeacherDashboardV31(){
     {message?<p className="td31-message">{message}</p>:null}
 
     <section className="td31-hero">
-      <div className="td31-identity">
-        <div className="td31-portrait" aria-hidden="true" />
-        <div className="td31-welcome">
-          <small>{greeting}</small>
-          <h1>أ. {teacherDisplayName}</h1>
-          <div className="td31-meta"><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div>
-        </div>
-      </div>
+      <div className="td31-identity"><div className="td31-portrait" aria-hidden="true"/><div className="td31-welcome"><small>{greeting}</small><h1>أ. {teacherDisplayName}</h1><div className="td31-meta"><span>{session.subject||"المادة الحالية"}</span><i>•</i><span>{now?dateLabel(now):"اليوم الدراسي"}</span><i>•</i><span>{now?timeLabel(now):""}</span></div></div></div>
     </section>
 
-    <section className="td31-kpis">
-      <div data-kpi="lessons"><span>حصص اليوم</span><b>{lessons.length}</b><small>{uncompletedLessons.length?`${uncompletedLessons.length} بانتظار التحضير`:"مكتملة"}</small></div>
-      <div data-kpi="students"><span>الطلاب</span><b>{students.length}</b><small>{classes.length} فصول</small></div>
-      <div data-kpi="attendance"><span>الحضور</span><b>{attendanceSummary.present}</b><small>{attendanceSummary.absent} غياب • {attendanceSummary.late} تأخير</small></div>
-      <div data-kpi="grades"><span>التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>{support?`${support} يحتاجون دعمًا`:"مستقر"}</small></div>
+    <section className="td31-kpis" aria-label="مؤشرات المعلم">
+      <div data-kpi="classes"><span>الفصول المرتبطة</span><b>{classes.length}</b><small>{students.length} طالبًا في المادة</small></div>
+      <div data-kpi="lessons"><span>حصص اليوم</span><b>{lessons.length}</b><small>{uncompletedLessons.length?`${uncompletedLessons.length} بانتظار الإجراء`:"مكتملة"}</small></div>
+      <div data-kpi="attendance"><span>حضور اليوم</span><b>{attendanceSummary.total?`${attendanceRate}%`:"—"}</b><small>{attendanceSummary.present} حاضر • {attendanceSummary.absent} غائب</small></div>
+      <div data-kpi="grades"><span>اكتمال الرصد</span><b>{students.length?`${gradingRate}%`:"—"}</b><small>{gradedStudents} من {students.length} طالبًا</small></div>
+    </section>
+
+    <section className="td31-analytics-grid">
+      <article className="td31-chart-card classes"><header><div><small>توزيع طلابك</small><h2>الفصول المرتبطة بالمادة</h2></div><b>{classes.length}</b></header><div className="td31-class-bars">{classCounts.length?classCounts.slice(0,8).map((item,index)=><div key={item.className}><span>{item.className}</span><div><i style={{width:`${Math.max(8,Math.round(item.count/maxClass*100))}%`,animationDelay:`${index*70}ms`}}/></div><b>{item.count}</b></div>):<p>لا توجد فصول مرتبطة بالمادة الحالية.</p>}</div></article>
+
+      <article className="td31-chart-card pulse"><header><div><small>قراءة العمل اليومي</small><h2>نشاط المعلم</h2></div><b>{attendanceSummary.total+gradedStudents}</b></header><div className="td31-pulse-list"><div><span>الحضور المسجل</span><b>{attendanceRate}%</b><i><em style={{width:`${attendanceRate}%`}}/></i></div><div><span>اكتمال الرصد</span><b>{gradingRate}%</b><i><em style={{width:`${gradingRate}%`}}/></i></div><div><span>حصص اليوم المنجزة</span><b>{lessonRate}%</b><i><em style={{width:`${lessonRate}%`}}/></i></div><div><span>استقرار التحصيل</span><b>{supportRate}%</b><i><em style={{width:`${supportRate}%`}}/></i></div></div></article>
+
+      <article className="td31-chart-card achievement"><header><div><small>المادة الحالية</small><h2>متوسط التحصيل</h2></div><b>{gradedStudents?`${overall}%`:"—"}</b></header><div className="td31-achievement-wrap"><div className="td31-ring" style={{"--value":`${gradedStudents?overall:0}%`} as React.CSSProperties}><strong>{gradedStudents?`${overall}%`:"—"}</strong><small>متوسط الطلاب</small></div><div className="td31-achievement-details"><span><b>{gradedStudents}</b> تم رصدهم</span><span><b>{support}</b> يحتاجون دعمًا</span><span><b>{Math.max(0,gradedStudents-support)}</b> مستقرون</span></div></div></article>
     </section>
 
     <section className="td31-centers" aria-label="اختصارات العمل">
-      <Link href="/teacher/timetable" data-center="day"><b>الجدول</b><small>حصص اليوم</small></Link>
-      <Link href="/teacher/attendance" data-center="attendance"><b>الحضور</b><small>تسجيل سريع</small></Link>
-      <Link href="/teacher/students" data-center="students"><b>الطلاب</b><small>الفصول والسجلات</small></Link>
-      <Link href="/teacher/grades" data-center="grades"><b>الدرجات</b><small>الرصد والتحصيل</small></Link>
-      <Link href="/teacher/follow-up" data-center="follow"><b>المتابعة</b><small>دعم وإتقان</small></Link>
-      <Link href="/teacher/reports" data-center="reports"><b>التقارير</b><small>طباعة وتحليل</small></Link>
+      <Link href="/teacher/timetable" data-center="day"><b>الجدول</b><small>حصص اليوم</small></Link><Link href="/teacher/attendance" data-center="attendance"><b>الحضور</b><small>تسجيل سريع</small></Link><Link href="/teacher/students" data-center="students"><b>الطلاب</b><small>الفصول والسجلات</small></Link><Link href="/teacher/grades" data-center="grades"><b>الدرجات</b><small>الرصد والتحصيل</small></Link><Link href="/teacher/follow-up" data-center="follow"><b>المتابعة</b><small>دعم وإتقان</small></Link><Link href="/teacher/reports" data-center="reports"><b>التقارير</b><small>طباعة وتحليل</small></Link>
     </section>
 
     <section className="td31-lower">
       <article className="td31-today"><header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header><div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم":"ابدأ"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div></article>
-      <article className="td31-alerts"><header><small>قراءة سريعة</small><h2>ما يحتاج انتباهك</h2></header><div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{studentRows.some(item=>item.hasGrade)?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div></article>
+      <article className="td31-alerts"><header><small>قراءة سريعة</small><h2>ما يحتاج انتباهك</h2></header><div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{gradedStudents?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div></article>
     </section>
   </main>;
 }
