@@ -16,7 +16,7 @@ export type TeacherCompetitionRow = {
   rank: number;
 };
 
-export async function buildTeacherCompetition() {
+export async function buildTeacherCompetition(_: { force?: boolean } = {}) {
   return {
     period: null,
     current: null,
