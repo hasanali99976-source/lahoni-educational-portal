@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
@@ -15,22 +14,30 @@ export default function TeacherLoginPage(){
   const [show,setShow]=useState(false);
   const [error,setError]=useState("");
   const [loading,setLoading]=useState(false);
-  const router=useRouter();
 
   async function submit(event:FormEvent){
     event.preventDefault();
+    if(loading)return;
     setError("");
     setLoading(true);
     try{
-      const response=await fetch("/api/teacher-login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,password})});
-      const data=await response.json();
+      const response=await fetch("/api/teacher-login",{
+        method:"POST",
+        credentials:"include",
+        cache:"no-store",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify({name:name.trim(),password})
+      });
+      let data:any=null;
+      try{data=await response.json();}catch{data=null;}
       if(!response.ok){setError(data?.message||"اسم المعلم أو الرقم السري غير صحيح");return;}
-      if(data?.firebaseToken)await signInWithCustomToken(auth,data.firebaseToken);
+      if(data?.firebaseToken){try{await signInWithCustomToken(auth,data.firebaseToken);}catch{} }
       if(data?.teacherId)setGradePlanCurrentTeacher(data.teacherId);
-      router.replace("/teacher/dashboard");
-      router.refresh();
+      // Safari/iOS can race client navigation against Set-Cookie persistence.
+      // A same-origin hard navigation guarantees the fresh session cookie is read.
+      window.location.assign("/teacher/dashboard");
     }catch{
-      setError("تعذر تسجيل الدخول الآن");
+      setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.");
     }finally{
       setLoading(false);
     }
@@ -69,10 +76,10 @@ export default function TeacherLoginPage(){
           <div className="tlc-mark">دخول آمن</div>
           <div className="tlc-head"><small>مرحبًا بك</small><h2>دخول المعلم</h2><p>استخدم بياناتك الحالية كما هي.</p></div>
           <form className="tlc-form" onSubmit={submit}>
-            <label><span>اسم المستخدم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoFocus required placeholder="اكتب اسم المستخدم"/></label>
-            <label><span>كلمة المرور</span><div className="tlc-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" required placeholder="اكتب كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
+            <label><span>اسم المستخدم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="اكتب اسم المستخدم"/></label>
+            <label><span>كلمة المرور</span><div className="tlc-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="اكتب كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
             {error?<p className="tlc-error">{error}</p>:null}
-            <button className="tlc-submit" disabled={loading||!name||!password}>{loading?"جارٍ فتح البوابة…":"دخول بوابة المعلم"}</button>
+            <button className="tlc-submit" disabled={loading||!name.trim()||!password}>{loading?"جارٍ فتح البوابة…":"دخول بوابة المعلم"}</button>
           </form>
           <div className="tlc-trust"><span>نفس بياناتك الحالية</span><span>اختيار المادة بعد الدخول فقط</span></div>
         </section>
