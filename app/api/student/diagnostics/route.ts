@@ -40,6 +40,7 @@ export async function GET(request: Request) {
     const firestoreResult = completed.get(item.id);
     const backupResult = firestoreResult ? null : await readDiagnosticBackup(access.teacherId, access.subjectId, item.id, access.studentId).catch(() => null);
     const result = firestoreResult || backupResult;
+    const resultData = result as (DiagnosticRecoveryResult & { teacherPlan?: string }) | null;
     return {
       id: item.id,
       title: data.title,
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
       questionCount: Array.isArray(data.questions) ? data.questions.length : 0,
       questions: result ? [] : (data.questions || []).map((question: Record<string, unknown>) => ({ id: question.id, text: question.text, options: question.options, skill: question.skill || "" })),
       completed: !!result,
-      result: result ? { score: result.score, total: result.total, percentage: result.percentage, plan: result.teacherPlan || result.plan, weakSkills: result.weakSkills || [] } : null,
+      result: resultData ? { score: resultData.score, total: resultData.total, percentage: resultData.percentage, plan: resultData.teacherPlan || resultData.plan, weakSkills: resultData.weakSkills || [] } : null,
     };
   }));
   return NextResponse.json({ ok: true, diagnostics });
@@ -108,22 +109,21 @@ export async function POST(request: Request) {
     submittedAt: new Date().toISOString(),
   };
   const recoveryCode = createDiagnosticRecoveryCode(result);
-  console.info("LAHONI_DIAGNOSTIC_RESULT_RECEIVED", {
-    diagnosticId,
-    studentId: access.studentId,
-    subjectId: access.subjectId,
-    percentage,
-  });
 
-  const [backupWrite, firestoreWrite] = await Promise.allSettled([
-    withTimeout(saveDiagnosticBackup(result), BACKUP_WRITE_TIMEOUT_MS),
-    withTimeout(resultRef.set(result), FIRESTORE_WRITE_TIMEOUT_MS),
-  ]);
-  const backupSaved = backupWrite.status === "fulfilled";
-  const firestoreSaved = firestoreWrite.status === "fulfilled";
-  if (!backupSaved && !firestoreSaved) {
-    console.error("diagnostic dual save failed", { diagnosticId, studentId: access.studentId });
-    return NextResponse.json({ ok: false, result, recoveryCode, message: "تم استلام الاختبار." }, { status: 503 });
+  try {
+    await Promise.all([
+      withTimeout(resultRef.set({ ...result, recoveryCode, createdAt: result.submittedAt }), FIRESTORE_WRITE_TIMEOUT_MS),
+      withTimeout(saveDiagnosticBackup(result), BACKUP_WRITE_TIMEOUT_MS),
+    ]);
+  } catch (error) {
+    console.error("student diagnostic save failed", error);
+    try {
+      await withTimeout(saveDiagnosticBackup(result), BACKUP_WRITE_TIMEOUT_MS);
+    } catch (backupError) {
+      console.error("student diagnostic backup save failed", backupError);
+      return NextResponse.json({ ok: false, message: "تعذر حفظ النتيجة الآن. حاول مرة أخرى." }, { status: 503 });
+    }
   }
-  return NextResponse.json({ ok: true, result, backupSaved, firestoreSaved });
+
+  return NextResponse.json({ ok: true, result: { ...result, recoveryCode } });
 }
