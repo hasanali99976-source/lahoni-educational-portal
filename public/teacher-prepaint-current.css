@@ -1,0 +1,4 @@
+/* Current teacher shell prepaint guard. Prevent legacy UI flash before the client shell is ready. */
+html:not(.teacher-ui-ready) .teacher-studio{visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+html.teacher-ui-ready .teacher-studio{visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+@media (prefers-reduced-motion:reduce){.teacher-studio{transition:none!important}}
