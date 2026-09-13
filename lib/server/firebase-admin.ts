@@ -3,6 +3,8 @@ import "server-only";
 import { applicationDefault, cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
+const PORTAL_FIREBASE_PROJECT_ID = "tahdheeb-history";
+
 function normalizePrivateKey(value?: string) {
   return value?.replace(/\\n/g, "\n").trim();
 }
@@ -45,18 +47,16 @@ function createAdminApp(): App {
     process.env.FIREBASE_PROJECT_ID ||
     process.env.GCLOUD_PROJECT ||
     process.env.GOOGLE_CLOUD_PROJECT ||
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    PORTAL_FIREBASE_PROJECT_ID;
   const clientEmail = jsonCredentials?.clientEmail || process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = jsonCredentials?.privateKey || normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
-  if (projectId && clientEmail && privateKey) {
+  if (clientEmail && privateKey) {
     return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }), projectId });
   }
 
-  // Supports Google Application Default Credentials / workload identity when configured
-  // in the hosting environment. Unlike the previous client SDK wrapper, Admin Firestore
-  // never relies on browser Firestore security rules for trusted server routes.
-  return initializeApp({ credential: applicationDefault(), ...(projectId ? { projectId } : {}) });
+  return initializeApp({ credential: applicationDefault(), projectId });
 }
 
 const adminApp = createAdminApp();
