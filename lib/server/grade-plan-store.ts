@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { normalizeGradePlan, type GradePlan } from "../grade-plan";
 import { adminDb } from "./firebase-admin";
 import type { PortalUser } from "./portal-auth";
@@ -38,12 +39,16 @@ function subjectsFromTeacherData(data: Record<string, unknown>) {
   return [...ids];
 }
 
+const readTeacherSubjectsForLegacyPlan = unstable_cache(async (teacherId: string) => {
+  const snapshot = await adminDb().collection("portalV2Users").doc(teacherId).get();
+  if (!snapshot.exists) return [] as string[];
+  return subjectsFromTeacherData(snapshot.data() as Record<string, unknown>);
+}, ["grade-plan-teacher-subjects-v1"], { revalidate: 300 });
+
 async function canUseLegacyPlan(teacherId: string, subjectId: string) {
   if (!teacherId || !subjectId) return false;
   try {
-    const snapshot = await adminDb().collection("portalV2Users").doc(teacherId).get();
-    if (!snapshot.exists) return false;
-    const subjects = subjectsFromTeacherData(snapshot.data() as Record<string, unknown>);
+    const subjects = await readTeacherSubjectsForLegacyPlan(teacherId);
     return subjects.length === 1 && subjects[0] === subjectId;
   } catch {
     // When the assignment cannot be verified, never risk copying a plan across subjects.
