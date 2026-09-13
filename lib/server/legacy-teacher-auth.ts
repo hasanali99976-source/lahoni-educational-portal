@@ -2,7 +2,7 @@ import "server-only";
 
 import { verifyPassword } from "./password";
 
-export const LEGACY_TEACHER_AUTH_VERSION = "legacy-teacher-fallback-v3";
+export const LEGACY_TEACHER_AUTH_VERSION = "legacy-teacher-fallback-v4";
 
 export type LegacyTeacherUser = {
   id: string;
@@ -26,6 +26,7 @@ function normalize(value: string) {
     .replace(/[إأآ]/g, "ا")
     .replace(/ى/g, "ي")
     .replace(/ة/g, "ه")
+    .replace(/[ـ\u064B-\u065F\u0670]/g, "")
     .replace(/\s+/g, " ");
 }
 
@@ -36,7 +37,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("حسن الطويل"),
     name: "حسن علي الطويل",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$98125549bfb64588edc11c2c9f9b6b06$eb7dd9526b04ea9ad14135ec2952ca586a0b64f90bd3fc355bf2ebc8cdd7e47c",
+    passwordHash: "pbkdf2-sha512$210000$98125549bfb64588edc11c2c9f9b6b06$ae4f9e36ea0358ab04cc0b2b99b44e8f96d7d972e3ffe73fa3ee35889693ea51",
     active: true,
     subjectIds: ["history"],
     assignments: [],
@@ -50,7 +51,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("عبد الله الرويشد"),
     name: "عبد الله الرويشد",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$89add99c35afb73e95f82a133645f15a$c9a54cfd43c2d935d462b3713bc7049c866e09fc9aa524702e384152aec09908",
+    passwordHash: "pbkdf2-sha512$210000$89add99c35afb73e95f82a133645f15a$d161e9e1ee2de9ae7d984d26a7e95ba28fda354e2671de5684c812c7516c346c",
     active: true,
     subjectIds: ["critical-thinking"],
     assignments: [],
@@ -64,7 +65,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("فضل نعمان"),
     name: "فضل نعمان",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$efebb9573d4af762aba1e405529424cc$c850b0ccfd39d558868d2322dfa4d7e64f1907670435e6ece38eaeccd6220d1a",
+    passwordHash: "pbkdf2-sha512$210000$efebb9573d4af762aba1e405529424cc$6f93437a7019012be91802c8d420c8394c6a820ef79ae79dff4ac803d31853ac",
     active: true,
     subjectIds: ["history"],
     assignments: [],
@@ -78,7 +79,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("أحمد الأحمد"),
     name: "أحمد الأحمد",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$18644707413ef9521e4770346f1a36db$d67d12145a925550dbcdf38594fdf73353915763a344c1c0534fd9c922186db0",
+    passwordHash: "pbkdf2-sha512$210000$18644707413ef9521e4770346f1a36db$cb2ea5ad298c80157efab9cf7957096e53549f68c7692f5a6c0cfc898c2b75dd",
     active: true,
     subjectIds: ["history"],
     assignments: [],
