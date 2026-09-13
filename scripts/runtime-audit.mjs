@@ -50,11 +50,24 @@ forbid(
   /new\s+MutationObserver\s*\(/,
   "حساب أعمال المعلم لا يراقب DOM؛ النقاط تأتي من البيانات المحفوظة نفسها.",
 );
+
+// مسابقة المعلمين متقاعدة بالكامل: أي إعادة لطلب أو قراءة أو مؤقت فيها تمنع النشر.
 forbid(
   "app/teacher/competition-progress.tsx",
-  /setInterval\s*\(/,
-  "التنافس لا يعاد حسابه كل دقيقة؛ التحديث يكون عند الفتح أو الرجوع بعد مدة مناسبة.",
+  /\bfetch\s*\(|\bonSnapshot\s*\(|\bsetInterval\s*\(|\bsetTimeout\s*\(/,
+  "مسابقة المعلمين متقاعدة ويجب أن تبقى بلا طلبات أو مراقبات أو مؤقتات.",
 );
+forbid(
+  "lib/server/teacher-competition.ts",
+  /\badminDb\s*\(|\.collection\s*\(|\.get\s*\(/,
+  "ماسح مسابقة المعلمين متقاعد ولا يجوز أن يقرأ Firestore من جديد.",
+);
+requirePattern(
+  "lib/server/teacher-competition.ts",
+  /disabled:\s*true/,
+  "ملف توافق المسابقة يجب أن يبقى معطلًا صراحةً.",
+);
+
 forbid(
   "app/student/page.tsx",
   /setInterval\s*\(/,
@@ -127,6 +140,47 @@ requirePattern(
   "إنشاء حساب المعلم يجب أن يملك مهلة زمنية قصيرة.",
 );
 
+// حماية الصفحة الرئيسية: الحضور المباشر يجب أن يقتصر على تاريخ اليوم فقط.
+requirePattern(
+  "app/teacher/dashboard/dashboard-v31.tsx",
+  /query\([\s\S]*?attendance[\s\S]*?where\(\s*["']date["']\s*,\s*["']==["']\s*,\s*todayKey\s*\)/,
+  "لوحة المعلم يجب أن تستمع لحضور اليوم فقط، لا لمجموعة الحضور كاملة.",
+);
+forbid(
+  "app/teacher/dashboard/dashboard-v31.tsx",
+  /onSnapshot\(\s*collection\([^\n]*["']attendance["']/,
+  "الاستماع المباشر إلى مجموعة الحضور كاملة ممنوع في لوحة المعلم.",
+);
+
+// حماية التقارير: القراءة يجب أن تكون حسب اليوم أو الفترة المختارة فقط.
+requirePattern(
+  "app/teacher/reports/page.tsx",
+  /where\(\s*["']date["']\s*,\s*["']==["']\s*,\s*selectedDate\s*\)/,
+  "التقرير اليومي يجب أن يقرأ التاريخ المختار فقط.",
+);
+requirePattern(
+  "app/teacher/reports/page.tsx",
+  /where\(\s*["']date["']\s*,\s*["']>=["']\s*,\s*reportFrom\s*\)/,
+  "تقرير الفترة يجب أن يبدأ من التاريخ المختار بدل قراءة الأرشيف كاملًا.",
+);
+requirePattern(
+  "app/teacher/reports/page.tsx",
+  /where\(\s*["']date["']\s*,\s*["']<=["']\s*,\s*reportTo\s*\)/,
+  "تقرير الفترة يجب أن ينتهي عند التاريخ المختار بدل قراءة الأرشيف كاملًا.",
+);
+forbid(
+  "app/teacher/reports/page.tsx",
+  /onSnapshot\(\s*collection\([^\n]*["']attendance["']/,
+  "الاستماع إلى كل سجل الحضور من صفحة التقارير ممنوع.",
+);
+
+// بيانات الدرجات المجمعة يجب أن تبقى خلف كاش خادمي قصير.
+requirePattern(
+  "app/api/teacher/grade-data/route.ts",
+  /unstable_cache\s*\(/,
+  "بيانات التحصيل المجمعة يجب أن تبقى خلف كاش خادمي قصير.",
+);
+
 const teacherRosterRequests = count(
   "app/teacher/attendance/page.tsx",
   /\/api\/teacher\/students/g,
@@ -166,4 +220,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("نجح فحص استهلاك البوابة: لا توجد المراقبات أو الطلبات المكررة المحظورة.");
+console.log("نجح فحص استهلاك البوابة: لا توجد المراقبات أو الطلبات المكررة المحظورة، وحمايات الحضور والتقارير والمسابقة فعالة.");
