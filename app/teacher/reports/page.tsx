@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -98,13 +98,20 @@ export default function ReportsPage() {
   }, [teacherId, subjectKey, session.activeGrade]);
 
   useEffect(() => {
-    if (!teacherId || !subjectKey) return;
+    if (!teacherId || !subjectKey || reportType !== "attendance") {
+      setAttendanceDocs([]);
+      return;
+    }
+    const base = collection(db, tenantCollection(teacherId, subjectKey as never, "attendance"));
+    const scopedQuery = attendanceMode === "daily"
+      ? query(base, where("date", "==", selectedDate))
+      : query(base, where("date", ">=", reportFrom), where("date", "<=", reportTo));
     return onSnapshot(
-      collection(db, tenantCollection(teacherId, subjectKey as never, "attendance")),
+      scopedQuery,
       snapshot => setAttendanceDocs(snapshot.docs.map(item => item.data() as AttendanceDoc)),
       () => setAttendanceDocs([]),
     );
-  }, [teacherId, subjectKey]);
+  }, [teacherId, subjectKey, reportType, attendanceMode, selectedDate, reportFrom, reportTo]);
 
   const classes = useMemo(() => [...new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
   useEffect(() => {
