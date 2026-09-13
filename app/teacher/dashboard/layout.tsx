@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import DashboardClassLinks from "./dashboard-class-links";
-import DashboardTimetableTasks from "./dashboard-timetable-tasks";
 import TimetableAutoSync from "../timetable/timetable-auto-sync";
 import TeacherSubjectGateway from "./teacher-subject-gateway";
 import TeacherWelcomeVoice from "./teacher-welcome-voice";
@@ -11,8 +9,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <TeacherWelcomeVoice />
     <TimetableAutoSync />
     <TeacherSubjectGateway />
-    <DashboardClassLinks />
-    <DashboardTimetableTasks />
     {children}
   </>;
 }

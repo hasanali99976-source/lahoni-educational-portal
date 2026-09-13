@@ -56,11 +56,12 @@ export default function TeacherSubjectGateway() {
       setOpen(false);
       setRequiredChoice(false);
     }
-    if (!teacherId || subjects.length <= 1 || openedForThisLogin.current) return;
+    const hasCurrentSubject = subjects.some(subject => subject.workspaceKey === session.workspaceKey);
+    if (!teacherId || subjects.length <= 1 || hasCurrentSubject || openedForThisLogin.current) return;
     openedForThisLogin.current = true;
     setRequiredChoice(true);
     setOpen(true);
-  }, [session.teacherId, subjects.length]);
+  }, [session.teacherId, session.workspaceKey, subjects]);
 
   if (subjects.length <= 1) return null;
 
