@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { findUserById, requireSession } from "../../../../lib/server/portal-auth";
@@ -27,30 +26,6 @@ import {
 type Repair = { path: string; data: Record<string, unknown> };
 type Grade = 1 | 2 | 3;
 type LegacyRow = { id: string; raw: Record<string, unknown>; student: SchoolStudent };
-type CachedDocument = { id: string; data: Record<string, unknown> };
-
-function cacheSafeData(value: FirebaseFirestore.DocumentData) {
-  return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
-}
-
-const readLegacyStudents = unstable_cache(async (subjectPath: string): Promise<CachedDocument[]> => {
-  const snapshot = await adminDb().collection(subjectPath).get();
-  return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-legacy-roster-v1"], { revalidate: 60 * 15 });
-
-const readCentralStudents = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => {
-  const grades = gradeKey.split(",").map(Number).filter(item => item >= 1 && item <= 3);
-  if (!grades.length) return [];
-  const snapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).where("grade", "in", grades).get();
-  return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-central-roster-v1"], { revalidate: 60 * 15 });
-
-const readCentralClasses = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => {
-  const grades = gradeKey.split(",").map(Number).filter(item => item >= 1 && item <= 3);
-  if (!grades.length) return [];
-  const snapshot = await adminDb().collection(SCHOOL_CLASSES_COLLECTION).where("grade", "in", grades).get();
-  return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-central-classes-v1"], { revalidate: 60 * 60 });
 
 function explicitlyArchived(value: Record<string, unknown>) {
   return value.deleted === true
@@ -144,23 +119,22 @@ export async function GET(request: Request) {
       .doc(teacherClassScopeId(session.userId, subjectId, requestedGrade));
     const legacySubjectScopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
       .doc(teacherClassScopeId(session.userId, subjectId));
-    const gradeKey = [...grades].sort().join(",");
 
-    const [legacyDocuments, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentDocuments, centralClassDocuments] = await Promise.all([
-      readLegacyStudents(subjectPath),
+    const [legacySnapshot, scopeSnapshot, legacySubjectScopeSnapshot, centralStudentSnapshot, centralClassSnapshot] = await Promise.all([
+      database.collection(subjectPath).get(),
       scopeRef.get(),
       requestedGrade ? legacySubjectScopeRef.get() : Promise.resolve({ exists: false, data: () => undefined }),
-      readCentralStudents(gradeKey),
-      readCentralClasses(gradeKey),
+      database.collection(SCHOOL_STUDENTS_COLLECTION).get(),
+      database.collection(SCHOOL_CLASSES_COLLECTION).get(),
     ]);
 
-    const allLegacyRows = legacyDocuments
-      .map(item => ({ id: item.id, raw: item.data }))
+    const allLegacyRows = legacySnapshot.docs
+      .map(item => ({ id: item.id, raw: item.data() as Record<string, unknown> }))
       .map(item => ({ ...item, student: normalizeLegacy(item.raw, item.id) }))
       .filter((item): item is LegacyRow => !!item.student);
 
-    const centralRosterRows = centralStudentDocuments
-      .map(item => normalizeStudentRecord(item.data, item.id))
+    const centralRosterRows = centralStudentSnapshot.docs
+      .map(item => normalizeStudentRecord(item.data() as Record<string, unknown>, item.id))
       .filter((item): item is SchoolStudent => !!item && item.active !== false);
     const centralByCode = new Map(centralRosterRows.map(student => [student.code, student]));
     const centralAllRows = centralRosterRows.filter(item => grades.has(item.grade as Grade));
@@ -187,8 +161,8 @@ export async function GET(request: Request) {
       .filter((item): item is LegacyRow => !!item);
 
     const availableMap = new Map<string, SchoolClass>();
-    centralClassDocuments.forEach(item => {
-      const data = item.data;
+    centralClassSnapshot.docs.forEach(item => {
+      const data = item.data() as Record<string, unknown>;
       const schoolClass = normalizeClassRecord({ id: item.id, ...data } as Partial<SchoolClass>);
       if (!schoolClass || schoolClass.active === false || !grades.has(schoolClass.grade as Grade)) return;
       availableMap.set(schoolClass.id, schoolClass);
@@ -265,7 +239,7 @@ export async function GET(request: Request) {
       .sort((a, b) => a.className.localeCompare(b.className, "ar", { numeric: true }) || a.name.localeCompare(b.name, "ar"));
 
     const repairs: Repair[] = [];
-    const existingIds = new Set(legacyDocuments.map(item => item.id));
+    const existingIds = new Set(legacySnapshot.docs.map(item => item.id));
     const legacyIdentities = new Set(selectedLegacyRows.map(item => studentIdentity(item.student)));
     const now = new Date().toISOString();
 
@@ -394,8 +368,8 @@ export async function GET(request: Request) {
       preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
       centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
       repairPending: repairs.length,
-      centralReadCount: centralStudentDocuments.length,
-      classReadCount: centralClassDocuments.length,
+      centralReadCount: centralStudentSnapshot.docs.length,
+      classReadCount: centralClassSnapshot.docs.length,
       centralStudentCodes: centralByCode.size,
       deduplicatedStudentCodes: students.length,
       manualClassSelection: true,

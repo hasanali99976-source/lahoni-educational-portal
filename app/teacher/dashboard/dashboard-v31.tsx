@@ -32,12 +32,10 @@ export default function TeacherDashboardV31(){
   const [timetable,setTimetable]=useState<Record<string,Lesson>>({});
   const [now,setNow]=useState<Date|null>(null);
   const [message,setMessage]=useState("");
-  const [loading,setLoading]=useState(true);
 
   useEffect(()=>{setNow(new Date());const timer=window.setInterval(()=>setNow(new Date()),30000);return()=>window.clearInterval(timer);},[]);
   useEffect(()=>{
     if(!session?.teacherId||!session?.subjectKey)return;
-    setLoading(true);
     const subjectId=baseSubject(session.subjectKey);const controller=new AbortController();const params=new URLSearchParams({subjectId});if(session.activeGrade)params.set("grade",String(session.activeGrade));
     Promise.all([
       fetch(`/api/teacher/students?${params}`,{cache:"no-store",signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل الطلاب");return data;}),
@@ -46,8 +44,8 @@ export default function TeacherDashboardV31(){
     ]).then(([data,academicData,timetableData])=>{
       const byCode=academicData.byCode&&typeof academicData.byCode==="object"?academicData.byCode as Record<string,Record<string,unknown>>:{};
       const list=(Array.isArray(data.students)?data.students:[]).map((raw:Record<string,unknown>)=>{const code=String(raw.code||raw.id||"").trim().toUpperCase();const className=String(raw.className||raw.class||"").trim();const academic=byCode[code]||{};return{...(raw as unknown as Student),id:code,code,name:String(raw.name||"").trim(),class:className,className,gradeValues:academic.gradeValues&&typeof academic.gradeValues==="object"?academic.gradeValues as GradeValueMap:raw.gradeValues as GradeValueMap,gradePlanValues:academic.gradePlanValues&&typeof academic.gradePlanValues==="object"?academic.gradePlanValues as Record<string,GradeValueMap>:raw.gradePlanValues as Record<string,GradeValueMap>,gradeDeductions:Array.isArray(academic.gradeDeductions)?academic.gradeDeductions as GradeDeduction[]:Array.isArray(raw.gradeDeductions)?raw.gradeDeductions as GradeDeduction[]:[]} as Student;}).filter((student:Student)=>student.id&&student.name&&student.class);
-      setStudents(list);setTimetable(timetableData.lessons&&typeof timetableData.lessons==="object"?timetableData.lessons:{});setMessage("");setLoading(false);
-    }).catch(error=>{if((error as Error)?.name!=="AbortError"){setMessage(error instanceof Error?error.message:"تعذر تحميل بيانات المتابعة");setLoading(false);}});
+      setStudents(list);setTimetable(timetableData.lessons&&typeof timetableData.lessons==="object"?timetableData.lessons:{});setMessage("");
+    }).catch(error=>{if((error as Error)?.name!=="AbortError")setMessage(error instanceof Error?error.message:"تعذر تحميل بيانات المتابعة");});
     const stopAttendance=onSnapshot(collection(db,tenantCollection(session.teacherId,session.subjectKey as never,"attendance")),snapshot=>setAttendance(snapshot.docs.map(item=>item.data() as AttendanceRecord)),()=>setAttendance([]));
     return()=>{controller.abort();stopAttendance();};
   },[session?.teacherId,session?.subjectKey,session?.activeGrade]);
@@ -60,7 +58,7 @@ export default function TeacherDashboardV31(){
   const todayRecords=useMemo(()=>attendance.filter(item=>item.date===today),[attendance,today]);
   const attendanceSummary=useMemo(()=>{const result={present:0,absent:0,late:0,escaped:0,excused:0,total:0};todayRecords.forEach(item=>Object.values(item.records||{}).forEach(status=>{if(status in result){result[status as keyof typeof result]+=1;result.total+=1;}}));return result;},[todayRecords]);
   const completedClasses=useMemo(()=>new Set(todayRecords.filter(item=>item.class).map(item=>String(item.class))),[todayRecords]);
-  const studentRows=useMemo<StudentRow[]>(()=>students.map(student=>{const result=activePlan?calculateGradePlanResult(activePlan,student):null;const deduction=result&&activePlan?deductionTotal(student,activePlan.id):0;const score=result?Math.max(0,Math.round(result.percentage-deduction)):0;return{...student,score,completion:Math.round(result?.completion||0),hasGrade:Boolean(result&&result.recordedMaximum>0),deduction};}),[students,activePlan]);
+  const studentRows=useMemo<StudentRow[]>(()=>students.map(student=>{const result=activePlan?calculateGradePlanResult(activePlan,student):null;const deduction=result&&activePlan?deductionTotal(student,activePlan.id):0;const score=result?Math.max(0,Math.round(result.earned-deduction)):0;return{...student,score,completion:Math.round(result?.completion||0),hasGrade:Boolean(result&&result.recordedMaximum>0),deduction};}),[students,activePlan]);
   const gradedStudents=studentRows.filter(item=>item.hasGrade).length;
   const overall=useMemo(()=>{const graded=studentRows.filter(item=>item.hasGrade);return graded.length?Math.round(graded.reduce((sum,item)=>sum+item.score,0)/graded.length):0;},[studentRows]);
   const support=studentRows.filter(item=>item.hasGrade&&item.score<60).length;
@@ -72,8 +70,6 @@ export default function TeacherDashboardV31(){
   const teacherDisplayName=String(session.teacherName||"المعلم").replace(/^أ\.?\s*/,"").trim()||"المعلم";
   const hour=now?Number(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",hour:"2-digit",hour12:false}).format(now)):12;
   const greeting=hour<12?"صباح الخير":hour<18?"مساء الخير":"مساء الخير";
-
-  if(loading)return <main className="teacher-dashboard-v31" dir="rtl"><p className="td31-message" role="status">جاري تحميل لوحة المعلم…</p></main>;
 
   return <main className="teacher-dashboard-v31" dir="rtl">
     {message?<p className="td31-message">{message}</p>:null}
@@ -102,7 +98,7 @@ export default function TeacherDashboardV31(){
     </section>
 
     <section className="td31-lower">
-      <article className="td31-today"><header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header><div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href={`/teacher/attendance?class=${encodeURIComponent(lesson.className)}`} key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم":"ابدأ"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div></article>
+      <article className="td31-today"><header><div><small>متابعة مباشرة</small><h2>حصص اليوم</h2></div><Link href="/teacher/timetable">الجدول الكامل</Link></header><div>{lessons.length?lessons.map(lesson=>{const done=completedClasses.has(lesson.className);return <Link href="/teacher/attendance" key={`${lesson.period}-${lesson.className}`} className={done?"done":""}><b>{lesson.period}</b><div><strong>{lesson.className}</strong><small>{lesson.notes||session.subject||"حصة دراسية"}</small></div><span>{done?"تم":"ابدأ"}</span></Link>}):<p className="td31-empty">لا توجد حصص مسجلة لهذا اليوم.</p>}</div></article>
       <article className="td31-alerts"><header><small>قراءة سريعة</small><h2>ما يحتاج انتباهك</h2></header><div className="td31-alert-list"><Link href="/teacher/follow-up"><span>دعم تعليمي</span><b>{support}</b><small>طلاب أقل من 60%</small></Link><Link href="/teacher/attendance"><span>غياب اليوم</span><b>{attendanceSummary.absent}</b><small>حالات مسجلة</small></Link><Link href="/teacher/grades"><span>متوسط التحصيل</span><b>{gradedStudents?`${overall}%`:"—"}</b><small>للمادة الحالية</small></Link></div></article>
     </section>
   </main>;

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v116-mobile-stable";
+const CURRENT_CACHE = "ostadh-lahooni-v115-no-legacy";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function PwaRegister() {
       try {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
-        registration = await navigator.serviceWorker.register("/sw.js?v=116-mobile-stable", {
+        registration = await navigator.serviceWorker.register("/sw.js?v=115-no-legacy", {
           scope: "/",
           updateViaCache: "none",
         });

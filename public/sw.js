@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v116-mobile-stable";
+const CACHE_NAME = "ostadh-lahooni-v115-no-legacy";
 const STATIC_FILES = [
   "/manifest.webmanifest",
   "/icon.svg",
