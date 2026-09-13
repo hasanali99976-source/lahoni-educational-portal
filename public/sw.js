@@ -1,4 +1,4 @@
-const CACHE_NAME = "ostadh-lahooni-v115-no-legacy";
+const CACHE_NAME = "ostadh-lahooni-v117-current";
 const STATIC_FILES = [
   "/manifest.webmanifest",
   "/icon.svg",
@@ -22,7 +22,11 @@ self.addEventListener("install", event => {
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))),
+    caches.keys().then(keys => Promise.all(
+      keys
+        .filter(key => key.startsWith("ostadh-lahooni-") && key !== CACHE_NAME)
+        .map(key => caches.delete(key)),
+    )),
   );
   self.clients.claim();
 });
@@ -50,7 +54,7 @@ self.addEventListener("fetch", event => {
   if (["image", "manifest"].includes(request.destination)) {
     event.respondWith(
       caches.match(request).then(cached => {
-        const fresh = fetch(request).then(response => {
+        const fresh = fetch(request, { cache: "no-store" }).then(response => {
           if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
           return response;
         });
