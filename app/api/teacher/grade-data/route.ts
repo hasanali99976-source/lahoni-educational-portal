@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
@@ -14,17 +15,10 @@ function archived(value: Record<string, unknown>) {
     || String(value.status || "").toLowerCase() === "archived";
 }
 
-export async function GET(request: Request) {
-  const session = await requireSession("teacher");
-  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
-
-  try {
-    const url = new URL(request.url);
-    const subjectId = clean(url.searchParams.get("subjectId"), 80);
-    if (!subjectId) return NextResponse.json({ ok: false, message: "المادة غير محددة." }, { status: 400 });
-
+const readGradeData = unstable_cache(
+  async (teacherId: string, subjectId: string) => {
     const snapshot = await adminDb()
-      .collection(`portalV2Data/${session.userId}/subjects/${subjectId}/students`)
+      .collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`)
       .get();
 
     const byCode: Record<string, Record<string, unknown>> = {};
@@ -39,7 +33,24 @@ export async function GET(request: Request) {
       if (!byCode[code] || nextUpdated >= currentUpdated) byCode[code] = { ...data, documentId: item.id };
     });
 
-    return NextResponse.json({ ok: true, byCode }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    return byCode;
+  },
+  ["teacher-grade-data-v1"],
+  { revalidate: 30 },
+);
+
+export async function GET(request: Request) {
+  const session = await requireSession("teacher");
+  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+
+  try {
+    const url = new URL(request.url);
+    const subjectId = clean(url.searchParams.get("subjectId"), 80);
+    if (!subjectId) return NextResponse.json({ ok: false, message: "المادة غير محددة." }, { status: 400 });
+
+    const byCode = await readGradeData(session.userId, subjectId);
+
+    return NextResponse.json({ ok: true, byCode }, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=15" } });
   } catch (error) {
     console.error("teacher grade data failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل بيانات التحصيل المحفوظة." }, { status: 500 });
