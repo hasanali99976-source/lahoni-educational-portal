@@ -1,50 +1,36 @@
-/* Critical teacher shell authority: loaded after bundled CSS to prevent legacy flash and overlap on desktop/mobile. */
-html,body{overflow-x:hidden}
-body:has(.teacher-studio){background:#071b29!important;overflow-x:hidden!important}
-.teacher-studio{--rail-w:326px!important;direction:rtl!important;min-height:100dvh!important;overflow-x:hidden!important}
-.teacher-studio .ts-stage{margin-right:calc(var(--rail-w) + 24px)!important;min-width:0!important;padding:12px 18px 18px!important;overflow-x:hidden!important}
-.teacher-studio .ts-canvas{min-width:0!important;width:100%!important;overflow-x:hidden!important}
-.teacher-studio .ts-rail{width:var(--rail-w)!important;right:8px!important;top:8px!important;bottom:8px!important;padding:14px!important;border-radius:22px!important;background:linear-gradient(160deg,#062937 0%,#0a4650 100%)!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 18px 44px rgba(0,0,0,.22)!important;overflow-x:hidden!important;overflow-y:auto!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-.teacher-studio .ts-brand{display:grid!important;grid-template-columns:52px minmax(0,1fr)!important;align-items:center!important;gap:12px!important;min-height:78px!important;padding:6px 6px 13px!important;overflow:visible!important}
-.teacher-studio .ts-brand img{width:50px!important;height:50px!important;min-width:50px!important;border-radius:14px!important}
-.teacher-studio .ts-brand>span{display:grid!important;gap:3px!important;min-width:0!important;overflow:visible!important}
-.teacher-studio .ts-brand strong{display:block!important;color:#fff!important;font-size:14px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:normal!important}
-.teacher-studio .ts-brand small{display:block!important;color:#d8e7e9!important;font-size:10.5px!important;line-height:1.5!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
-.teacher-studio .ts-home{display:grid!important;grid-template-columns:38px minmax(0,1fr)!important;gap:10px!important;align-items:center!important;min-height:52px!important;padding:7px 9px!important;margin:9px 0!important;border-radius:13px!important;overflow:visible!important}
-.teacher-studio .ts-home>span:last-child{min-width:0!important;overflow:visible!important}.teacher-studio .ts-home b,.teacher-studio .ts-home small{display:block!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
-.teacher-studio .ts-nav-list{display:grid!important;gap:7px!important;min-width:0!important}
-.teacher-studio .ts-nav-group{min-width:0!important;border-radius:13px!important;overflow:hidden!important}
-.teacher-studio .ts-group-head{display:grid!important;grid-template-columns:minmax(0,1fr) 30px!important;gap:9px!important;align-items:center!important;min-height:52px!important;padding:7px 10px!important;overflow:visible!important}
-.teacher-studio .ts-group-head>span{display:grid!important;gap:2px!important;min-width:0!important;overflow:visible!important}.teacher-studio .ts-group-head b{font-size:12.2px!important;color:#fff!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.5!important}.teacher-studio .ts-group-head small{font-size:9.2px!important;color:#c9dade!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.45!important}
-.teacher-studio .ts-nav{display:grid!important;gap:4px!important;padding:0 7px 8px!important;min-width:0!important}
-.teacher-studio .ts-nav a{display:grid!important;grid-template-columns:32px minmax(0,1fr) 26px!important;align-items:center!important;gap:9px!important;min-height:44px!important;padding:6px 8px!important;border-radius:11px!important;overflow:visible!important;transform:none!important;transition:none!important}
-.teacher-studio .ts-nav .ts-icon{width:31px!important;height:31px!important;min-width:31px!important}.teacher-studio .ts-nav a b{display:block!important;min-width:0!important;font-size:11.8px!important;line-height:1.5!important;color:#f7fbfc!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}.teacher-studio .ts-nav a>i{display:grid!important;place-items:center!important;width:26px!important;min-width:26px!important;height:21px!important;justify-self:end!important;overflow:hidden!important;font-size:8px!important}
-.teacher-studio .ts-footer{grid-template-columns:1fr 1fr!important;gap:7px!important}.teacher-studio .ts-footer a,.teacher-studio .ts-footer button{min-width:0!important;min-height:40px!important;overflow:visible!important;white-space:normal!important;text-overflow:clip!important;font-size:10px!important;line-height:1.4!important}
-.teacher-studio input,.teacher-studio select,.teacher-studio textarea{max-width:100%!important}
-.teacher-studio [class*="table-wrap"],.teacher-studio [class*="tableWrap"],.teacher-studio [class*="scroll"]{max-width:100%!important;-webkit-overflow-scrolling:touch!important}
-.teacher-studio .ts-page-head,.teacher-studio .ts-canvas table,.teacher-studio .discipline-v40 .dv40-hero,.teacher-studio .discipline-v40 .dv40-controls,.teacher-studio .discipline-v40 .dv40-table{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+/* Current teacher shell authority — desktop, mobile web and installed PWA. */
+html body:has(.teacher-studio){overflow-x:hidden!important}
+html body .teacher-studio{direction:rtl!important;min-height:100dvh!important;overflow-x:hidden!important}
+html body .teacher-studio .ts-rail{overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;padding-bottom:max(14px,env(safe-area-inset-bottom))!important}
+html body .teacher-studio .ts-nav-list{display:grid!important;gap:6px!important;min-width:0!important;padding-bottom:6px!important}
+html body .teacher-studio .ts-nav-group{min-width:0!important;overflow:visible!important}
+html body .teacher-studio .ts-group-head{min-height:45px!important;height:auto!important;padding:7px 9px!important;overflow:visible!important}
+html body .teacher-studio .ts-group-head b{font-size:13px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;color:#fff!important}
+html body .teacher-studio .ts-group-head small{font-size:10.5px!important;line-height:1.5!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+html body .teacher-studio .ts-nav{gap:4px!important;padding:2px 6px 7px!important}
+html body .teacher-studio .ts-nav a{min-height:45px!important;height:auto!important;padding:7px 8px!important;gap:8px!important;overflow:visible!important}
+html body .teacher-studio .ts-nav a b{display:block!important;min-width:0!important;font-size:13px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;color:#fff!important}
+html body .teacher-studio .ts-nav .ts-icon{flex:0 0 auto!important;min-width:29px!important;width:29px!important;height:29px!important}
+html body .teacher-studio .ts-home{min-height:46px!important;height:auto!important;overflow:visible!important}
+html body .teacher-studio .ts-home b{font-size:13px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+html body .teacher-studio .ts-footer a,html body .teacher-studio .ts-footer button{min-height:40px!important;height:auto!important;font-size:11.5px!important;line-height:1.45!important;white-space:normal!important;overflow:visible!important}
+html body .teacher-studio .ts-canvas [class*="tabs"] button,html body .teacher-studio .ts-canvas [role="tab"]{font-size:11.5px!important;line-height:1.55!important;min-height:38px!important;height:auto!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 
-/* Dashboard readability and complete cards */
-.teacher-dashboard-v31{min-width:0!important;color:#163b49!important}
-.teacher-dashboard-v31 .td31-kpis>div,.teacher-dashboard-v31 .td31-chart-card,.teacher-dashboard-v31 .td31-centers>a,.teacher-dashboard-v31 .td31-today,.teacher-dashboard-v31 .td31-alerts{min-width:0!important;overflow:hidden!important}
-.teacher-dashboard-v31 .td31-kpis span,.teacher-dashboard-v31 .td31-kpis small,.teacher-dashboard-v31 .td31-chart-card span,.teacher-dashboard-v31 .td31-chart-card small,.teacher-dashboard-v31 .td31-lower span,.teacher-dashboard-v31 .td31-lower small{opacity:1!important;visibility:visible!important;text-shadow:none!important}
-.teacher-dashboard-v31 .td31-lower,.teacher-dashboard-v31 .td31-today,.teacher-dashboard-v31 .td31-alerts{color:#173a4a!important}.teacher-dashboard-v31 .td31-today small,.teacher-dashboard-v31 .td31-alert-list small{color:#526f7b!important;font-weight:700!important}.teacher-dashboard-v31 .td31-alert-list span,.teacher-dashboard-v31 .td31-today strong{color:#173a4a!important;font-weight:900!important}
-.teacher-dashboard-v31 .td31-class-bars{max-height:none!important;overflow:visible!important}.teacher-dashboard-v31 .td31-chart-card.classes{min-height:max(236px,calc(78px + var(--class-count,4)*31px))!important}
+@media(max-width:980px){
+  html body .teacher-studio{--rail-w:min(336px,94vw)!important}
+  html body .teacher-studio .ts-stage{margin-right:0!important;width:100%!important;min-width:0!important;padding:calc(10px + env(safe-area-inset-top)) 10px calc(18px + env(safe-area-inset-bottom))!important;overflow-x:hidden!important}
+  html body .teacher-studio .ts-rail{width:var(--rail-w)!important;max-width:94vw!important;top:0!important;bottom:0!important;right:0!important;border-radius:18px 0 0 18px!important;padding-top:calc(14px + env(safe-area-inset-top))!important;padding-bottom:calc(18px + env(safe-area-inset-bottom))!important}
+  html body .teacher-studio .ts-nav a{min-height:48px!important}
+  html body .teacher-studio .ts-nav a b{font-size:13.2px!important}
+  html body .teacher-studio .ts-group-head b{font-size:13.2px!important}
+  html body .teacher-studio input,html body .teacher-studio select,html body .teacher-studio textarea{font-size:16px!important;max-width:100%!important}
+  html body .teacher-studio [class*="table-wrap"],html body .teacher-studio [class*="tableWrap"],html body .teacher-studio [class*="scroll"]{max-width:100%!important;-webkit-overflow-scrolling:touch!important}
+}
 
-/* Reports center: strong contrast and readable typography. */
-.teacher-studio .smart-reports-v12{color:#173d49!important;font-size:13px!important}
-.teacher-studio .sr12-head{background:linear-gradient(125deg,#0b4250,#0d6570)!important;border:1px solid rgba(255,255,255,.18)!important;padding:20px!important}
-.teacher-studio .sr12-head small{color:#d5ebea!important;font-size:12px!important}.teacher-studio .sr12-head h2{font-size:25px!important;color:#fff!important}.teacher-studio .sr12-head p{font-size:13.5px!important;color:#edf6f6!important;line-height:1.8!important}
-.teacher-studio .sr12-trust b,.teacher-studio .sr12-trust span{font-size:11px!important;color:#fff!important}.teacher-studio .sr12-trust b{color:#173a43!important}
-.teacher-studio .sr12-typebar button,.teacher-studio .sr12-panel,.teacher-studio .sr12-paper{background:#fff!important;color:#173d49!important;border-color:#cfdfe2!important}
-.teacher-studio .sr12-typebar b{font-size:15px!important;color:#173d49!important}.teacher-studio .sr12-typebar small{font-size:11.5px!important;color:#536f78!important}
-.teacher-studio .sr12-panel header h3{font-size:18px!important;color:#173d49!important}.teacher-studio .sr12-panel header small{font-size:11.5px!important;color:#0b7c74!important}
-.teacher-studio .sr12-class-grid b,.teacher-studio .sr12-mode b,.teacher-studio .sr12-section-grid b{font-size:13px!important;color:#173d49!important}.teacher-studio .sr12-class-grid small,.teacher-studio .sr12-mode small,.teacher-studio .sr12-section-grid small,.teacher-studio .sr12-summary p{font-size:10.5px!important;color:#5e757d!important}
-.teacher-studio .sr12-range label>span,.teacher-studio .sr12-single-date>span{font-size:11.5px!important;color:#385862!important}.teacher-studio .sr12-range input,.teacher-studio .sr12-single-date input{font-size:13.5px!important;color:#173d49!important;background:#fff!important}
-.teacher-studio .sr12-paper header h3{font-size:19px!important;color:#173d49!important}.teacher-studio .sr12-paper header small{font-size:10.5px!important;color:#5c747c!important}.teacher-studio .sr12-meta small{font-size:9.5px!important;color:#617880!important}.teacher-studio .sr12-meta b{font-size:12px!important;color:#173d49!important}
-.teacher-studio .sr12-actions{background:linear-gradient(145deg,#103f4b,#145d67)!important}.teacher-studio .sr12-actions>small{font-size:10.5px!important;color:#d5e8e8!important}.teacher-studio .sr12-actions h3{font-size:21px!important;color:#fff!important}.teacher-studio .sr12-actions p{font-size:12px!important;color:#edf5f5!important}.teacher-studio .sr12-actions button{font-size:11px!important}
-
-@media(max-width:1180px) and (min-width:981px){.teacher-studio{--rail-w:306px!important}.teacher-studio .ts-stage{padding-inline:14px!important}}
-@media(max-width:980px){html,body{min-height:100%;background:#f4f8fa}.teacher-studio{--rail-w:min(330px,92vw)!important;background:#f4f8fa!important;color:#163e48!important}.teacher-studio .ts-stage{margin-right:0!important;width:100%!important;padding:calc(10px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom))!important}.teacher-studio .ts-rail{max-width:92vw!important;padding-top:calc(14px + env(safe-area-inset-top))!important;padding-bottom:calc(14px + env(safe-area-inset-bottom))!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}.teacher-studio .ts-nav a b{font-size:11.4px!important}.teacher-studio *, .teacher-studio *::before, .teacher-studio *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}.teacher-studio .ts-rail,.teacher-studio .ts-stage,.teacher-studio .ts-nav a{transition:none!important}.teacher-studio input,.teacher-studio select,.teacher-studio textarea{font-size:16px!important}}
-@media(max-width:760px){.teacher-dashboard-v31 .td31-kpis{grid-template-columns:1fr 1fr!important}.teacher-dashboard-v31 .td31-centers{grid-template-columns:1fr 1fr!important}.teacher-studio .sr12-builder,.teacher-studio .sr12-preview{grid-template-columns:1fr!important}.teacher-studio .sr12-head h2{font-size:22px!important}.teacher-studio .sr12-head p{font-size:12.5px!important}.teacher-studio .sr12-typebar{grid-template-columns:1fr!important}.teacher-studio .sr12-class-grid,.teacher-studio .sr12-section-grid,.teacher-studio .sr12-mode,.teacher-studio .sr12-range{grid-template-columns:1fr!important}}
-@media(max-width:520px){.teacher-studio{--rail-w:min(322px,94vw)!important}.teacher-studio .ts-stage{padding-inline:8px!important}.teacher-studio .ts-brand strong{font-size:13.2px!important}.teacher-studio .ts-nav a b{font-size:11px!important}.teacher-dashboard-v31 .td31-kpis{grid-template-columns:1fr!important}.teacher-dashboard-v31 .td31-centers{grid-template-columns:1fr 1fr!important}}
+@media(max-width:520px){
+  html body .teacher-studio{--rail-w:min(330px,95vw)!important}
+  html body .teacher-studio .ts-stage{padding-inline:8px!important}
+  html body .teacher-studio .ts-nav a b{font-size:13px!important}
+  html body .teacher-studio .ts-group-head b{font-size:13px!important}
+  html body .teacher-studio .ts-canvas [class*="tabs"] button,html body .teacher-studio .ts-canvas [role="tab"]{font-size:12px!important;padding:7px 9px!important}
+}
