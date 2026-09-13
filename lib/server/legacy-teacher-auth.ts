@@ -2,7 +2,7 @@ import "server-only";
 
 import { verifyPassword } from "./password";
 
-export const LEGACY_TEACHER_AUTH_VERSION = "legacy-teacher-fallback-v1";
+export const LEGACY_TEACHER_AUTH_VERSION = "legacy-teacher-fallback-v2";
 
 export type LegacyTeacherUser = {
   id: string;
@@ -19,7 +19,14 @@ export type LegacyTeacherUser = {
 };
 
 function normalize(value: string) {
-  return value.trim().toLocaleLowerCase("ar").replace(/^أ\.\s*/, "").replace(/\s+/g, " ");
+  return value
+    .trim()
+    .toLocaleLowerCase("ar")
+    .replace(/^أ\.\s*/, "")
+    .replace(/[إأآ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/\s+/g, " ");
 }
 
 const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
@@ -29,13 +36,13 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("حسن الطويل"),
     name: "حسن علي الطويل",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$cb5b0f92abd1882e2604305e8a19d8dc$c537cc8838aaf0e737f38b6491a8ec5f9a9d939d5a72aa3472f428cd9c6cf42a",
+    passwordHash: "pbkdf2-sha512$210000$98125549bfb64588edc11c2c9f9b6b06$ae4f9e36ea0358ab04cc0b2b99b44e8f96d7d972e3ffe73fa3ee35889693ea51",
     active: true,
     subjectIds: ["history"],
     assignments: [],
     createdAt: "2026-08-01T00:00:00.000Z",
     updatedAt: LEGACY_TEACHER_AUTH_VERSION,
-    aliases: ["حسن الطويل", "حسن علي الطويل", "أ. حسن علي الطويل"],
+    aliases: ["حسن الطويل", "حسن علي الطويل", "أ. حسن علي الطويل", "حسن علي", "حسن"],
   },
   {
     id: "abdullah-critical-thinking",
@@ -43,7 +50,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("عبد الله الرويشد"),
     name: "عبد الله الرويشد",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$d967b1206fd8f06cdc59bb1f3dbd43c6$db7b6a226f10ab0c4fb11d3d949cc2b0c89a52ef0282a0088c54297e7e7565ad",
+    passwordHash: "pbkdf2-sha512$210000$89add99c35afb73e95f82a133645f15a$d161e9e1ee2de9ae7d984d26a7e95ba28fda354e2671de5684c812c7516c346c",
     active: true,
     subjectIds: ["critical-thinking"],
     assignments: [],
@@ -57,7 +64,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("فضل نعمان"),
     name: "فضل نعمان",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$8c456898195b4ce03a082b8edbb77c0b$9fd6a964dcdb39f5b4952318eb45df33f6fcb6e1f5df52c947a250f8296d6379",
+    passwordHash: "pbkdf2-sha512$210000$efebb9573d4af762aba1e405529424cc$6f93437a7019012be91802c8d420c8394c6a820ef79ae79dff4ac803d31853ac",
     active: true,
     subjectIds: ["history"],
     assignments: [],
@@ -71,7 +78,7 @@ const ACCOUNTS: Array<LegacyTeacherUser & { aliases: string[] }> = [
     normalizedUsername: normalize("أحمد الأحمد"),
     name: "أحمد الأحمد",
     role: "teacher",
-    passwordHash: "pbkdf2-sha512$210000$e083c37dc7df5cc45b613951b9fb5a0a$56cb7e278b2ee8aa64b8edccc3f986c832fd5c01427ccb7474c5f022f1044c64",
+    passwordHash: "pbkdf2-sha512$210000$18644707413ef9521e4770346f1a36db$cb2ea5ad298c80157efab9cf7957096e53549f68c7692f5a6c0cfc898c2b75dd",
     active: true,
     subjectIds: ["history"],
     assignments: [],
