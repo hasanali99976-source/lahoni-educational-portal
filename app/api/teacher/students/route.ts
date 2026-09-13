@@ -36,21 +36,21 @@ function cacheSafeData(value: FirebaseFirestore.DocumentData) {
 const readLegacyStudents = unstable_cache(async (subjectPath: string): Promise<CachedDocument[]> => {
   const snapshot = await adminDb().collection(subjectPath).get();
   return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-legacy-roster-v1"], { revalidate: 60 });
+}, ["teacher-legacy-roster-v1"], { revalidate: 60 * 15 });
 
 const readCentralStudents = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => {
   const grades = gradeKey.split(",").map(Number).filter(item => item >= 1 && item <= 3);
   if (!grades.length) return [];
   const snapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).where("grade", "in", grades).get();
   return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-central-roster-v1"], { revalidate: 60 });
+}, ["teacher-central-roster-v1"], { revalidate: 60 * 15 });
 
 const readCentralClasses = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => {
   const grades = gradeKey.split(",").map(Number).filter(item => item >= 1 && item <= 3);
   if (!grades.length) return [];
   const snapshot = await adminDb().collection(SCHOOL_CLASSES_COLLECTION).where("grade", "in", grades).get();
   return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-central-classes-v1"], { revalidate: 300 });
+}, ["teacher-central-classes-v1"], { revalidate: 60 * 60 });
 
 function explicitlyArchived(value: Record<string, unknown>) {
   return value.deleted === true
