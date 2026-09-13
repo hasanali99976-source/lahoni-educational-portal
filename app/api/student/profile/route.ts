@@ -48,10 +48,14 @@ export async function GET(request: Request) {
   const students = adminDb().collection(`${root}/students`);
   const candidateMap = new Map<string, StudentSnapshot>();
   const direct = await students.doc(access.studentId).get();
-  if (direct.exists) candidateMap.set(direct.id, direct as StudentSnapshot);
-  for (const field of ["code", "accessCode", "studentCode"] as const) {
-    const hits = await students.where(field, "==", access.studentId).limit(8).get();
-    hits.docs.forEach(doc => candidateMap.set(doc.id, doc as StudentSnapshot));
+  if (direct.exists) {
+    candidateMap.set(direct.id, direct as StudentSnapshot);
+  } else {
+    for (const field of ["code", "accessCode", "studentCode"] as const) {
+      const hits = await students.where(field, "==", access.studentId).limit(8).get();
+      hits.docs.forEach(doc => candidateMap.set(doc.id, doc as StudentSnapshot));
+      if (candidateMap.size) break;
+    }
   }
   const candidates = [...candidateMap.values()].filter(doc => doc.exists);
   if (!candidates.length) return NextResponse.json({ ok: false, message: "لم يعد سجل الطالب متاحًا." }, { status: 404 });
@@ -59,7 +63,7 @@ export async function GET(request: Request) {
   const studentData = student.data() as Record<string, unknown>;
   const studentClass = normalizeClass(studentData.class || studentData.className || `${String(studentData.grade || "")} ${String(studentData.section || "")}`);
   const [attendance, timetable, gradePlanState, referralSnapshot] = await Promise.all([
-    adminDb().collection(`${root}/attendance`).get(),
+    adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE).get(),
     adminDb().collection(`${root}/timetable`).doc("weekly").get(),
     readActiveGradePlanForSubject(access.teacherId, access.subjectId),
     adminDb().collection(`${root}/counselorReferrals`).get(),
