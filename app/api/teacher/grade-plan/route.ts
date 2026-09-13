@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
@@ -21,6 +22,14 @@ function isQuotaError(error: unknown) {
   return text.includes("resource-exhausted") || text.includes("resource_exhausted") || text.includes("quota exceeded");
 }
 
+const readGradePlanHistory = unstable_cache(async (teacherId: string) => {
+  const snapshot = await adminDb().collection(`${teacherRoot(teacherId)}/${VERSIONS_COLLECTION}`).get();
+  return snapshot.docs.map(document => ({
+    id: document.id,
+    data: JSON.parse(JSON.stringify(document.data())) as Record<string, unknown>,
+  }));
+}, ["teacher-grade-plan-history-v1"], { revalidate: 60 });
+
 export async function GET(request: Request) {
   const session = await requireSession("teacher");
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
@@ -32,14 +41,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: false, message: "هذه المادة غير مسندة للمعلم الحالي." }, { status: 403 });
     }
 
-    const database = adminDb();
-    const root = teacherRoot(session.userId);
     const gradePlan = subjectId
       ? await readActiveGradePlanForSubject(session.userId, subjectId)
       : await readActiveGradePlanForSubject(session.userId, "");
-    const historySnapshot = await database.collection(`${root}/${VERSIONS_COLLECTION}`).get();
-    const history = historySnapshot.docs
-      .map((document: { id: string; data: () => Record<string, unknown> }) => ({ id: document.id, data: document.data() }))
+    const historyDocuments = await readGradePlanHistory(session.userId);
+    const history = historyDocuments
       .filter(entry => {
         if (!subjectId) return !cleanGradePlanSubject(entry.data.subjectId);
         const entrySubject = cleanGradePlanSubject(entry.data.subjectId);
