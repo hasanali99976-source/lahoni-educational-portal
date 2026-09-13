@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#071d2f", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><head><link rel="stylesheet" href="/teacher-prepaint-v115.css" /><link rel="stylesheet" href="/teacher-mobile-critical-v113.css?v=115" /></head><body className={academyFont.className}>
+  return <html lang="ar" dir="rtl"><head><link rel="stylesheet" href="/teacher-prepaint-current.css?v=118" /><link rel="stylesheet" href="/teacher-shell-current.css?v=118" /></head><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><TeacherDailyReportNavRuntime />
     <StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentRiskCenterRuntime /><StudentAcademicRecordMaxRuntime /><StudentSmartNotesRuntime />
     <TeacherGradesCleanRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
