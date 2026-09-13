@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createSessionToken, findUserByUsername, PORTAL_SESSION_COOKIE, SESSION_MAX_AGE } from "../../../lib/server/portal-auth";
+import { createSessionToken, findUserByUsername, PORTAL_SESSION_COOKIE, SESSION_MAX_AGE, type PortalUser } from "../../../lib/server/portal-auth";
+import { findLegacyTeacherByCredentials } from "../../../lib/server/legacy-teacher-auth";
 import { verifyPassword } from "../../../lib/server/password";
 
 export const dynamic = "force-dynamic";
@@ -9,9 +10,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const username = String(body?.name || body?.username || "").trim();
     const password = String(body?.password || "");
-    const user = await findUserByUsername(username);
 
-    if (!user || user.role !== "teacher" || !user.active || !user.updatedAt || !verifyPassword(password, user.passwordHash)) {
+    let user: PortalUser | null = null;
+    try {
+      const databaseUser = await findUserByUsername(username);
+      if (databaseUser && databaseUser.role === "teacher" && databaseUser.active && databaseUser.updatedAt && verifyPassword(password, databaseUser.passwordHash)) {
+        user = databaseUser;
+      }
+    } catch (error) {
+      console.warn("teacher database login unavailable; using approved legacy fallback", error);
+    }
+
+    if (!user) {
+      user = findLegacyTeacherByCredentials(username, password) as PortalUser | null;
+    }
+
+    if (!user || user.role !== "teacher" || !user.active || !user.updatedAt) {
       return NextResponse.json({ ok: false, message: "اسم المعلم أو الرقم السري غير صحيح" }, { status: 401 });
     }
     if (!Array.isArray(user.subjectIds) || user.subjectIds.length === 0) {
