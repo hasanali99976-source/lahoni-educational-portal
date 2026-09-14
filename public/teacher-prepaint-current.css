@@ -1,4 +1,44 @@
 /* Current teacher shell prepaint guard. Prevent legacy UI flash before the client shell is ready. */
 html:not(.teacher-ui-ready) .teacher-studio{visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 html.teacher-ui-ready .teacher-studio{visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+
+/* Stable current loading screen. Never show legacy v20/v38 appearance while session is resolving. */
+html body .teacher-studio-loading{
+  min-height:100dvh!important;
+  display:grid!important;
+  place-items:center!important;
+  margin:0!important;
+  padding:24px!important;
+  background:#f4f8fa!important;
+  color:#143645!important;
+  font:700 14px Alexandria,"Segoe UI",Tahoma,Arial,sans-serif!important;
+  animation:none!important;
+  transition:none!important;
+  filter:none!important;
+  backdrop-filter:none!important;
+}
+html body .teacher-studio-loading::before{
+  content:"بوابة أستاذ لحوني التعليمية";
+  display:grid;
+  place-items:center;
+  width:min(420px,88vw);
+  min-height:112px;
+  padding:24px;
+  border:1px solid #dce8eb;
+  border-radius:24px;
+  background:#fff;
+  color:#073b45;
+  box-shadow:0 16px 40px rgba(7,59,69,.08);
+  font-size:17px;
+  font-weight:800;
+}
+html body .teacher-studio-loading{font-size:0!important}
+
+/* Remove first-paint motion on teacher shell; interaction remains immediate after render. */
+html body .teacher-studio,
+html body .teacher-studio *,
+html body .teacher-login-current,
+html body .teacher-login-current *{
+  scroll-behavior:auto!important;
+}
 @media (prefers-reduced-motion:reduce){.teacher-studio{transition:none!important}}
