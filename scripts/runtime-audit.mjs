@@ -310,3 +310,16 @@ forbid(
   /\bonSnapshot\s*\(|\bsetInterval\s*\(/,
   "ملف إنجاز المعلم يجب ألا يشغّل listener حيًا أو polling دوريًا أثناء بقاء الصفحة مفتوحة.",
 );
+
+
+// FINAL_DRAIN_GUARD_ATTENDANCE_AUTOBACKFILL
+forbid(
+  "app/teacher/attendance/page.tsx",
+  /autoSaveMissedScheduledDays|missed_scheduled_day|autoFillKeyRef/,
+  "صفحة الحضور يجب ألا تنشئ أو تعيد كتابة تحاضير تاريخية تلقائيًا عند مجرد فتح الصفحة.",
+);
+forbid(
+  "app/teacher/attendance/page.tsx",
+  /\bonSnapshot\s*\(|\bsetInterval\s*\(/,
+  "صفحة الحضور النشطة يجب ألا تستخدم listener حيًا أو polling دوريًا.",
+);

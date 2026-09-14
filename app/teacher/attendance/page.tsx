@@ -47,8 +47,6 @@ type TimetableLesson = { className?: string };
 const PORTAL_NAME = "بوابة أستاذ لحوني التعليمية";
 const ATTENDANCE_START_DATE = "2026-08-23";
 const ATTENDANCE_START_LABEL = "الأحد 23/8/2026";
-const SCHOOL_DAY_END_HOUR = 15;
-const TIMETABLE_DAY_INDEX = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4 } as const;
 const STATUS_LABELS: Record<AttendanceStatus, string> = {
   present: "حاضر",
   absent: "غائب",
@@ -71,10 +69,6 @@ function schoolWeekDates(base: string) {
   const sundayOffset = current.getDay();
   current.setDate(current.getDate() - sundayOffset);
   return Array.from({ length: 5 }, (_, index) => { const day = new Date(current); day.setDate(current.getDate() + index); return toDateInput(day); });
-}
-function riyadhHour(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Riyadh", hour: "2-digit", hourCycle: "h23" }).formatToParts(date);
-  return Number(parts.find(part => part.type === "hour")?.value || 0);
 }
 function isFutureAttendanceDate(value: string) { return Boolean(value && value > attendanceToday()); }
 function clampAttendanceDate(value: string) {
@@ -124,7 +118,7 @@ function uniqueActiveRoster(source: UnifiedStudent[]) {
 export default function AttendancePage() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || ""; const teacherName = session?.teacherName || ""; const subjectKey = (session?.subjectKey as SubjectKey) || "history"; const subject = session?.subject || ""; const ready = !!teacherId && !!session?.subjectKey; const assignments = session?.assignments || [];
-  const [localStudents,setLocalStudents]=useState<UnifiedStudent[]>([]); const [officialStudents,setOfficialStudents]=useState<UnifiedStudent[]>([]); const [officialClasses,setOfficialClasses]=useState<string[]>([]); const [timetableClasses,setTimetableClasses]=useState<string[]>([]); const [timetableLessons,setTimetableLessons]=useState<Record<string,TimetableLesson>>({}); const [selectedClass,setSelectedClass]=useState(""); const [selectedDate,setSelectedDate]=useState(clampAttendanceDate(toDateInput(new Date()))); const [reportFrom,setReportFrom]=useState(clampAttendanceDate(startOfCurrentWeek())); const [reportTo,setReportTo]=useState(clampAttendanceDate(toDateInput(new Date()))); const [records,setRecords]=useState<Record<string,AttendanceStatus>>({}); const [message,setMessage]=useState(""); const [saving,setSaving]=useState(false); const [deleting,setDeleting]=useState(false); const [hasSavedRecord,setHasSavedRecord]=useState(false); const [reporting,setReporting]=useState(false); const [allPdfBusy,setAllPdfBusy]=useState(false); const autoFillKeyRef=useRef(""); const cloudSyncTimerRef=useRef<number|null>(null);
+  const [localStudents,setLocalStudents]=useState<UnifiedStudent[]>([]); const [officialStudents,setOfficialStudents]=useState<UnifiedStudent[]>([]); const [officialClasses,setOfficialClasses]=useState<string[]>([]); const [timetableClasses,setTimetableClasses]=useState<string[]>([]); const [timetableLessons,setTimetableLessons]=useState<Record<string,TimetableLesson>>({}); const [selectedClass,setSelectedClass]=useState(""); const [selectedDate,setSelectedDate]=useState(clampAttendanceDate(toDateInput(new Date()))); const [reportFrom,setReportFrom]=useState(clampAttendanceDate(startOfCurrentWeek())); const [reportTo,setReportTo]=useState(clampAttendanceDate(toDateInput(new Date()))); const [records,setRecords]=useState<Record<string,AttendanceStatus>>({}); const [message,setMessage]=useState(""); const [saving,setSaving]=useState(false); const [deleting,setDeleting]=useState(false); const [hasSavedRecord,setHasSavedRecord]=useState(false); const [reporting,setReporting]=useState(false); const [allPdfBusy,setAllPdfBusy]=useState(false); const cloudSyncTimerRef=useRef<number|null>(null);
   const attendancePath = useMemo(() => (teacherId ? tenantCollection(teacherId, subjectKey, "attendance") : ""), [teacherId, subjectKey]);
   useEffect(() => () => { if (cloudSyncTimerRef.current !== null) window.clearTimeout(cloudSyncTimerRef.current); }, []);
   const assignmentScoped = useMemo(() => hasDetailedAssignments(assignments, subjectKey), [assignments, subjectKey]);
@@ -159,25 +153,6 @@ export default function AttendancePage() {
   const students = useMemo(() => { if (scopedOfficialStudents.length) return uniqueActiveRoster(scopedOfficialStudents); const deleted = loadDeletedCodes(teacherId); return uniqueActiveRoster(mergeStudents(scopedLocalStudents, scopedOfficialStudents)).filter(student => !deleted.has(studentCode(student))); }, [scopedOfficialStudents, scopedLocalStudents, teacherId]);
   const officialStudentClasses = useMemo(() => officialStudents.map(student => normalizeClass(student.class) || clean(student.class)).filter(Boolean), [officialStudents]);
   const classes = useMemo(() => { const officialSource=[...officialClasses,...officialStudentClasses].filter(Boolean); const fallbackSource=[...assignedClasses,...timetableClasses,...students.map(student=>normalizeClass(student.class)||clean(student.class))].filter(Boolean).filter(classAllowed); const source=officialSource.length?officialSource:fallbackSource; return [...new Set(source)].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})); }, [officialClasses,officialStudentClasses,assignedClasses,timetableClasses,students,assignmentScoped,assignments,subjectKey]);
-
-  useEffect(() => {
-    if (!ready || !teacherId || !attendancePath || !students.length || !Object.keys(timetableLessons).length) return;
-    const today = attendanceToday(); const completedDate = riyadhHour() >= SCHOOL_DAY_END_HOUR ? today : (() => { const value=new Date(`${today}T12:00:00+03:00`); value.setDate(value.getDate()-1); return toDateInput(value); })();
-    const runKey=`${teacherId}:${subjectKey}:${completedDate}:${students.length}:${Object.keys(timetableLessons).length}`; if(autoFillKeyRef.current===runKey) return; autoFillKeyRef.current=runKey; let active=true;
-    async function autoSaveMissedScheduledDays(){
-      const endDate=completedDate; if(endDate<ATTENDANCE_START_DATE)return;
-      const rosterByClass=new Map<string,UnifiedStudent[]>(); students.forEach(student=>{const className=normalizeClass(student.class)||clean(student.class); if(!className)return; rosterByClass.set(className,[...(rosterByClass.get(className)||[]),student]);});
-      const scheduleByDay=new Map<number,Set<string>>(); Object.entries(timetableLessons).forEach(([cell,lesson])=>{const match=cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/); const className=normalizeClass(lesson.className)||clean(lesson.className); if(!match||!className)return; const weekday=TIMETABLE_DAY_INDEX[match[1] as keyof typeof TIMETABLE_DAY_INDEX]; const dayClasses=scheduleByDay.get(weekday)||new Set<string>(); dayClasses.add(className); scheduleByDay.set(weekday,dayClasses);}); if(!scheduleByDay.size)return;
-      const existing=new Set<string>(); const localIndex=readAttendanceIndex(teacherId,subjectKey); Object.values(localIndex).forEach(item=>{const className=normalizeClass(item.class)||clean(item.class); if(className&&item.date)existing.add(`${className}|${item.date}`);});
-      const pending:{className:string;date:string;records:Record<string,AttendanceStatus>}[]=[]; const cursor=new Date(`${ATTENDANCE_START_DATE}T12:00:00`); const last=new Date(`${endDate}T12:00:00`);
-      while(cursor<=last){const date=toDateInput(cursor); const dayClasses=scheduleByDay.get(cursor.getDay()); dayClasses?.forEach(className=>{const canonical=normalizeClass(className)||className; const roster=rosterByClass.get(canonical)||[]; if(!roster.length||existing.has(`${canonical}|${date}`))return; if(localStorage.getItem(attendanceDeletedKey(teacherId,subjectKey,canonical,date)))return; pending.push({className:canonical,date,records:Object.fromEntries(roster.map(student=>[studentCode(student),"present" as AttendanceStatus]))}); existing.add(`${canonical}|${date}`);}); cursor.setDate(cursor.getDate()+1);}
-      if(!pending.length)return;
-      const nextIndex=readAttendanceIndex(teacherId,subjectKey); let saved=0;
-      for(const item of pending){if(!active)return; const payload={class:item.className,date:item.date,hijriDate:formatHijri(item.date),records:item.records,teacherId,teacherName,subjectKey,subject,autoSaved:true,autoSavedReason:"missed_scheduled_day",updatedAt:new Date().toISOString()}; try{await withTimeout(setDoc(doc(db,attendancePath,`${safeId(item.className)}_${item.date}`),payload,{merge:true}),5000);}catch{} const key=attendanceKey(teacherId,subjectKey,item.className,item.date); localStorage.setItem(key,JSON.stringify(item.records)); localStorage.setItem(`${key}:details`,JSON.stringify(payload)); nextIndex[`${safeId(item.className)}_${item.date}`]=payload; saved+=1; }
-      localStorage.setItem(attendanceIndexKey(teacherId,subjectKey),JSON.stringify(nextIndex)); if(active&&saved)setMessage(`تم الحفظ التلقائي لـ ${saved} تحضير فائت حسب جدول المعلم، والحالة الافتراضية لجميع الطلاب: حاضر.`);
-    }
-    void autoSaveMissedScheduledDays(); return()=>{active=false;};
-  }, [ready, teacherId, teacherName, subjectKey, subject, attendancePath, students, timetableLessons]);
 
   const classStudents=useMemo(()=>students.filter(student=>attendanceStudentMatchesClass(student,selectedClass)),[students,selectedClass]);
   useEffect(()=>{if(!classes.length){setSelectedClass("");return;} if(!selectedClass||!classes.includes(selectedClass))setSelectedClass(classes[0]);},[classes,selectedClass]);
