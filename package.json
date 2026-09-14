@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run audit:runtime && next build",
+    "build": "npm run audit:runtime && npm run audit:discipline && next build",
     "start": "next start",
     "lint": "next lint",
     "audit:runtime": "node scripts/runtime-audit.mjs",
+    "audit:discipline": "node scripts/discipline-drain-audit.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
