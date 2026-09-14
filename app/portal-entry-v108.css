@@ -1,0 +1,84 @@
+/* v108 — pixel-match refinement against approved academic mockups */
+:root{--v108-navy:#061f38;--v108-navy2:#0c3157;--v108-gold:#c99538;--v108-gold2:#f0cf7b;--v108-paper:#fbf6ec;--v108-ink:#09284d}
+
+/* HOME */
+.academy-home{background:radial-gradient(circle at 49% 42%,rgba(255,255,255,.96) 0 28%,rgba(250,246,237,.96) 59%,rgba(244,236,223,.98) 100%)!important}
+.academy-page-frame{inset:10px!important;border:2px solid rgba(211,159,60,.95)!important;border-radius:30px!important}
+.academy-top-band{top:15px!important;left:22px!important;right:22px!important;height:76px!important;border-radius:38px!important;background:linear-gradient(100deg,#071f37,#0a2948 58%,#102f50)!important;border:1.5px solid rgba(224,177,83,.92)!important;box-shadow:0 12px 28px rgba(7,28,47,.20)!important}
+.academy-top-band:after{display:none!important}
+.academy-brand-mini{height:76px!important;padding:0 24px!important;gap:15px!important;margin:0 10px 0 auto!important}
+.academy-brand-mini img{width:58px!important;height:58px!important;border-radius:18px!important;border:2px solid var(--v108-gold2)!important;box-shadow:0 5px 18px rgba(0,0,0,.24)!important}
+.academy-brand-mini strong{font-size:24px!important;font-weight:900!important;color:white!important}
+.academy-brand-mini strong::first-letter{color:var(--v108-gold2)!important}
+.academy-subject-art{inset:88px 0 58px!important;opacity:.30!important;background-size:cover!important;filter:saturate(.62) contrast(.92)!important}
+.academy-hero{top:102px!important;height:280px!important;grid-template-columns:230px minmax(620px,1fr) 270px!important;max-width:1510px!important;margin:auto!important;padding:0 44px!important;align-items:center!important}
+.academy-motto{font-size:24px!important;line-height:1.45!important;color:#15324f!important;font-weight:700!important;align-self:center!important;padding-right:24px!important}
+.academy-hero-copy{transform:translateY(8px)!important}
+.academy-hero-copy span{font-size:34px!important;color:#a67312!important;font-weight:900!important}
+.academy-hero-copy h1{font-size:50px!important;line-height:1.18!important;color:#061f46!important;margin:4px 0 8px!important;font-weight:900!important;letter-spacing:-1px!important}
+.academy-hero-copy p{font-size:25px!important;color:#142e4d!important;margin:0!important}
+.academy-hero-copy i{margin-top:12px!important;width:230px!important;height:2px!important;background:linear-gradient(90deg,transparent,var(--v108-gold),transparent)!important}
+.academy-portrait-wrap{justify-self:center!important;transform:translateY(4px)!important}
+.academy-portrait-ring{width:245px!important;height:245px!important;border-radius:50%!important;padding:8px!important;background:linear-gradient(145deg,#f7dc94,#9a6a16,#fff0b2,#9f741d)!important;box-shadow:0 12px 34px rgba(102,70,12,.25),0 0 28px rgba(236,192,97,.25)!important}
+.academy-portrait-ring img{width:100%!important;height:100%!important;border-radius:50%!important;object-fit:cover!important;background:#0b2c50!important;filter:none!important;opacity:1!important}
+.academy-access{position:absolute!important;z-index:6!important;left:76px!important;right:76px!important;top:392px!important;bottom:102px!important;display:grid!important;grid-template-columns:210px minmax(0,1fr)!important;gap:28px!important;align-items:stretch!important;max-width:1510px!important;margin:auto!important}
+.academy-portal-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important;align-items:stretch!important}
+.academy-portal-card{min-height:318px!important;border-radius:20px!important;padding:26px 24px 22px!important;background:rgba(255,255,255,.80)!important;border:1.5px solid #d5c7aa!important;box-shadow:0 12px 25px rgba(41,42,45,.15)!important;justify-content:flex-start!important;overflow:hidden!important}
+.academy-portal-card.admin{background:linear-gradient(180deg,#f4effb,#f8f4fb)!important;border-top:4px solid #6e4ba0!important}
+.academy-portal-card.teacher{background:linear-gradient(180deg,#eff7ff,#f4f8fc)!important;border-top:4px solid #4f88bd!important}
+.academy-portal-card.student{background:linear-gradient(180deg,#fff9ee,#fffaf3)!important;border-top:4px solid #c5963b!important}
+.academy-card-icon{width:82px!important;height:82px!important;margin:0 auto 18px!important;border-radius:50%!important;background:rgba(255,255,255,.85)!important;box-shadow:0 7px 16px rgba(16,45,75,.16)!important;border:1px solid rgba(204,170,107,.42)!important}
+.academy-card-icon svg{width:50px!important;height:50px!important;stroke-width:2.2!important}
+.academy-portal-card h2{font-size:28px!important;margin:0 0 10px!important;font-weight:900!important}
+.academy-portal-card p{font-size:17px!important;line-height:1.75!important;min-height:58px!important;margin:0!important;color:#3d4651!important}
+.academy-card-enter{margin-top:auto!important;width:54px!important;height:54px!important;border-radius:50%!important;font-size:32px!important;display:grid!important;place-items:center!important;align-self:center!important;color:white!important;box-shadow:0 8px 18px rgba(8,39,67,.22)!important}
+.academy-portal-card.admin .academy-card-enter{background:#5f3d91!important}.academy-portal-card.teacher .academy-card-enter{background:#0c4373!important}.academy-portal-card.student .academy-card-enter{background:#a8730c!important}
+.academy-qr-panel{display:flex!important;align-items:center!important;justify-content:center!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+.academy-qr-panel .v3-student-quick{display:block!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;width:190px!important;text-align:center!important}
+.academy-qr-panel .v3-student-quick-copy{display:none!important}
+.academy-qr-panel .v3-student-qr-wrap{width:190px!important;margin:0 auto!important;padding:12px 10px 10px!important;background:#fff!important;border:1.5px solid #d6a54d!important;border-radius:15px!important;box-shadow:0 10px 22px rgba(22,34,46,.13)!important}
+.academy-qr-panel .v3-student-qr-wrap svg{width:154px!important;height:154px!important;display:block!important;margin:auto!important}
+.academy-qr-panel .v3-student-qr-wrap strong{display:block!important;margin:10px -10px -10px!important;padding:10px!important;background:#082743!important;color:#fff!important;border:1px solid #c99336!important;border-radius:0 0 14px 14px!important;font-size:16px!important}
+.academy-qr-panel .v3-student-qr-wrap small{display:none!important}
+.academy-bottom-band{height:73px!important;bottom:0!important;background:linear-gradient(180deg,#0c2d4c,#071f37)!important;border-top:2px solid #c99538!important}
+.academy-credit{bottom:15px!important;padding:9px 26px!important;min-width:390px!important;border:1.5px solid #c99538!important;border-radius:28px!important;background:#082743!important;color:white!important;box-shadow:0 8px 18px rgba(7,31,55,.28)!important;font-size:16px!important}
+
+/* ENTRY PAGES — one centered composition, no legacy side panels */
+body:has(.v3-teacher-login),body:has(.student-login-page),body:has(.admin2-login){overflow:hidden!important;background:radial-gradient(circle at 50% 45%,#fffdf8 0,#f9f3e8 58%,#f0e5d2 100%)!important}
+body:has(.v3-teacher-login)::before,body:has(.student-login-page)::before,body:has(.admin2-login)::before{content:"";position:fixed;inset:0;z-index:-2;background:url('/subject-collage.svg?v=11') center/cover no-repeat;opacity:.29;filter:saturate(.55) contrast(.88)}
+body:has(.v3-teacher-login)::after,body:has(.student-login-page)::after,body:has(.admin2-login)::after{content:"";position:fixed;inset:10px;z-index:1000;pointer-events:none;border:2px solid rgba(207,153,54,.92);border-radius:28px;box-shadow:inset 0 0 0 1px rgba(255,238,180,.52)}
+.academy-entry-header{position:fixed!important;z-index:20!important;top:16px!important;left:50%!important;transform:translateX(-50%)!important;width:min(980px,calc(100vw - 120px))!important;height:auto!important;background:transparent!important;border:0!important;box-shadow:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;padding:0!important}
+.academy-entry-header::before{content:"";position:fixed;top:12px;left:24px;right:24px;height:80px;border-radius:40px;background:linear-gradient(100deg,#071f37,#0a2948 58%,#102f50);border:1.5px solid #d3a24a;box-shadow:0 10px 24px rgba(7,31,55,.20);z-index:-1}
+.academy-entry-identity{width:82px!important;height:82px!important;margin-top:0!important;border-radius:25px!important;padding:3px!important;background:linear-gradient(145deg,#f1d078,#9c6c18,#fff1bd)!important;box-shadow:0 7px 20px rgba(20,31,43,.24)!important}
+.academy-entry-identity img{width:100%!important;height:100%!important;border-radius:22px!important;object-fit:cover!important;filter:none!important;opacity:1!important}
+.academy-entry-header h1{font-size:31px!important;line-height:1.2!important;margin:0!important;color:#09284d!important;text-shadow:0 1px #fff!important;font-weight:900!important;background:rgba(251,246,236,.92)!important;padding:5px 22px 2px!important;border-radius:18px!important}
+.academy-entry-header span{font-size:17px!important;font-weight:800!important;padding:5px 22px!important;border-radius:20px!important;color:#fff!important;background:#0c4473!important;border:1px solid #d9ad5c!important;box-shadow:0 5px 13px rgba(8,39,67,.16)!important}
+.academy-entry-header.admin span{background:#5c3c8a!important}.academy-entry-header.student span{background:#9c6a12!important}
+
+/* remove all old split/side visuals */
+.student-login-visual,.student-login-benefits,.admin-quick-nav{display:none!important}
+.v3-teacher-login,.student-login-page,.admin2-login{position:fixed!important;inset:0!important;display:grid!important;place-items:center!important;padding:150px 20px 74px!important;background:transparent!important;min-height:100dvh!important}
+.student-login-shell{display:block!important;width:auto!important;max-width:none!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+.student-login-form,.v3-login-card,.admin2-login-card{width:min(570px,calc(100vw - 48px))!important;max-width:570px!important;margin:0!important;border-radius:22px!important;background:rgba(255,252,246,.94)!important;border:1.5px solid #d0a252!important;box-shadow:0 18px 40px rgba(23,39,54,.18)!important;padding:30px 34px!important;position:relative!important;overflow:visible!important;text-align:center!important}
+.v3-login-card::before,.student-login-form::before,.admin2-login-card::before{content:"";position:absolute;inset:9px;border:1px solid rgba(205,155,65,.38);border-radius:15px;pointer-events:none}
+.v3-login-card>.v3-back{position:fixed!important;top:35px!important;right:50px!important;z-index:25!important;color:#fff!important;background:transparent!important;border:0!important;font-size:14px!important;text-decoration:none!important}
+.v3-login-card>small{display:none!important}
+.v3-login-icon{display:none!important}
+.v3-login-card h1,.student-login-form h2,.admin2-login-card h1,.admin2-login-card h2{font-size:34px!important;color:#09284d!important;margin:4px 0 8px!important;font-weight:900!important}
+.v3-login-card>p,.student-login-help,.admin2-login-card>p{font-size:16px!important;color:#52606d!important;margin:0 0 22px!important}
+.v3-login-card form,.student-login-form form,.admin2-login-card form{position:relative!important;z-index:2!important;text-align:right!important}
+.v3-login-card label,.student-login-form .portal-field,.admin2-login-card label{display:block!important;font-size:15px!important;color:#203c56!important;font-weight:700!important;margin:12px 0 6px!important}
+.v3-login-card input,.student-login-form input,.admin2-login-card input{width:100%!important;height:54px!important;border-radius:12px!important;border:1.5px solid #bda8c8!important;background:rgba(255,255,255,.88)!important;padding:0 16px!important;font-size:16px!important;outline:none!important;box-shadow:inset 0 1px 3px rgba(0,0,0,.03)!important}
+.v3-login-card input:focus,.student-login-form input:focus,.admin2-login-card input:focus{border-color:#c99538!important;box-shadow:0 0 0 4px rgba(201,149,56,.12)!important}
+.v3-password{position:relative!important}.v3-password button{position:absolute!important;left:8px!important;top:7px!important;height:40px!important;border:0!important;background:transparent!important;color:#536273!important}
+.v3-primary,.portal-submit,.admin2-login-card button[type='submit']{width:100%!important;height:58px!important;margin-top:18px!important;border-radius:28px!important;border:1.5px solid #d4a042!important;background:linear-gradient(180deg,#0d416d,#062d50)!important;color:white!important;font-size:21px!important;font-weight:900!important;box-shadow:0 8px 20px rgba(8,45,78,.25)!important}
+.v3-primary:hover,.portal-submit:hover,.admin2-login-card button[type='submit']:hover{transform:translateY(-1px)!important;filter:brightness(1.05)!important}
+.v3-login-note{display:none!important}
+.portal-brand,.admin2-brand{display:none!important}
+.portal-input{border:0!important;background:transparent!important;padding:0!important}.portal-input>span{display:none!important}
+.academy-student-qr-overlay{position:fixed!important;z-index:19!important;left:70px!important;top:50%!important;transform:translateY(-35%)!important;width:185px!important}
+.academy-student-qr-overlay .v3-student-quick-copy{display:none!important}.academy-student-qr-overlay .v3-student-quick{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}.academy-student-qr-overlay .v3-student-qr-wrap{background:#fff!important;border:1.5px solid #d1a14c!important;border-radius:15px!important;padding:10px!important;box-shadow:0 10px 24px rgba(26,37,48,.16)!important}.academy-student-qr-overlay .v3-student-qr-wrap svg{width:150px!important;height:150px!important}.academy-student-qr-overlay .v3-student-qr-wrap strong{display:block!important;margin:8px -10px -10px!important;padding:10px!important;background:#082743!important;color:#fff!important;border-radius:0 0 14px 14px!important}.academy-student-qr-overlay .v3-student-qr-wrap small{display:none!important}
+
+@media(max-width:900px){html:has(.academy-home),body:has(.academy-home){overflow:auto!important}.academy-home{position:relative!important;min-height:100dvh!important;height:auto!important;overflow:visible!important;padding-bottom:100px!important}.academy-top-band{left:10px!important;right:10px!important}.academy-brand-mini strong{font-size:18px!important}.academy-hero{position:relative!important;top:98px!important;height:auto!important;display:flex!important;flex-direction:column!important;padding:20px 18px!important;gap:16px!important}.academy-motto{display:none!important}.academy-portrait-ring{width:150px!important;height:150px!important}.academy-hero-copy h1{font-size:34px!important}.academy-hero-copy span{font-size:24px!important}.academy-hero-copy p{font-size:18px!important}.academy-access{position:relative!important;top:112px!important;left:auto!important;right:auto!important;bottom:auto!important;display:flex!important;flex-direction:column!important;padding:0 16px!important}.academy-portal-grid{grid-template-columns:1fr!important}.academy-portal-card{min-height:220px!important}.academy-qr-panel{order:2!important}.academy-credit{position:relative!important;bottom:auto!important;top:130px!important;min-width:0!important;width:calc(100% - 32px)!important;margin:0 16px!important}.academy-bottom-band{display:none!important}.academy-entry-header{width:calc(100vw - 28px)!important}.academy-entry-header::before{left:8px!important;right:8px!important}.academy-entry-header h1{font-size:22px!important}.v3-teacher-login,.student-login-page,.admin2-login{padding:145px 14px 40px!important;align-items:start!important}.student-login-form,.v3-login-card,.admin2-login-card{width:100%!important;padding:26px 22px!important}.academy-student-qr-overlay{display:none!important}}
+
+@media(prefers-reduced-motion:reduce){.academy-subject-art,.academy-light-sweep{animation:none!important}.academy-portal-card,.v3-primary,.portal-submit{transition:none!important}}
