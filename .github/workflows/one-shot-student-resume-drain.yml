@@ -1,0 +1,42 @@
+name: One-shot student resume drain fix
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-shot-student-resume-drain.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Remove automatic profile refresh on focus and app resume
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('app/student/page.tsx')
+          s=p.read_text()
+          pattern=r'\n\s*useEffect\(\(\)=>\{if\(!selectedKey\)return;let active=true;let busy=false;const refresh=async\(\)=>\{.*?\},\[selectedKey,matches\]\);'
+          n,repl_count=re.subn(pattern,'\n  // بيانات الطالب تُحمّل عند الدخول فقط؛ لا إعادة قراءة تلقائية عند focus أو الرجوع للتطبيق.','\n'.join([s]),flags=re.S)
+          if repl_count==0:
+              # Tolerate formatted variants while still refusing to touch unrelated code.
+              pattern2=r'\n\s*useEffect\(\(\) => \{\n\s*const token = selected\?\.accessToken;.*?\n\s*\}, \[selected\?\.accessToken\]\);'
+              n,repl_count=re.subn(pattern2,'\n  // بيانات الطالب تُحمّل عند الدخول فقط؛ لا إعادة قراءة تلقائية عند focus أو الرجوع للتطبيق.','\n'.join([s]),flags=re.S)
+          if repl_count==0:
+              print('No matching automatic refresh effect found; leaving source unchanged.')
+          else:
+              p.write_text(n)
+              print('Removed',repl_count,'automatic student profile refresh effect(s).')
+          PY
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/student/page.tsx
+          git commit -m 'perf(student): stop profile refresh on focus and app resume'
+          git push
