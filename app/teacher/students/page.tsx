@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { QRCodeSVG } from "qrcode.react";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -9,19 +9,35 @@ import "./students-v9.css";
 
 type Student = { id:string;code:string;name:string;grade:number;section:string;className:string;active:boolean };
 type SchoolClass = { id:string;grade:number;section:string;name:string;active:boolean };
+type RosterPayload = Record<string, unknown> & { students?: Student[]; classes?: SchoolClass[] };
+type RosterCacheEntry = { expiresAt:number; data:RosterPayload };
+
+const ROSTER_CACHE_TTL_MS = 5 * 60 * 1000;
+const rosterCache = new Map<string,RosterCacheEntry>();
+const rosterInflight = new Map<string,Promise<RosterPayload>>();
 
 async function fetchJson(input:RequestInfo|URL,init:RequestInit={},timeoutMs=10000){const controller=new AbortController();const timer=window.setTimeout(()=>controller.abort(),timeoutMs);try{const response=await fetch(input,{...init,cache:"no-store",signal:controller.signal});const data=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(data.message||"تعذر تنفيذ العملية") as Error&{status?:number};error.status=response.status;throw error;}return data;}finally{window.clearTimeout(timer);}}
-async function fetchRoster(subjectId:string,grade:number|null){const params=new URLSearchParams({subjectId});if(grade)params.set("grade",String(grade));return fetchJson(`/api/teacher/students?${params}`);}
+async function fetchRoster(subjectId:string,grade:number|null,force=false){
+  const key=`${subjectId}:${grade||"all"}`;
+  const cached=rosterCache.get(key);
+  if(!force&&cached&&cached.expiresAt>Date.now())return cached.data;
+  if(!force){const existing=rosterInflight.get(key);if(existing)return existing;}
+  const params=new URLSearchParams({subjectId});if(grade)params.set("grade",String(grade));
+  const pending=fetchJson(`/api/teacher/students?${params}`) as Promise<RosterPayload>;
+  rosterInflight.set(key,pending);
+  try{const data=await pending;rosterCache.set(key,{data,expiresAt:Date.now()+ROSTER_CACHE_TTL_MS});return data;}finally{rosterInflight.delete(key);}
+}
 async function fetchClassOptions(subjectId:string,grade:number|null){if(!grade)return{availableClasses:[],selectedClassIds:[]};return fetchJson(`/api/teacher/class-options?subjectId=${encodeURIComponent(subjectId)}&grade=${grade}`);}
 
 export default function StudentsPage(){
   const session=useTeacherClient();
   const subjectId=session?.subjectKey||"";const activeGrade=session?.activeGrade||null;const workspaceKey=session?.workspaceKey||subjectId;const teacherId=session?.teacherId||"";
   const [students,setStudents]=useState<Student[]>([]);const [classes,setClasses]=useState<SchoolClass[]>([]);const [availableClasses,setAvailableClasses]=useState<SchoolClass[]>([]);const [selectedClassIds,setSelectedClassIds]=useState<string[]>([]);const [selectedClass,setSelectedClass]=useState("");const [search,setSearch]=useState("");const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);const [loadingOptions,setLoadingOptions]=useState(false);const [savingScope,setSavingScope]=useState(false);const [managing,setManaging]=useState(false);const [qrStudent,setQrStudent]=useState<Student|null>(null);const [pdfBusy,setPdfBusy]=useState(false);
+  const autoLoadKeyRef=useRef("");
 
-  async function load(showMessage=false){if(!subjectId)return;setLoading(true);if(!showMessage)setMessage("");try{const data=await fetchRoster(subjectId,activeGrade);const nextStudents=Array.isArray(data.students)?data.students:[];const nextClasses=Array.isArray(data.classes)?data.classes:[];setStudents(nextStudents);setClasses(nextClasses);setSelectedClass(current=>current&&nextClasses.some((item:SchoolClass)=>item.id===current)?current:(nextClasses[0]?.id||""));if(teacherId){saveLocalRoster(teacherId,nextStudents as UnifiedStudent[],workspaceKey);saveLocalClasses(teacherId,nextClasses.map((item:SchoolClass)=>item.name),workspaceKey);}}catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل قائمة الطلاب");}finally{setLoading(false);}}
+  async function load(showMessage=false,force=false){if(!subjectId)return;setLoading(true);if(!showMessage)setMessage("");try{const data=await fetchRoster(subjectId,activeGrade,force);const nextStudents=Array.isArray(data.students)?data.students:[];const nextClasses=Array.isArray(data.classes)?data.classes:[];setStudents(nextStudents);setClasses(nextClasses);setSelectedClass(current=>current&&nextClasses.some((item:SchoolClass)=>item.id===current)?current:(nextClasses[0]?.id||""));if(teacherId){saveLocalRoster(teacherId,nextStudents as UnifiedStudent[],workspaceKey);saveLocalClasses(teacherId,nextClasses.map((item:SchoolClass)=>item.name),workspaceKey);}}catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل قائمة الطلاب");}finally{setLoading(false);}}
   async function loadClassOptions(){if(!subjectId||!activeGrade)return;setLoadingOptions(true);try{const data=await fetchClassOptions(subjectId,activeGrade);setAvailableClasses(Array.isArray(data.availableClasses)?data.availableClasses:[]);setSelectedClassIds(Array.isArray(data.selectedClassIds)?data.selectedClassIds:[]);}catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل فصول المرحلة");}finally{setLoadingOptions(false);}}
-  useEffect(()=>{void load();},[subjectId,activeGrade,workspaceKey,teacherId]);
+  useEffect(()=>{if(!subjectId||!teacherId)return;const key=`${teacherId}:${subjectId}:${activeGrade||"all"}`;if(autoLoadKeyRef.current===key)return;autoLoadKeyRef.current=key;void load();},[subjectId,activeGrade,teacherId]);
 
   const activeClass=classes.find(item=>item.id===selectedClass);
   const visible=useMemo(()=>students.filter(student=>{const classMatch=!activeClass||(student.grade===activeClass.grade&&student.section===activeClass.section);const query=search.trim().toLocaleLowerCase("ar");return classMatch&&(!query||student.name.toLocaleLowerCase("ar").includes(query)||student.code.toLowerCase().includes(query));}).sort((a,b)=>a.name.localeCompare(b.name,"ar")),[students,activeClass,search]);
@@ -30,7 +46,7 @@ export default function StudentsPage(){
 
   function toggleClass(classId:string){setSelectedClassIds(current=>current.includes(classId)?current.filter(item=>item!==classId):[...current,classId]);}
   async function openManager(){setManaging(true);await loadClassOptions();}
-  async function saveClassScope(){if(!subjectId||!activeGrade)return;setSavingScope(true);setMessage("");try{await fetchJson("/api/teacher/class-scope",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId,grade:activeGrade,selectedClassIds})});setMessage("تم حفظ فصولك. ستظهر نفس الفصول في المتابعة والتحصيل والتقارير.");setManaging(false);await load(true);}catch(error){setMessage(error instanceof Error?error.message:"تعذر حفظ الفصول");}finally{setSavingScope(false);}}
+  async function saveClassScope(){if(!subjectId||!activeGrade)return;setSavingScope(true);setMessage("");try{await fetchJson("/api/teacher/class-scope",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId,grade:activeGrade,selectedClassIds})});rosterCache.delete(`${subjectId}:${activeGrade||"all"}`);setMessage("تم حفظ فصولك. ستظهر نفس الفصول في المتابعة والتحصيل والتقارير.");setManaging(false);await load(true,true);}catch(error){setMessage(error instanceof Error?error.message:"تعذر حفظ الفصول");}finally{setSavingScope(false);}}
 
   function exportExcel(){const rows=visible.map((student,index)=>({م:index+1,"اسم الطالب":student.name,"الفصل":student.className,"كود الطالب":student.code}));if(!rows.length)return setMessage("لا توجد أسماء للتصدير");const workbook=XLSX.utils.book_new();const sheet=XLSX.utils.json_to_sheet(rows);sheet["!cols"]=[{wch:6},{wch:34},{wch:18},{wch:16}];XLSX.utils.book_append_sheet(workbook,sheet,"الطلاب");XLSX.writeFile(workbook,`طلاب-${activeClass?.name||session?.activeGradeLabel||"المادة"}.xlsx`);}
 
@@ -42,7 +58,7 @@ export default function StudentsPage(){
 
     <section className="sv9-overview"><article><small>الطلاب المرتبطون</small><b>{students.length}</b><span>في المادة الحالية</span></article><article><small>فصولي</small><b>{classes.length}</b><span>{session?.activeGradeLabel||"المرحلة الحالية"}</span></article><article><small>متوسط حجم الفصل</small><b>{averageClassSize}</b><span>طالب تقريبًا</span></article><article><small>جاهزية القوائم</small><b>{classes.length&&students.length?"جاهزة":"تحتاج إعداد"}</b><span>للمتابعة والتحصيل</span></article></section>
 
-    <section className="sv9-section-head"><div><small>فصولي التعليمية</small><h2>اختر الفصل الذي تريد العمل عليه</h2></div><button type="button" onClick={()=>void load()} disabled={loading}>{loading?"جارٍ التحديث...":"تحديث القوائم"}</button></section>
+    <section className="sv9-section-head"><div><small>فصولي التعليمية</small><h2>اختر الفصل الذي تريد العمل عليه</h2></div><button type="button" onClick={()=>void load(false,true)} disabled={loading}>{loading?"جارٍ التحديث...":"تحديث القوائم"}</button></section>
     <section className="sv9-class-grid">{classMetrics.map(item=><button type="button" key={item.id} className={selectedClass===item.id?"active":""} onClick={()=>setSelectedClass(item.id)}><span>{item.grade}/{item.section}</span><div><small>فصل تعليمي</small><b>{item.name}</b><em>{item.count} طالب</em></div><i>فتح ←</i></button>)}{!classes.length&&!loading?<div className="sv9-empty"><b>لم تحدد فصولك بعد</b><span>اضغط «إدارة فصولي» واختر الفصول التي تدرّسها.</span><button type="button" onClick={()=>void openManager()}>اختيار الفصول</button></div>:null}</section>
 
     {activeClass?<section className="sv9-roster">
