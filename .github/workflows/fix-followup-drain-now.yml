@@ -1,0 +1,33 @@
+name: Fix follow-up drain now
+
+on:
+  push:
+    paths:
+      - '.github/FOLLOWUP_DRAIN_TRIGGER'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Remove live Firestore listener from follow-up
+        run: python .github/scripts/fix_followup_drain.py
+      - name: Commit safe follow-up
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/follow-up/page.tsx scripts/runtime-audit.mjs
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git commit -m "perf(follow-up): remove live Firestore student listener"
+          git push origin main
