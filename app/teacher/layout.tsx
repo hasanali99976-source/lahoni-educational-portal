@@ -11,7 +11,6 @@ import { readLocalGradePlan, setGradePlanCurrentTeacher } from "../../lib/grade-
 import { TeacherClientContext, type TeacherClientAssignment, type TeacherClientSubject } from "../../lib/teacher-client";
 import "./print-theme.css";
 import "./teacher-intelligence-v20.css";
-import "./teacher-sidebar-stability.css";
 
 type TeacherGroup = "today"|"students"|"assessment"|"insight";
 type TeacherTab = { href:string; key:string; label:string; group:TeacherGroup; badge?:string };
