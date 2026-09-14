@@ -1,10 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v119-hard-reset";
+const CACHE_NAME = "ostadh-lahooni-v120-stable";
 const STATIC_FILES = [
-  "/manifest.webmanifest?v=119-hard-reset",
-  "/icon.svg?v=119-hard-reset",
-  "/icons/lahooni-identity-320.jpg?v=119-hard-reset",
-  "/icons/ostadh-lahooni-192.jpg?v=119-hard-reset",
-  "/saudi-classroom.svg?v=119-hard-reset",
+  "/manifest.webmanifest?v=120-stable",
+  "/icon.svg?v=120-stable",
+  "/icons/lahooni-identity-320.jpg?v=120-stable",
+  "/icons/ostadh-lahooni-192.jpg?v=120-stable",
+  "/saudi-classroom.svg?v=120-stable",
 ];
 
 self.addEventListener("message", event => {
@@ -13,9 +13,7 @@ self.addEventListener("message", event => {
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
-      .then(() => caches.open(CACHE_NAME))
+    caches.open(CACHE_NAME)
       .then(cache => Promise.all(STATIC_FILES.map(path => cache.add(new Request(path, { cache: "reload" })))))
       .catch(() => undefined),
   );
@@ -25,7 +23,9 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)),
+      keys
+        .filter(key => key.startsWith("ostadh-lahooni-") && key !== CACHE_NAME)
+        .map(key => caches.delete(key)),
     )),
   );
   self.clients.claim();
@@ -47,18 +47,19 @@ self.addEventListener("fetch", event => {
     url.searchParams.has("_rsc");
 
   if (mustBeFresh) {
-    event.respondWith(fetch(request, { cache: "reload" }));
+    event.respondWith(fetch(request, { cache: "no-store" }));
     return;
   }
 
   if (["image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      fetch(request, { cache: "reload" })
-        .then(response => {
+      caches.match(request).then(cached => {
+        const fresh = fetch(request, { cache: "no-store" }).then(response => {
           if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
           return response;
-        })
-        .catch(() => caches.match(request)),
+        });
+        return cached || fresh;
+      }),
     );
   }
 });
