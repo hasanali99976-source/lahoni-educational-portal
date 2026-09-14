@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { getSubjectConfig } from "../../../lib/subject-config";
@@ -324,9 +324,10 @@ export default function PortfolioPage() {
     }
 
     const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
-    const unsubscribe = onSnapshot(
-      ref,
-      (snap) => {
+    let cancelled = false;
+    void getDoc(ref)
+      .then((snap) => {
+        if (cancelled) return;
         if (snap.exists()) {
           const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
           const next: PortfolioForm = {
@@ -339,16 +340,17 @@ export default function PortfolioPage() {
         } else if (localForm) {
           setForm(localForm);
         }
-        setLoaded(true);
-      },
-      () => {
+      })
+      .catch(() => {
+        if (cancelled) return;
         if (localForm) setForm(localForm);
-        else setMessage("تعذر الاتصال مؤقتًا. سيعود ملف الإنجاز للمزامنة تلقائيًا عند توفر الشبكة.");
-        setLoaded(true);
-      },
-    );
+        else setMessage("تعذر الاتصال مؤقتًا. ستتم المزامنة عند الحفظ بعد عودة الشبكة.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
 
-    return unsubscribe;
+    return () => { cancelled = true; };
   }, [teacherId, subjectKey, localKey]);
 
   useEffect(() => {

@@ -302,3 +302,11 @@ forbid(
   /\bonSnapshot\s*\(|setInterval\s*\(|(?:8_?000|8000)/,
   "نتائج الاختبارات التشخيصية يجب ألا تستخدم listener حيًا أو polling دوريًا كل عدة ثوانٍ.",
 );
+
+
+// FINAL_DRAIN_GUARD_PORTFOLIO
+forbid(
+  "app/teacher/portfolio/page.tsx",
+  /\bonSnapshot\s*\(|\bsetInterval\s*\(/,
+  "ملف إنجاز المعلم يجب ألا يشغّل listener حيًا أو polling دوريًا أثناء بقاء الصفحة مفتوحة.",
+);
