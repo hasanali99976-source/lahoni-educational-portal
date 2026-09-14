@@ -1,10 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v117-current";
+const CACHE_NAME = "ostadh-lahooni-v119-hard-reset";
 const STATIC_FILES = [
-  "/manifest.webmanifest",
-  "/icon.svg",
-  "/icons/lahooni-identity-320.jpg",
-  "/icons/ostadh-lahooni-192.jpg",
-  "/saudi-classroom.svg",
+  "/manifest.webmanifest?v=119-hard-reset",
+  "/icon.svg?v=119-hard-reset",
+  "/icons/lahooni-identity-320.jpg?v=119-hard-reset",
+  "/icons/ostadh-lahooni-192.jpg?v=119-hard-reset",
+  "/saudi-classroom.svg?v=119-hard-reset",
 ];
 
 self.addEventListener("message", event => {
@@ -13,7 +13,9 @@ self.addEventListener("message", event => {
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.keys()
+      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+      .then(() => caches.open(CACHE_NAME))
       .then(cache => Promise.all(STATIC_FILES.map(path => cache.add(new Request(path, { cache: "reload" })))))
       .catch(() => undefined),
   );
@@ -23,9 +25,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
-      keys
-        .filter(key => key.startsWith("ostadh-lahooni-") && key !== CACHE_NAME)
-        .map(key => caches.delete(key)),
+      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)),
     )),
   );
   self.clients.claim();
@@ -47,19 +47,18 @@ self.addEventListener("fetch", event => {
     url.searchParams.has("_rsc");
 
   if (mustBeFresh) {
-    event.respondWith(fetch(request, { cache: "no-store" }));
+    event.respondWith(fetch(request, { cache: "reload" }));
     return;
   }
 
   if (["image", "manifest"].includes(request.destination)) {
     event.respondWith(
-      caches.match(request).then(cached => {
-        const fresh = fetch(request, { cache: "no-store" }).then(response => {
+      fetch(request, { cache: "reload" })
+        .then(response => {
           if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
           return response;
-        });
-        return cached || fresh;
-      }),
+        })
+        .catch(() => caches.match(request)),
     );
   }
 });
