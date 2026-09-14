@@ -30,7 +30,7 @@ export default function RouteRuntimeLoader() {
   if (pathname.startsWith("/teacher/daily-report")) return <TeacherDailyReportNavRuntime />;
   if (pathname.startsWith("/teacher")) return null;
 
-  if (pathname.startsWith("/student")) {
+  if (pathname === "/student") {
     return (
       <>
         <StudentAcademicRecordBridge />
@@ -42,6 +42,7 @@ export default function RouteRuntimeLoader() {
       </>
     );
   }
+  if (pathname.startsWith("/student")) return null;
 
   if (pathname.startsWith("/admin")) return <AdminStudentEditClassRuntime />;
 
