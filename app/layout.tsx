@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./print.css";
-import "./reference-portal-theme.css";
+import "./portal-v3.css";
+import "./portal-identity-v103.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -18,22 +19,22 @@ export const metadata: Metadata = {
   title: { default: "أستاذ لحوني", template: "%s | أستاذ لحوني" },
   description: "منصة تعليمية ذكية للمتابعة والتقارير المدرسية",
   applicationName: "أستاذ لحوني",
-  manifest: "/manifest.webmanifest?v=120-stable",
+  manifest: "/manifest.webmanifest?v=125-stable",
   appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
     icon: [
-      { url: "/icon.svg?v=120-stable", type: "image/svg+xml" },
-      { url: "/icons/lahooni-identity-320.jpg?v=120-stable", sizes: "320x320", type: "image/jpeg" },
+      { url: "/icon.svg?v=125-stable", type: "image/svg+xml" },
+      { url: "/icons/lahooni-identity-320.jpg?v=125-stable", sizes: "320x320", type: "image/jpeg" },
     ],
-    apple: [{ url: "/icons/lahooni-identity-320.jpg?v=120-stable", sizes: "320x320", type: "image/jpeg" }],
+    apple: [{ url: "/icons/lahooni-identity-320.jpg?v=125-stable", sizes: "320x320", type: "image/jpeg" }],
   },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#071d2f", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#0b2f57", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><head><link rel="stylesheet" href="/teacher-prepaint-current.css?v=120-stable" /><link rel="stylesheet" href="/teacher-shell-current.css?v=120-stable" /></head><body className={academyFont.className}>
+  return <html lang="ar" dir="rtl"><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <RouteRuntimeLoader />
     <PortalVoiceGreetingRuntime />
