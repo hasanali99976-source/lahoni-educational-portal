@@ -3,9 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
-import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import {
   calculateGradePlanResult,
@@ -102,15 +99,24 @@ export default function ReportsPage() {
       setAttendanceDocs([]);
       return;
     }
-    const base = collection(db, tenantCollection(teacherId, subjectKey as never, "attendance"));
-    const scopedQuery = attendanceMode === "daily"
-      ? query(base, where("date", "==", selectedDate))
-      : query(base, where("date", ">=", reportFrom), where("date", "<=", reportTo));
-    return onSnapshot(
-      scopedQuery,
-      snapshot => setAttendanceDocs(snapshot.docs.map(item => item.data() as AttendanceDoc)),
-      () => setAttendanceDocs([]),
-    );
+    const controller = new AbortController();
+    const params = new URLSearchParams({ subjectId: subjectKey, mode: attendanceMode });
+    if (attendanceMode === "daily") params.set("date", selectedDate);
+    else {
+      params.set("from", reportFrom);
+      params.set("to", reportTo);
+    }
+    fetch(`/api/teacher/attendance-report?${params.toString()}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "تعذر تحميل سجل الحضور");
+        return data;
+      })
+      .then(data => setAttendanceDocs(Array.isArray(data.attendance) ? data.attendance : []))
+      .catch(error => {
+        if ((error as Error)?.name !== "AbortError") setAttendanceDocs([]);
+      });
+    return () => controller.abort();
   }, [teacherId, subjectKey, reportType, attendanceMode, selectedDate, reportFrom, reportTo]);
 
   const classes = useMemo(() => [...new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);

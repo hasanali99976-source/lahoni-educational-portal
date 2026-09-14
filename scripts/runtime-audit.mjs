@@ -98,6 +98,12 @@ forbid(
   /setInterval\s*\(/,
   "السجل الأكاديمي المدمج لا يكرر قراءة بيانات الطالب دوريًا؛ التحديث يكون عند الفتح أو عودة التركيز.",
 );
+
+forbid(
+  "app/student/academic-record/page.tsx",
+  /setInterval\s*\(|setTimeout\s*\(\s*run\s*,|refreshTimer/,
+  "السجل الأكاديمي للطالب يجب ألا يشغّل أي polling دوري بالخلفية.",
+);
 forbid(
   "app/api/teacher-session/route.ts",
   /\bfindUserById\b/,
@@ -165,26 +171,36 @@ requirePattern(
   "طلبات الجدول المتزامنة يجب أن تُدمج في قراءة واحدة.",
 );
 
-// حماية التقارير: القراءة يجب أن تكون حسب اليوم أو الفترة المختارة فقط.
-requirePattern(
-  "app/teacher/reports/page.tsx",
-  /where\(\s*["']date["']\s*,\s*["']==["']\s*,\s*selectedDate\s*\)/,
-  "التقرير اليومي يجب أن يقرأ التاريخ المختار فقط.",
-);
-requirePattern(
-  "app/teacher/reports/page.tsx",
-  /where\(\s*["']date["']\s*,\s*["']>=["']\s*,\s*reportFrom\s*\)/,
-  "تقرير الفترة يجب أن يبدأ من التاريخ المختار بدل قراءة الأرشيف كاملًا.",
-);
-requirePattern(
-  "app/teacher/reports/page.tsx",
-  /where\(\s*["']date["']\s*,\s*["']<=["']\s*,\s*reportTo\s*\)/,
-  "تقرير الفترة يجب أن ينتهي عند التاريخ المختار بدل قراءة الأرشيف كاملًا.",
-);
+// حماية التقارير: لا قراءة Firestore مباشرة من المتصفح؛ طلب خادمي واحد محدود باليوم أو 31 يومًا.
 forbid(
   "app/teacher/reports/page.tsx",
-  /onSnapshot\(\s*collection\([^\n]*["']attendance["']/,
-  "الاستماع إلى كل سجل الحضور من صفحة التقارير ممنوع.",
+  /firebase\/firestore|\bonSnapshot\s*\(|\bgetDocs\s*\(|\bcollection\s*\(/,
+  "صفحة التقارير يجب ألا تقرأ Firestore مباشرة من المتصفح.",
+);
+requirePattern(
+  "app/teacher/reports/page.tsx",
+  /\/api\/teacher\/attendance-report/,
+  "صفحة التقارير يجب أن تستخدم API الحضور الخادمي المحدود.",
+);
+requirePattern(
+  "app/api/teacher/attendance-report/route.ts",
+  /where\(\s*["']date["']\s*,\s*["']==["']/,
+  "API التقرير اليومي يجب أن يقيد القراءة بتاريخ واحد.",
+);
+requirePattern(
+  "app/api/teacher/attendance-report/route.ts",
+  /where\(\s*["']date["']\s*,\s*["']>=["']/,
+  "API تقرير الفترة يجب أن يبدأ من التاريخ المختار.",
+);
+requirePattern(
+  "app/api/teacher/attendance-report/route.ts",
+  /where\(\s*["']date["']\s*,\s*["']<=["']/,
+  "API تقرير الفترة يجب أن ينتهي عند التاريخ المختار.",
+);
+requirePattern(
+  "app/api/teacher/attendance-report/route.ts",
+  /inclusiveDays\(from, to\) > 31/,
+  "API تقرير الفترة يجب أن يمنع قراءة أكثر من 31 يومًا.",
 );
 
 // بيانات الدرجات المجمعة يجب أن تبقى خلف كاش خادمي قصير.
