@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v117-current";
-const SERVICE_WORKER_VERSION = "117-current";
+const CURRENT_CACHE = "ostadh-lahooni-v119-hard-reset";
+const SERVICE_WORKER_VERSION = "119-hard-reset";
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -30,10 +30,13 @@ export default function PwaRegister() {
     const register = async () => {
       try {
         const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+
+        const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(
-          keys
-            .filter(key => key.startsWith("ostadh-lahooni-") && key !== CURRENT_CACHE)
-            .map(key => caches.delete(key)),
+          registrations
+            .filter(item => !item.active?.scriptURL.includes(SERVICE_WORKER_VERSION))
+            .map(item => item.unregister()),
         );
 
         registration = await navigator.serviceWorker.register(`/sw.js?v=${SERVICE_WORKER_VERSION}`, {
@@ -45,6 +48,9 @@ export default function PwaRegister() {
         });
         await registration.update();
         activateWaitingWorker();
+
+        const freshKeys = await caches.keys();
+        await Promise.all(freshKeys.filter(key => key !== CURRENT_CACHE).map(key => caches.delete(key)));
       } catch {
         // تبقى المنصة متاحة حتى لو تعذر تشغيل وضع التطبيق.
       }
