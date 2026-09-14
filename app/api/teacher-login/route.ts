@@ -37,7 +37,8 @@ export async function POST(request: Request) {
     const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
     let firebaseToken = "";
     try {
-      firebaseToken = await adminAuth().createCustomToken(user.id, {
+      const auth = await adminAuth();
+      firebaseToken = await auth.createCustomToken(user.id, {
         role: "teacher",
         subjectIds: user.subjectIds,
       });
