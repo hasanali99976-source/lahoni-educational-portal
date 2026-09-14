@@ -1,0 +1,29 @@
+name: Runtime Drain Grep Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/runtime-drain-grep-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Scan drain primitives
+        run: |
+          echo "=== realtime reads ==="
+          git grep -nE "onSnapshot|getDocs|collectionGroup" -- app lib public || true
+          echo "=== timers ==="
+          git grep -nE "setInterval|setTimeout" -- app lib public || true
+          echo "=== visibility ==="
+          git grep -nE "visibilitychange|onfocus" -- app lib public || true
+          echo "=== browser firestore imports ==="
+          git grep -n "firebase/firestore" -- app lib || true
+          echo "=== service worker reload ==="
+          git grep -nE "location.reload|clients.matchAll|postMessage|skipWaiting" -- app/pwa-register.tsx public/sw.js || true
