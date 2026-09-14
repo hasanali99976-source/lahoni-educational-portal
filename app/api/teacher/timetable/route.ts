@@ -7,9 +7,13 @@ import { requireSession } from "../../../../lib/server/portal-auth";
 
 type Lesson = { subject: string; className: string; notes: string };
 type Schedule = Record<string, Lesson>;
+type TimetableCacheEntry = { lessons: Schedule; expiresAt: number };
 
 const FIRESTORE_TIMEOUT_MS = 12000;
 const VALID_CELL = /^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/;
+const TIMETABLE_CACHE_TTL_MS = 5 * 60 * 1000;
+const timetableCache = new Map<string, TimetableCacheEntry>();
+const timetableInflight = new Map<string, Promise<Schedule>>();
 
 async function withTimeout<T>(promise: Promise<T>, milliseconds = FIRESTORE_TIMEOUT_MS): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -92,18 +96,40 @@ function errorResponse(error: unknown, action: "تحميل" | "حفظ") {
   );
 }
 
+async function loadTimetableCached(teacherId: string, subjectId: string, subjectLabel: string, reference: ReturnType<typeof timetableReference>) {
+  const key = `${teacherId}:${subjectId}`;
+  const cached = timetableCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.lessons;
+
+  const existing = timetableInflight.get(key);
+  if (existing) return existing;
+
+  const pending = (async () => {
+    const snapshot = await withTimeout(reference.get());
+    const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
+    const lessons = cleanSchedule(data?.lessons, subjectLabel);
+    timetableCache.set(key, { lessons, expiresAt: Date.now() + TIMETABLE_CACHE_TTL_MS });
+    return lessons;
+  })();
+
+  timetableInflight.set(key, pending);
+  try {
+    return await pending;
+  } finally {
+    timetableInflight.delete(key);
+  }
+}
+
 export async function GET(request: Request) {
   const subjectId = String(new URL(request.url).searchParams.get("subjectId") || "").split("--")[0];
   const context = await teacherContext(subjectId);
   if ("error" in context) return context.error;
 
   try {
-    const snapshot = await withTimeout(context.reference.get());
-    const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
-    const lessons = cleanSchedule(data?.lessons, context.subjectLabel);
+    const lessons = await loadTimetableCached(context.session.userId, subjectId, context.subjectLabel, context.reference);
     return NextResponse.json(
       { ok: true, lessons },
-      { headers: { "Cache-Control": "no-store, max-age=0" } },
+      { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=240" } },
     );
   } catch (error) {
     return errorResponse(error, "تحميل");
@@ -150,6 +176,9 @@ export async function PATCH(request: Request) {
       updatedAt: now,
       savedThroughApiAt: now,
     }, { merge: true }));
+
+    const key = `${context.session.userId}:${subjectId}`;
+    timetableCache.set(key, { lessons, expiresAt: Date.now() + TIMETABLE_CACHE_TTL_MS });
 
     return NextResponse.json(
       { ok: true, lessons, syncedAt: now },
