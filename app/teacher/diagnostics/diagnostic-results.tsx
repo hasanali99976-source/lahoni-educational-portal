@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import type { SubjectKey } from "../../../lib/subject-config";
@@ -181,9 +181,17 @@ export default function DiagnosticResults({
   const [message, setMessage] = useState("");
   const resultsPath = tenantCollection(teacherId, subjectKey, "diagnosticResults");
 
-  useEffect(() => onSnapshot(collection(db, resultsPath), snapshot => {
-    setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
-  }, () => setResults([])), [resultsPath]);
+  useEffect(() => {
+    let cancelled = false;
+    void getDocs(collection(db, resultsPath))
+      .then(snapshot => {
+        if (!cancelled) setResults(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Result, "id">) })));
+      })
+      .catch(() => {
+        if (!cancelled) setResults([]);
+      });
+    return () => { cancelled = true; };
+  }, [resultsPath]);
 
   useEffect(() => {
     if (!teacherId || !subjectKey || !activeGrade) {
@@ -236,10 +244,8 @@ export default function DiagnosticResults({
       }
     };
     void loadBackups();
-    const timer = window.setInterval(loadBackups, 8000);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [teacherId, subjectKey, testId, students]);
 

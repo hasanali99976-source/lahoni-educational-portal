@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, doc, getDocs, onSnapshot, query, setDoc, where, writeBatch } from "firebase/firestore";
+import { collection, doc, getDocs, query, setDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import type { SubjectKey } from "../../../lib/subject-config";
@@ -37,10 +37,19 @@ export default function DiagnosticsPage() {
   useEffect(() => {
     setDiagnosticsLoaded(false);
     if (!path) return;
-    return onSnapshot(collection(db, path), snapshot => {
-      setItems(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Diagnostic, "id">) })));
-      setDiagnosticsLoaded(true);
-    });
+    let cancelled = false;
+    void getDocs(collection(db, path))
+      .then(snapshot => {
+        if (cancelled) return;
+        setItems(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Diagnostic, "id">) })));
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setDiagnosticsLoaded(true);
+      });
+    return () => { cancelled = true; };
   }, [path]);
   function updateQuestion(id: string, patch: Partial<Question>) { setQuestions(current => current.map(question => question.id === id ? { ...question, ...patch } : question)); }
   function setOptionCount(question: Question, count: number) {

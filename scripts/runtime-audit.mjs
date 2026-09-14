@@ -288,3 +288,17 @@ if (failures.length) {
 }
 
 console.log("نجح فحص استهلاك البوابة: الرئيسية خفيفة، الجدول محمي من التكرار، وحمايات الحضور والتقارير والمسابقة فعالة.");
+
+
+// FINAL_DRAIN_GUARD_DIAGNOSTICS
+// Diagnostic screens must never restore live collection listeners or short polling loops.
+forbid(
+  "app/teacher/diagnostics/page.tsx",
+  /\bonSnapshot\s*\(/,
+  "صفحة الاختبارات التشخيصية يجب ألا تشغّل listener حيًا على مجموعة الاختبارات.",
+);
+forbid(
+  "app/teacher/diagnostics/diagnostic-results.tsx",
+  /\bonSnapshot\s*\(|setInterval\s*\(|(?:8_?000|8000)/,
+  "نتائج الاختبارات التشخيصية يجب ألا تستخدم listener حيًا أو polling دوريًا كل عدة ثوانٍ.",
+);
