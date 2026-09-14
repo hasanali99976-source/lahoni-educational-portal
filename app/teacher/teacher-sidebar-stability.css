@@ -1,0 +1,84 @@
+/* Stable teacher sidebar layout.
+   Keeps navigation groups in normal flow and prevents overlap on short/mobile viewports. */
+.teacher-studio .ts-rail{
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.teacher-studio .ts-brand,
+.teacher-studio .ts-home,
+.teacher-studio .ts-footer{
+  flex:0 0 auto!important;
+}
+.teacher-studio .ts-nav-list{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:6px!important;
+  padding:1px 2px 4px 0!important;
+  scrollbar-gutter:stable!important;
+}
+.teacher-studio .ts-nav-group{
+  flex:0 0 auto!important;
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.teacher-studio .ts-group-head{
+  min-height:40px!important;
+  height:auto!important;
+  flex:0 0 auto!important;
+  line-height:1.45!important;
+}
+.teacher-studio .ts-group-head>span{
+  min-width:0!important;
+}
+.teacher-studio .ts-group-head b{
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+.teacher-studio .ts-nav{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+  min-height:0!important;
+}
+.teacher-studio .ts-nav a{
+  flex:0 0 auto!important;
+  min-height:34px!important;
+  height:auto!important;
+  line-height:1.45!important;
+}
+.teacher-studio .ts-nav a b{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  line-height:1.45!important;
+}
+.teacher-studio .ts-footer{
+  position:static!important;
+  inset:auto!important;
+  margin-top:6px!important;
+  padding-top:7px!important;
+  background:transparent!important;
+}
+@media (max-height:760px){
+  .teacher-studio .ts-rail{top:6px!important;bottom:6px!important}
+  .teacher-studio .ts-brand{min-height:42px!important;padding-bottom:6px!important}
+  .teacher-studio .ts-home{min-height:32px!important;margin:3px 0!important}
+  .teacher-studio .ts-group-head{min-height:34px!important;padding-block:4px!important}
+  .teacher-studio .ts-nav a{min-height:31px!important;padding-block:3px!important}
+}
+@media (max-width:780px){
+  .teacher-studio .ts-rail{
+    overflow:hidden!important;
+    padding-bottom:max(8px,env(safe-area-inset-bottom))!important;
+  }
+  .teacher-studio .ts-nav-list{
+    -webkit-overflow-scrolling:touch!important;
+    padding-bottom:8px!important;
+  }
+}
