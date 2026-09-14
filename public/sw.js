@@ -1,10 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v123-stable";
+const CACHE_NAME = "ostadh-lahooni-v124-stable";
 const STATIC_FILES = [
-  "/manifest.webmanifest?v=123-stable",
-  "/icon.svg?v=123-stable",
-  "/icons/lahooni-identity-320.jpg?v=123-stable",
-  "/icons/ostadh-lahooni-192.jpg?v=123-stable",
-  "/saudi-classroom.svg?v=123-stable",
+  "/manifest.webmanifest?v=124-stable",
+  "/icon.svg?v=124-stable",
+  "/icons/lahooni-identity-320.jpg?v=124-stable",
+  "/icons/ostadh-lahooni-192.jpg?v=124-stable",
+  "/saudi-classroom.svg?v=124-stable",
 ];
 
 self.addEventListener("message", event => {
@@ -21,14 +21,19 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
       keys
         .filter(key => key.startsWith("ostadh-lahooni-") && key !== CACHE_NAME)
         .map(key => caches.delete(key)),
-    )),
-  );
-  self.clients.claim();
+    );
+    await self.clients.claim();
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    await Promise.all(windows.map(client => {
+      try { return client.navigate(client.url); } catch { return undefined; }
+    }));
+  })());
 });
 
 self.addEventListener("fetch", event => {
