@@ -1,0 +1,53 @@
+name: Fix Reports Browser Firestore Drain
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/scripts/fix_reports_browser_firestore_drain.py"
+      - ".github/workflows/fix-reports-browser-firestore-drain.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Migrate report reads to server API
+        run: python .github/scripts/fix_reports_browser_firestore_drain.py
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify production build
+        run: npm run build
+
+      - name: Check patch
+        run: git diff --check
+
+      - name: Commit verified changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/reports/page.tsx app/api/teacher/attendance-report/route.ts scripts/runtime-audit.mjs
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix(drain): move teacher report attendance reads server-side"
+          git push origin main
