@@ -8,14 +8,6 @@ const TeacherAttendancePrintV21 = dynamic(() => import("./teacher-attendance-pri
 const TeacherGradesCleanRuntime = dynamic(() => import("./teacher-grades-clean-runtime"));
 const TeacherNotesIdentityRuntime = dynamic(() => import("./teacher-notes-identity-runtime"));
 const TeacherDailyReportNavRuntime = dynamic(() => import("./teacher-daily-report-nav-runtime"));
-
-const StudentAcademicRecordBridge = dynamic(() => import("./student-academic-record-bridge"));
-const StudentPortalAcademicEnhancer = dynamic(() => import("./student-portal-academic-enhancer"));
-const StudentSubjectAchievementRuntime = dynamic(() => import("./student-subject-achievement-runtime"));
-const StudentRiskCenterRuntime = dynamic(() => import("./student-risk-center-runtime"));
-const StudentAcademicRecordMaxRuntime = dynamic(() => import("./student-academic-record-max-runtime"));
-const StudentSmartNotesRuntime = dynamic(() => import("./student-smart-notes-runtime"));
-
 const AdminStudentEditClassRuntime = dynamic(() => import("./admin-student-edit-class-runtime"));
 
 export default function RouteRuntimeLoader() {
@@ -30,18 +22,9 @@ export default function RouteRuntimeLoader() {
   if (pathname.startsWith("/teacher/daily-report")) return <TeacherDailyReportNavRuntime />;
   if (pathname.startsWith("/teacher")) return null;
 
-  if (pathname === "/student") {
-    return (
-      <>
-        <StudentAcademicRecordBridge />
-        <StudentPortalAcademicEnhancer />
-        <StudentSubjectAchievementRuntime />
-        <StudentRiskCenterRuntime />
-        <StudentAcademicRecordMaxRuntime />
-        <StudentSmartNotesRuntime />
-      </>
-    );
-  }
+  // The current student page already owns its data loading and UI.
+  // Legacy student runtimes duplicated lookup/profile/summary requests on mount,
+  // focus and app resume, which could multiply Firestore reads on mobile/PWA.
   if (pathname.startsWith("/student")) return null;
 
   if (pathname.startsWith("/admin")) return <AdminStudentEditClassRuntime />;
