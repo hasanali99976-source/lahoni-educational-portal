@@ -12,6 +12,7 @@ on:
       - ".github/scripts/fix_diagnostics_realtime_drain.py"
       - ".github/scripts/fix_portfolio_listener_drain.py"
       - ".github/scripts/disable_attendance_historical_autobackfill.py"
+      - ".github/scripts/scope_student_profile_reads.py"
       - ".github/workflows/fix-reports-browser-firestore-drain.yml"
   workflow_dispatch:
 
@@ -55,6 +56,9 @@ jobs:
       - name: Stop attendance historical autobackfill
         run: python .github/scripts/disable_attendance_historical_autobackfill.py
 
+      - name: Scope student profile reads
+        run: python .github/scripts/scope_student_profile_reads.py
+
       - name: Install dependencies without changing lockfile
         run: npm install --package-lock=false --no-audit --no-fund
 
@@ -71,11 +75,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/teacher/reports/page.tsx app/teacher/report/page.tsx app/teacher/ai/page.tsx app/teacher/research/page.tsx app/api/teacher/attendance-report/route.ts app/student/academic-record/page.tsx app/teacher/diagnostics/page.tsx app/teacher/diagnostics/diagnostic-results.tsx app/teacher/portfolio/page.tsx app/teacher/attendance/page.tsx scripts/runtime-audit.mjs
+          git add app/teacher/reports/page.tsx app/teacher/report/page.tsx app/teacher/ai/page.tsx app/teacher/research/page.tsx app/api/teacher/attendance-report/route.ts app/student/academic-record/page.tsx app/teacher/diagnostics/page.tsx app/teacher/diagnostics/diagnostic-results.tsx app/teacher/portfolio/page.tsx app/teacher/attendance/page.tsx app/api/student/profile/route.ts scripts/runtime-audit.mjs
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "fix(drain): eliminate active idle reads and attendance autobackfill"
+          git commit -m "fix(drain): eliminate active idle reads and scope student profile"
           git pull --rebase --autostash origin main
           git push origin main
