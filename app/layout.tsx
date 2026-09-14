@@ -9,19 +9,8 @@ import MobileWindowBridge from "./mobile-window-bridge";
 import PortalCommandRuntime from "./portal-command-runtime";
 import PortalRuntimeGate from "./portal-runtime-gate";
 import PortalPrintRuntime from "./portal-print-runtime";
-import TeacherAttendanceScheduleNav from "./teacher-attendance-schedule-nav";
-import TeacherAttendancePrintV21 from "./teacher-attendance-print-v21";
-import TeacherGradesCleanRuntime from "./teacher-grades-clean-runtime";
-import StudentAcademicRecordBridge from "./student-academic-record-bridge";
-import StudentPortalAcademicEnhancer from "./student-portal-academic-enhancer";
-import StudentSubjectAchievementRuntime from "./student-subject-achievement-runtime";
-import StudentRiskCenterRuntime from "./student-risk-center-runtime";
-import StudentAcademicRecordMaxRuntime from "./student-academic-record-max-runtime";
-import StudentSmartNotesRuntime from "./student-smart-notes-runtime";
-import TeacherNotesIdentityRuntime from "./teacher-notes-identity-runtime";
-import AdminStudentEditClassRuntime from "./admin-student-edit-class-runtime";
 import PortalVoiceGreetingRuntime from "./portal-voice-greeting-runtime";
-import TeacherDailyReportNavRuntime from "./teacher-daily-report-nav-runtime";
+import RouteRuntimeLoader from "./route-runtime-loader";
 
 const academyFont = Alexandria({ subsets: ["arabic"], weight: ["400", "500", "600", "700", "800", "900"], display: "swap" });
 
@@ -45,11 +34,10 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><head><link rel="stylesheet" href="/teacher-prepaint-current.css?v=119-hard-reset" /><link rel="stylesheet" href="/teacher-shell-current.css?v=119-hard-reset" /></head><body className={academyFont.className}>
-    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer /><TeacherDailyReportNavRuntime />
-    <StudentAcademicRecordBridge /><StudentPortalAcademicEnhancer /><StudentSubjectAchievementRuntime /><StudentRiskCenterRuntime /><StudentAcademicRecordMaxRuntime /><StudentSmartNotesRuntime />
-    <TeacherGradesCleanRuntime /><TeacherNotesIdentityRuntime /><AdminStudentEditClassRuntime />
+    <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
+    <RouteRuntimeLoader />
     <PortalVoiceGreetingRuntime />
-    <PortalPrintRuntime /><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 />
+    <PortalPrintRuntime />
     <PortalRuntimeGate>
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
       <PortalCommandRuntime />
