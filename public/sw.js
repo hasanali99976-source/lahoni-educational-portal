@@ -1,10 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v122-stable";
+const CACHE_NAME = "ostadh-lahooni-v123-stable";
 const STATIC_FILES = [
-  "/manifest.webmanifest?v=122-stable",
-  "/icon.svg?v=122-stable",
-  "/icons/lahooni-identity-320.jpg?v=122-stable",
-  "/icons/ostadh-lahooni-192.jpg?v=122-stable",
-  "/saudi-classroom.svg?v=122-stable",
+  "/manifest.webmanifest?v=123-stable",
+  "/icon.svg?v=123-stable",
+  "/icons/lahooni-identity-320.jpg?v=123-stable",
+  "/icons/ostadh-lahooni-192.jpg?v=123-stable",
+  "/saudi-classroom.svg?v=123-stable",
 ];
 
 self.addEventListener("message", event => {
