@@ -24,7 +24,7 @@ export default function TeacherDashboardPage() {
 
   const classLabels = useMemo(() => {
     const rows = Array.isArray(session.assignments) ? session.assignments : [];
-    return [...new Set(rows.map(item => String(item.gradeLabel || item.grade || "").trim()).filter(Boolean))].slice(0, 6);
+    return [...new Set(rows.map(item => String(item.grade || "").trim()).filter(Boolean))].slice(0, 6);
   }, [session.assignments]);
 
   return <main className="teacher-dashboard-v11" dir="rtl">
