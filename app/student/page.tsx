@@ -51,7 +51,7 @@ export default function StudentPage(){
   function logout(){try{window.speechSynthesis?.cancel();}catch{}setMatches([]);setSelectedKey("");setSubjectGate(false);setView("home");setAccessCode("");setMessage("");}
 
   useEffect(()=>{const query=new URLSearchParams(window.location.search);const code=normalizeStudentCode(query.get("code")||"");if(code)setAccessCode(code);if(query.size)window.history.replaceState({},"","/student");if(CODE_PATTERN.test(code)&&!automaticLoginStarted.current){automaticLoginStarted.current=true;void lookup(code,false);}},[]);
-  useEffect(()=>{if(!selectedKey)return;let active=true;let busy=false;const refresh=async()=>{if(!active||busy||document.visibilityState!=="visible")return;const current=matches.find(item=>item.subjectKey===selectedKey);if(!current)return;busy=true;const updated=await hydrate(current);if(active)setMatches(list=>list.map(item=>item.subjectKey===selectedKey?updated:item));busy=false;};const onFocus=()=>void refresh();const onVisible=()=>{if(document.visibilityState==="visible")void refresh();};window.addEventListener("focus",onFocus);document.addEventListener("visibilitychange",onVisible);return()=>{active=false;window.removeEventListener("focus",onFocus);document.removeEventListener("visibilitychange",onVisible);};},[selectedKey,matches]);
+  // بيانات الطالب تُحمّل عند الدخول فقط؛ لا إعادة قراءة تلقائية عند focus أو الرجوع للتطبيق.
 
   const metrics=useMemo(()=>matches.map(metricFor),[matches]);
   const selectedMetric=useMemo(()=>metrics.find(item=>item.match.subjectKey===selectedKey)||null,[metrics,selectedKey]);
