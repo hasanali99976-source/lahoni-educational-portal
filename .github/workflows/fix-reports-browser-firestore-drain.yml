@@ -8,6 +8,7 @@ on:
       - ".github/scripts/fix_reports_browser_firestore_drain.py"
       - ".github/scripts/fix_student_academic_polling.py"
       - ".github/scripts/fix_teacher_report_listener.py"
+      - ".github/scripts/fix_teacher_roster_listeners.py"
       - ".github/workflows/fix-reports-browser-firestore-drain.yml"
   workflow_dispatch:
 
@@ -39,6 +40,9 @@ jobs:
       - name: Stop teacher summary report listener
         run: python .github/scripts/fix_teacher_report_listener.py
 
+      - name: Stop active teacher roster listeners
+        run: python .github/scripts/fix_teacher_roster_listeners.py
+
       - name: Install dependencies without changing lockfile
         run: npm install --package-lock=false --no-audit --no-fund
 
@@ -52,11 +56,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/teacher/reports/page.tsx app/teacher/report/page.tsx app/api/teacher/attendance-report/route.ts app/student/academic-record/page.tsx scripts/runtime-audit.mjs
+          git add app/teacher/reports/page.tsx app/teacher/report/page.tsx app/teacher/ai/page.tsx app/teacher/research/page.tsx app/api/teacher/attendance-report/route.ts app/student/academic-record/page.tsx scripts/runtime-audit.mjs
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "fix(drain): remove remaining report listener"
+          git commit -m "fix(drain): remove active browser listeners"
           git pull --rebase --autostash origin main
           git push origin main
