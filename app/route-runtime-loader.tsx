@@ -21,17 +21,14 @@ const AdminStudentEditClassRuntime = dynamic(() => import("./admin-student-edit-
 export default function RouteRuntimeLoader() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/teacher")) {
-    return (
-      <>
-        <TeacherDailyReportNavRuntime />
-        <TeacherGradesCleanRuntime />
-        <TeacherNotesIdentityRuntime />
-        <TeacherAttendanceScheduleNav />
-        <TeacherAttendancePrintV21 />
-      </>
-    );
+  if (pathname === "/teacher") return null;
+  if (pathname.startsWith("/teacher/attendance")) {
+    return <><TeacherAttendanceScheduleNav /><TeacherAttendancePrintV21 /></>;
   }
+  if (pathname.startsWith("/teacher/grades")) return <TeacherGradesCleanRuntime />;
+  if (pathname.startsWith("/teacher/notes")) return <TeacherNotesIdentityRuntime />;
+  if (pathname.startsWith("/teacher/daily-report")) return <TeacherDailyReportNavRuntime />;
+  if (pathname.startsWith("/teacher")) return null;
 
   if (pathname.startsWith("/student")) {
     return (
