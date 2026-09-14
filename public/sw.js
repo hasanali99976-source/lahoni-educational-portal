@@ -1,10 +1,10 @@
-const CACHE_NAME = "ostadh-lahooni-v124-stable";
+const CACHE_NAME = "ostadh-lahooni-v125-stable";
 const STATIC_FILES = [
-  "/manifest.webmanifest?v=124-stable",
-  "/icon.svg?v=124-stable",
-  "/icons/lahooni-identity-320.jpg?v=124-stable",
-  "/icons/ostadh-lahooni-192.jpg?v=124-stable",
-  "/saudi-classroom.svg?v=124-stable",
+  "/manifest.webmanifest?v=125-stable",
+  "/icon.svg?v=125-stable",
+  "/icons/lahooni-identity-320.jpg?v=125-stable",
+  "/icons/ostadh-lahooni-192.jpg?v=125-stable",
+  "/saudi-classroom.svg?v=125-stable",
 ];
 
 self.addEventListener("message", event => {
@@ -29,10 +29,6 @@ self.addEventListener("activate", event => {
         .map(key => caches.delete(key)),
     );
     await self.clients.claim();
-    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    await Promise.all(windows.map(client => {
-      try { return client.navigate(client.url); } catch { return undefined; }
-    }));
   })());
 });
 
