@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
 function readServiceAccount() {
@@ -56,6 +55,9 @@ export function adminDb() {
   return getFirestore(adminApp());
 }
 
-export function adminAuth() {
+// لا نحمّل firebase-admin/auth مع كل Route تستخدم Firestore فقط.
+// التحميل الكسول يمنع مشكلة ESM في Vercel ويُبقي مسارات الطالب/المعلم الخفيفة مستقلة.
+export async function adminAuth() {
+  const { getAuth } = await import("firebase-admin/auth");
   return getAuth(adminApp());
 }
