@@ -194,6 +194,18 @@ requirePattern(
   "بيانات التحصيل المجمعة يجب أن تبقى خلف كاش خادمي قصير.",
 );
 
+// حماية المتابعة الذكية: لا مراقبة حية لمجموعة الطلاب كاملة.
+forbid(
+  "app/teacher/follow-up/page.tsx",
+  /\bonSnapshot\s*\(|firebase\/firestore[^\n]*\bcollection\b/,
+  "صفحة الإتقان والمتابعة يجب ألا تراقب مجموعة الطلاب كاملة مباشرة من Firestore.",
+);
+requirePattern(
+  "app/teacher/follow-up/page.tsx",
+  /\/api\/teacher\/grade-data/,
+  "صفحة الإتقان والمتابعة يجب أن تستخدم بيانات التحصيل المخزنة خادميًا بدل الاستماع الحي.",
+);
+
 const teacherRosterRequests = count(
   "app/teacher/attendance/page.tsx",
   /\/api\/teacher\/students/g,

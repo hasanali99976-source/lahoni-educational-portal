@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, increment, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, increment, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
@@ -88,11 +88,29 @@ export default function FollowUpPage() {
   const referralsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "counselorReferrals") : "", [teacherId, subjectKey]);
 
   useEffect(() => {
-    if (!studentsPath) return;
-    return onSnapshot(collection(db, studentsPath), snapshot => {
-      setStoredStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() })) as Student[]);
-    }, () => setMessage("تعذر تحميل بيانات الطلاب."));
-  }, [studentsPath]);
+    if (!teacherId || !subjectKey) { setStoredStudents([]); return; }
+    const controller = new AbortController();
+    fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(String(subjectKey).split("--")[0])}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+      signal: controller.signal,
+    })
+      .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "تعذر تحميل بيانات الطلاب.");
+        const byCode = data.byCode && typeof data.byCode === "object" ? data.byCode as Record<string, Record<string, unknown>> : {};
+        setStoredStudents(Object.entries(byCode).map(([code, row]) => ({
+          ...row,
+          id: String(row.documentId || code),
+          code: String(row.code || row.accessCode || row.studentCode || code),
+        })) as Student[]);
+      })
+      .catch(error => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setMessage(error instanceof Error ? error.message : "تعذر تحميل بيانات الطلاب.");
+      });
+    return () => controller.abort();
+  }, [teacherId, subjectKey]);
 
   useEffect(() => {
     if (!teacherId || !subjectKey || !activeGrade) { setScopeStudents([]); setScopeClasses([]); return; }
