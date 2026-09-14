@@ -6,7 +6,7 @@ import { FormEvent, useState } from "react";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
-import "./teacher-login-current.css";
+import "./teacher-login-v11.css";
 
 export default function TeacherLoginPage(){
   const [name,setName]=useState("");
@@ -28,13 +28,10 @@ export default function TeacherLoginPage(){
         headers:{"Content-Type":"application/json","Accept":"application/json"},
         body:JSON.stringify({name:name.trim(),password})
       });
-      let data:any=null;
-      try{data=await response.json();}catch{data=null;}
+      const data=await response.json().catch(()=>null);
       if(!response.ok){setError(data?.message||"اسم المعلم أو الرقم السري غير صحيح");return;}
       if(data?.firebaseToken){try{await signInWithCustomToken(auth,data.firebaseToken);}catch{} }
       if(data?.teacherId)setGradePlanCurrentTeacher(data.teacherId);
-      // Safari/iOS can race client navigation against Set-Cookie persistence.
-      // A same-origin hard navigation guarantees the fresh session cookie is read.
       window.location.assign("/teacher/dashboard");
     }catch{
       setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.");
@@ -43,49 +40,52 @@ export default function TeacherLoginPage(){
     }
   }
 
-  return <main className="teacher-login-current" dir="rtl">
-    <div className="tlc-scene"/>
-    <section className="tlc-frame">
-      <header className="tlc-top">
-        <Link href="/" className="tlc-brand">
-          <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={58} height={58} priority/>
-          <span><strong>بوابة أستاذ لحوني التعليمية</strong><small>بوابة المعلم</small></span>
-        </Link>
-        <Link href="/" className="tlc-back">العودة للرئيسية</Link>
-      </header>
+  return <main className="academy-login-v11" dir="rtl">
+    <header className="al11-topbar">
+      <Link href="/" className="al11-brand">
+        <Image src="/icons/lahooni-identity-320.jpg" alt="هوية بوابة أستاذ لحوني التعليمية" width={72} height={72} priority/>
+        <span><small>بوابة أستاذ لحوني التعليمية</small><b>أكاديمية المعلم</b></span>
+      </Link>
+      <Link href="/" className="al11-back">العودة للبوابة الرئيسية</Link>
+    </header>
 
-      <section className="tlc-hero">
-        <div className="tlc-kicker">✦ المساحة التعليمية الذكية للمعلم</div>
-        <h1>بوابة المعلم<br/><em>بنفس هوية البوابة الرئيسية</em></h1>
-        <p>الحضور، التحصيل، المتابعة، التقارير والانضباط في مساحة واحدة متصلة بهوية أستاذ لحوني التعليمية.</p>
+    <section className="al11-stage">
+      <div className="al11-story">
+        <span className="al11-kicker">Teacher Academic Workspace</span>
+        <h1>مساحتك التعليمية<br/><strong>تفهم يومك قبل أن تبدأه</strong></h1>
+        <p>فصولك، جدولك، المتابعة، التحصيل، الإتقان والتقارير في أكاديمية واحدة. المساعد الذكي يظهر عندما تحتاج قرارًا أو قراءة، لا كزر إضافي يشتتك.</p>
+
+        <div className="al11-flow">
+          <article><b>01</b><span><strong>ابدأ من الفصل</strong><small>كل أدواتك مرتبطة بسياق الفصل والمادة</small></span></article>
+          <article><b>02</b><span><strong>أنجز بسرعة</strong><small>الرصد والمتابعة مصممان لأقل عدد من النقرات</small></span></article>
+          <article><b>03</b><span><strong>اتخذ قرارًا</strong><small>مؤشرات واقتراحات مبنية على بياناتك الفعلية</small></span></article>
+        </div>
+
+        <div className="al11-intelligence">
+          <span>AI</span>
+          <div><small>المساعد الأكاديمي</small><b>لا يغيّر بياناتك؛ يساعدك على قراءتها</b><p>ينبه للرصد الناقص، التراجع، الغياب المتكرر، والمهارات التي تحتاج تدخلًا — والقرار النهائي للمعلم.</p></div>
+        </div>
+      </div>
+
+      <section className="al11-login-panel">
+        <div className="al11-login-head">
+          <span>دخول المعلم</span>
+          <h2>أهلًا بك في أكاديميتك</h2>
+          <p>استخدم بيانات الحساب المعتمدة من إدارة البوابة.</p>
+        </div>
+
+        <form onSubmit={submit}>
+          <label><span>اسم المعلم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoFocus required placeholder="اكتب اسم المستخدم"/></label>
+          <label><span>الرقم السري</span><div className="al11-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" required placeholder="كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
+          {error?<p className="al11-error">{error}</p>:null}
+          <button className="al11-submit" disabled={loading||!name.trim()||!password}>{loading?"جارٍ فتح الأكاديمية…":"دخول أكاديمية المعلم"}</button>
+        </form>
+
+        <div className="al11-trust"><span><i/> بيانات محفوظة</span><span><i/> وصول آمن</span><span><i/> يعمل على جميع الأجهزة</span></div>
+        <div className="al11-login-note">كل ما حفظته سابقًا من درجات، حضور، ملاحظات واختبارات يبقى كما هو.</div>
       </section>
-
-      <section className="tlc-zone">
-        <section className="tlc-showcase">
-          <div className="tlc-teacher-orb"><Image src="/teacher/teacher-avatar.svg" alt="أيقونة المعلم" width={118} height={118} priority/></div>
-          <div className="tlc-showcase-copy"><small>بوابة المعلم</small><h2>يومك الدراسي أمامك بوضوح</h2><p>كل أدواتك المهمة تظهر بعد الدخول مباشرة، مع اختيار المادة مرة واحدة فقط عند بداية الجلسة.</p></div>
-          <div className="tlc-tools" aria-label="أدوات البوابة">
-            <article><span>01</span><b>الحضور والتحضير</b><small>تسجيل ومتابعة مباشرة</small></article>
-            <article><span>02</span><b>التحصيل والدرجات</b><small>قراءة مستوى الطلاب</small></article>
-            <article><span>03</span><b>المتابعة والإتقان</b><small>دعم وإثراء وإحالات</small></article>
-            <article><span>04</span><b>التقارير</b><small>طباعة وتحليل منظم</small></article>
-          </div>
-        </section>
-
-        <section className="tlc-card">
-          <div className="tlc-mark">دخول آمن</div>
-          <div className="tlc-head"><small>مرحبًا بك</small><h2>دخول المعلم</h2><p>استخدم بياناتك الحالية كما هي.</p></div>
-          <form className="tlc-form" onSubmit={submit}>
-            <label><span>اسم المستخدم</span><input value={name} onChange={event=>{setName(event.target.value);setError("");}} autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="اكتب اسم المستخدم"/></label>
-            <label><span>كلمة المرور</span><div className="tlc-password"><input type={show?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="اكتب كلمة المرور"/><button type="button" onClick={()=>setShow(value=>!value)}>{show?"إخفاء":"إظهار"}</button></div></label>
-            {error?<p className="tlc-error">{error}</p>:null}
-            <button className="tlc-submit" disabled={loading||!name.trim()||!password}>{loading?"جارٍ فتح البوابة…":"دخول بوابة المعلم"}</button>
-          </form>
-          <div className="tlc-trust"><span>نفس بياناتك الحالية</span><span>اختيار المادة بعد الدخول فقط</span></div>
-        </section>
-      </section>
-
-      <footer className="tlc-footer"><span>بوابة تعليمية للمتابعة والتحصيل والتقارير</span><b>إعداد الأستاذ حسن علي الطويل</b></footer>
     </section>
+
+    <footer className="al11-footer"><span>منصة تعليمية للمتابعة والتحصيل واتخاذ القرار</span><b>إعداد الأستاذ حسن علي الطويل</b></footer>
   </main>;
 }
