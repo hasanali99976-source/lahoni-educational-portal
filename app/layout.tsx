@@ -18,22 +18,22 @@ export const metadata: Metadata = {
   title: { default: "أستاذ لحوني", template: "%s | أستاذ لحوني" },
   description: "منصة تعليمية ذكية للمتابعة والتقارير المدرسية",
   applicationName: "أستاذ لحوني",
-  manifest: "/manifest.webmanifest?v=119-hard-reset",
+  manifest: "/manifest.webmanifest?v=120-stable",
   appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
     icon: [
-      { url: "/icon.svg?v=119-hard-reset", type: "image/svg+xml" },
-      { url: "/icons/lahooni-identity-320.jpg?v=119-hard-reset", sizes: "320x320", type: "image/jpeg" },
+      { url: "/icon.svg?v=120-stable", type: "image/svg+xml" },
+      { url: "/icons/lahooni-identity-320.jpg?v=120-stable", sizes: "320x320", type: "image/jpeg" },
     ],
-    apple: [{ url: "/icons/lahooni-identity-320.jpg?v=119-hard-reset", sizes: "320x320", type: "image/jpeg" }],
+    apple: [{ url: "/icons/lahooni-identity-320.jpg?v=120-stable", sizes: "320x320", type: "image/jpeg" }],
   },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#071d2f", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><head><link rel="stylesheet" href="/teacher-prepaint-current.css?v=119-hard-reset" /><link rel="stylesheet" href="/teacher-shell-current.css?v=119-hard-reset" /></head><body className={academyFont.className}>
+  return <html lang="ar" dir="rtl"><head><link rel="stylesheet" href="/teacher-prepaint-current.css?v=120-stable" /><link rel="stylesheet" href="/teacher-shell-current.css?v=120-stable" /></head><body className={academyFont.className}>
     <PwaRegister /><MobileWindowBridge /><MobileAppEnhancer />
     <RouteRuntimeLoader />
     <PortalVoiceGreetingRuntime />
