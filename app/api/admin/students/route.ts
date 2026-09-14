@@ -15,6 +15,10 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 
+const ADMIN_ROSTER_CACHE_TTL_MS = 60_000;
+type AdminRosterCache = { students: SchoolStudent[]; classes: SchoolClass[]; expiresAt: number };
+const rosterCache = new Map<string, AdminRosterCache>();
+
 async function loadStudents(includeArchived = false) {
   const snapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get();
   return snapshot.docs
@@ -37,13 +41,23 @@ async function loadClasses(students: SchoolStudent[]) {
   return [...map.values()].sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
 }
 
+async function loadRosterCached(includeArchived = false) {
+  const key = includeArchived ? "archived" : "active";
+  const cached = rosterCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached;
+  const students = await loadStudents(includeArchived);
+  const classes = await loadClasses(students.filter(student => student.active !== false));
+  const value = { students, classes, expiresAt: Date.now() + ADMIN_ROSTER_CACHE_TTL_MS };
+  rosterCache.set(key, value);
+  return value;
+}
+
 export async function GET(request: Request) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   try {
     const includeArchived = new URL(request.url).searchParams.get("archived") === "1";
-    const students = await loadStudents(includeArchived);
-    const classes = await loadClasses(students.filter(student => student.active !== false));
-    return NextResponse.json({ ok: true, students, classes }, { headers: { "Cache-Control": "no-store" } });
+    const { students, classes } = await loadRosterCached(includeArchived);
+    return NextResponse.json({ ok: true, students, classes }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=30" } });
   } catch (error) {
     console.error("load school students failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل سجل الطلاب" }, { status: 500 });
@@ -91,6 +105,7 @@ export async function POST(request: Request) {
       updatedAt: now,
       createdAt: now,
     }, { merge: true });
+    rosterCache.clear();
     return NextResponse.json({ ok: true, student: { id: code, code, name, grade, section, className, active: true } }, { status: 201 });
   } catch (error) {
     console.error("create school student failed", error);
