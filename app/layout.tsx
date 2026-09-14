@@ -2,6 +2,7 @@ import "./globals.css";
 import "./print.css";
 import "./portal-v3.css";
 import "./portal-identity-v103.css";
+import "./teacher/teacher-classic-v103.css";
 import { Alexandria } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
