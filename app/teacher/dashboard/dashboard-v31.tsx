@@ -31,17 +31,17 @@ export default function TeacherDashboardV31(){
     </section>
 
     <section className="td31-centers" aria-label="اختصارات العمل">
-      <Link href="/teacher/timetable" data-center="day"><b>الجدول</b><small>حصص اليوم</small></Link>
-      <Link href="/teacher/attendance" data-center="attendance"><b>الحضور</b><small>تسجيل سريع</small></Link>
-      <Link href="/teacher/students" data-center="students"><b>الطلاب</b><small>الفصول والسجلات</small></Link>
-      <Link href="/teacher/grades" data-center="grades"><b>الدرجات</b><small>الرصد والتحصيل</small></Link>
-      <Link href="/teacher/follow-up" data-center="follow"><b>المتابعة</b><small>دعم وإتقان</small></Link>
-      <Link href="/teacher/reports" data-center="reports"><b>التقارير</b><small>طباعة وتحليل</small></Link>
+      <Link href="/teacher/timetable" prefetch={false} data-center="day"><b>الجدول</b><small>حصص اليوم</small></Link>
+      <Link href="/teacher/attendance" prefetch={false} data-center="attendance"><b>الحضور</b><small>تسجيل سريع</small></Link>
+      <Link href="/teacher/students" prefetch={false} data-center="students"><b>الطلاب</b><small>الفصول والسجلات</small></Link>
+      <Link href="/teacher/grades" prefetch={false} data-center="grades"><b>الدرجات</b><small>الرصد والتحصيل</small></Link>
+      <Link href="/teacher/follow-up" prefetch={false} data-center="follow"><b>المتابعة</b><small>دعم وإتقان</small></Link>
+      <Link href="/teacher/reports" prefetch={false} data-center="reports"><b>التقارير</b><small>طباعة وتحليل</small></Link>
     </section>
 
     <section className="td31-lower">
       <article className="td31-today"><header><div><small>الرئيسية الخفيفة</small><h2>ادخل إلى الصفحة التي تحتاجها فقط</h2></div></header><div><p className="td31-empty">تم إيقاف تحميل الطلاب والدرجات والحضور والجدول تلقائيًا من الرئيسية لتقليل استهلاك Firestore. بياناتك لم تُحذف ولم تتغير.</p></div></article>
-      <article className="td31-alerts"><header><small>وصول مباشر</small><h2>أهم الصفحات</h2></header><div className="td31-alert-list"><Link href="/teacher/attendance"><span>الحضور</span><b>↗</b><small>فتح عند الحاجة</small></Link><Link href="/teacher/grades"><span>الدرجات</span><b>↗</b><small>فتح عند الحاجة</small></Link><Link href="/teacher/reports"><span>التقارير</span><b>↗</b><small>فتح عند الحاجة</small></Link></div></article>
+      <article className="td31-alerts"><header><small>وصول مباشر</small><h2>أهم الصفحات</h2></header><div className="td31-alert-list"><Link href="/teacher/attendance" prefetch={false}><span>الحضور</span><b>↗</b><small>فتح عند الحاجة</small></Link><Link href="/teacher/grades" prefetch={false}><span>الدرجات</span><b>↗</b><small>فتح عند الحاجة</small></Link><Link href="/teacher/reports" prefetch={false}><span>التقارير</span><b>↗</b><small>فتح عند الحاجة</small></Link></div></article>
     </section>
   </main>;
 }
