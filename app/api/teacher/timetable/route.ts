@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { getSubjectConfig, isSubjectKey } from "../../../../lib/subject-config";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
@@ -96,7 +97,16 @@ function errorResponse(error: unknown, action: "تحميل" | "حفظ") {
   );
 }
 
-async function loadTimetableCached(teacherId: string, subjectId: string, subjectLabel: string, reference: ReturnType<typeof timetableReference>) {
+function persistentTimetableReader(teacherId: string, subjectId: string, subjectLabel: string) {
+  return unstable_cache(async (): Promise<Schedule> => {
+    const reference = timetableReference(teacherId, subjectId);
+    const snapshot = await withTimeout(reference.get());
+    const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
+    return cleanSchedule(data?.lessons, subjectLabel);
+  }, ["teacher-timetable-shared-v1", teacherId, subjectId], { revalidate: 30 });
+}
+
+async function loadTimetableCached(teacherId: string, subjectId: string, subjectLabel: string) {
   const key = `${teacherId}:${subjectId}`;
   const cached = timetableCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.lessons;
@@ -105,9 +115,7 @@ async function loadTimetableCached(teacherId: string, subjectId: string, subject
   if (existing) return existing;
 
   const pending = (async () => {
-    const snapshot = await withTimeout(reference.get());
-    const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
-    const lessons = cleanSchedule(data?.lessons, subjectLabel);
+    const lessons = await persistentTimetableReader(teacherId, subjectId, subjectLabel)();
     timetableCache.set(key, { lessons, expiresAt: Date.now() + TIMETABLE_CACHE_TTL_MS });
     return lessons;
   })();
@@ -126,7 +134,7 @@ export async function GET(request: Request) {
   if ("error" in context) return context.error;
 
   try {
-    const lessons = await loadTimetableCached(context.session.userId, subjectId, context.subjectLabel, context.reference);
+    const lessons = await loadTimetableCached(context.session.userId, subjectId, context.subjectLabel);
     return NextResponse.json(
       { ok: true, lessons },
       { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=240" } },
