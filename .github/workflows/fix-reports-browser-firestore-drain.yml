@@ -1,4 +1,4 @@
-name: Fix Reports Browser Firestore Drain
+name: Fix Runtime Drain Reads
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - ".github/scripts/fix_reports_browser_firestore_drain.py"
+      - ".github/scripts/fix_student_academic_polling.py"
       - ".github/workflows/fix-reports-browser-firestore-drain.yml"
   workflow_dispatch:
 
@@ -31,6 +32,9 @@ jobs:
       - name: Migrate report reads to server API
         run: python .github/scripts/fix_reports_browser_firestore_drain.py
 
+      - name: Stop student academic background polling
+        run: python .github/scripts/fix_student_academic_polling.py
+
       - name: Install dependencies without changing lockfile
         run: npm install --package-lock=false --no-audit --no-fund
 
@@ -44,10 +48,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/teacher/reports/page.tsx app/api/teacher/attendance-report/route.ts scripts/runtime-audit.mjs
+          git add app/teacher/reports/page.tsx app/api/teacher/attendance-report/route.ts app/student/academic-record/page.tsx scripts/runtime-audit.mjs
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "fix(drain): move teacher report attendance reads server-side"
+          git commit -m "fix(drain): remove report listener and student polling"
+          git pull --rebase --autostash origin main
           git push origin main
