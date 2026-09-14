@@ -323,3 +323,21 @@ forbid(
   /\bonSnapshot\s*\(|\bsetInterval\s*\(/,
   "صفحة الحضور النشطة يجب ألا تستخدم listener حيًا أو polling دوريًا.",
 );
+
+
+// FINAL_DRAIN_GUARD_STUDENT_PROFILE_SCOPE
+forbid(
+  "app/api/student/profile/route.ts",
+  /collection\(`\$\{root\}\/counselorReferrals`\)\.get\(\)/,
+  "ملف الطالب يجب ألا يقرأ جميع إحالات المادة عند كل دخول.",
+);
+requirePattern(
+  "app/api/student/profile/route.ts",
+  /collection\(`\$\{root\}\/attendance`\)\.where\(\s*["']class["']\s*,\s*["']==["']\s*,\s*studentClass\s*\)/,
+  "قراءة حضور الطالب يجب أن تكون مقيدة بفصل الطالب عندما يكون الفصل معروفًا.",
+);
+requirePattern(
+  "app/api/student/profile/route.ts",
+  /collection\(`\$\{root\}\/counselorReferrals`\)\.where\(\s*["']studentId["']\s*,\s*["']in["']/,
+  "إحالات الطالب يجب أن تُقرأ بهوياته فقط لا كمجموعة كاملة.",
+);

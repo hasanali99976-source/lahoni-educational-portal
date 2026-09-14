@@ -62,12 +62,6 @@ export async function GET(request: Request) {
   const student = [...candidates].sort((a, b) => studentRichness((b.data() || {}) as Record<string, unknown>) - studentRichness((a.data() || {}) as Record<string, unknown>))[0]!;
   const studentData = student.data() as Record<string, unknown>;
   const studentClass = normalizeClass(studentData.class || studentData.className || `${String(studentData.grade || "")} ${String(studentData.section || "")}`);
-  const [attendance, timetable, gradePlanState, referralSnapshot] = await Promise.all([
-    adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE).get(),
-    adminDb().collection(`${root}/timetable`).doc("weekly").get(),
-    readActiveGradePlanForSubject(access.teacherId, access.subjectId),
-    adminDb().collection(`${root}/counselorReferrals`).get(),
-  ]);
 
   const aliases = new Set<string>([access.studentId, student.id]);
   candidates.forEach(doc => {
@@ -76,6 +70,22 @@ export async function GET(request: Request) {
     [data.code, data.accessCode, data.studentCode].map(clean).filter(Boolean).forEach(value => aliases.add(value));
   });
   [studentData.code, studentData.accessCode, studentData.studentCode].map(clean).filter(Boolean).forEach(value => aliases.add(value));
+  const aliasList = [...aliases].filter(Boolean).slice(0, 10);
+
+  // Scope reads to this student's class/student instead of reading every class and referral.
+  // Existing collection names, IDs and teacher/subject linkage remain unchanged.
+  const attendanceQuery = studentClass
+    ? adminDb().collection(`${root}/attendance`).where("class", "==", studentClass)
+    : adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE);
+  const referralQuery = aliasList.length
+    ? adminDb().collection(`${root}/counselorReferrals`).where("studentId", "in", aliasList)
+    : adminDb().collection(`${root}/counselorReferrals`).where("studentId", "==", access.studentId);
+  const [attendance, timetable, gradePlanState, referralSnapshot] = await Promise.all([
+    attendanceQuery.get(),
+    adminDb().collection(`${root}/timetable`).doc("weekly").get(),
+    readActiveGradePlanForSubject(access.teacherId, access.subjectId),
+    referralQuery.get(),
+  ]);
 
   const counselorReferrals = referralSnapshot.docs
     .map(document => ({ id: document.id, ...(document.data() as Record<string, unknown>) }) as ReferralRow)
