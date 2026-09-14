@@ -1,5 +1,6 @@
 name: Fix Runtime Drain Reads
 
+# Final verification trigger after concurrent drain commits.
 on:
   push:
     branches:
