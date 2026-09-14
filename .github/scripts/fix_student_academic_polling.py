@@ -23,10 +23,12 @@ elif "refreshTimer.current=window.setTimeout(run,15000)" in page:
 page_path.write_text(page, encoding="utf-8")
 
 audit = audit_path.read_text(encoding="utf-8")
-marker = '''forbid(\n  "app/student/academic-record/page.tsx",\n  /setInterval\\s*\\(/,\n  "السجل الأكاديمي للطالب يجب ألا يشغّل تحديثًا دوريًا بالخلفية.",\n);\n'''
-replacement = '''forbid(\n  "app/student/academic-record/page.tsx",\n  /setInterval\\s*\\(|setTimeout\\s*\\(\\s*run\\s*,|refreshTimer/,\n  "السجل الأكاديمي للطالب يجب ألا يشغّل أي polling دوري بالخلفية.",\n);\n'''
-if marker in audit:
-    audit = audit.replace(marker, replacement, 1)
+rule = '''\nforbid(\n  "app/student/academic-record/page.tsx",\n  /setInterval\\s*\\(|setTimeout\\s*\\(\\s*run\\s*,|refreshTimer/,\n  "السجل الأكاديمي للطالب يجب ألا يشغّل أي polling دوري بالخلفية.",\n);\n'''
+if '"app/student/academic-record/page.tsx"' not in audit:
+    anchor = '''forbid(\n  "app/student-academic-record-bridge.tsx",\n  /setInterval\\s*\\(/,\n  "السجل الأكاديمي المدمج لا يكرر قراءة بيانات الطالب دوريًا؛ التحديث يكون عند الفتح أو عودة التركيز.",\n);\n'''
+    if anchor not in audit:
+        raise SystemExit("student academic audit insertion anchor not found")
+    audit = audit.replace(anchor, anchor + rule, 1)
 elif "السجل الأكاديمي للطالب يجب ألا يشغّل أي polling دوري بالخلفية" not in audit:
-    raise SystemExit("student academic audit block not found")
+    raise SystemExit("unexpected existing academic-record audit rule")
 audit_path.write_text(audit, encoding="utf-8")
