@@ -1,0 +1,103 @@
+/* Unified portal identity — mirrors the current home-v19 visual language only. No data/runtime behavior here. */
+:root{
+  --u-navy:#062f45;
+  --u-navy2:#084b63;
+  --u-teal:#0aa39b;
+  --u-teal2:#086a75;
+  --u-gold:#d4a548;
+  --u-paper:#f3f7fa;
+  --u-ink:#143645;
+  --u-muted:#667f8b;
+  --u-line:#dbe6ec;
+  --u-card:#ffffff;
+  --u-shadow:0 16px 40px rgba(11,53,75,.10);
+}
+
+/* shared page canvas */
+body:has(.v3-teacher-login),
+body:has(.student-current-login),
+body:has(.student-current-gate),
+body:has(.student-current-shell),
+body:has(.teacher-app-shell),
+body:has(.admin-current-login){background:var(--u-paper)!important;color:var(--u-ink)!important}
+body:has(.v3-teacher-login)::before,body:has(.v3-teacher-login)::after,
+body:has(.student-current-login)::before,body:has(.student-current-login)::after,
+body:has(.admin-current-login)::before,body:has(.admin-current-login)::after{display:none!important}
+
+/* teacher login — same hierarchy as home */
+.v3-teacher-login{min-height:100dvh!important;background:var(--u-paper)!important;padding:16px!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(420px,.78fr)!important;gap:12px!important;align-items:stretch!important;overflow:auto!important}
+.v3-teacher-login .teacher-entry-intro{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;text-align:right!important;padding:48px clamp(30px,5vw,68px)!important;border-radius:30px!important;background:linear-gradient(120deg,var(--u-navy),var(--u-navy2))!important;box-shadow:0 22px 54px rgba(6,47,69,.20)!important;color:#fff!important}
+.v3-teacher-login .teacher-entry-intro>span{color:#bce8e5!important;font-size:13px!important;font-weight:850!important}
+.v3-teacher-login .teacher-entry-intro h1{margin:10px 0 14px!important;color:#fff!important;font-size:clamp(42px,5vw,68px)!important;line-height:1.12!important;font-weight:900!important}
+.v3-teacher-login .teacher-entry-intro p{margin:0!important;color:#d5e8ed!important;font-size:17px!important;line-height:1.85!important}
+.v3-teacher-login .teacher-entry-intro small{margin-top:14px!important;color:#bce8e5!important;font-size:12px!important}
+.v3-teacher-login .v3-login-card{align-self:center!important;width:min(590px,100%)!important;margin:auto!important;padding:30px!important;border-radius:24px!important;background:#fff!important;border:1px solid var(--u-line)!important;box-shadow:var(--u-shadow)!important}
+.v3-teacher-login .v3-login-card:before{display:none!important}
+.v3-teacher-login .v3-back{position:static!important;display:inline-flex!important;margin-bottom:18px!important;color:var(--u-navy)!important;background:#eef5f7!important;border:1px solid var(--u-line)!important;border-radius:10px!important;padding:8px 11px!important;text-decoration:none!important}
+.v3-teacher-login .v3-login-card h1{color:var(--u-ink)!important;font-size:30px!important}
+.v3-teacher-login .v3-login-card>p{color:var(--u-muted)!important}
+.v3-teacher-login input{border:1px solid var(--u-line)!important;background:#f8fbfc!important;border-radius:12px!important}
+.v3-teacher-login input:focus{border-color:var(--u-teal)!important;box-shadow:0 0 0 4px rgba(10,163,155,.10)!important}
+.v3-teacher-login .v3-primary{background:linear-gradient(140deg,var(--u-teal),var(--u-teal2))!important;border:0!important;border-radius:12px!important;box-shadow:0 10px 22px rgba(10,163,155,.18)!important}
+.v3-teacher-login .teacher-entry-features,.v3-teacher-login .teacher-entry-credit{display:none!important}
+
+/* student login — same cards/background as home */
+.student-current-login{min-height:100dvh!important;background:var(--u-paper)!important;padding:16px!important}
+.student-current-login .student-scene{display:none!important}
+.student-current-login .scl-frame{min-height:calc(100dvh - 32px)!important;width:min(1500px,100%)!important;margin:auto!important;display:grid!important;grid-template-rows:auto 1fr auto!important;gap:12px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.student-current-login .scl-brand{height:74px!important;border-radius:20px!important;background:#fff!important;border:1px solid var(--u-line)!important;box-shadow:0 10px 28px rgba(11,53,75,.07)!important;padding:9px 13px!important}
+.student-current-login .scl-brand img{width:52px!important;height:52px!important;border-radius:14px!important;background:#fff!important;border:1px solid var(--u-line)!important}
+.student-current-login .scl-brand strong{color:var(--u-ink)!important}.student-current-login .scl-brand small{color:var(--u-muted)!important}
+.student-current-login .scl-back{background:#eaf7f5!important;color:#126960!important;border:0!important;border-radius:999px!important;padding:10px 13px!important}
+.student-current-login .scl-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(420px,.75fr)!important;gap:12px!important;align-items:stretch!important}
+.student-current-login .scl-intro{display:flex!important;flex-direction:column!important;justify-content:center!important;padding:48px clamp(30px,5vw,70px)!important;border-radius:30px!important;background:linear-gradient(120deg,var(--u-navy),var(--u-navy2))!important;color:#fff!important;box-shadow:0 22px 54px rgba(6,47,69,.20)!important}
+.student-current-login .scl-intro .scl-kicker{color:#bce8e5!important}.student-current-login .scl-intro h1{color:#fff!important}.student-current-login .scl-intro h1 em{color:#7be0da!important}.student-current-login .scl-intro p{color:#d5e8ed!important}
+.student-current-login .scl-features article{background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.15)!important;color:#fff!important}
+.student-current-login .scl-card{align-self:center!important;width:min(570px,100%)!important;margin:auto!important;padding:30px!important;border-radius:24px!important;background:#fff!important;border:1px solid var(--u-line)!important;box-shadow:var(--u-shadow)!important}
+.student-current-login .scl-card-glow{display:none!important}.student-current-login .scl-card>img{border:1px solid var(--u-line)!important;border-radius:16px!important}.student-current-login .scl-card h2{color:var(--u-ink)!important}.student-current-login .scl-card p,.student-current-login .scl-card em{color:var(--u-muted)!important}
+.student-current-login .scl-input{border:1px solid var(--u-line)!important;background:#f8fbfc!important;border-radius:12px!important}.student-current-login .scl-input:focus-within{border-color:var(--u-teal)!important;box-shadow:0 0 0 4px rgba(10,163,155,.10)!important}
+.student-current-login .scl-card button[type=submit]{background:linear-gradient(140deg,var(--u-teal),var(--u-teal2))!important;border:0!important;border-radius:12px!important}
+.student-current-login .scl-frame>footer{color:var(--u-muted)!important}
+
+/* teacher workspace — same top bar/card language as home */
+.teacher-app-shell{min-height:100dvh!important;background:var(--u-paper)!important;color:var(--u-ink)!important}
+.teacher-app-shell .teacher-pro-header{margin:16px!important;border-radius:20px!important;background:#fff!important;border:1px solid var(--u-line)!important;box-shadow:0 10px 28px rgba(11,53,75,.07)!important;color:var(--u-ink)!important}
+.teacher-app-shell .teacher-pro-brand-copy strong,.teacher-app-shell .teacher-pro-subject-copy strong{color:var(--u-ink)!important}
+.teacher-app-shell .teacher-pro-brand-copy small,.teacher-app-shell .teacher-pro-subject-copy small{color:var(--u-muted)!important}
+.teacher-app-shell .teacher-pro-logo{border-radius:14px!important;border:1px solid var(--u-line)!important;background:#fff!important}
+.teacher-app-shell .teacher-pro-nav a,.teacher-app-shell .teacher-pro-action{color:#315664!important;border-radius:12px!important}
+.teacher-app-shell .teacher-pro-nav a.active,.teacher-app-shell .teacher-pro-action.ai{background:linear-gradient(140deg,var(--u-teal),var(--u-teal2))!important;color:#fff!important}
+.teacher-app-shell .teacher-main{background:transparent!important}
+.teacher-app-shell .teacher-context-strip{margin:0 16px 12px!important;border-radius:18px!important;background:linear-gradient(120deg,var(--u-navy),var(--u-navy2))!important;color:#fff!important;border:0!important;box-shadow:0 16px 34px rgba(6,47,69,.14)!important}
+.teacher-app-shell .teacher-context-strip small,.teacher-app-shell .teacher-context-date{color:#cde8ec!important}
+.teacher-app-shell .teacher-page-content{padding:0 16px 22px!important}
+.teacher-app-shell .teacher-command-panel{background:#fff!important;border-left:1px solid var(--u-line)!important;box-shadow:-18px 0 40px rgba(11,53,75,.12)!important}
+.teacher-app-shell .teacher-command-head strong,.teacher-app-shell .teacher-command-link-copy b{color:var(--u-ink)!important}.teacher-app-shell .teacher-command-head small,.teacher-app-shell .teacher-command-link-copy small{color:var(--u-muted)!important}
+.teacher-app-shell .teacher-command-links a.active{background:#eaf7f5!important;color:#126960!important}
+.teacher-app-shell .teacher-mobile-nav{background:#fff!important;border-top:1px solid var(--u-line)!important;box-shadow:0 -8px 24px rgba(11,53,75,.08)!important}
+.teacher-app-shell .teacher-mobile-nav a.active,.teacher-app-shell .teacher-mobile-nav button.active{color:var(--u-teal)!important}
+
+/* student portal after login */
+.student-current-gate,.student-current-shell{background:var(--u-paper)!important;color:var(--u-ink)!important}.student-current-gate .student-scene,.student-current-shell .student-scene{display:none!important}
+.student-current-gate .scg-shell{background:transparent!important}.student-current-gate .scg-shell>header,.student-current-shell .sc-head{background:#fff!important;border:1px solid var(--u-line)!important;border-radius:20px!important;box-shadow:0 10px 28px rgba(11,53,75,.07)!important}
+.student-current-gate .scg-title{background:linear-gradient(120deg,var(--u-navy),var(--u-navy2))!important;color:#fff!important;border-radius:26px!important;padding:30px!important}.student-current-gate .scg-title h1{color:#fff!important}.student-current-gate .scg-title p{color:#d5e8ed!important}
+.student-current-gate .scg-subjects>button{background:#fff!important;border:1px solid var(--u-line)!important;box-shadow:0 12px 26px rgba(11,53,75,.07)!important}.student-current-gate .scg-subjects>button:hover{border-color:var(--u-teal)!important;transform:translateY(-3px)!important}
+.student-current-shell .sc-sidebar{background:linear-gradient(180deg,var(--u-navy),var(--u-navy2))!important;color:#fff!important}.student-current-shell .sc-sidebar nav button{color:#dcecef!important}.student-current-shell .sc-sidebar nav button.active{background:rgba(10,163,155,.22)!important;color:#fff!important;border-color:rgba(60,199,213,.35)!important}.student-current-shell .sc-stage{background:var(--u-paper)!important}
+.student-current-shell .sc-hero{background:linear-gradient(120deg,var(--u-navy),var(--u-navy2))!important;color:#fff!important}.student-current-shell .sc-hero h2{color:#fff!important}.student-current-shell .sc-hero p{color:#d5e8ed!important}.student-current-shell .sc-kicker{color:#8de2dd!important}
+.student-current-shell .sc-kpis article,.student-current-shell .sc-chart-card,.student-current-shell .sc-page{background:#fff!important;border-color:var(--u-line)!important;box-shadow:0 12px 28px rgba(11,53,75,.07)!important}
+
+/* admin entry gets the same shell language */
+.admin-current-login{min-height:100dvh!important;background:var(--u-paper)!important;padding:16px!important}.admin-current-login .acl-scene{display:none!important}.admin-current-login .acl-frame{width:min(1500px,100%)!important;margin:auto!important;background:transparent!important;border:0!important;box-shadow:none!important}.admin-current-login .acl-top{background:#fff!important;border:1px solid var(--u-line)!important;border-radius:20px!important;box-shadow:0 10px 28px rgba(11,53,75,.07)!important}.admin-current-login .acl-hero{background:linear-gradient(120deg,var(--u-navy),var(--u-navy2))!important;color:#fff!important;border-radius:28px!important}.admin-current-login .acl-hero h1,.admin-current-login .acl-hero h1 em{color:#fff!important}.admin-current-login .acl-hero p{color:#d5e8ed!important}.admin-current-login .acl-card,.admin-current-login .acl-showcase{background:#fff!important;border:1px solid var(--u-line)!important;border-radius:22px!important;box-shadow:var(--u-shadow)!important}.admin-current-login .acl-card button{background:linear-gradient(140deg,#285fa9,#173f75)!important;border:0!important}
+
+@media(max-width:900px){
+  .v3-teacher-login,.student-current-login .scl-grid{grid-template-columns:1fr!important}
+  .v3-teacher-login .teacher-entry-intro,.student-current-login .scl-intro{min-height:300px!important}
+  .teacher-app-shell .teacher-pro-header{margin:8px!important}
+  .teacher-app-shell .teacher-context-strip{margin:0 8px 8px!important}
+  .teacher-app-shell .teacher-page-content{padding:0 8px 84px!important}
+}
+@media(max-width:620px){
+  .v3-teacher-login,.student-current-login,.admin-current-login{padding:8px!important}
+  .v3-teacher-login .teacher-entry-intro,.student-current-login .scl-intro{padding:28px 22px!important;border-radius:24px!important}
+  .v3-teacher-login .v3-login-card,.student-current-login .scl-card{padding:22px!important;border-radius:20px!important}
+}
