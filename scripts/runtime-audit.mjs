@@ -140,16 +140,29 @@ requirePattern(
   "إنشاء حساب المعلم يجب أن يملك مهلة زمنية قصيرة.",
 );
 
-// حماية الصفحة الرئيسية: الحضور المباشر يجب أن يقتصر على تاريخ اليوم فقط.
-requirePattern(
-  "app/teacher/dashboard/dashboard-v31.tsx",
-  /query\([\s\S]*?attendance[\s\S]*?where\(\s*["']date["']\s*,\s*["']==["']\s*,\s*todayKey\s*\)/,
-  "لوحة المعلم يجب أن تستمع لحضور اليوم فقط، لا لمجموعة الحضور كاملة.",
-);
+// حماية الصفحة الرئيسية: إما بلا قراءات Firestore/API ثقيلة إطلاقًا، أو حضور اليوم فقط.
+const teacherDashboardSource = read("app/teacher/dashboard/dashboard-v31.tsx") || "";
+const dashboardReadFree = !/(?:firebase\/firestore|\bonSnapshot\s*\(|\/api\/teacher\/(?:students|grade-data|timetable|grade-plan))/.test(teacherDashboardSource);
+const dashboardTodayAttendanceOnly = /query\([\s\S]*?attendance[\s\S]*?where\(\s*["']date["']\s*,\s*["']==["']\s*,\s*todayKey\s*\)/.test(teacherDashboardSource);
+if (!dashboardReadFree && !dashboardTodayAttendanceOnly) {
+  failures.push("app/teacher/dashboard/dashboard-v31.tsx: لوحة المعلم يجب أن تكون بلا قراءات ثقيلة أو تستمع لحضور اليوم فقط.");
+}
 forbid(
   "app/teacher/dashboard/dashboard-v31.tsx",
   /onSnapshot\(\s*collection\([^\n]*["']attendance["']/,
   "الاستماع المباشر إلى مجموعة الحضور كاملة ممنوع في لوحة المعلم.",
+);
+
+// حماية الجدول: تكرار الطلبات لا يجب أن يتحول إلى قراءة Firestore لكل طلب.
+requirePattern(
+  "app/api/teacher/timetable/route.ts",
+  /TIMETABLE_CACHE_TTL_MS\s*=\s*5\s*\*\s*60\s*\*\s*1000/,
+  "الجدول يحتاج كاشًا خادميًا يحمي Firestore من الطلبات المتكررة.",
+);
+requirePattern(
+  "app/api/teacher/timetable/route.ts",
+  /timetableInflight/,
+  "طلبات الجدول المتزامنة يجب أن تُدمج في قراءة واحدة.",
 );
 
 // حماية التقارير: القراءة يجب أن تكون حسب اليوم أو الفترة المختارة فقط.
@@ -220,4 +233,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("نجح فحص استهلاك البوابة: لا توجد المراقبات أو الطلبات المكررة المحظورة، وحمايات الحضور والتقارير والمسابقة فعالة.");
+console.log("نجح فحص استهلاك البوابة: الرئيسية خفيفة، الجدول محمي من التكرار، وحمايات الحضور والتقارير والمسابقة فعالة.");
