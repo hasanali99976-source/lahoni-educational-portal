@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v123-stable";
-const SERVICE_WORKER_VERSION = "123-stable";
+const CURRENT_CACHE = "ostadh-lahooni-v124-stable";
+const SERVICE_WORKER_VERSION = "124-stable";
 
 export default function PwaRegister() {
   useEffect(() => {
