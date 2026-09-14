@@ -203,6 +203,18 @@ requirePattern(
   "API تقرير الفترة يجب أن يمنع قراءة أكثر من 31 يومًا.",
 );
 
+
+forbid(
+  "app/teacher/report/page.tsx",
+  /firebase\/firestore|\bonSnapshot\s*\(|\bgetDocs\s*\(/,
+  "ملخص عمل المعلم يجب ألا يستمع إلى Firestore مباشرة من المتصفح.",
+);
+requirePattern(
+  "app/teacher/report/page.tsx",
+  /\/api\/teacher\/attendance-report/,
+  "ملخص عمل المعلم يجب أن يستخدم قراءة حضور خادمية محدودة.",
+);
+
 // بيانات الدرجات المجمعة يجب أن تبقى خلف كاش خادمي قصير.
 requirePattern(
   "app/api/teacher/grade-data/route.ts",

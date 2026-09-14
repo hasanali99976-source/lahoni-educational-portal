@@ -2,10 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
-import { tenantCollection } from "../../../lib/teacher-tenant";
 import { calculateGradePlanResult, type GradeStudentLike } from "../../../lib/grade-plan";
 import { useGradePlan } from "../../../lib/use-grade-plan";
 import TeacherCompetitionProgress from "../competition-progress";
@@ -53,10 +50,18 @@ export default function TeacherReportPage(){
   },[session?.subjectKey,session?.activeGrade]);
 
   useEffect(()=>{
-    if(!session?.teacherId||!session?.subjectKey)return;
-    const path=tenantCollection(session.teacherId,session.subjectKey as never,"attendance");
-    return onSnapshot(collection(db,path),snapshot=>setAttendance(snapshot.docs.map(item=>item.data() as AttendanceRecord)),()=>setAttendance([]));
-  },[session?.teacherId,session?.subjectKey]);
+    if(!session?.subjectKey)return;
+    const controller=new AbortController();
+    const formatter=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"});
+    const toDate=new Date();
+    const fromDate=new Date(toDate.getTime()-30*86_400_000);
+    const params=new URLSearchParams({subjectId:session.subjectKey,mode:"range",from:formatter.format(fromDate),to:formatter.format(toDate)});
+    fetch(`/api/teacher/attendance-report?${params.toString()}`,{cache:"no-store",signal:controller.signal})
+      .then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل الحضور");return data;})
+      .then(data=>setAttendance(Array.isArray(data.attendance)?data.attendance:[]))
+      .catch(error=>{if((error as Error)?.name!=="AbortError")setAttendance([]);});
+    return()=>controller.abort();
+  },[session?.subjectKey]);
 
   const classes=useMemo(()=>[...new Set(students.map(student=>student.class).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})),[students]);
   useEffect(()=>{if(!classes.length){setSelectedClasses([]);return;}setSelectedClasses(current=>current.length?current.filter(item=>classes.includes(item)):[classes[0]]);},[classes.join("|")]);
