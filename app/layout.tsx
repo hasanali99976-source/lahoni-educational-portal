@@ -12,7 +12,6 @@ import "./portal-intelligence.css";
 import "./attendance-students-v31.css";
 import "./mobile-complete-v36.css";
 import "./teacher/teacher-mobile-complete-v7.css";
-import "./portal-entry-v107.css";
 import "./portal-entry-v107-fix.css";
 import "./portal-entry-v108.css";
 import "./portal-entry-v109.css";
