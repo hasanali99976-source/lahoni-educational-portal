@@ -1,16 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { adminDb } from "../../../lib/server/firebase-admin";
-import { restoreLegacyTeacherLearningData } from "../../../lib/server/legacy-teacher-data";
 import { requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { normalizeAssignments } from "../../../lib/teacher-assignments";
 import { gradeLabel, gradeNumber } from "../../../lib/school-roster";
-import {
-  TEACHER_CLASS_SCOPES_COLLECTION,
-  assignmentScopeSignature,
-  teacherClassScopeId,
-} from "../../../lib/teacher-class-scope";
 
 const SUBJECT_COOKIE = "lahooni_active_subject";
 
@@ -63,43 +56,11 @@ function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof no
   return workspaces;
 }
 
-async function resetStaleClassScopes(teacherId: string, subjectIds: string[], assignments: ReturnType<typeof normalizeAssignments>) {
-  const database = adminDb();
-  const resetWorkspaces: string[] = [];
-
-  for (const subjectId of subjectIds) {
-    const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
-    const assignedGrades = [...new Set(subjectAssignments
-      .map(item => gradeNumber(item.grade))
-      .filter((item): item is 1 | 2 | 3 => !!item))];
-    const gradesToCheck: Array<1 | 2 | 3 | null> = assignedGrades.length ? assignedGrades : [null];
-
-    for (const grade of gradesToCheck) {
-      const reference = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
-        .doc(teacherClassScopeId(teacherId, subjectId, grade));
-      const snapshot = await reference.get();
-      if (!snapshot.exists) continue;
-
-      const data = snapshot.data() as Record<string, unknown>;
-      const savedSignature = String(data.assignmentSignature || "");
-      const expectedSignature = assignmentScopeSignature(assignments, subjectId, grade);
-      if (savedSignature === expectedSignature && savedSignature) continue;
-
-      await reference.delete();
-      resetWorkspaces.push(grade ? `${subjectId}--${grade}` : subjectId);
-    }
-  }
-
-  return resetWorkspaces;
-}
-
 export async function GET() {
   try {
     const session = await requireSession("teacher");
-    if (!session) return NextResponse.json({ authenticated: false }, { status: 401 });
+    if (!session?.user?.active) return NextResponse.json({ authenticated: false }, { status: 401 });
     const user = session.user;
-    if (!user || !user.active) return NextResponse.json({ authenticated: false }, { status: 401 });
-
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const subjects = buildWorkspaces(user.subjectIds, assignments);
     const store = await cookies();
@@ -108,24 +69,6 @@ export async function GET() {
       || subjects.find(item => item.subjectId === savedWorkspace)
       || subjects[0]
       || null;
-
-    let resetClassScopes: string[] = [];
-    try {
-      resetClassScopes = await resetStaleClassScopes(user.id, user.subjectIds, assignments);
-    } catch (error) {
-      console.warn("stale teacher class scope reset skipped", error);
-    }
-
-    let legacyRestore: Record<string, unknown> = { restored: 0, alreadyChecked: false };
-    try {
-      legacyRestore = await restoreLegacyTeacherLearningData({
-        teacherId: user.id,
-        teacherName: user.name,
-        subjectIds: user.subjectIds,
-      });
-    } catch (error) {
-      console.warn("legacy teacher data restoration skipped", error);
-    }
 
     const response = NextResponse.json({
       authenticated: true,
@@ -138,9 +81,9 @@ export async function GET() {
       subject: currentWorkspace?.subjectName || null,
       subjects,
       assignments,
-      resetClassScopes,
-      legacyRestore,
-    }, { headers: { "Cache-Control": "no-store" } });
+      resetClassScopes: [],
+      legacyRestore: { restored: 0, alreadyChecked: true, skipped: "session_read_safety" },
+    }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" } });
     if (currentWorkspace) response.cookies.set(SUBJECT_COOKIE, currentWorkspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     return response;
   } catch (error) {
