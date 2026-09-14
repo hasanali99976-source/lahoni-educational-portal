@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
-import { ClientTenant, migrateLegacyHistoryStudents, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
+import { ClientTenant, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
 import { RESEARCH_MAX, subjectLabel as getSubjectLabel } from "../../../lib/academic-config";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import "../grades/register.css";
@@ -20,7 +20,17 @@ export default function ResearchPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  useEffect(()=>{ if(!tenant){ setMessage("انتهت جلسة المعلم. سجّل الدخول من جديد."); return; } let unsubscribe=()=>{};let cancelled=false; migrateLegacyHistoryStudents(db,tenant).catch(()=>{}).finally(()=>{ if(cancelled) return; unsubscribe=onSnapshot(collection(db,tenantStudentsPath(tenant)),snapshot=>{const list=snapshot.docs.map(item=>({id:item.id,...item.data()})) as Student[];list.sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list);},()=>setMessage("تعذر تحميل طلاب مادة المعلم الحالي"));}); return ()=>{cancelled=true;unsubscribe();}; },[tenant]);
+  useEffect(()=>{
+    if(!tenant||!session?.subjectKey){setMessage("انتهت جلسة المعلم. سجّل الدخول من جديد.");return;}
+    const controller=new AbortController();
+    const params=new URLSearchParams({subjectId:session.subjectKey});
+    if(session.activeGrade)params.set("grade",String(session.activeGrade));
+    fetch(`/api/teacher/students?${params.toString()}`,{cache:"no-store",signal:controller.signal})
+      .then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل الطلاب");return data;})
+      .then(data=>{const list=(Array.isArray(data.students)?data.students:[]).map((item:Record<string,unknown>)=>({...item,id:String(item.code||item.id||""),class:String(item.className||item.class||"")} as Student));list.sort((a:Student,b:Student)=>(a.name||"").localeCompare(b.name||"","ar"));setStudents(list);})
+      .catch(error=>{if((error as Error)?.name!=="AbortError")setMessage("تعذر تحميل طلاب مادة المعلم الحالي");});
+    return()=>controller.abort();
+  },[tenant,session?.subjectKey,session?.activeGrade]);
 
   const classes = useMemo(() => Array.from(new Set(students.map(s=>(s.class||"").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ar")), [students]);
   const classStudents = useMemo(() => students.filter(s=>(s.class||"").trim()===selectedClass), [students,selectedClass]);

@@ -222,6 +222,20 @@ requirePattern(
   "بيانات التحصيل المجمعة يجب أن تبقى خلف كاش خادمي قصير.",
 );
 
+
+for (const route of ["app/teacher/ai/page.tsx", "app/teacher/research/page.tsx"]) {
+  forbid(
+    route,
+    /\bonSnapshot\s*\(|\bgetDocs\s*\(/,
+    "صفحات المعلم النشطة يجب ألا تراقب قائمة الطلاب كاملة من Firestore.",
+  );
+  requirePattern(
+    route,
+    /\/api\/teacher\/students/,
+    "صفحات المعلم النشطة يجب أن تحمل القائمة مرة واحدة من API الطلاب.",
+  );
+}
+
 // حماية المتابعة الذكية: لا مراقبة حية لمجموعة الطلاب كاملة.
 forbid(
   "app/teacher/follow-up/page.tsx",

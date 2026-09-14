@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { tenantCollection } from "../../../lib/teacher-tenant";
@@ -52,13 +52,19 @@ export default function TeacherAiPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [duration, setDuration] = useState("٤ أسابيع");
   const [message, setMessage] = useState("");
-  const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "students") : "", [teacherId, subjectKey]);
   const plansPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "treatmentPlans") : "", [teacherId, subjectKey]);
 
   useEffect(() => {
-    if (!studentsPath) return;
-    return onSnapshot(collection(db, studentsPath), snapshot => setStudents(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as Student)).sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"))));
-  }, [studentsPath]);
+    if (!session?.subjectKey) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({ subjectId: session.subjectKey });
+    if (session.activeGrade) params.set("grade", String(session.activeGrade));
+    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الطلاب"); return data; })
+      .then(data => setStudents((Array.isArray(data.students) ? data.students : []).map((item: Record<string, unknown>) => ({ ...item, id: String(item.code || item.id || ""), class: String(item.className || item.class || "") } as Student)).sort((a: Student, b: Student) => (a.name || "").localeCompare(b.name || "", "ar"))))
+      .catch(error => { if ((error as Error)?.name !== "AbortError") setMessage("تعذر تحميل طلاب مادة المعلم الحالي"); });
+    return () => controller.abort();
+  }, [session?.subjectKey, session?.activeGrade]);
 
   const analyzed = useMemo(() => activePlan ? students.map(student => analyze(student, activePlan)) : [], [students, activePlan]);
   const classes = useMemo(() => Array.from(new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
