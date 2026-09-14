@@ -14,8 +14,9 @@ export const ADMIN_AUTH_VERSION = "local-admin-session-v2-10d";
 const FIRESTORE_AUTH_TIMEOUT_MS = 4500;
 
 export type PortalRole = "admin" | "teacher";
-export type PortalSession = { userId: string; role: PortalRole; name: string; authVersion: string; expiresAt: number; };
 export type PortalUser = { id: string; username: string; normalizedUsername: string; name: string; role: PortalRole; passwordHash: string; active: boolean; subjectIds: string[]; assignments?: unknown; createdAt: string; updatedAt: string; };
+export type PortalSessionUser = Omit<PortalUser, "passwordHash">;
+export type PortalSession = { userId: string; role: PortalRole; name: string; authVersion: string; expiresAt: number; userSnapshot?: PortalSessionUser; };
 export type VerifiedPortalSession = PortalSession & { user?: PortalUser; };
 type CompatDocumentSnapshot = { id: string; exists: boolean; data(): unknown; };
 
@@ -32,7 +33,28 @@ export function createDiagnosticRecoveryCode(result: DiagnosticRecoveryResult) {
 export function readDiagnosticRecoveryCode(value?: string): DiagnosticRecoveryResult | null { if (!value) return null; try { const [payload, signature] = value.split("."); if (!payload || !signature) return null; const expected = Buffer.from(sign(payload)); const received = Buffer.from(signature); if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null; const recovery = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as DiagnosticRecoveryPayload; const result = recovery.result; if (recovery.version != 1 || recovery.expiresAt <= Date.now() || !result) return null; if (!result.diagnosticId || !result.studentId || !result.teacherId || !result.subjectId) return null; if (!Number.isFinite(result.score) || !Number.isFinite(result.total) || !Number.isFinite(result.percentage)) return null; return { ...result, plan: String(result.plan || "راجع المهارات التي لم تتقنها مع المعلم."), weakSkills: Array.isArray(result.weakSkills) ? result.weakSkills.map(String) : [], submittedAt: String(result.submittedAt || new Date().toISOString()) }; } catch { return null; } }
 export function readSessionToken(value?: string): PortalSession | null { if (!value) return null; try { const [payload, signature] = value.split("."); if (!payload || !signature) return null; const expected = Buffer.from(sign(payload)); const received = Buffer.from(signature); if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null; const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as PortalSession; if (!session.userId || !session.role || !session.authVersion || session.expiresAt <= Date.now()) return null; if (session.role !== "admin" && session.role !== "teacher") return null; return session; } catch { return null; } }
 export async function currentSession() { const store = await cookies(); return readSessionToken(store.get(PORTAL_SESSION_COOKIE)?.value); }
-export async function requireSession(role?: PortalRole): Promise<VerifiedPortalSession | null> { const session = await currentSession(); if (!session || (role && session.role !== role)) return null; if (session.role === "admin") { if (session.userId !== "primary-admin" || session.authVersion !== ADMIN_AUTH_VERSION) return null; return { ...session, name: session.name || "حسن علي" }; } if (session.authVersion === LEGACY_TEACHER_AUTH_VERSION) { const fallbackUser = legacyTeacherById(session.userId) as PortalUser | null; if (!fallbackUser?.active) return null; return { ...session, name: fallbackUser.name, user: fallbackUser }; } const user = await findUserByIdCached(session.userId); if (!user || !user.active || user.role !== session.role) return null; if (!user.updatedAt || user.updatedAt !== session.authVersion) return null; return { ...session, name: user.name, user }; }
+export async function requireSession(role?: PortalRole): Promise<VerifiedPortalSession | null> {
+  const session = await currentSession();
+  if (!session || (role && session.role !== role)) return null;
+  if (session.role === "admin") {
+    if (session.userId !== "primary-admin" || session.authVersion !== ADMIN_AUTH_VERSION) return null;
+    return { ...session, name: session.name || "حسن علي" };
+  }
+  if (session.authVersion === LEGACY_TEACHER_AUTH_VERSION) {
+    const fallbackUser = legacyTeacherById(session.userId) as PortalUser | null;
+    if (!fallbackUser?.active) return null;
+    return { ...session, name: fallbackUser.name, user: fallbackUser };
+  }
+  const snapshot = session.userSnapshot;
+  if (snapshot && snapshot.id === session.userId && snapshot.role === "teacher" && snapshot.active && snapshot.updatedAt === session.authVersion) {
+    const user: PortalUser = { ...snapshot, passwordHash: "" };
+    return { ...session, name: user.name, user };
+  }
+  const user = await findUserByIdCached(session.userId);
+  if (!user || !user.active || user.role !== session.role) return null;
+  if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
+  return { ...session, name: user.name, user };
+}
 export function normalizeUsername(value: string) { return value.trim().toLocaleLowerCase("ar").replace(/\s+/g, " "); }
 function normalizePortalUser(document: CompatDocumentSnapshot): PortalUser | null { if (!document.exists) return null; const data = document.data() as Omit<PortalUser, "id"> & { role?: string }; if (data.role !== "admin" && data.role !== "teacher") return null; const storedSubjectIds = Array.isArray(data.subjectIds) ? data.subjectIds.map(String) : []; const assignments = normalizeAssignments(data.assignments, storedSubjectIds); const subjectIds = data.role === "teacher" && assignments.length ? [...new Set(assignments.map(item => item.subjectId))] : storedSubjectIds.map(item => item.split("--")[0]); return { id: document.id, ...data, role: data.role, subjectIds, assignments }; }
 export async function findUserByUsername(username: string): Promise<PortalUser | null> { const snapshot = await withFirestoreAuthTimeout(adminDb().collection("portalV2Users").where("normalizedUsername", "==", normalizeUsername(username)).limit(1).get()); if (snapshot.empty) return null; return normalizePortalUser(snapshot.docs[0]!); }
