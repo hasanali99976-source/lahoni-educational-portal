@@ -4,6 +4,10 @@ import { hashPassword } from "../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
+const ADMIN_TEACHERS_CACHE_TTL_MS = 60_000;
+type AdminTeacherRow = { id: string; username: unknown; name: string; active: unknown; subjectIds: string[]; assignments: ReturnType<typeof normalizeAssignments>; createdAt: unknown };
+let teacherListCache: { teachers: AdminTeacherRow[]; expiresAt: number } | null = null;
+
 function sameStringList(left: string[], right: string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
@@ -22,32 +26,40 @@ async function withTimeout<T>(promise: Promise<T>, milliseconds = 6500): Promise
   }
 }
 
+async function loadTeacherList() {
+  if (teacherListCache && teacherListCache.expiresAt > Date.now()) return teacherListCache.teachers;
+
+  const snapshot = await withTimeout(
+    adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
+  );
+  const batch = adminDb().batch();
+  let hasRepairs = false;
+  const teachers = snapshot.docs.map((item) => {
+    const data = item.data();
+    const storedSubjectIds: string[] = Array.isArray(data.subjectIds)
+      ? data.subjectIds.map((id: unknown) => String(id))
+      : [];
+    const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
+    const subjectIds: string[] = assignments.length
+      ? [...new Set<string>(assignments.map(assignment => assignment.subjectId))]
+      : [...new Set<string>(storedSubjectIds.map((id: string) => id.split("--")[0]))];
+    if (!sameStringList(storedSubjectIds, subjectIds)) {
+      batch.set(adminDb().collection("portalV2Users").doc(item.id), { subjectIds }, { merge: true });
+      hasRepairs = true;
+    }
+    return { id: item.id, username: data.username, name: String(data.name || ""), active: data.active, subjectIds, assignments, createdAt: data.createdAt };
+  }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
+  if (hasRepairs) await withTimeout(batch.commit());
+  teacherListCache = { teachers, expiresAt: Date.now() + ADMIN_TEACHERS_CACHE_TTL_MS };
+  return teachers;
+}
+
 export async function GET() {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
 
   try {
-    const snapshot = await withTimeout(
-      adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
-    );
-    const batch = adminDb().batch();
-    let hasRepairs = false;
-    const teachers = snapshot.docs.map((item) => {
-      const data = item.data();
-      const storedSubjectIds: string[] = Array.isArray(data.subjectIds)
-        ? data.subjectIds.map((id: unknown) => String(id))
-        : [];
-      const assignments = normalizeAssignments(data.assignments, storedSubjectIds);
-      const subjectIds: string[] = assignments.length
-        ? [...new Set<string>(assignments.map(assignment => assignment.subjectId))]
-        : [...new Set<string>(storedSubjectIds.map((id: string) => id.split("--")[0]))];
-      if (!sameStringList(storedSubjectIds, subjectIds)) {
-        batch.set(adminDb().collection("portalV2Users").doc(item.id), { subjectIds }, { merge: true });
-        hasRepairs = true;
-      }
-      return { id: item.id, username: data.username, name: data.name, active: data.active, subjectIds, assignments, createdAt: data.createdAt };
-    }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
-    if (hasRepairs) await withTimeout(batch.commit());
-    return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "no-store" } });
+    const teachers = await loadTeacherList();
+    return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=30" } });
   } catch (error) {
     console.warn("admin teacher list temporarily unavailable", error);
     return NextResponse.json({
@@ -84,6 +96,7 @@ export async function POST(request: Request) {
       batch.set(adminDb().collection("portalV2Assignments").doc(`${reference.id}__${assignment.id}`), { teacherId: reference.id, subjectId: assignment.subjectId, assignmentId: assignment.id, grade: assignment.grade, section: assignment.section, active: true, createdAt: now, updatedAt: now });
     }
     await withTimeout(batch.commit());
+    teacherListCache = null;
     return NextResponse.json({ ok: true, id: reference.id }, { status: 201 });
   } catch (error) {
     console.error("create teacher failed", error);
