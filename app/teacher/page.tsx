@@ -1,8 +1,11 @@
 "use client";
+import Link from "next/link";
 import { FormEvent,useState } from "react";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
+
+const LOGO="/icons/lahooni-identity-320.jpg";
 
 export default function TeacherLoginPage(){
  const[name,setName]=useState(""),[password,setPassword]=useState(""),[show,setShow]=useState(false),[error,setError]=useState(""),[loading,setLoading]=useState(false);
@@ -18,13 +21,11 @@ export default function TeacherLoginPage(){
    }catch{setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.")}
    finally{setLoading(false)}
  }
- return <main className="v3-login v3-teacher-login" dir="rtl">
-   <section className="teacher-entry-intro unified-entry-intro">
-     <span>منصة تعليمية مدرسية موحدة</span>
-     <h1>مساحة المعلم للتعليم والمتابعة والتحصيل.</h1>
-     <p>ادخل إلى الحضور والدرجات والخطط والتقارير من نفس الهوية البصرية للبوابة الرئيسية، بدون طبقات دخول منفصلة.</p>
-     <small>بوابة أستاذ لحوني التعليمية</small>
+ return <main className="portal-entry-page teacher-entry-page" dir="rtl"><div className="portal-entry-shell">
+   <header className="portal-entry-top"><Link href="/" className="portal-entry-brand"><img src={LOGO} alt="هوية بوابة أستاذ لحوني التعليمية"/><span><strong>بوابة أستاذ لحوني التعليمية</strong><small>منصة مدرسية ذكية للتعليم والمتابعة والتواصل</small></span></Link><Link href="/" className="portal-entry-home">العودة للرئيسية</Link></header>
+   <section className="portal-entry-hero">
+    <div className="portal-entry-copy"><span className="portal-entry-kicker">منصة تعليمية مدرسية موحدة</span><h1>بوابة المعلم</h1><p>مساحة أكاديمية للحضور والتحصيل والمتابعة والقياس ضمن نفس هوية البوابة الرئيسية.</p></div>
+    <section className="portal-entry-card"><small>بوابة أستاذ لحوني التعليمية</small><h2>دخول بوابة المعلم</h2><p>استخدم الاسم والرقم السري اللذين أنشأهما مدير البوابة.</p><form onSubmit={submit}><label>اسم المعلم<input value={name} onChange={e=>{setName(e.target.value);setError("")}} autoComplete="username" autoFocus required placeholder="اكتب اسم المعلم"/></label><label>الرقم السري<div className="portal-entry-password"><input type={show?"text":"password"} value={password} onChange={e=>{setPassword(e.target.value);setError("")}} autoComplete="current-password" required/><button type="button" onClick={()=>setShow(!show)}>{show?"إخفاء":"إظهار"}</button></div></label>{error&&<p className="v3-error">{error}</p>}<button className="portal-entry-submit" disabled={loading||!name.trim()||!password}>{loading?"جارٍ التحقق…":"دخول بوابة المعلم"}</button></form><p className="portal-entry-note">المواد وصلاحيات الحساب يحددها مدير البوابة فقط.</p></section>
    </section>
-   <section className="v3-login-card unified-entry-card"><span className="v3-login-icon" aria-hidden="true"/><small>بوابة أستاذ لحوني التعليمية</small><h1>دخول بوابة المعلم</h1><p>استخدم الاسم والرقم السري اللذين أنشأهما مدير البوابة.</p><form onSubmit={submit}><label>اسم المعلم<input value={name} onChange={e=>{setName(e.target.value);setError("")}} autoComplete="username" autoFocus required placeholder="اكتب اسم المعلم"/></label><label>الرقم السري<div className="v3-password"><input type={show?"text":"password"} value={password} onChange={e=>{setPassword(e.target.value);setError("")}} autoComplete="current-password" required/><button type="button" onClick={()=>setShow(!show)}>{show?"إخفاء":"إظهار"}</button></div></label>{error&&<p className="v3-error">{error}</p>}<button className="v3-primary" disabled={loading||!name.trim()||!password}>{loading?"جارٍ التحقق…":"دخول بوابة المعلم"}</button></form><p className="v3-login-note">المواد وصلاحيات الحساب يحددها مدير البوابة فقط.</p></section>
- </main>;
+ </div></main>;
 }
