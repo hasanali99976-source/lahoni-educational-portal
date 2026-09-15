@@ -1,0 +1,36 @@
+name: Restore student page and classic style
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-student-page-and-classic.yml'
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 20
+      - name: Restore student page and force classic CSS last
+        run: |
+          git show f4f8d2bcb4a3c0ddecd57e05fcea84899445176e:app/student/page.tsx > app/student/page.tsx
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app/student/page.tsx')
+          s=p.read_text()
+          old='import "./student-portal-v1000.css";'
+          new='import "./student-portal-v1000.css";\nimport "./student-classic-v103.css";'
+          if old not in s:
+              raise SystemExit('base student css import not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit restored student portal
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/student/page.tsx
+          git commit -m "fix(student): restore portal and force approved classic design" || exit 0
+          git push origin main
