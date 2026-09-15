@@ -38,14 +38,14 @@ const readCentralStudents = unstable_cache(async (gradeKey: string): Promise<Cac
   if (!grades.length) return [];
   const snapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).where("grade", "in", grades).get();
   return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-central-roster-v2"], { revalidate: 30 });
+}, ["teacher-central-roster-v2"], { revalidate: 3600 });
 
 const readCentralClasses = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => {
   const grades = gradeKey.split(",").map(Number).filter(item => item >= 1 && item <= 3);
   if (!grades.length) return [];
   const snapshot = await adminDb().collection(SCHOOL_CLASSES_COLLECTION).where("grade", "in", grades).get();
   return snapshot.docs.map(item => ({ id: item.id, data: cacheSafeData(item.data()) }));
-}, ["teacher-central-classes-v2"], { revalidate: 30 });
+}, ["teacher-central-classes-v2"], { revalidate: 3600 });
 
 function explicitlyArchived(value: Record<string, unknown>) {
   return value.deleted === true
@@ -257,117 +257,10 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => a.className.localeCompare(b.className, "ar", { numeric: true }) || a.name.localeCompare(b.name, "ar"));
 
+    // GET is strictly read-only. Do not archive, migrate, repair, or backfill roster documents while a teacher merely opens attendance/students.
+    // This prevents hidden write/read amplification and protects legacy teacher data when the central roster is temporarily incomplete.
     const repairs: Repair[] = [];
-    const existingIds = new Set(legacySnapshot.docs.map(item => item.id));
-    const legacyIdentities = new Set(selectedLegacyRows.map(item => studentIdentity(item.student)));
-    const now = new Date().toISOString();
-
-    allLegacyRows
-      .filter(item => !centralByCode.has(item.student.code))
-      .forEach(item => {
-        repairs.push({
-          path: `${subjectPath}/${item.id}`,
-          data: {
-            active: false,
-            rosterActive: false,
-            archived: true,
-            archivedAt: now,
-            updatedAt: now,
-            archiveReason: "removed_from_admin_roster",
-          },
-        });
-      });
-
-    selectedLegacyRows.forEach(item => {
-      const canonical = canonicalClassName(item.student.grade, item.student.section);
-      if (item.raw.active === false
-        || item.raw.rosterActive === false
-        || String(item.raw.class || "") !== canonical
-        || String(item.raw.className || "") !== canonical
-        || Number(item.raw.grade) !== item.student.grade
-        || String(item.raw.section || "") !== item.student.section) {
-        repairs.push({
-          path: `${subjectPath}/${item.id}`,
-          data: {
-            name: item.student.name,
-            class: canonical,
-            className: canonical,
-            grade: item.student.grade,
-            section: item.student.section,
-            code: item.student.code,
-            accessCode: item.student.code,
-            studentCode: item.student.code,
-            teacherId: session.userId,
-            subjectKey: subjectId,
-            active: true,
-            rosterActive: true,
-            updatedAt: now,
-          },
-        });
-      }
-    });
-
-    centralRows.forEach(student => {
-      const identity = studentIdentity(student);
-      if (legacyIdentities.has(identity)) return;
-      let documentId = student.code;
-      if (existingIds.has(documentId)) documentId = `${student.code}__${student.grade}_${student.section}`;
-      existingIds.add(documentId);
-      repairs.push({
-        path: `${subjectPath}/${documentId}`,
-        data: {
-          name: student.name,
-          class: student.className,
-          className: student.className,
-          grade: student.grade,
-          section: student.section,
-          code: student.code,
-          accessCode: student.code,
-          studentCode: student.code,
-          teacherId: session.userId,
-          subjectKey: subjectId,
-          active: true,
-          rosterActive: true,
-          updatedAt: now,
-        },
-      });
-    });
-
-    if (canMigrateLegacySelection) {
-      repairs.push({
-        path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId, requestedGrade)}`,
-        data: {
-          teacherId: session.userId,
-          subjectId,
-          grade: requestedGrade,
-          selectedClassIds,
-          customized: true,
-          assignmentSignature: currentSignature,
-          migratedFromSubjectScope: true,
-          updatedAt: now,
-        },
-      });
-    } else if (scopeSnapshot.exists && !savedScopeValid) {
-      repairs.push({
-        path: `${TEACHER_CLASS_SCOPES_COLLECTION}/${teacherClassScopeId(session.userId, subjectId, requestedGrade)}`,
-        data: {
-          teacherId: session.userId,
-          subjectId,
-          grade: requestedGrade,
-          selectedClassIds,
-          customized: false,
-          assignmentSignature: currentSignature,
-          resetReason: "assignment_changed",
-          updatedAt: now,
-        },
-      });
-    }
-
-    try {
-      if (repairs.length) await applyRepairs(repairs);
-    } catch (repairError) {
-      console.warn("teacher roster repair deferred", repairError);
-    }
+    const selectedLegacyRowsCount = selectedLegacyRows.length;
 
     const classes = allStageClasses.filter(item => selected.has(item.id));
     return NextResponse.json({
@@ -383,10 +276,10 @@ export async function GET(request: Request) {
       activeGrade: requestedGrade,
       reservedForTeacher: selectedClassIds.length,
       hiddenOwnedByOtherTeachers: 0,
-      recoveredLegacy: selectedLegacyRows.length,
+      recoveredLegacy: selectedLegacyRowsCount,
       preservedHiddenLegacy: Math.max(0, legacyRows.length - selectedLegacyRows.length),
       centralAdded: Math.max(0, students.length - selectedLegacyRows.length),
-      repairPending: repairs.length,
+      repairPending: 0,
       centralReadCount: centralStudentDocuments.length,
       classReadCount: centralClassDocuments.length,
       centralStudentCodes: centralByCode.size,
