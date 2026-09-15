@@ -1,0 +1,1 @@
+Daily attendance counters are rendered by app/teacher/attendance/page.tsx from classStudents and records. Legacy cumulative DOM rewriting must not override these counters.
