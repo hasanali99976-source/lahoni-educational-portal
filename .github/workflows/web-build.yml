@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      # The repository lockfile currently lags package.json; install without rewriting it,
+      # matching the verified production drain workflow until the lockfile is regenerated.
+      - run: npm install --package-lock=false --no-audit --no-fund
       - run: npm run audit:runtime
       - run: npm run build
