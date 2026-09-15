@@ -20,31 +20,19 @@ export default function AttendanceClassDeepLink() {
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("class")?.trim() || "";
     if (!requested) return;
-
-    let stopped = false;
-    let attempts = 0;
-    let timer = 0;
-
-    function applyRequestedClass() {
-      if (stopped) return;
+    const apply = () => {
       const select = document.querySelector<HTMLSelectElement>("[data-attendance-class-select='true']");
-      if (select) {
-        const match = [...select.options].find(option => sameClass(option.value, requested));
-        if (match) {
-          if (!sameClass(select.value, match.value)) setSelectValue(select, match.value);
-          return;
-        }
-      }
-      attempts += 1;
-      if (attempts < 30) timer = window.setTimeout(applyRequestedClass, 100);
-    }
-
-    applyRequestedClass();
-    return () => {
-      stopped = true;
-      window.clearTimeout(timer);
+      if (!select) return false;
+      const match = [...select.options].find(option => sameClass(option.value, requested));
+      if (!match) return false;
+      if (!sameClass(select.value, match.value)) setSelectValue(select, match.value);
+      return true;
     };
+    if (apply()) return;
+    const observer = new MutationObserver(() => { if (apply()) observer.disconnect(); });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const stop = window.setTimeout(() => observer.disconnect(), 3000);
+    return () => { observer.disconnect(); window.clearTimeout(stop); };
   }, []);
-
   return null;
 }
