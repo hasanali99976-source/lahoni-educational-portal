@@ -2,10 +2,8 @@
 
 import { KeyboardEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
-import { type ClientTenant, tenantStudentsPath } from "../../../lib/firestore-tenant-client";
+import { type ClientTenant } from "../../../lib/firestore-tenant-client";
 import {
   GRADE_PLAN_MODE_LABELS,
   calculateGradePlanResult,
@@ -183,16 +181,13 @@ export default function GradesPage(){
     setSaving(true);
     try{
       const now=new Date().toISOString();
-      await Promise.all(classStudents.map(student=>{
+      const gradeRows=classStudents.map(student=>{
         const mergedValues={...valuesForPlan(student),...(localValues[student.id]||{})};
-        return setDoc(doc(db,tenantStudentsPath(tenant),student.id),{
-          name:student.name,class:student.class,className:student.class,code:student.code,active:true,rosterActive:true,
-          gradeValues:mergedValues,gradePlanValues:{...(student.gradePlanValues||{}),[activePlan.id]:mergedValues},activeGradePlanId:activePlan.id,activeGradePlanVersion:activePlan.version,
-          gradePlanUpdatedAt:now,teacherId:tenant.teacherId,subjectKey:tenant.subjectKey,
-        },{merge:true});
-      }));
-
-      const changedIds=classStudents.filter(student=>deductionDirty[student.id]).map(student=>student.id);
+        return {id:student.id,code:student.code,name:student.name,className:student.class,gradeValues:mergedValues,gradePlanValues:{...(student.gradePlanValues||{}),[activePlan.id]:mergedValues},activeGradePlanId:activePlan.id,activeGradePlanVersion:activePlan.version,gradePlanUpdatedAt:now};
+      });
+      const gradeResponse=await fetch('/api/teacher/grade-data',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({subjectId:tenant.subjectKey,rows:gradeRows})});
+      const gradeResult=await gradeResponse.json().catch(()=>({}));
+      if(!gradeResponse.ok)throw new Error(gradeResult.message||'تعذر حفظ رصد الدرجات.');
       const deductionRows=await Promise.all(changedIds.map(async studentId=>{
         const student=classStudents.find(item=>item.id===studentId)!;
         const draft=deductionFor(student);
