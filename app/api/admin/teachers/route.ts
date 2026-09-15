@@ -4,13 +4,10 @@ import { hashPassword } from "../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
-const ADMIN_TEACHERS_CACHE_TTL_MS = 60_000;
+const ADMIN_TEACHERS_CACHE_TTL_MS = 60 * 60 * 1000;
 type AdminTeacherRow = { id: string; username: unknown; name: string; active: unknown; subjectIds: string[]; assignments: ReturnType<typeof normalizeAssignments>; createdAt: unknown };
 let teacherListCache: { teachers: AdminTeacherRow[]; expiresAt: number } | null = null;
-
-function sameStringList(left: string[], right: string[]) {
-  return left.length === right.length && left.every((value, index) => value === right[index]);
-}
+let teacherListInflight: Promise<AdminTeacherRow[]> | null = null;
 
 async function withTimeout<T>(promise: Promise<T>, milliseconds = 6500): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -26,15 +23,11 @@ async function withTimeout<T>(promise: Promise<T>, milliseconds = 6500): Promise
   }
 }
 
-async function loadTeacherList() {
-  if (teacherListCache && teacherListCache.expiresAt > Date.now()) return teacherListCache.teachers;
-
+async function readTeacherList() {
   const snapshot = await withTimeout(
     adminDb().collection("portalV2Users").where("role", "==", "teacher").get(),
   );
-  const batch = adminDb().batch();
-  let hasRepairs = false;
-  const teachers = snapshot.docs.map((item) => {
+  return snapshot.docs.map((item) => {
     const data = item.data();
     const storedSubjectIds: string[] = Array.isArray(data.subjectIds)
       ? data.subjectIds.map((id: unknown) => String(id))
@@ -43,15 +36,21 @@ async function loadTeacherList() {
     const subjectIds: string[] = assignments.length
       ? [...new Set<string>(assignments.map(assignment => assignment.subjectId))]
       : [...new Set<string>(storedSubjectIds.map((id: string) => id.split("--")[0]))];
-    if (!sameStringList(storedSubjectIds, subjectIds)) {
-      batch.set(adminDb().collection("portalV2Users").doc(item.id), { subjectIds }, { merge: true });
-      hasRepairs = true;
-    }
     return { id: item.id, username: data.username, name: String(data.name || ""), active: data.active, subjectIds, assignments, createdAt: data.createdAt };
   }).sort((a, b) => a.name.localeCompare(b.name, "ar"));
-  if (hasRepairs) await withTimeout(batch.commit());
-  teacherListCache = { teachers, expiresAt: Date.now() + ADMIN_TEACHERS_CACHE_TTL_MS };
-  return teachers;
+}
+
+async function loadTeacherList() {
+  if (teacherListCache && teacherListCache.expiresAt > Date.now()) return teacherListCache.teachers;
+  if (teacherListInflight) return teacherListInflight;
+  teacherListInflight = readTeacherList();
+  try {
+    const teachers = await teacherListInflight;
+    teacherListCache = { teachers, expiresAt: Date.now() + ADMIN_TEACHERS_CACHE_TTL_MS };
+    return teachers;
+  } finally {
+    teacherListInflight = null;
+  }
 }
 
 export async function GET() {
@@ -59,15 +58,15 @@ export async function GET() {
 
   try {
     const teachers = await loadTeacherList();
-    return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=30" } });
+    return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "private, max-age=300, stale-while-revalidate=3300" } });
   } catch (error) {
     console.warn("admin teacher list temporarily unavailable", error);
     return NextResponse.json({
       ok: false,
-      teachers: [],
+      teachers: teacherListCache?.teachers || [],
       databaseUnavailable: true,
       message: "تم فتح لوحة الإدارة، لكن بيانات المعلمين مؤقتًا غير متاحة بسبب ضغط قاعدة البيانات. حاول التحديث بعد قليل.",
-    }, { headers: { "Cache-Control": "no-store" } });
+    }, { headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=300" } });
   }
 }
 
