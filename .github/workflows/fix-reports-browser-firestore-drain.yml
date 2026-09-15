@@ -1,6 +1,6 @@
 name: Fix Runtime Drain Reads
 
-# Production redeploy trigger after verified drain fixes.
+# Production redeploy trigger after verified drain fixes. Retry after Vercel build window reopened.
 on:
   push:
     branches:
