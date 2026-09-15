@@ -19,6 +19,11 @@ import {
 } from "../../../../lib/teacher-class-scope";
 
 type Grade = 1 | 2 | 3;
+type CachedResult = { expiresAt: number; payload: Record<string, unknown> };
+
+const CLASS_OPTIONS_TTL_MS = 5 * 60 * 1000;
+const classOptionsCache = new Map<string, CachedResult>();
+const classOptionsInflight = new Map<string, Promise<Record<string, unknown>>>();
 
 function parseGrade(value: unknown): Grade | null {
   const number = Number(value || 0);
@@ -35,30 +40,18 @@ function classFromStudent(student: SchoolStudent): SchoolClass {
   };
 }
 
-export async function GET(request: Request) {
-  const session = await requireSession("teacher");
-  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+async function loadClassOptions(teacherId: string, subjectId: string, grade: Grade) {
+  const key = `${teacherId}:${subjectId}:${grade}`;
+  const now = Date.now();
+  const cached = classOptionsCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.payload;
+  const pending = classOptionsInflight.get(key);
+  if (pending) return pending;
 
-  try {
-    const user = await findUserById(session.userId);
-    if (!user) return NextResponse.json({ ok: false }, { status: 401 });
-
-    const url = new URL(request.url);
-    const subjectId = String(url.searchParams.get("subjectId") || "").split("--")[0].trim();
-    const grade = parseGrade(url.searchParams.get("grade"));
-    const assignments = normalizeAssignments(user.assignments, user.subjectIds);
-    const relevant = assignments.filter(item => item.subjectId === subjectId && (!grade || gradeNumber(item.grade) === grade));
-    const assignmentGrades = new Set<Grade>(
-      relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
-    );
-
-    if (!subjectId || !grade || !assignmentGrades.has(grade)) {
-      return NextResponse.json({ ok: false, message: "المادة أو المرحلة غير مرتبطة بحسابك." }, { status: 400 });
-    }
-
+  const work = (async () => {
     const database = adminDb();
     const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
-      .doc(teacherClassScopeId(session.userId, subjectId, grade));
+      .doc(teacherClassScopeId(teacherId, subjectId, grade));
     const [classSnapshot, studentSnapshot, scopeSnapshot] = await Promise.all([
       database.collection(SCHOOL_CLASSES_COLLECTION).get(),
       database.collection(SCHOOL_STUDENTS_COLLECTION).get(),
@@ -85,7 +78,7 @@ export async function GET(request: Request) {
       ? normalizeClassIds(scopeSnapshot.data()?.selectedClassIds).filter(item => availableIds.has(item))
       : [];
 
-    return NextResponse.json({
+    const payload = {
       ok: true,
       subjectId,
       grade,
@@ -96,7 +89,44 @@ export async function GET(request: Request) {
       manualClassSelection: true,
       officialAdminRoster: true,
       persistedInDatabase: scopeSnapshot.exists,
-    }, { headers: { "Cache-Control": "no-store" } });
+    };
+    classOptionsCache.set(key, { expiresAt: Date.now() + CLASS_OPTIONS_TTL_MS, payload });
+    return payload;
+  })();
+
+  classOptionsInflight.set(key, work);
+  try {
+    return await work;
+  } finally {
+    classOptionsInflight.delete(key);
+  }
+}
+
+export async function GET(request: Request) {
+  const session = await requireSession("teacher");
+  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+
+  try {
+    const user = await findUserById(session.userId);
+    if (!user) return NextResponse.json({ ok: false }, { status: 401 });
+
+    const url = new URL(request.url);
+    const subjectId = String(url.searchParams.get("subjectId") || "").split("--")[0].trim();
+    const grade = parseGrade(url.searchParams.get("grade"));
+    const assignments = normalizeAssignments(user.assignments, user.subjectIds);
+    const relevant = assignments.filter(item => item.subjectId === subjectId && (!grade || gradeNumber(item.grade) === grade));
+    const assignmentGrades = new Set<Grade>(
+      relevant.map(item => gradeNumber(item.grade)).filter((item): item is Grade => !!item),
+    );
+
+    if (!subjectId || !grade || !assignmentGrades.has(grade)) {
+      return NextResponse.json({ ok: false, message: "المادة أو المرحلة غير مرتبطة بحسابك." }, { status: 400 });
+    }
+
+    const payload = await loadClassOptions(session.userId, subjectId, grade);
+    return NextResponse.json(payload, {
+      headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=240" },
+    });
   } catch (error) {
     console.error("teacher class options failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل فصول المرحلة الآن." }, { status: 500 });
