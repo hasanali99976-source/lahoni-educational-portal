@@ -55,9 +55,14 @@ export async function GET(request: Request) {
 
   try {
     const snapshot = await workCollection(ctx.session.userId, subjectId).where("date", "==", date).get();
-    const rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allRows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // A class request is a hard isolation boundary: never return preparation from another class.
+    const requestedSet = new Set(requestedClasses);
+    const rows = requestedClasses.length
+      ? allRows.filter(row => requestedSet.has(normalizeClass((row as Record<string, unknown>).className)))
+      : allRows;
     const savedClasses = rows.map(row => normalizeClass((row as Record<string, unknown>).className)).filter(Boolean);
-    const classes = [...new Set([...requestedClasses, ...savedClasses])];
+    const classes = [...new Set(requestedClasses.length ? requestedClasses : savedClasses)];
 
     const attendanceEntries = await Promise.all(classes.map(async className => {
       const ref = adminDb().collection(`portalV2Data/${ctx.session.userId}/subjects/${subjectId}/attendance`).doc(`${safeId(className)}_${date}`);
@@ -69,6 +74,7 @@ export async function GET(request: Request) {
       ok: true,
       rows,
       attendance: Object.fromEntries(attendanceEntries),
+      classIsolated: true,
       preservedIndependentOfTimetable: true,
     }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
@@ -104,6 +110,7 @@ export async function PATCH(request: Request) {
 
   try {
     const now = new Date().toISOString();
+    // Identity includes date + period + class, so editing one class can never overwrite another class.
     const id = workId(date, period, className);
     const ref = workCollection(ctx.session.userId, subjectId).doc(id);
     const prepared = Boolean(lessonTitle || objectives || strategies || introduction || lessonFlow || activity || assessment || homework || values || preparation);
@@ -131,7 +138,7 @@ export async function PATCH(request: Request) {
       updatedAt: now,
     };
     await ref.set(row, { merge: true });
-    return NextResponse.json({ ok: true, row }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    return NextResponse.json({ ok: true, row, classIsolated: true }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
     console.error("lesson-work-save-failed", error);
     return NextResponse.json({ ok: false, message: "تعذر حفظ تحضير الحصة الآن." }, { status: 500 });
