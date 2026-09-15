@@ -1,0 +1,37 @@
+name: Harden student read drain
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/harden-student-read-drain.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove GET repair writes and extend central roster cache
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('app/api/teacher/students/route.ts')
+          s=p.read_text()
+          s=s.replace('{ revalidate: 30 });', '{ revalidate: 3600 });')
+          start=s.find('    const repairs: Repair[] = [];')
+          end=s.find('    const classes = allStageClasses.filter', start)
+          if start < 0 or end < 0:
+              raise SystemExit('repair block not found')
+          replacement='''    // GET is strictly read-only. Do not archive, migrate, repair, or backfill roster documents while a teacher merely opens attendance/students.\n    // This prevents hidden write/read amplification and protects legacy teacher data when the central roster is temporarily incomplete.\n    const repairs: Repair[] = [];\n    const selectedLegacyRowsCount = selectedLegacyRows.length;\n\n'''
+          s=s[:start]+replacement+s[end:]
+          s=s.replace('recoveredLegacy: selectedLegacyRows.length,', 'recoveredLegacy: selectedLegacyRowsCount,')
+          s=s.replace('repairPending: repairs.length,', 'repairPending: 0,')
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/api/teacher/students/route.ts
+          git diff --cached --quiet || git commit -m 'fix(drain): make teacher roster GET read-only and cache central reads'
+          git push
