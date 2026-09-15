@@ -188,7 +188,8 @@ export default function GradesPage(){
       const gradeResponse=await fetch('/api/teacher/grade-data',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({subjectId:tenant.subjectKey,rows:gradeRows})});
       const gradeResult=await gradeResponse.json().catch(()=>({}));
       if(!gradeResponse.ok)throw new Error(gradeResult.message||'تعذر حفظ رصد الدرجات.');
-      const deductionRows=await Promise.all(changedIds.map(async studentId=>{
+      const changedIds:string[]=Object.entries(deductionDirty).filter(([,changed])=>changed).map(([studentId])=>studentId);
+      const deductionRows=await Promise.all(changedIds.map(async (studentId:string)=>{
         const student=classStudents.find(item=>item.id===studentId)!;
         const draft=deductionFor(student);
         const response=await fetch("/api/teacher/grade-deductions",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId:tenant.subjectKey,studentCode:student.code,planId:activePlan.id,scope:"section",sectionId:section.id,sectionLabel:section.label,amount:draft.amount,reason:draft.reason.trim(),note:draft.note.trim()}),cache:"no-store"});
@@ -198,7 +199,7 @@ export default function GradesPage(){
       }));
       const deductionMap=new Map(deductionRows);
 
-      setStudents(current=>current.map(student=>classStudents.some(item=>item.id===student.id)?{...student,gradeValues:{...valuesForPlan(student),...(localValues[student.id]||{})},gradePlanValues:{...(student.gradePlanValues||{}),[activePlan.id]:{...valuesForPlan(student),...(localValues[student.id]||{})}},gradeDeductions:deductionMap.get(student.id)||student.gradeDeductions}:student));
+      setStudents(current=>current.map(student=>classStudents.some(item=>item.id===student.id)?{...student,gradeValues:{...valuesForPlan(student),...(localValues[student.id]||{})},gradePlanValues:{...(student.gradePlanValues||{}),[activePlan.id]:{...valuesForPlan(student),...(localValues[student.id]||{})}},gradeDeductions:(deductionMap.get(student.id) as GradeDeduction[]|undefined)??student.gradeDeductions??[]}:student));
       setDirty(false);setDeductionDirty({});setMessage(`تم حفظ ${section.label} وخصوماتها لفصل ${selectedClass}.`);
     }catch(error){console.error("gradebook-save-v11",error);setMessage(error instanceof Error?error.message:"تعذر حفظ الدرجات الآن.");}finally{setSaving(false);}
   }
