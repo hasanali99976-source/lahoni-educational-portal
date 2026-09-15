@@ -6,8 +6,6 @@ import { useTeacherClient } from "../../../lib/teacher-client";
 type Lesson = { subject: string; className: string; notes: string };
 type PendingTimetable = { lessons: Record<string, Lesson>; classNames: string[]; updatedAt: string };
 
-const RETRY_MS = 15000;
-
 function readPending(key: string): PendingTimetable | null {
   if (!key) return null;
   try {
@@ -28,6 +26,7 @@ function readPending(key: string): PendingTimetable | null {
 export default function TimetableAutoSync() {
   const session = useTeacherClient();
   const syncing = useRef(false);
+  const lastAttemptedVersion = useRef("");
   const teacherId = session?.teacherId || "";
   const subjectKey = session?.subjectKey || "";
   const workspaceKey = session?.workspaceKey || subjectKey;
@@ -44,6 +43,11 @@ export default function TimetableAutoSync() {
       if (stopped || syncing.current || !navigator.onLine) return;
       const pending = readPending(storageKey);
       if (!pending) return;
+
+      // A pending timetable version is attempted only once per mounted page.
+      // Do not poll Firestore, retry on focus, or retry on visibility changes.
+      if (lastAttemptedVersion.current === pending.updatedAt) return;
+      lastAttemptedVersion.current = pending.updatedAt;
       syncing.current = true;
       try {
         const response = await fetch("/api/teacher/timetable", {
@@ -66,31 +70,30 @@ export default function TimetableAutoSync() {
           }));
         }
       } catch {
-        // Keep the local copy; another retry will run automatically.
+        // Keep the local copy. A new explicit timetable update or a later page visit can retry.
       } finally {
         syncing.current = false;
       }
     };
 
-    const onVisible = () => {
-      if (document.visibilityState === "visible") void syncPending();
+    const onUpdate = () => {
+      // A real user edit creates a new updatedAt version, so it may sync once.
+      void syncPending();
     };
-    const onUpdate = () => void syncPending();
+    const onOnline = () => {
+      // Permit one retry after a genuine offline -> online transition.
+      lastAttemptedVersion.current = "";
+      void syncPending();
+    };
 
     void syncPending();
-    const timer = window.setInterval(() => void syncPending(), RETRY_MS);
-    window.addEventListener("online", onUpdate);
-    window.addEventListener("focus", onUpdate);
+    window.addEventListener("online", onOnline);
     window.addEventListener("lahooni:timetable-updated", onUpdate as EventListener);
-    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       stopped = true;
-      window.clearInterval(timer);
-      window.removeEventListener("online", onUpdate);
-      window.removeEventListener("focus", onUpdate);
+      window.removeEventListener("online", onOnline);
       window.removeEventListener("lahooni:timetable-updated", onUpdate as EventListener);
-      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [storageKey, subjectKey]);
 
