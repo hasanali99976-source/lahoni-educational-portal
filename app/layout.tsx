@@ -14,6 +14,7 @@ import "./mobile-complete-v36.css";
 import "./teacher/teacher-mobile-complete-v7.css";
 import "./home-identity-unified.css";
 import "./portal-entry-unified.css";
+import "./portal-v100.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
@@ -28,10 +29,10 @@ import RouteRuntimeLoader from "./route-runtime-loader";
 const tajawal = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700", "800", "900"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "أستاذ لحوني", template: "%s | أستاذ لحوني" },
-  description: "منصة تعليمية ذكية للمتابعة والتقارير المدرسية",
-  applicationName: "أستاذ لحوني",
-  manifest: "/manifest.webmanifest?v=125-stable",
+  title: { default: "بوابة أستاذ لحوني التعليمية", template: "%s | أستاذ لحوني" },
+  description: "منصة تعليمية موحدة للإدارة والمعلمين والطلاب",
+  applicationName: "بوابة أستاذ لحوني التعليمية",
+  manifest: "/manifest.webmanifest?v=130-v100",
   appleWebApp: { capable: true, title: "أستاذ لحوني", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#082743", colorScheme: "light" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5, viewportFit: "cover", themeColor: "#f3f7fa", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="ar" dir="rtl"><body className={tajawal.className}>
@@ -55,7 +56,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <div className="print-header">بوابة أستاذ لحوني التعليمية</div>
       <PortalCommandRuntime />
     </PortalRuntimeGate>
-    <div className="portal-stage">{children}</div>
+    <div className="portal-stage portal-v100">{children}</div>
     <PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate>
   </body></html>;
 }
