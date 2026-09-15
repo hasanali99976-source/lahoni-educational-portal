@@ -1,0 +1,8 @@
+:root{--portal-ink:#102a43;--portal-muted:#667d91;--portal-line:#dbe6ee;--portal-bg:#f2f7fa;--portal-card:#fff;--portal-accent:#1677c8;--portal-success:#15926f;--portal-danger:#b83b48;--portal-radius:18px;--portal-shadow:0 12px 34px rgba(16,42,67,.07)}
+.portal-v100{min-height:100%;color:var(--portal-ink)}
+.portal-v100,.admin-v4-frame,.teacher-app-shell,.student-app-shell{--ui-line:var(--portal-line);--ui-card:var(--portal-card);--ui-muted:var(--portal-muted)}
+.portal-v100 button,.portal-v100 input,.portal-v100 select,.portal-v100 textarea{font-family:inherit}
+.portal-v100 .card{background:#fff;border:1px solid var(--portal-line);border-radius:var(--portal-radius);box-shadow:var(--portal-shadow)}
+.portal-v100 input,.portal-v100 select,.portal-v100 textarea{border:1px solid #cfdee8;border-radius:12px;background:#fff;color:var(--portal-ink);min-height:44px}
+.portal-v100 table{width:100%;border-collapse:separate;border-spacing:0}.portal-v100 th{background:#f1f6f9;color:#334e68}.portal-v100 th,.portal-v100 td{border-bottom:1px solid #e5edf3}
+@media(max-width:700px){.portal-v100 .card{border-radius:15px}}
