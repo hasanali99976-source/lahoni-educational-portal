@@ -1,0 +1,1 @@
+export const DISABLE_CUMULATIVE_ATTENDANCE_RUNTIME = true;
