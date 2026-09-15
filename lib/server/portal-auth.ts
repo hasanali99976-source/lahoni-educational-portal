@@ -8,7 +8,10 @@ import { adminDb } from "./firebase-admin";
 import { LEGACY_TEACHER_AUTH_VERSION, legacyTeacherById } from "./legacy-teacher-auth";
 
 export const PORTAL_SESSION_COOKIE = "lahooni_portal_v2_session";
-export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+// Keep teacher/admin authentication on the same device for 10 days. The signed
+// teacher snapshot means normal authenticated requests do not need a Firestore
+// user lookup on every page/API request.
+export const SESSION_MAX_AGE = 60 * 60 * 24 * 10;
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 10;
 export const ADMIN_AUTH_VERSION = "local-admin-session-v2-10d";
 const FIRESTORE_AUTH_TIMEOUT_MS = 4500;
