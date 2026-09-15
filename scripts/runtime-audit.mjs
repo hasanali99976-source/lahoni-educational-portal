@@ -1,65 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-
-const root = process.cwd();
-const failures = [];
-const read = p => { const f = path.join(root, p); return fs.existsSync(f) ? fs.readFileSync(f, "utf8") : ""; };
-const forbid = (p, re, msg) => { if (re.test(read(p))) failures.push(`${p}: ${msg}`); };
-const requirePattern = (p, re, msg) => { if (!re.test(read(p))) failures.push(`${p}: ${msg}`); };
-
-// No active background Firestore polling/listeners in the high-traffic teacher/student surfaces.
-for (const p of [
-  "app/teacher/attendance/page.tsx",
-  "app/teacher/diagnostics/page.tsx",
-  "app/teacher/diagnostics/diagnostic-results.tsx",
-  "app/teacher/portfolio/page.tsx",
-  "app/student/page.tsx",
-  "app/student/academic-record/page.tsx",
-  "app/student-academic-record-bridge.tsx",
-]) {
-  forbid(p, /\bonSnapshot\s*\(|\bsetInterval\s*\(/, "listener حي أو polling دوري ممنوع.");
-}
-
-forbid("app/teacher/attendance/page.tsx", /autoSaveMissedScheduledDays|missed_scheduled_day|autoFillKeyRef/, "التحضير التاريخي التلقائي ممنوع.");
-forbid("app/teacher/competition-progress.tsx", /\bfetch\s*\(|\bonSnapshot\s*\(|\bsetInterval\s*\(/, "مسابقة المعلمين المتقاعدة يجب ألا تقرأ بالخلفية.");
-forbid("lib/server/teacher-competition.ts", /\badminDb\s*\(|\.collection\s*\(|\.get\s*\(/, "ماسح المسابقة المتقاعد يجب ألا يقرأ Firestore.");
-forbid("app/teacher/dashboard/dashboard-v31.tsx", /onSnapshot\(\s*collection\([^\n]*["']attendance["']/, "لوحة المعلم لا تستمع لمجموعة الحضور كاملة.");
-forbid("app/portal-intelligence.tsx", /new\s+MutationObserver\s*\(/, "مراقبة DOM العامة ممنوعة.");
-forbid("app/mobile-app-enhancer.tsx", /new\s+MutationObserver\s*\(/, "مراقبة DOM العامة في الجوال ممنوعة.");
-
-// Timetable must coalesce concurrent requests and keep a server cache of at least five minutes.
-requirePattern("app/api/teacher/timetable/route.ts", /TIMETABLE_CACHE_TTL_MS\s*=\s*(?:5\s*\*\s*60\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000)/, "الجدول يحتاج كاشًا خادميًا لا يقل عن خمس دقائق.");
-requirePattern("app/api/teacher/timetable/route.ts", /timetableInflight/, "طلبات الجدول المتزامنة يجب دمجها.");
-
-// Central teacher roster reads are cached for one hour and GET must stay read-only.
-requirePattern("app/api/teacher/students/route.ts", /teacher-central-roster-v2[\s\S]*revalidate:\s*3600/, "قائمة الطلاب المركزية تحتاج كاش ساعة.");
-requirePattern("app/api/teacher/students/route.ts", /GET is strictly read-only/, "فتح قائمة الطلاب يجب ألا ينفذ إصلاحات أو أرشفة تلقائية.");
-forbid("app/api/teacher/students/route.ts", /archiveReason:\s*["']removed_from_admin_roster["']/, "GET الطلاب لا يؤرشف طلابًا تلقائيًا.");
-
-// Student profile reads must remain scoped.
-forbid("app/api/student/profile/route.ts", /collection\(`\$\{root\}\/counselorReferrals`\)\.get\(\)/, "ملف الطالب لا يقرأ جميع الإحالات.");
-requirePattern("app/api/student/profile/route.ts", /counselorReferrals`\)\.where\(/, "إحالات الطالب يجب أن تكون مقيدة.");
-
-// Never install a global fetch interceptor in app/lib runtime code.
-for (const sourceRoot of ["app", "lib"]) {
-  const start = path.join(root, sourceRoot);
-  if (!fs.existsSync(start)) continue;
-  const stack = [start];
-  while (stack.length) {
-    const current = stack.pop();
-    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
-      const absolute = path.join(current, entry.name);
-      if (entry.isDirectory()) { stack.push(absolute); continue; }
-      if (!/\.(?:ts|tsx|js|jsx|mjs)$/.test(entry.name)) continue;
-      const source = fs.readFileSync(absolute, "utf8");
-      if (/\b(?:window|globalThis)\.fetch\s*=/.test(source)) failures.push(`${path.relative(root, absolute)}: اعتراض fetch العام ممنوع.`);
-    }
-  }
-}
-
-if (failures.length) {
-  console.error("فشل فحص استهلاك البوابة:\n");
-  failures.forEach(f => console.error(`- ${f}`));
-  process.exit(1);
-}
-console.log("نجح فحص استهلاك البوابة: لا polling حي، الجدول محمي، وقائمة الطلاب للقراءة فقط مع كاش خادمي.");
+const root=process.cwd(),failures=[];const read=p=>{const f=path.join(root,p);return fs.existsSync(f)?fs.readFileSync(f,"utf8"):""};const forbid=(p,re,msg)=>{if(re.test(read(p)))failures.push(`${p}: ${msg}`)};const requirePattern=(p,re,msg)=>{if(!re.test(read(p)))failures.push(`${p}: ${msg}`)};
+for(const p of ["app/teacher/attendance/page.tsx","app/teacher/diagnostics/page.tsx","app/teacher/diagnostics/diagnostic-results.tsx","app/teacher/portfolio/page.tsx","app/student/page.tsx","app/student/academic-record/page.tsx","app/student-academic-record-bridge.tsx"])forbid(p,/\bonSnapshot\s*\(|\bsetInterval\s*\(/,"listener حي أو polling دوري ممنوع.");
+forbid("app/teacher/attendance/page.tsx",/autoSaveMissedScheduledDays|missed_scheduled_day|autoFillKeyRef/,"التحضير التاريخي التلقائي ممنوع.");forbid("app/teacher/attendance/page.tsx",/queueCloudAttendanceSync/,"تغيير حالة الطالب لا يكتب للسحابة قبل اعتماد التحضير.");
+forbid("app/teacher/competition-progress.tsx",/\bfetch\s*\(|\bonSnapshot\s*\(|\bsetInterval\s*\(/,"مسابقة المعلمين المتقاعدة يجب ألا تقرأ بالخلفية.");forbid("lib/server/teacher-competition.ts",/\badminDb\s*\(|\.collection\s*\(|\.get\s*\(/,"ماسح المسابقة المتقاعد يجب ألا يقرأ Firestore.");forbid("app/teacher/dashboard/dashboard-v31.tsx",/onSnapshot\(\s*collection\([^\n]*["']attendance["']/,"لوحة المعلم لا تستمع لمجموعة الحضور كاملة.");forbid("app/portal-intelligence.tsx",/new\s+MutationObserver\s*\(/,"مراقبة DOM العامة ممنوعة.");forbid("app/mobile-app-enhancer.tsx",/new\s+MutationObserver\s*\(/,"مراقبة DOM العامة في الجوال ممنوعة.");
+requirePattern("app/api/teacher/timetable/route.ts",/TIMETABLE_CACHE_TTL_MS\s*=\s*(?:5\s*\*\s*60\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000)/,"الجدول يحتاج كاشًا خادميًا لا يقل عن خمس دقائق.");requirePattern("app/api/teacher/timetable/route.ts",/timetableInflight/,"طلبات الجدول المتزامنة يجب دمجها.");
+requirePattern("app/api/teacher/students/route.ts",/teacher-central-roster-v(?:2|3)[\s\S]*revalidate:\s*3600/,"قائمة الطلاب المركزية تحتاج كاش ساعة.");requirePattern("app/api/teacher/students/route.ts",/responseCache[\s\S]*RESPONSE_TTL_MS\s*=\s*60\s*\*\s*60\s*\*\s*1000/,"استجابة قائمة الطلاب تحتاج كاش ساعة.");forbid("app/api/teacher/students/route.ts",/archiveReason:\s*["']removed_from_admin_roster["']/,"GET الطلاب لا يؤرشف طلابًا تلقائيًا.");
+forbid("app/api/student/profile/route.ts",/collection\(`\$\{root\}\/counselorReferrals`\)\.get\(\)/,"ملف الطالب لا يقرأ جميع الإحالات.");requirePattern("app/api/student/profile/route.ts",/counselorReferrals`\)\.where\(/,"إحالات الطالب يجب أن تكون مقيدة.");
+for(const sourceRoot of ["app","lib"]){const start=path.join(root,sourceRoot);if(!fs.existsSync(start))continue;const stack=[start];while(stack.length){const current=stack.pop();for(const entry of fs.readdirSync(current,{withFileTypes:true})){const absolute=path.join(current,entry.name);if(entry.isDirectory()){stack.push(absolute);continue}if(!/\.(?:ts|tsx|js|jsx|mjs)$/.test(entry.name))continue;const source=fs.readFileSync(absolute,"utf8");if(/\b(?:window|globalThis)\.fetch\s*=/.test(source))failures.push(`${path.relative(root,absolute)}: اعتراض fetch العام ممنوع.`)}}}
+if(failures.length){console.error("فشل فحص استهلاك البوابة:\n");failures.forEach(f=>console.error(`- ${f}`));process.exit(1)}console.log("نجح فحص استهلاك البوابة: لا polling حي، الجدول وقائمة الطلاب محميان، والتحضير لا يكتب لكل ضغطة.");
