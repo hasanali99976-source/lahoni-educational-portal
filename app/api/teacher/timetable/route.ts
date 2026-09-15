@@ -15,6 +15,7 @@ const VALID_CELL = /^(sunday|monday|tuesday|wednesday|thursday)-[1-7]$/;
 const TIMETABLE_CACHE_TTL_MS = 60 * 60 * 1000;
 const timetableCache = new Map<string, TimetableCacheEntry>();
 const timetableInflight = new Map<string, Promise<Schedule>>();
+const timetableWriteInflight = new Map<string, Promise<Schedule>>();
 
 async function withTimeout<T>(promise: Promise<T>, milliseconds = FIRESTORE_TIMEOUT_MS): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -38,11 +39,7 @@ function cleanSchedule(value: unknown, subjectLabel: string) {
     const lesson = raw as Partial<Lesson>;
     const className = normalizeClass(lesson.className);
     if (!className) return;
-    cleaned[key] = {
-      subject: subjectLabel,
-      className,
-      notes: String(lesson.notes || "").trim().slice(0, 500),
-    };
+    cleaned[key] = { subject: subjectLabel, className, notes: String(lesson.notes || "").trim().slice(0, 500) };
   });
   return cleaned;
 }
@@ -52,38 +49,31 @@ function normalizedClassNames(value: unknown) {
   return [...new Set(value.map(normalizeClass).filter(Boolean))];
 }
 
+function schedulesEqual(a: Schedule, b: Schedule) {
+  const ak = Object.keys(a).sort();
+  const bk = Object.keys(b).sort();
+  if (ak.length !== bk.length) return false;
+  return ak.every((key, index) => key === bk[index] && a[key]?.subject === b[key]?.subject && a[key]?.className === b[key]?.className && a[key]?.notes === b[key]?.notes);
+}
+
 function timetableReference(teacherId: string, subjectId: string) {
   return adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/timetable`).doc("weekly");
 }
 
 async function teacherContext(subjectId: string) {
   const session = await requireSession("teacher");
-  if (!session || !session.user) {
-    return { error: NextResponse.json({ ok: false, message: "انتهت جلسة المعلم، سجل الدخول مرة أخرى." }, { status: 401 }) };
-  }
-  if (!isSubjectKey(subjectId)) {
-    return { error: NextResponse.json({ ok: false, message: "المادة غير صحيحة." }, { status: 400 }) };
-  }
+  if (!session || !session.user) return { error: NextResponse.json({ ok: false, message: "انتهت جلسة المعلم، سجل الدخول مرة أخرى." }, { status: 401 }) };
+  if (!isSubjectKey(subjectId)) return { error: NextResponse.json({ ok: false, message: "المادة غير صحيحة." }, { status: 400 }) };
   const assignments = normalizeAssignments(session.user.assignments, session.user.subjectIds);
-  if (!assignments.some(item => item.subjectId === subjectId)) {
-    return { error: NextResponse.json({ ok: false, message: "هذه المادة غير مسندة إلى حسابك." }, { status: 403 }) };
-  }
-  return {
-    session,
-    subjectLabel: getSubjectConfig(subjectId).label,
-    reference: timetableReference(session.userId, subjectId),
-  };
+  if (!assignments.some(item => item.subjectId === subjectId)) return { error: NextResponse.json({ ok: false, message: "هذه المادة غير مسندة إلى حسابك." }, { status: 403 }) };
+  return { session, subjectLabel: getSubjectConfig(subjectId).label, reference: timetableReference(session.userId, subjectId) };
 }
 
 function errorResponse(error: unknown, action: "تحميل" | "حفظ") {
   const message = error instanceof Error ? error.message : "";
-  if (message === "timetable_timeout") {
-    return NextResponse.json({ ok: false, message: `انتهت مهلة ${action} الجدول. تم الاحتفاظ بالتعديل على الجهاز.` }, { status: 504 });
-  }
+  if (message === "timetable_timeout") return NextResponse.json({ ok: false, message: `انتهت مهلة ${action} الجدول. تم الاحتفاظ بالتعديل على الجهاز.` }, { status: 504 });
   const code = error && typeof error === "object" && "code" in error ? String((error as { code?: unknown }).code || "") : "";
-  if (code === "resource-exhausted" || message.includes("RESOURCE_EXHAUSTED") || message.toLowerCase().includes("quota exceeded")) {
-    return NextResponse.json({ ok: false, message: "خدمة الحفظ السحابي مزدحمة مؤقتًا. تم الاحتفاظ بالتعديل على الجهاز." }, { status: 429 });
-  }
+  if (code === "resource-exhausted" || message.includes("RESOURCE_EXHAUSTED") || message.toLowerCase().includes("quota exceeded")) return NextResponse.json({ ok: false, message: "خدمة الحفظ السحابي مزدحمة مؤقتًا. تم الاحتفاظ بالتعديل على الجهاز." }, { status: 429 });
   console.error(`timetable_${action === "حفظ" ? "save" : "load"}_failed`, error);
   return NextResponse.json({ ok: false, message: `تعذر ${action} الجدول الآن. لم يتم فقد أي حصة سابقة.` }, { status: 500 });
 }
@@ -93,7 +83,7 @@ function persistentTimetableReader(teacherId: string, subjectId: string, subject
     const snapshot = await withTimeout(timetableReference(teacherId, subjectId).get());
     const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
     return cleanSchedule(data?.lessons, subjectLabel);
-  }, ["teacher-timetable-shared-v2", teacherId, subjectId], { revalidate: 3600 });
+  }, ["teacher-timetable-shared-v3", teacherId, subjectId], { revalidate: 3600 });
 }
 
 async function loadTimetableCached(teacherId: string, subjectId: string, subjectLabel: string) {
@@ -108,11 +98,7 @@ async function loadTimetableCached(teacherId: string, subjectId: string, subject
     return lessons;
   })();
   timetableInflight.set(key, pending);
-  try {
-    return await pending;
-  } finally {
-    timetableInflight.delete(key);
-  }
+  try { return await pending; } finally { timetableInflight.delete(key); }
 }
 
 export async function GET(request: Request) {
@@ -122,9 +108,7 @@ export async function GET(request: Request) {
   try {
     const lessons = await loadTimetableCached(context.session.userId, subjectId, context.subjectLabel);
     return NextResponse.json({ ok: true, lessons }, { headers: { "Cache-Control": "private, max-age=300, stale-while-revalidate=3300" } });
-  } catch (error) {
-    return errorResponse(error, "تحميل");
-  }
+  } catch (error) { return errorResponse(error, "تحميل"); }
 }
 
 export async function PATCH(request: Request) {
@@ -136,19 +120,44 @@ export async function PATCH(request: Request) {
   if (!classNames.length) return NextResponse.json({ ok: false, message: "لا توجد فصول مسندة لهذه المرحلة." }, { status: 400 });
   const allowedClasses = new Set(classNames);
   const submitted = cleanSchedule(body.lessons, context.subjectLabel);
-  const invalidLesson = Object.values(submitted).find(lesson => !allowedClasses.has(lesson.className));
-  if (invalidLesson) return NextResponse.json({ ok: false, message: "إحدى الحصص مرتبطة بفصل غير مسند إلى حسابك." }, { status: 400 });
+  if (Object.values(submitted).some(lesson => !allowedClasses.has(lesson.className))) return NextResponse.json({ ok: false, message: "إحدى الحصص مرتبطة بفصل غير مسند إلى حسابك." }, { status: 400 });
+
+  const cacheKey = `${context.session.userId}:${subjectId}`;
+  const writeKey = `${cacheKey}:${classNames.slice().sort().join(",")}`;
   try {
-    const snapshot = await withTimeout(context.reference.get());
-    const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
-    const existing = cleanSchedule(data?.lessons, context.subjectLabel);
-    const retained = Object.fromEntries(Object.entries(existing).filter(([, lesson]) => !allowedClasses.has(lesson.className))) as Schedule;
-    const lessons = { ...retained, ...submitted };
-    const now = new Date().toISOString();
-    await withTimeout(context.reference.set({ lessons, teacherId: context.session.userId, teacherName: context.session.name || "", subjectKey: subjectId, updatedAt: now, savedThroughApiAt: now }, { merge: true }));
-    timetableCache.set(`${context.session.userId}:${subjectId}`, { lessons, expiresAt: Date.now() + TIMETABLE_CACHE_TTL_MS });
-    return NextResponse.json({ ok: true, lessons, syncedAt: now }, { headers: { "Cache-Control": "no-store, max-age=0" } });
-  } catch (error) {
-    return errorResponse(error, "حفظ");
-  }
+    const priorWrite = timetableWriteInflight.get(writeKey);
+    if (priorWrite) {
+      const lessons = await priorWrite;
+      return NextResponse.json({ ok: true, lessons, deduplicated: true }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    }
+
+    const pending = (async () => {
+      const cached = timetableCache.get(cacheKey);
+      let existing: Schedule;
+      if (cached && cached.expiresAt > Date.now()) {
+        existing = cached.lessons;
+      } else {
+        const snapshot = await withTimeout(context.reference.get());
+        const data = snapshot.exists ? snapshot.data() as { lessons?: unknown } : undefined;
+        existing = cleanSchedule(data?.lessons, context.subjectLabel);
+      }
+      const retained = Object.fromEntries(Object.entries(existing).filter(([, lesson]) => !allowedClasses.has(lesson.className))) as Schedule;
+      const lessons = { ...retained, ...submitted };
+      if (schedulesEqual(existing, lessons)) {
+        timetableCache.set(cacheKey, { lessons, expiresAt: Date.now() + TIMETABLE_CACHE_TTL_MS });
+        return lessons;
+      }
+      const now = new Date().toISOString();
+      await withTimeout(context.reference.set({ lessons, teacherId: context.session.userId, teacherName: context.session.name || "", subjectKey: subjectId, updatedAt: now, savedThroughApiAt: now }, { merge: true }));
+      timetableCache.set(cacheKey, { lessons, expiresAt: Date.now() + TIMETABLE_CACHE_TTL_MS });
+      return lessons;
+    })();
+    timetableWriteInflight.set(writeKey, pending);
+    try {
+      const lessons = await pending;
+      return NextResponse.json({ ok: true, lessons }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    } finally {
+      timetableWriteInflight.delete(writeKey);
+    }
+  } catch (error) { return errorResponse(error, "حفظ"); }
 }
