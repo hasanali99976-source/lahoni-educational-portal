@@ -3,56 +3,8 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 
-function clean(value: unknown, limit = 100) {
-  return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, limit);
-}
-
-function archived(value: Record<string, unknown>) {
-  return value.deleted === true
-    || value.archived === true
-    || Boolean(value.deletedAt)
-    || Boolean(value.archivedAt)
-    || String(value.status || "").toLowerCase() === "archived";
-}
-
-const readGradeData = unstable_cache(
-  async (teacherId: string, subjectId: string) => {
-    const snapshot = await adminDb()
-      .collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`)
-      .get();
-
-    const byCode: Record<string, Record<string, unknown>> = {};
-    snapshot.docs.forEach(item => {
-      const data = item.data() as Record<string, unknown>;
-      if (archived(data)) return;
-      const code = clean(data.code || data.accessCode || data.studentCode || item.id, 40).toUpperCase();
-      if (!code) return;
-      const current = byCode[code] || {};
-      const currentUpdated = String(current.updatedAt || current.gradePlanUpdatedAt || current.gradeDeductionUpdatedAt || "");
-      const nextUpdated = String(data.updatedAt || data.gradePlanUpdatedAt || data.gradeDeductionUpdatedAt || "");
-      if (!byCode[code] || nextUpdated >= currentUpdated) byCode[code] = { ...data, documentId: item.id };
-    });
-
-    return byCode;
-  },
-  ["teacher-grade-data-v1"],
-  { revalidate: 30 },
-);
-
-export async function GET(request: Request) {
-  const session = await requireSession("teacher");
-  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
-
-  try {
-    const url = new URL(request.url);
-    const subjectId = clean(url.searchParams.get("subjectId"), 80);
-    if (!subjectId) return NextResponse.json({ ok: false, message: "المادة غير محددة." }, { status: 400 });
-
-    const byCode = await readGradeData(session.userId, subjectId);
-
-    return NextResponse.json({ ok: true, byCode }, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=15" } });
-  } catch (error) {
-    console.error("teacher grade data failed", error);
-    return NextResponse.json({ ok: false, message: "تعذر تحميل بيانات التحصيل المحفوظة." }, { status: 500 });
-  }
-}
+function clean(value: unknown, limit = 100) { return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, limit); }
+function archived(value: Record<string, unknown>) { return value.deleted === true || value.archived === true || Boolean(value.deletedAt) || Boolean(value.archivedAt) || String(value.status || "").toLowerCase() === "archived"; }
+const readGradeData = unstable_cache(async (teacherId:string,subjectId:string)=>{const snapshot=await adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`).get();const byCode:Record<string,Record<string,unknown>>={};snapshot.docs.forEach(item=>{const data=item.data() as Record<string,unknown>;if(archived(data))return;const code=clean(data.code||data.accessCode||data.studentCode||item.id,40).toUpperCase();if(!code)return;const current=byCode[code]||{},currentUpdated=String(current.updatedAt||current.gradePlanUpdatedAt||current.gradeDeductionUpdatedAt||""),nextUpdated=String(data.updatedAt||data.gradePlanUpdatedAt||data.gradeDeductionUpdatedAt||"");if(!byCode[code]||nextUpdated>=currentUpdated)byCode[code]={...data,documentId:item.id}});return byCode},["teacher-grade-data-v2"],{revalidate:3600});
+export async function GET(request:Request){const session=await requireSession("teacher");if(!session)return NextResponse.json({ok:false},{status:401});try{const url=new URL(request.url),subjectId=clean(url.searchParams.get("subjectId"),80);if(!subjectId)return NextResponse.json({ok:false,message:"المادة غير محددة."},{status:400});const byCode=await readGradeData(session.userId,subjectId);return NextResponse.json({ok:true,byCode},{headers:{"Cache-Control":"private, max-age=300, stale-while-revalidate=3300"}})}catch(error){console.error("teacher grade data failed",error);return NextResponse.json({ok:false,message:"تعذر تحميل بيانات التحصيل المحفوظة."},{status:500})}}
+export async function POST(request:Request){const session=await requireSession("teacher");if(!session)return NextResponse.json({ok:false},{status:401});try{const body=await request.json() as Record<string,unknown>,subjectId=clean(body.subjectId,80),rows=Array.isArray(body.rows)?body.rows:[];if(!subjectId||!rows.length)return NextResponse.json({ok:false,message:"لا توجد درجات للحفظ."},{status:400});if(rows.length>100)return NextResponse.json({ok:false,message:"عدد السجلات أكبر من الحد المسموح."},{status:400});const batch=adminDb().batch(),root=`portalV2Data/${session.userId}/subjects/${subjectId}/students`,now=new Date().toISOString();for(const raw of rows){if(!raw||typeof raw!=="object")continue;const row=raw as Record<string,unknown>,code=clean(row.code||row.id,40).toUpperCase();if(!code)continue;const ref=adminDb().collection(root).doc(code),payload:Record<string,unknown>={name:clean(row.name,160),class:clean(row.className||row.class,80),className:clean(row.className||row.class,80),code,active:true,rosterActive:true,teacherId:session.userId,subjectKey:subjectId,updatedAt:now};for(const key of ["gradeValues","gradePlanValues","activeGradePlanId","activeGradePlanVersion","gradePlanUpdatedAt","gradeDeductions","gradeDeductionUpdatedAt"]){if(row[key]!==undefined)payload[key]=row[key]}batch.set(ref,payload,{merge:true})}await batch.commit();return NextResponse.json({ok:true,saved:rows.length,updatedAt:now})}catch(error){console.error("teacher grade save failed",error);return NextResponse.json({ok:false,message:"تعذر حفظ رصد الدرجات الآن."},{status:500})}}
