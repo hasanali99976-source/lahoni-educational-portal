@@ -1,0 +1,2 @@
+/* Attendance counters must represent the selected day's actual class roster only. */
+.attendance-page .attendance-stats{isolation:isolate}
