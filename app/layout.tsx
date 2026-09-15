@@ -1,34 +1,21 @@
 import "./globals.css";
 import "./print.css";
-import "./portal-v3.css";
-import "./login-v4.css";
-import "./subject-identities.css";
-import "./portal-experience-v4.css";
-import "./full-portal-redesign-v5.css";
-import "./portal-rebuild-v6.css";
-import "./education-intelligence-v17.css";
-import "./full-portal-overhaul-v18.css";
-import "./portal-intelligence.css";
-import "./attendance-students-v31.css";
-import "./mobile-complete-v36.css";
-import "./teacher/teacher-mobile-complete-v7.css";
-import "./home-identity-unified.css";
-import "./portal-entry-unified.css";
-import "./portal-v100.css";
-import "./portal-v101.css";
-import "./portal-unified-2026.css";
-import "./teacher-unified-2026.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
-import PwaRegister from "./pwa-register";
-import MobileAppEnhancer from "./mobile-app-enhancer";
-import MobileWindowBridge from "./mobile-window-bridge";
-import PortalCommandRuntime from "./portal-command-runtime";
-import PortalRuntimeGate from "./portal-runtime-gate";
-import PortalPrintRuntime from "./portal-print-runtime";
-import PortalVoiceGreetingRuntime from "./portal-voice-greeting-runtime";
-import RouteRuntimeLoader from "./route-runtime-loader";
+
 const tajawal=Tajawal({subsets:["arabic"],weight:["400","500","700","800","900"],display:"swap"});
-export const metadata:Metadata={title:{default:"بوابة أستاذ لحوني التعليمية",template:"%s | أستاذ لحوني"},description:"منصة تعليمية مدرسية موحدة للإدارة والمعلمين والطلاب",applicationName:"بوابة أستاذ لحوني التعليمية",manifest:"/manifest.webmanifest?v=2026-unified",appleWebApp:{capable:true,title:"أستاذ لحوني",statusBarStyle:"default"},formatDetection:{telephone:false},icons:{icon:[{url:"/icon.svg?v=2026-unified",type:"image/svg+xml"},{url:"/icons/lahooni-identity-320.jpg?v=2026-unified",sizes:"320x320",type:"image/jpeg"}],apple:[{url:"/icons/lahooni-identity-320.jpg?v=2026-unified",sizes:"320x320",type:"image/jpeg"}]}};
-export const viewport:Viewport={width:"device-width",initialScale:1,maximumScale:5,viewportFit:"cover",themeColor:"#082f49",colorScheme:"light"};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="ar" dir="rtl"><body className={tajawal.className}><PwaRegister/><MobileWindowBridge/><MobileAppEnhancer/><RouteRuntimeLoader/><PortalVoiceGreetingRuntime/><PortalPrintRuntime/><PortalRuntimeGate><div className="print-header">بوابة أستاذ لحوني التعليمية</div><PortalCommandRuntime/></PortalRuntimeGate><div className="portal-stage portal-unified-2026">{children}</div><PortalRuntimeGate><div className="print-footer"><strong>بوابة أستاذ لحوني التعليمية</strong><span className="page-number"/></div></PortalRuntimeGate></body></html>}
+
+export const metadata:Metadata={
+  title:{default:"بوابة أستاذ لحوني التعليمية",template:"%s | أستاذ لحوني"},
+  description:"منصة تعليمية مدرسية موحدة للإدارة والمعلمين والطلاب",
+  applicationName:"بوابة أستاذ لحوني التعليمية",
+  manifest:"/manifest.webmanifest?v=2026-new-portal",
+  appleWebApp:{capable:true,title:"أستاذ لحوني",statusBarStyle:"default"},
+  formatDetection:{telephone:false},
+  icons:{icon:[{url:"/icon.svg?v=2026-new-portal",type:"image/svg+xml"},{url:"/icons/lahooni-identity-320.jpg?v=2026-new-portal",sizes:"320x320",type:"image/jpeg"}],apple:[{url:"/icons/lahooni-identity-320.jpg?v=2026-new-portal",sizes:"320x320",type:"image/jpeg"}]}
+};
+export const viewport:Viewport={width:"device-width",initialScale:1,maximumScale:5,viewportFit:"cover",themeColor:"#061d2b",colorScheme:"light"};
+
+export default function RootLayout({children}:{children:React.ReactNode}){
+  return <html lang="ar" dir="rtl"><body className={tajawal.className}>{children}</body></html>;
+}
