@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
@@ -43,16 +42,6 @@ async function loadClasses(students: SchoolStudent[]) {
   return [...map.values()].sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
 }
 
-const loadRosterPersistent = unstable_cache(
-  async (includeArchived: boolean) => {
-    const students = await loadStudents(includeArchived);
-    const classes = await loadClasses(students.filter(student => student.active !== false));
-    return { students, classes };
-  },
-  ["admin-school-roster-v2"],
-  { revalidate: 3600 },
-);
-
 async function loadRosterCached(includeArchived = false) {
   const key = includeArchived ? "archived" : "active";
   const cached = rosterCache.get(key);
@@ -60,8 +49,9 @@ async function loadRosterCached(includeArchived = false) {
   const existing = rosterInflight.get(key);
   if (existing) return existing;
   const pending = (async () => {
-    const loaded = await loadRosterPersistent(includeArchived);
-    const value = { ...loaded, expiresAt: Date.now() + ADMIN_ROSTER_CACHE_TTL_MS };
+    const students = await loadStudents(includeArchived);
+    const classes = await loadClasses(students.filter(student => student.active !== false));
+    const value = { students, classes, expiresAt: Date.now() + ADMIN_ROSTER_CACHE_TTL_MS };
     rosterCache.set(key, value);
     return value;
   })().finally(() => rosterInflight.delete(key));
@@ -92,7 +82,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "أدخل اسم الطالب واختر الصف والفصل" }, { status: 400 });
     }
 
-    const existing = await loadStudents(true);
+    const { students: existing } = await loadRosterCached(true);
     const duplicate = existing.find(student => student.active !== false && student.name === name && student.grade === grade && student.section === section);
     if (duplicate) return NextResponse.json({ ok: false, message: `الطالب موجود مسبقًا، وكوده ${duplicate.code}` }, { status: 409 });
 
