@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
@@ -15,9 +16,10 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 
-const ADMIN_ROSTER_CACHE_TTL_MS = 60_000;
+const ADMIN_ROSTER_CACHE_TTL_MS = 60 * 60 * 1000;
 type AdminRosterCache = { students: SchoolStudent[]; classes: SchoolClass[]; expiresAt: number };
 const rosterCache = new Map<string, AdminRosterCache>();
+const rosterInflight = new Map<string, Promise<AdminRosterCache>>();
 
 async function loadStudents(includeArchived = false) {
   const snapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get();
@@ -41,15 +43,30 @@ async function loadClasses(students: SchoolStudent[]) {
   return [...map.values()].sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
 }
 
+const loadRosterPersistent = unstable_cache(
+  async (includeArchived: boolean) => {
+    const students = await loadStudents(includeArchived);
+    const classes = await loadClasses(students.filter(student => student.active !== false));
+    return { students, classes };
+  },
+  ["admin-school-roster-v2"],
+  { revalidate: 3600 },
+);
+
 async function loadRosterCached(includeArchived = false) {
   const key = includeArchived ? "archived" : "active";
   const cached = rosterCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached;
-  const students = await loadStudents(includeArchived);
-  const classes = await loadClasses(students.filter(student => student.active !== false));
-  const value = { students, classes, expiresAt: Date.now() + ADMIN_ROSTER_CACHE_TTL_MS };
-  rosterCache.set(key, value);
-  return value;
+  const existing = rosterInflight.get(key);
+  if (existing) return existing;
+  const pending = (async () => {
+    const loaded = await loadRosterPersistent(includeArchived);
+    const value = { ...loaded, expiresAt: Date.now() + ADMIN_ROSTER_CACHE_TTL_MS };
+    rosterCache.set(key, value);
+    return value;
+  })().finally(() => rosterInflight.delete(key));
+  rosterInflight.set(key, pending);
+  return pending;
 }
 
 export async function GET(request: Request) {
@@ -57,7 +74,7 @@ export async function GET(request: Request) {
   try {
     const includeArchived = new URL(request.url).searchParams.get("archived") === "1";
     const { students, classes } = await loadRosterCached(includeArchived);
-    return NextResponse.json({ ok: true, students, classes }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=30" } });
+    return NextResponse.json({ ok: true, students, classes }, { headers: { "Cache-Control": "private, max-age=300, stale-while-revalidate=3300" } });
   } catch (error) {
     console.error("load school students failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل سجل الطلاب" }, { status: 500 });
