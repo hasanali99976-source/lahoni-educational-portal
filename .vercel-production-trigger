@@ -1,0 +1,2 @@
+production-trigger: 2026-09-16
+includes: admin-shell, teacher-shell, student-shell, attendance-timetable-guard
