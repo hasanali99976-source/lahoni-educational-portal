@@ -17,6 +17,7 @@ import "./portal-entry-unified.css";
 import "./portal-v100.css";
 import "./portal-v101.css";
 import "./portal-unified-2026.css";
+import "./teacher-unified-2026.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
