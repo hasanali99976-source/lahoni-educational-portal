@@ -1,0 +1,31 @@
+name: Fix gradebook save
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - name: Patch gradebook client
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app/teacher/grades/page.tsx')
+          s=p.read_text()
+          s=s.replace('import { doc, setDoc } from "firebase/firestore";\nimport { db } from "../../../lib/firebase";\n','')
+          s=s.replace('import { type ClientTenant, tenantStudentsPath } from "../../../lib/firestore-tenant-client";','import { type ClientTenant } from "../../../lib/firestore-tenant-client";')
+          start=s.index('    setSaving(true);\n    try{\n      const now=new Date().toISOString();\n      await Promise.all(classStudents.map(student=>{')
+          end=s.index('      const deductionRows=',start)
+          replacement='''    setSaving(true);\n    try{\n      const now=new Date().toISOString();\n      const gradeRows=classStudents.map(student=>{\n        const mergedValues={...valuesForPlan(student),...(localValues[student.id]||{})};\n        return {id:student.id,code:student.code,name:student.name,className:student.class,gradeValues:mergedValues,gradePlanValues:{...(student.gradePlanValues||{}),[activePlan.id]:mergedValues},activeGradePlanId:activePlan.id,activeGradePlanVersion:activePlan.version,gradePlanUpdatedAt:now};\n      });\n      const gradeResponse=await fetch('/api/teacher/grade-data',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({subjectId:tenant.subjectKey,rows:gradeRows})});\n      const gradeResult=await gradeResponse.json().catch(()=>({}));\n      if(!gradeResponse.ok)throw new Error(gradeResult.message||'تعذر حفظ رصد الدرجات.');\n'''
+          s=s[:start]+replacement+s[end:]
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/teacher/grades/page.tsx
+          git commit -m "fix(grades): persist register via server API" || exit 0
+          git push origin main
