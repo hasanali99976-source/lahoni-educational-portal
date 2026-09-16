@@ -11,10 +11,8 @@ import { readLocalGradePlan, setGradePlanCurrentTeacher } from "../../lib/grade-
 import { TeacherClientContext, type TeacherClientAssignment, type TeacherClientSubject } from "../../lib/teacher-client";
 import "./print-theme.css";
 import "./teacher-v3.css";
-import "./teacher-navigation-v4.css";
 import "./subject-themes-v5.css";
 import "./mobile-card-tables.css";
-import "./teacher-mobile-ux-v6.css";
 import "./teacher-daily-v70.css";
 import "./teacher-professional-v71.css";
 import "./attendance-professional-v71.css";
@@ -171,35 +169,24 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         </div>
         <div className="teacher-pro-subject">
           <span className="teacher-pro-subject-mark">{subjectConfig.shortMark}</span>
-          {subjects.length > 1 ? <select aria-label="تغيير المادة أو المرحلة" value={workspaceKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}</option>)}</select> : <div className="teacher-pro-subject-copy"><small>المادة والمرحلة</small><strong>{subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</strong></div>}
+          {subjects.length > 1 ? <select aria-label="تغيير المادة أو المرحلة" value={workspaceKey} onChange={event => void changeSubject(event.target.value)} disabled={switchingSubject}>{subjects.map(subject => <option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel ? ` — ${subject.gradeLabel}` : ""}</option>)}</select> : <div className="teacher-pro-subject-copy"><small>المادة الحالية</small><strong>{subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</strong></div>}
         </div>
-        <nav className="teacher-pro-nav" aria-label="أعمال المعلم اليومية">{primaryTabs.map(renderHeaderTab)}</nav>
-        <div className="teacher-pro-actions">
-          <Link prefetch={false} className="teacher-pro-action ai" href="/teacher/ai"><TabIcon type="ai"/><span>المساعد</span></Link>
-          {hasGradePlan ? <Link prefetch={false} className="teacher-pro-action grade-plan-mini-action" href="/teacher/grade-plan?edit=1" title="تعديل خطة توزيع الدرجات"><TabIcon type="gradeplan"/></Link> : null}
-          <button className="teacher-pro-action" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><TabIcon type="more"/><span>المزيد</span></button>
-        </div>
+        <nav className="teacher-pro-tabs" aria-label="التنقل الرئيسي">{primaryTabs.map(renderHeaderTab)}<button className={moreActive || menuOpen ? "active teacher-pro-more" : "teacher-pro-more"} onClick={() => setMenuOpen(v => !v)} aria-expanded={menuOpen}><TabIcon type="more"/><span>المزيد</span></button></nav>
+        <div className="teacher-pro-tools"><span className="teacher-pro-date">{todayLabel}</span><Link prefetch={false} href="/" className="teacher-pro-home">الرئيسية</Link><button onClick={logout} className="teacher-pro-logout">خروج</button></div>
       </header>
 
-      {menuOpen ? <button className="teacher-command-backdrop" type="button" aria-label="إغلاق لوحة الأدوات" onClick={() => setMenuOpen(false)}/> : null}
-      <aside className="teacher-command-panel" aria-label="لوحة أدوات المعلم">
-        <div className="teacher-command-head"><div><small>أدوات إضافية</small><strong>مركز أوامر المعلم</strong></div><button className="teacher-command-close" type="button" onClick={() => setMenuOpen(false)} aria-label="إغلاق">×</button></div>
-        <section className="teacher-command-section"><span className="teacher-command-title">التعليم والمتابعة</span><nav className="teacher-command-links">{moreTabs.map(renderCommandTab)}</nav></section>
-        <div className="teacher-command-footer"><Link prefetch={false} href="/">الصفحة الرئيسية</Link><button type="button" onClick={() => void logout()}>تسجيل الخروج</button></div>
+      <button type="button" className="teacher-command-backdrop" aria-label="إغلاق القائمة" onClick={() => setMenuOpen(false)}/>
+      <aside className="teacher-command-panel" aria-label="كل خدمات المعلم">
+        <div className="teacher-command-head"><div><small>مركز الأدوات</small><strong>كل خدمات المعلم</strong></div><button onClick={() => setMenuOpen(false)} aria-label="إغلاق">×</button></div>
+        <div className="teacher-command-subject"><span>{subjectConfig.shortMark}</span><div><small>مساحة العمل الحالية</small><b>{subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</b></div></div>
+        <nav className="teacher-command-links">{primaryTabs.map(renderCommandTab)}{moreTabs.map(renderCommandTab)}</nav>
+        <div className="teacher-command-foot"><Link prefetch={false} href="/">العودة للرئيسية</Link><button onClick={logout}>تسجيل الخروج</button></div>
       </aside>
 
-      <main className="teacher-main">
-        <header className="teacher-context-strip">
-          <div className="teacher-context-main"><span className="teacher-context-pulse"/><div><small>الحفظ السحابي متصل</small><strong>{teacherName} — {subjectName}{activeGradeLabel ? ` — ${activeGradeLabel}` : ""}</strong></div></div>
-          <span className="teacher-context-date">{todayLabel}</span>
-        </header>
+      <main className="teacher-pro-main">
+        <div className="teacher-pro-context"><div><small>مساحة المعلم</small><strong>{subjectName}</strong><span>{activeGradeLabel || "المرحلة المسندة"}</span></div><div className="teacher-pro-context-actions">{hasGradePlan ? <span className="teacher-pro-ready">الخطة الدراسية جاهزة</span> : <Link prefetch={false} href="/teacher/grade-plan">إعداد الخطة الدراسية</Link>}</div></div>
         <div className="teacher-page-content">{children}</div>
       </main>
-
-      <nav className="teacher-mobile-nav" aria-label="التنقل اليومي">
-        {primaryTabs.map(tab => <Link prefetch={false} key={tab.href} href={tab.href} className={pathname.startsWith(tab.href) ? "active" : ""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>)}
-        <button type="button" className={moreActive || menuOpen ? "active" : ""} onClick={() => setMenuOpen(true)}><TabIcon type="more"/><span>المزيد</span></button>
-      </nav>
     </div>
   </TeacherClientContext.Provider>;
 }
