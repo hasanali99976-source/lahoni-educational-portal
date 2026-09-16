@@ -2,6 +2,7 @@ import "./globals.css";
 import "./print.css";
 import { Tajawal } from "next/font/google";
 import type { Metadata, Viewport } from "next";
+import SharedSourceSync from "./shared-source-sync";
 
 const tajawal=Tajawal({subsets:["arabic"],weight:["400","500","700","800","900"],display:"swap"});
 
@@ -17,5 +18,5 @@ export const metadata:Metadata={
 export const viewport:Viewport={width:"device-width",initialScale:1,maximumScale:5,viewportFit:"cover",themeColor:"#061d2b",colorScheme:"light"};
 
 export default function RootLayout({children}:{children:React.ReactNode}){
-  return <html lang="ar" dir="rtl"><body className={tajawal.className}>{children}</body></html>;
+  return <html lang="ar" dir="rtl"><body className={tajawal.className}><SharedSourceSync/>{children}</body></html>;
 }
