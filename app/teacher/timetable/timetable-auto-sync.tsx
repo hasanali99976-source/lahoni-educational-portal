@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
 type Lesson = { subject: string; className: string; notes: string };
-type PendingTimetable = { lessons: Record<string, Lesson>; classNames: string[]; updatedAt: string };
+type PendingTimetable = { lessons: Record<string, Lesson>; classNames: string[]; updatedAt: string; baseUpdatedAt?: string };
 
 function readPending(key: string): PendingTimetable | null {
   if (!key) return null;
@@ -17,6 +17,7 @@ function readPending(key: string): PendingTimetable | null {
       lessons: parsed.lessons as Record<string, Lesson>,
       classNames: parsed.classNames.map(String).filter(Boolean),
       updatedAt: String(parsed.updatedAt || ""),
+      baseUpdatedAt: parsed.baseUpdatedAt ? String(parsed.baseUpdatedAt) : undefined,
     };
   } catch {
     return null;
@@ -36,16 +37,13 @@ export default function TimetableAutoSync() {
     : "";
 
   useEffect(() => {
-    if (!storageKey || !subjectKey) return;
+    if (!storageKey || !subjectKey || activeGrade === "all") return;
     let stopped = false;
 
     const syncPending = async () => {
       if (stopped || syncing.current || !navigator.onLine) return;
       const pending = readPending(storageKey);
       if (!pending) return;
-
-      // A pending timetable version is attempted only once per mounted page.
-      // Do not poll Firestore, retry on focus, or retry on visibility changes.
       if (lastAttemptedVersion.current === pending.updatedAt) return;
       lastAttemptedVersion.current = pending.updatedAt;
       syncing.current = true;
@@ -57,8 +55,10 @@ export default function TimetableAutoSync() {
           credentials: "same-origin",
           body: JSON.stringify({
             subjectId: subjectKey,
+            grade: activeGrade,
             classNames: pending.classNames,
             lessons: pending.lessons,
+            expectedUpdatedAt: pending.baseUpdatedAt || "",
           }),
         });
         if (!response.ok) return;
@@ -76,12 +76,8 @@ export default function TimetableAutoSync() {
       }
     };
 
-    const onUpdate = () => {
-      // A real user edit creates a new updatedAt version, so it may sync once.
-      void syncPending();
-    };
+    const onUpdate = () => { void syncPending(); };
     const onOnline = () => {
-      // Permit one retry after a genuine offline -> online transition.
       lastAttemptedVersion.current = "";
       void syncPending();
     };
@@ -95,7 +91,7 @@ export default function TimetableAutoSync() {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("lahooni:timetable-updated", onUpdate as EventListener);
     };
-  }, [storageKey, subjectKey]);
+  }, [storageKey, subjectKey, activeGrade]);
 
   return null;
 }
