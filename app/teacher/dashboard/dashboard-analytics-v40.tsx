@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
-type AttendanceRecord = { date?: string; records?: Record<string, AttendanceStatus> };
+type AttendanceRecord = { id?: string; class?: string; date?: string; updatedAt?: string; records?: Record<string, AttendanceStatus> };
 type Student = { id?: string; code?: string; name?: string; class?: string; className?: string };
 
 function baseSubject(value: string) { return String(value || "").trim().split("--")[0]; }
@@ -15,6 +15,9 @@ function dateKey(value: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(value);
   const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
   return `${map.year}-${map.month}-${map.day}`;
+}
+function attendanceClassKey(item: AttendanceRecord) {
+  return String(item.class || item.id || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 export default function TeacherDashboardAnalyticsV40() {
@@ -25,23 +28,31 @@ export default function TeacherDashboardAnalyticsV40() {
 
   useEffect(() => {
     if (!session?.teacherId || !session?.subjectKey) return;
+    let active = true;
     const controller = new AbortController();
     const subjectId = baseSubject(session.subjectKey);
     const params = new URLSearchParams({ subjectId });
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
     fetch(`/api/teacher/students?${params}`, { cache: "no-store", signal: controller.signal })
       .then(async response => response.ok ? response.json() : ({ students: [] }))
-      .then(data => setStudents(Array.isArray(data.students) ? data.students : []))
-      .catch(() => setStudents([]));
-    const stop = onSnapshot(collection(db, tenantCollection(session.teacherId, session.subjectKey as never, "attendance")), snapshot => {
-      setAttendance(snapshot.docs.map(item => item.data() as AttendanceRecord));
-    }, () => setAttendance([]));
-    return () => { controller.abort(); stop(); };
+      .then(data => { if (active) setStudents(Array.isArray(data.students) ? data.students : []); })
+      .catch(() => { if (active) setStudents([]); });
+    getDocs(collection(db, tenantCollection(session.teacherId, session.subjectKey as never, "attendance")))
+      .then(snapshot => { if (active) setAttendance(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as AttendanceRecord) }))); })
+      .catch(() => { if (active) setAttendance([]); });
+    return () => { active = false; controller.abort(); };
   }, [session?.teacherId, session?.subjectKey, session?.activeGrade]);
 
   const attendanceCounts = useMemo(() => {
     const result: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0 };
-    attendance.filter(item => item.date === today).forEach(item => Object.values(item.records || {}).forEach(status => { if (status in result) result[status] += 1; }));
+    const latestByClass = new Map<string, AttendanceRecord>();
+    attendance.filter(item => item.date === today).forEach(item => {
+      const key = attendanceClassKey(item);
+      if (!key) return;
+      const current = latestByClass.get(key);
+      if (!current || String(item.updatedAt || "") >= String(current.updatedAt || "")) latestByClass.set(key, item);
+    });
+    latestByClass.forEach(item => Object.values(item.records || {}).forEach(status => { if (status in result) result[status] += 1; }));
     return result;
   }, [attendance, today]);
 
