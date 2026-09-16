@@ -72,8 +72,6 @@ export async function GET(request: Request) {
   [studentData.code, studentData.accessCode, studentData.studentCode].map(clean).filter(Boolean).forEach(value => aliases.add(value));
   const aliasList = [...aliases].filter(Boolean).slice(0, 10);
 
-  // Scope reads to this student's class/student instead of reading every class and referral.
-  // Existing collection names, IDs and teacher/subject linkage remain unchanged.
   const attendanceQuery = studentClass
     ? adminDb().collection(`${root}/attendance`).where("class", "==", studentClass)
     : adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE);
@@ -109,12 +107,22 @@ export async function GET(request: Request) {
   const storedNoticeExplicit = storedNotice && (storedNotice.teacherCreated === true || storedNotice.explicitTeacherAction === true || clean(storedNotice.source) === "teacher_action");
   const parentCounselorLastNotice = latestExplicitReferral ? { title: "إحالة للمرشد الطلابي", message: latestExplicitReferral.reason, referralType: latestExplicitReferral.referralType, subject: latestExplicitReferral.subject, teacherName: latestExplicitReferral.teacherName, teacherCreated: true, source: "teacher_action", referralId: latestExplicitReferral.id, createdAt: latestExplicitReferral.createdAt } : storedNoticeExplicit ? storedNotice : undefined;
 
+  // Recover old and current attendance records using every known student identifier.
+  // This reads the existing records in place; it does not rename, migrate or delete attendance data.
   const explicitByDate = new Map<string, AttendanceEntry>();
   for (const record of attendance.docs) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
     if (!date || date < ATTENDANCE_START_DATE) continue;
-    const status = data?.records?.[student.id] ?? data?.records?.[access.studentId];
+    const recordMap = data?.records && typeof data.records === "object" ? data.records as Record<string, unknown> : {};
+    let status: unknown;
+    for (const alias of aliasList) {
+      if (validStatus(recordMap[alias])) { status = recordMap[alias]; break; }
+      const upper = alias.toUpperCase();
+      if (validStatus(recordMap[upper])) { status = recordMap[upper]; break; }
+      const lower = alias.toLowerCase();
+      if (validStatus(recordMap[lower])) { status = recordMap[lower]; break; }
+    }
     if (!validStatus(status)) continue;
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
     const existing = explicitByDate.get(date);
