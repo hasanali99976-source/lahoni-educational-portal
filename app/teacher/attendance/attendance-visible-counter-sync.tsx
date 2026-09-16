@@ -24,6 +24,18 @@ function clean(value: unknown) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
+function directLabel(element: HTMLElement) {
+  return [...element.children]
+    .filter((node): node is HTMLElement => node instanceof HTMLElement)
+    .find((node) => ["SPAN", "SMALL", "P"].includes(node.tagName));
+}
+
+function directValue(element: HTMLElement) {
+  return [...element.children]
+    .filter((node): node is HTMLElement => node instanceof HTMLElement)
+    .find((node) => node.matches("strong,b,[data-attendance-total]"));
+}
+
 export default function AttendanceVisibleCounterSync() {
   useEffect(() => {
     let scheduled = 0;
@@ -65,15 +77,22 @@ export default function AttendanceVisibleCounterSync() {
         if (presentValue) presentValue.textContent = String(counts.present);
         if (absentValue) absentValue.textContent = String(counts.absent);
 
-        const allElements = [...root.querySelectorAll<HTMLElement>("article,div,section")];
+        const cards = [...root.querySelectorAll<HTMLElement>("article")];
         (Object.keys(TOTAL_LABELS) as Status[]).forEach((status) => {
-          allElements.forEach((element) => {
-            const labelNode = [...element.querySelectorAll<HTMLElement>("span,small,p")]
-              .find((node) => TOTAL_LABELS[status].includes(clean(node.textContent)));
-            if (!labelNode) return;
-            const valueNode = element.querySelector<HTMLElement>("strong,b,[data-attendance-total]");
-            if (valueNode && valueNode !== labelNode) valueNode.textContent = String(counts[status]);
+          cards.forEach((card) => {
+            const labelNode = directLabel(card);
+            if (!labelNode || !TOTAL_LABELS[status].includes(clean(labelNode.textContent))) return;
+            const valueNode = directValue(card);
+            if (valueNode) valueNode.textContent = String(counts[status]);
           });
+        });
+
+        // The class roster total is independent of absence. Never let a status counter overwrite it.
+        cards.forEach((card) => {
+          const labelNode = directLabel(card);
+          if (!labelNode || !["طلاب الفصل", "عدد طلاب الفصل"].includes(clean(labelNode.textContent))) return;
+          const valueNode = directValue(card);
+          if (valueNode) valueNode.textContent = String(rows.length);
         });
       } finally {
         writing = false;
