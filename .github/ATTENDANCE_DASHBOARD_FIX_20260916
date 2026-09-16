@@ -1,0 +1,1 @@
+Attendance dashboard counts latest saved record per class/date and uses one-time cloud read to avoid duplicate cumulative totals and live listener drain.
