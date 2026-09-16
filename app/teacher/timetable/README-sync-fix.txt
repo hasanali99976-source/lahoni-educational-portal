@@ -1,0 +1,1 @@
+Timetable repair: pending cloud sync now sends active grade and conflict version; attendance reads the same grade-aware cloud timetable and limits today's class selector to scheduled classes. Existing attendance storage keys and saved records are unchanged.
