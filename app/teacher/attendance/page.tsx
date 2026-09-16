@@ -29,7 +29,7 @@ function canonicalClassFromParts(g:unknown,s:unknown,c:unknown){const raw=clean(
 function classNamesFromPayload(v:unknown){if(!Array.isArray(v))return[] as string[];return v.map(i=>{if(typeof i==="string")return normalizeClass(i)||clean(i);if(!i||typeof i!=="object")return"";const r=i as Record<string,unknown>;return canonicalClassFromParts(r.grade,r.section,r.name||r.className||r.class||r.id)}).filter(Boolean)}
 function attendanceClassKey(v:unknown,g?:unknown,s?:unknown){const c=canonicalClassFromParts(g,s,v);return normalizeClass(c)||clean(c)} function attendanceStudentMatchesClass(st:UnifiedStudent,c:string){return attendanceClassKey(st.className||st.class,st.grade,st.section)===attendanceClassKey(c)}
 function uniqueActiveRoster(src:UnifiedStudent[]){const m=new Map<string,UnifiedStudent>();src.forEach(st=>{const code=studentCode(st),name=clean(st.name);if(code&&name&&st.active!==false&&st.rosterActive!==false)m.set(code,{...st,id:code,code,name})});return[...m.values()]}
-function rosterSessionKey(t:string,s:string,g:unknown){return `lahooni-roster-session:${t}:${s}:${g||"all"}`}
+function rosterSessionKey(t:string,s:string,g:unknown){return `lahooni-roster-session-v2:${t}:${s}:${g||"all"}`}
 
 export default function AttendancePage(){
  const session=useTeacherClient();const teacherId=session?.teacherId||"",teacherName=session?.teacherName||"",subjectKey=(session?.subjectKey as SubjectKey)||"history",subject=session?.subject||"",ready=!!teacherId&&!!session?.subjectKey,assignments=session?.assignments||[];
