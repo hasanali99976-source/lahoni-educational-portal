@@ -1,0 +1,41 @@
+name: Fix Attendance Timetable Cross Device Sync v98
+on:
+  push:
+    branches: [fix/attendance-timetable-cross-device-sync]
+    paths:
+      - ".github/scripts/fix_attendance_timetable_cross_device_sync_v98.py"
+      - ".github/workflows/fix-attendance-timetable-cross-device-sync-v98.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Apply guarded attendance timetable sync patch
+        run: python .github/scripts/fix_attendance_timetable_cross_device_sync_v98.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build portal
+        run: npm run build
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit verified source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/attendance/page.tsx
+          if git diff --cached --quiet; then
+            echo "No source changes required"
+          else
+            git commit -m "fix(sync): refresh attendance and timetable across devices"
+            git push origin HEAD:fix/attendance-timetable-cross-device-sync
+          fi
