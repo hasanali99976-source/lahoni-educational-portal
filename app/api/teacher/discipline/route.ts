@@ -8,7 +8,7 @@ import { canonicalClassName, gradeNumber, sectionNumber } from "../../../../lib/
 
 const ATTENDANCE_START_DATE = "2026-08-23";
 const VALID_STATUSES = new Set(["present", "absent", "late", "excused", "escaped"]);
-type AttendanceRow = Record<string, unknown> & { id: string; class: string };
+type AttendanceRow = Record<string, unknown> & { id: string; class: string; date: string };
 
 function normalizedClass(value: unknown) {
   const raw = String(value || "").trim();
@@ -33,12 +33,17 @@ const readDisciplineAttendance = unstable_cache(
 
     const raw: AttendanceRow[] = snapshot.docs.map(document => {
       const data = document.data() as Record<string, unknown>;
-      return { id: document.id, ...data, class: normalizedClass(data.class || data.className) } as AttendanceRow;
-    }).filter(item => String(item.date || "") >= ATTENDANCE_START_DATE);
+      return {
+        id: document.id,
+        ...data,
+        class: normalizedClass(data.class || data.className),
+        date: String(data.date || ""),
+      } as AttendanceRow;
+    }).filter(item => item.date >= ATTENDANCE_START_DATE);
 
     const grouped = new Map<string, AttendanceRow[]>();
     raw.forEach(item => {
-      const key = `${normalizedClass(item.class)}|${String(item.date || "")}`;
+      const key = `${normalizedClass(item.class)}|${item.date}`;
       const list = grouped.get(key) || [];
       list.push(item);
       grouped.set(key, list);
@@ -56,8 +61,8 @@ const readDisciplineAttendance = unstable_cache(
           if (normalizedCode && VALID_STATUSES.has(normalizedStatus)) records[normalizedCode] = normalizedStatus;
         });
       });
-      return { ...latest, class: normalizedClass(latest.class), records, duplicateDocumentsMerged: items.length };
-    }).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+      return { ...latest, class: normalizedClass(latest.class), date: latest.date, records, duplicateDocumentsMerged: items.length };
+    }).sort((a, b) => a.date.localeCompare(b.date));
   },
   ["teacher-discipline-attendance-v2"],
   { revalidate: 15 },
