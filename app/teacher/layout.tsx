@@ -16,6 +16,7 @@ import "./mobile-card-tables.css";
 import "./teacher-daily-v70.css";
 import "./teacher-professional-v71.css";
 import "./attendance-professional-v71.css";
+import "./teacher-ui-v107.css";
 
 type TeacherTab = { href: string; key: string; label: string; note: string; badge?: string };
 type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; workspaceKey?: string; activeGrade?: number | null; activeGradeLabel?: string; subject?: string; subjects?: TeacherClientSubject[]; assignments?: TeacherClientAssignment[]; };
