@@ -1,0 +1,33 @@
+name: Fix Attendance Single Cloud Source v105
+on:
+  push:
+    branches: [fix/attendance-single-cloud-source-v105]
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply guarded single-source patch
+        run: python .github/scripts/fix_attendance_single_cloud_source_v105.py
+      - name: Verify cloud authority and immediate student sync
+        run: |
+          grep -q 'export async function PATCH' app/api/teacher/attendance/record/route.ts
+          grep -q 'method:"PATCH"' app/teacher/attendance/page.tsx
+          grep -q 'if(!payload.exists){setRecords(defaults)' app/teacher/attendance/page.tsx
+      - run: npm install --package-lock=false --no-audit --no-fund
+      - run: npm run audit:runtime
+      - run: npm run build
+      - name: Commit verified source
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app/api/teacher/attendance/record/route.ts app/teacher/attendance/page.tsx
+            git commit -m "fix(attendance): use one cloud record across every device"
+            git push
+          fi

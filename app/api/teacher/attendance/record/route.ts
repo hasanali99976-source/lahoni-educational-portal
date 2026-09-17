@@ -57,6 +57,24 @@ export async function PUT(request: Request) {
   try { await withTimeout(ctx.reference.set(payload, { merge: true })); return NextResponse.json({ ok: true, data: payload }, { headers: { "Cache-Control": "no-store, max-age=0" } }); }
   catch { return NextResponse.json({ ok: false, message: "تعذر حفظ الحضور في السحابة الآن. بقيت النسخة المحلية محفوظة." }, { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } }); }
 }
+export async function PATCH(request: Request) {
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const ctx = await context(request, body); if ("error" in ctx) return ctx.error;
+  const studentCode = clean(body.studentCode).toUpperCase();
+  const status = body.status as AttendanceStatus;
+  if (!studentCode || !VALID_STATUS.has(status)) return NextResponse.json({ ok: false, message: "حالة الطالب غير صحيحة." }, { status: 400 });
+  const updatedAt = new Date().toISOString();
+  try {
+    await withTimeout(adminDb().runTransaction(async tx => {
+      const snapshot = await tx.get(ctx.reference);
+      const previous = snapshot.exists ? cleanRecords(snapshot.data()?.records) : {};
+      const records = { ...previous, [studentCode]: status };
+      tx.set(ctx.reference, { class: ctx.className, date: ctx.date, records, teacherId: ctx.session.userId, teacherName: ctx.session.name || "", subjectKey: ctx.subjectId, manualEdited: true, updatedAt, savedThroughApiAt: updatedAt }, { merge: true });
+    }));
+    return NextResponse.json({ ok: true, studentCode, status, updatedAt }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+  } catch { return NextResponse.json({ ok: false, message: "تعذر مزامنة حالة الطالب سحابيًا الآن." }, { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } }); }
+}
+
 export async function DELETE(request: Request) {
   const ctx = await context(request); if ("error" in ctx) return ctx.error;
   try { await withTimeout(ctx.reference.delete()); return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store, max-age=0" } }); }
