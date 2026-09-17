@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
@@ -22,41 +23,44 @@ function timestampValue(value: unknown) {
   return 0;
 }
 
-async function readDisciplineAttendance(teacherId: string, subjectId: string) {
-  const snapshot = await adminDb()
-    .collection(`portalV2Data/${teacherId}/subjects/${subjectId}/attendance`)
-    .where("date", ">=", ATTENDANCE_START_DATE)
-    .get();
+const readDisciplineAttendance = unstable_cache(
+  async (teacherId: string, subjectId: string) => {
+    const snapshot = await adminDb()
+      .collection(`portalV2Data/${teacherId}/subjects/${subjectId}/attendance`)
+      .where("date", ">=", ATTENDANCE_START_DATE)
+      .get();
 
-  const raw = snapshot.docs.map(document => {
-    const data = document.data() as Record<string, unknown>;
-    return { id: document.id, ...data, class: normalizedClass(data.class || data.className) };
-  }).filter(item => String(item.date || "") >= ATTENDANCE_START_DATE);
+    const raw = snapshot.docs.map(document => {
+      const data = document.data() as Record<string, unknown>;
+      return { id: document.id, ...data, class: normalizedClass(data.class || data.className) };
+    }).filter(item => String(item.date || "") >= ATTENDANCE_START_DATE);
 
-  // السجلات التاريخية قد تحمل أكثر من تسمية للفصل نفسه. نجمعها حسب الفصل+التاريخ
-  // ونأخذ أحدث حالة محفوظة لكل طالب حتى لا يتضاعف الغياب أو التأخير في الانضباط.
-  const grouped = new Map<string, typeof raw>();
-  raw.forEach(item => {
-    const key = `${normalizedClass(item.class)}|${String(item.date || "")}`;
-    const list = grouped.get(key) || [];
-    list.push(item); grouped.set(key, list);
-  });
-
-  return [...grouped.values()].map(items => {
-    const ordered = [...items].sort((a, b) => timestampValue(a.updatedAt) - timestampValue(b.updatedAt));
-    const latest = ordered[ordered.length - 1];
-    const records: Record<string, string> = {};
-    ordered.forEach(item => {
-      const source = item.records && typeof item.records === "object" ? item.records as Record<string, unknown> : {};
-      Object.entries(source).forEach(([code, status]) => {
-        const normalizedCode = String(code || "").trim().toUpperCase();
-        const normalizedStatus = String(status || "").trim().toLowerCase();
-        if (normalizedCode && VALID_STATUSES.has(normalizedStatus)) records[normalizedCode] = normalizedStatus;
-      });
+    const grouped = new Map<string, typeof raw>();
+    raw.forEach(item => {
+      const key = `${normalizedClass(item.class)}|${String(item.date || "")}`;
+      const list = grouped.get(key) || [];
+      list.push(item);
+      grouped.set(key, list);
     });
-    return { ...latest, class: normalizedClass(latest.class), records, duplicateDocumentsMerged: items.length };
-  }).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
-}
+
+    return [...grouped.values()].map(items => {
+      const ordered = [...items].sort((a, b) => timestampValue(a.updatedAt) - timestampValue(b.updatedAt));
+      const latest = ordered[ordered.length - 1];
+      const records: Record<string, string> = {};
+      ordered.forEach(item => {
+        const source = item.records && typeof item.records === "object" ? item.records as Record<string, unknown> : {};
+        Object.entries(source).forEach(([code, status]) => {
+          const normalizedCode = String(code || "").trim().toUpperCase();
+          const normalizedStatus = String(status || "").trim().toLowerCase();
+          if (normalizedCode && VALID_STATUSES.has(normalizedStatus)) records[normalizedCode] = normalizedStatus;
+        });
+      });
+      return { ...latest, class: normalizedClass(latest.class), records, duplicateDocumentsMerged: items.length };
+    }).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+  },
+  ["teacher-discipline-attendance-v2"],
+  { revalidate: 15 },
+);
 
 export async function GET(request: Request) {
   const session = await requireSession("teacher");
@@ -73,7 +77,7 @@ export async function GET(request: Request) {
     const attendance = await readDisciplineAttendance(session.userId, subjectId);
     return NextResponse.json(
       { ok: true, attendance, attendanceStartDate: ATTENDANCE_START_DATE, source: "teacher_saved_attendance", countingMode: "one_saved_record_per_class_date" },
-      { headers: { "Cache-Control": "private, no-store, max-age=0" } },
+      { headers: { "Cache-Control": "private, max-age=0, must-revalidate" } },
     );
   } catch (error) {
     console.error("teacher discipline attendance read failed", error);
