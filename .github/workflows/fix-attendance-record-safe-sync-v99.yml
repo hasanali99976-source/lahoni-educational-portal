@@ -1,0 +1,43 @@
+name: Fix Attendance Record Safe Sync v99
+on:
+  push:
+    branches: [fix/attendance-record-safe-sync-v99]
+    paths:
+      - ".github/scripts/fix_attendance_record_safe_sync_v99.py"
+      - ".github/workflows/fix-attendance-record-safe-sync-v99.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Apply guarded attendance safe-sync patch
+        run: python .github/scripts/fix_attendance_record_safe_sync_v99.py
+      - name: Install dependencies
+        run: npm install --package-lock=false --no-audit --no-fund
+      - name: Runtime audit
+        run: npm run audit:runtime
+      - name: Build portal
+        run: npm run build
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit verified source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/attendance/page.tsx
+          if git diff --cached --quiet; then
+            echo "No source changes required"
+          else
+            git commit -m "fix(attendance): protect unsaved attendance records during sync"
+            git push origin HEAD:fix/attendance-record-safe-sync-v99
+          fi
