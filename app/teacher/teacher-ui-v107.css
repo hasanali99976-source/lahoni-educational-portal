@@ -3,59 +3,16 @@
   .teacher-pro-header{grid-template-columns:minmax(155px,auto) minmax(150px,205px) minmax(560px,1fr) auto;gap:7px;padding-inline:clamp(9px,1vw,16px)}
   .teacher-pro-tabs{overflow:visible!important;justify-content:center;gap:3px}
   .teacher-pro-tabs a,.teacher-pro-more{min-width:62px;padding-inline:5px;font-size:9.5px}
-  .teacher-pro-tabs svg{width:18px;height:18px}
-  .teacher-pro-tools{gap:4px}
-  .teacher-pro-home,.teacher-pro-logout{padding-inline:7px}
-  .teacher-command-panel{top:92px;width:min(620px,calc(100vw - 36px));padding:18px;border-radius:22px}
-  .teacher-command-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  .teacher-command-links a{min-height:82px;padding:11px 12px;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center}
-  .teacher-command-link-copy{min-width:0;gap:2px}
-  .teacher-command-link-copy b{font-size:11.5px;line-height:1.35;white-space:normal}
-  .teacher-command-link-copy small{font-size:9px;line-height:1.45;white-space:normal}
+  .teacher-pro-tabs svg{width:18px;height:18px}.teacher-pro-tools{gap:4px}.teacher-pro-home,.teacher-pro-logout{padding-inline:7px}
+  .teacher-command-panel{top:92px;width:min(620px,calc(100vw - 36px));padding:18px;border-radius:22px}.teacher-command-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.teacher-command-links a{min-height:82px;padding:11px 12px;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center}.teacher-command-link-copy{min-width:0;gap:2px}.teacher-command-link-copy b{font-size:11.5px;line-height:1.35;white-space:normal}.teacher-command-link-copy small{font-size:9px;line-height:1.45;white-space:normal}
 }
-@media (min-width:901px) and (max-width:1280px){
-  .teacher-pro-brand-copy{display:none}.teacher-pro-date{display:none}
-  .teacher-pro-header{grid-template-columns:46px minmax(145px,190px) minmax(535px,1fr) auto}
-  .teacher-pro-tabs a,.teacher-pro-more{min-width:58px;font-size:9px;gap:3px}
-  .teacher-command-panel{width:min(570px,calc(100vw - 28px));left:14px}
-}
-@media (max-width:900px){
-  .teacher-command-panel{padding:14px}.teacher-command-head{position:sticky;top:-14px;z-index:2;background:#fff;padding-top:12px}
-  .teacher-command-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .teacher-command-links a{min-width:0;min-height:72px;padding:9px;grid-template-columns:26px minmax(0,1fr);gap:7px}
-  .teacher-command-link-copy{min-width:0}.teacher-command-link-copy b,.teacher-command-link-copy small{white-space:normal;overflow-wrap:anywhere}
-}
+@media (min-width:901px) and (max-width:1280px){.teacher-pro-brand-copy{display:none}.teacher-pro-date{display:none}.teacher-pro-header{grid-template-columns:46px minmax(145px,190px) minmax(535px,1fr) auto}.teacher-pro-tabs a,.teacher-pro-more{min-width:58px;font-size:9px;gap:3px}.teacher-command-panel{width:min(570px,calc(100vw - 28px));left:14px}}
+@media (max-width:900px){.teacher-command-panel{padding:14px}.teacher-command-head{position:sticky;top:-14px;z-index:2;background:#fff;padding-top:12px}.teacher-command-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.teacher-command-links a{min-width:0;min-height:72px;padding:9px;grid-template-columns:26px minmax(0,1fr);gap:7px}.teacher-command-link-copy{min-width:0}.teacher-command-link-copy b,.teacher-command-link-copy small{white-space:normal;overflow-wrap:anywhere}}
 @media (max-width:520px){.teacher-command-links{grid-template-columns:1fr}.teacher-command-links a{min-height:60px}}
-
-/* Internal pages opened from “More”: keep controls, cards and data readable instead of raw/overflowing UI. */
-.teacher-page-content{width:100%;max-width:1420px;min-width:0;overflow:visible}
-.teacher-page-content>*,.teacher-page-content main,.teacher-page-content section,.teacher-page-content article,.teacher-page-content form,.teacher-page-content div{max-width:100%;box-sizing:border-box}
-.teacher-page-content h1,.teacher-page-content h2,.teacher-page-content h3,.teacher-page-content p,.teacher-page-content b,.teacher-page-content strong,.teacher-page-content small,.teacher-page-content label,.teacher-page-content span{overflow-wrap:anywhere}
-.teacher-page-content pre,.teacher-page-content code{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
-.teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea,.teacher-page-content button{font-family:inherit;box-sizing:border-box}
-.teacher-page-content button,.teacher-page-content a{max-width:100%}
-.teacher-page-content .diagnostics-page,.teacher-page-content .follow-page,.teacher-page-content .portfolio-page,.teacher-page-content .teacher-ai-page,.teacher-page-content .notes-page,.teacher-page-content .reports-page,.teacher-page-content .report-page,.teacher-page-content .grade-plan-page{width:100%;min-width:0}
-.teacher-page-content .diagnostic-builder,.teacher-page-content .diagnostic-list,.teacher-page-content .follow-card,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-section{overflow:hidden}
-.teacher-page-content .questions-editor article,.teacher-page-content .diagnostic-list article{min-width:0}
-.teacher-page-content .builder-actions,.teacher-page-content .diagnostic-list-actions,.teacher-page-content .portfolio-actions{display:flex;flex-wrap:wrap;gap:8px}
-.teacher-page-content .builder-actions>* ,.teacher-page-content .diagnostic-list-actions>* ,.teacher-page-content .portfolio-actions>*{flex:0 1 auto}
-.teacher-page-content .plan-editor{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.teacher-page-content .report-table-wrap,.teacher-page-content .follow-table-wrap,.teacher-page-content .table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
-
-@media(max-width:700px){
-  .teacher-page-content{font-size:14px}
-  .teacher-page-content .diagnostics-hero,.teacher-page-content .diagnostic-builder,.teacher-page-content .diagnostic-list,.teacher-page-content .follow-card,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-section{padding:14px!important;border-radius:15px!important}
-  .teacher-page-content .diagnostics-hero h1,.teacher-page-content h1{font-size:clamp(20px,7vw,27px)!important;line-height:1.3}
-  .teacher-page-content .plan-editor,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-fields{grid-template-columns:1fr!important}
-  .teacher-page-content .builder-actions,.teacher-page-content .diagnostic-list-actions,.teacher-page-content .portfolio-actions{display:grid!important;grid-template-columns:1fr!important}
-  .teacher-page-content .builder-actions>* ,.teacher-page-content .diagnostic-list-actions>* ,.teacher-page-content .portfolio-actions>*{width:100%!important}
-  .teacher-page-content table{min-width:680px!important}
-}
-
-/* Make grade units distinct and readable on laptop; no horizontal overlap. */
-@media (min-width:701px){
-  .grades-v11 .gv11-section-tabs{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;overflow:visible!important;padding:3px 0}
-  .grades-v11 .gv11-section-tabs button{width:100%;min-width:0;min-height:46px;padding:7px 10px;border-radius:10px;white-space:normal;line-height:1.35}
-  .grades-v11 .gv11-planbar{overflow:visible}
-}
+.teacher-page-content{width:100%;max-width:1420px;min-width:0;overflow:visible}.teacher-page-content>*,.teacher-page-content main,.teacher-page-content section,.teacher-page-content article,.teacher-page-content form,.teacher-page-content div{max-width:100%;box-sizing:border-box}.teacher-page-content h1,.teacher-page-content h2,.teacher-page-content h3,.teacher-page-content p,.teacher-page-content b,.teacher-page-content strong,.teacher-page-content small,.teacher-page-content label,.teacher-page-content span{overflow-wrap:anywhere}.teacher-page-content pre,.teacher-page-content code{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}.teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea,.teacher-page-content button{font-family:inherit;box-sizing:border-box}.teacher-page-content button,.teacher-page-content a{max-width:100%}
+.teacher-page-content :is(.diagnostics-page,.follow-page,.discipline-page,.notes-page,.reports-page,.report-page,.portfolio-page,.teacher-ai-page,.grade-plan-page){width:100%;min-width:0;min-height:calc(100vh - 170px);padding:clamp(12px,2vw,24px);background:linear-gradient(180deg,#f7fbfa 0%,#fff 42%);border-radius:22px}.teacher-page-content :is(.diagnostics-page,.follow-page,.discipline-page,.notes-page,.reports-page,.report-page,.portfolio-page,.teacher-ai-page,.grade-plan-page)>header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.teacher-page-content :is(.diagnostic-builder,.diagnostic-list,.follow-card,.discipline-card,.notes-card,.report-card,.reports-card,.portfolio-fields,.ai-card,.plan-card,.evidence-section){max-width:100%;overflow:hidden;background:#fff;border:1px solid #dbe9e6;border-radius:18px;box-shadow:0 8px 24px rgba(15,55,52,.06);padding:clamp(14px,2vw,22px);margin-bottom:14px}.teacher-page-content .questions-editor article,.teacher-page-content .diagnostic-list article{min-width:0}.teacher-page-content .builder-actions,.teacher-page-content .diagnostic-list-actions,.teacher-page-content .report-actions,.teacher-page-content .reports-actions,.teacher-page-content .portfolio-actions{display:flex;flex-wrap:wrap;gap:8px}.teacher-page-content .plan-editor{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.teacher-page-content .report-table-wrap,.teacher-page-content .reports-table-wrap,.teacher-page-content .discipline-table-wrap,.teacher-page-content .notes-table-wrap,.teacher-page-content .follow-table-wrap,.teacher-page-content .table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+.teacher-page-content :is(input,select,textarea){max-width:100%;border:1px solid #cbdedb;border-radius:12px;background:#fff;padding:10px 12px}.teacher-page-content textarea{min-height:96px;resize:vertical}.teacher-page-content :is(button,.button,.btn){min-height:42px;border-radius:12px}.teacher-page-content table{width:100%;border-collapse:separate;border-spacing:0}.teacher-page-content th{background:#f0f8f6;font-weight:800}.teacher-page-content th,.teacher-page-content td{padding:10px;border-bottom:1px solid #e7efed;text-align:right}.teacher-page-content .empty-state{padding:28px;text-align:center;border:1px dashed #bfd6d2;border-radius:16px;background:#fbfdfd;color:#47635f}
+@media(max-width:700px){.teacher-page-content{font-size:14px}.teacher-page-content :is(.diagnostics-page,.follow-page,.discipline-page,.notes-page,.reports-page,.report-page,.portfolio-page,.teacher-ai-page,.grade-plan-page){padding:10px;border-radius:16px;min-height:auto}.teacher-page-content .diagnostics-hero,.teacher-page-content .diagnostic-builder,.teacher-page-content .diagnostic-list,.teacher-page-content .follow-card,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-section{padding:14px!important;border-radius:15px!important}.teacher-page-content .diagnostics-hero h1,.teacher-page-content h1{font-size:clamp(20px,7vw,27px)!important;line-height:1.3}.teacher-page-content .plan-editor,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-fields,.teacher-page-content .diagnostic-grid,.teacher-page-content .report-grid,.teacher-page-content .reports-grid{grid-template-columns:1fr!important}.teacher-page-content .builder-actions,.teacher-page-content .diagnostic-list-actions,.teacher-page-content .report-actions,.teacher-page-content .reports-actions,.teacher-page-content .portfolio-actions{display:grid!important;grid-template-columns:1fr!important}.teacher-page-content .builder-actions>*,.teacher-page-content .diagnostic-list-actions>*,.teacher-page-content .report-actions>*,.teacher-page-content .reports-actions>*,.teacher-page-content .portfolio-actions>*{width:100%!important}.teacher-page-content table{min-width:680px!important}}
+@media (min-width:701px){.grades-v11 .gv11-section-tabs{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;overflow:visible!important;padding:3px 0}.grades-v11 .gv11-section-tabs button{width:100%;min-width:0;min-height:46px;padding:7px 10px;border-radius:10px;white-space:normal;line-height:1.35}.grades-v11 .gv11-planbar{overflow:visible}}
 @media (min-width:1281px){.grades-v11 .gv11-section-tabs{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}}
