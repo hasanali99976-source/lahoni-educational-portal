@@ -3,13 +3,11 @@ from pathlib import Path
 path = Path("app/teacher/portfolio/page.tsx")
 text = path.read_text(encoding="utf-8")
 
-old_import = 'import { doc, getDoc, setDoc } from "firebase/firestore";'
-new_import = 'import { doc, onSnapshot, setDoc } from "firebase/firestore";'
-if old_import not in text:
-    raise RuntimeError("portfolio firestore import no longer matches expected source")
-text = text.replace(old_import, new_import, 1)
-
-old = '''    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
+# Keep the portal's runtime discipline: no permanent Firestore listener/polling.
+# Refresh the single portfolio document when this device regains focus/visibility,
+# while every save remains a direct cloud write. This gives web/mobile/WebView
+# cross-device convergence without reopening the Firestore read-drain.
+old_effect = '''    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
     let cancelled = false;
     void getDoc(ref)
       .then((snap) => {
@@ -38,10 +36,16 @@ old = '''    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, 
 
     return () => { cancelled = true; };
 '''
-new = '''    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
-    const unsubscribe = onSnapshot(
-      ref,
-      (snap) => {
+new_effect = '''    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
+    let cancelled = false;
+    let refreshing = false;
+
+    const refreshFromCloud = async () => {
+      if (cancelled || refreshing) return;
+      refreshing = true;
+      try {
+        const snap = await getDoc(ref);
+        if (cancelled) return;
         if (snap.exists()) {
           const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
           const next: PortfolioForm = {
@@ -54,19 +58,33 @@ new = '''    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, 
         } else if (localForm) {
           setForm(localForm);
         }
-        setLoaded(true);
-      },
-      () => {
+      } catch {
+        if (cancelled) return;
         if (localForm) setForm(localForm);
-        else setMessage("تعذر الاتصال مؤقتًا. ستعود المزامنة عند توفر الشبكة.");
-        setLoaded(true);
-      },
-    );
+        else setMessage("تعذر الاتصال مؤقتًا. أعد فتح الصفحة بعد عودة الشبكة.");
+      } finally {
+        refreshing = false;
+        if (!cancelled) setLoaded(true);
+      }
+    };
 
-    return unsubscribe;
+    const refreshWhenActive = () => {
+      if (document.visibilityState === "visible") void refreshFromCloud();
+    };
+
+    void refreshFromCloud();
+    window.addEventListener("focus", refreshWhenActive);
+    document.addEventListener("visibilitychange", refreshWhenActive);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", refreshWhenActive);
+      document.removeEventListener("visibilitychange", refreshWhenActive);
+    };
 '''
-if old not in text:
-    raise RuntimeError("portfolio one-time cloud load block no longer matches expected source")
-text = text.replace(old, new, 1)
+
+if old_effect not in text:
+    raise RuntimeError("portfolio source no longer matches the guarded one-time load block")
+text = text.replace(old_effect, new_effect, 1)
 path.write_text(text, encoding="utf-8")
-print("Portfolio now subscribes only to its single profile document and unsubscribes on unmount.")
+print("Portfolio sync now refreshes safely on initial load and device focus/visibility without live listeners.")
