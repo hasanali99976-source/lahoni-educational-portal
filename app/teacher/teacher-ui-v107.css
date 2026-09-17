@@ -1,4 +1,4 @@
-/* Teacher UI — unified laptop/mobile navigation and grade clarity. */
+/* Teacher UI — unified laptop/mobile navigation and internal tool rendering. */
 @media (min-width:901px){
   .teacher-pro-header{grid-template-columns:minmax(155px,auto) minmax(150px,205px) minmax(560px,1fr) auto;gap:7px;padding-inline:clamp(9px,1vw,16px)}
   .teacher-pro-tabs{overflow:visible!important;justify-content:center;gap:3px}
@@ -14,30 +14,48 @@
   .teacher-command-link-copy small{font-size:9px;line-height:1.45;white-space:normal}
 }
 @media (min-width:901px) and (max-width:1280px){
-  .teacher-pro-brand-copy{display:none}
-  .teacher-pro-date{display:none}
+  .teacher-pro-brand-copy{display:none}.teacher-pro-date{display:none}
   .teacher-pro-header{grid-template-columns:46px minmax(145px,190px) minmax(535px,1fr) auto}
   .teacher-pro-tabs a,.teacher-pro-more{min-width:58px;font-size:9px;gap:3px}
   .teacher-command-panel{width:min(570px,calc(100vw - 28px));left:14px}
 }
 @media (max-width:900px){
-  .teacher-command-panel{padding:14px}
-  .teacher-command-head{position:sticky;top:-14px;z-index:2;background:#fff;padding-top:12px}
+  .teacher-command-panel{padding:14px}.teacher-command-head{position:sticky;top:-14px;z-index:2;background:#fff;padding-top:12px}
   .teacher-command-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .teacher-command-links a{min-width:0;min-height:72px;padding:9px;grid-template-columns:26px minmax(0,1fr);gap:7px}
-  .teacher-command-link-copy{min-width:0}
-  .teacher-command-link-copy b,.teacher-command-link-copy small{white-space:normal;overflow-wrap:anywhere}
+  .teacher-command-link-copy{min-width:0}.teacher-command-link-copy b,.teacher-command-link-copy small{white-space:normal;overflow-wrap:anywhere}
 }
-@media (max-width:520px){
-  .teacher-command-links{grid-template-columns:1fr}
-  .teacher-command-links a{min-height:60px}
+@media (max-width:520px){.teacher-command-links{grid-template-columns:1fr}.teacher-command-links a{min-height:60px}}
+
+/* Internal pages opened from “More”: keep controls, cards and data readable instead of raw/overflowing UI. */
+.teacher-page-content{width:100%;max-width:1420px;min-width:0;overflow:visible}
+.teacher-page-content>*,.teacher-page-content main,.teacher-page-content section,.teacher-page-content article,.teacher-page-content form,.teacher-page-content div{max-width:100%;box-sizing:border-box}
+.teacher-page-content h1,.teacher-page-content h2,.teacher-page-content h3,.teacher-page-content p,.teacher-page-content b,.teacher-page-content strong,.teacher-page-content small,.teacher-page-content label,.teacher-page-content span{overflow-wrap:anywhere}
+.teacher-page-content pre,.teacher-page-content code{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.teacher-page-content input,.teacher-page-content select,.teacher-page-content textarea,.teacher-page-content button{font-family:inherit;box-sizing:border-box}
+.teacher-page-content button,.teacher-page-content a{max-width:100%}
+.teacher-page-content .diagnostics-page,.teacher-page-content .follow-page,.teacher-page-content .portfolio-page,.teacher-page-content .teacher-ai-page,.teacher-page-content .notes-page,.teacher-page-content .reports-page,.teacher-page-content .report-page,.teacher-page-content .grade-plan-page{width:100%;min-width:0}
+.teacher-page-content .diagnostic-builder,.teacher-page-content .diagnostic-list,.teacher-page-content .follow-card,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-section{overflow:hidden}
+.teacher-page-content .questions-editor article,.teacher-page-content .diagnostic-list article{min-width:0}
+.teacher-page-content .builder-actions,.teacher-page-content .diagnostic-list-actions,.teacher-page-content .portfolio-actions{display:flex;flex-wrap:wrap;gap:8px}
+.teacher-page-content .builder-actions>* ,.teacher-page-content .diagnostic-list-actions>* ,.teacher-page-content .portfolio-actions>*{flex:0 1 auto}
+.teacher-page-content .plan-editor{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.teacher-page-content .report-table-wrap,.teacher-page-content .follow-table-wrap,.teacher-page-content .table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+
+@media(max-width:700px){
+  .teacher-page-content{font-size:14px}
+  .teacher-page-content .diagnostics-hero,.teacher-page-content .diagnostic-builder,.teacher-page-content .diagnostic-list,.teacher-page-content .follow-card,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-section{padding:14px!important;border-radius:15px!important}
+  .teacher-page-content .diagnostics-hero h1,.teacher-page-content h1{font-size:clamp(20px,7vw,27px)!important;line-height:1.3}
+  .teacher-page-content .plan-editor,.teacher-page-content .portfolio-fields,.teacher-page-content .evidence-fields{grid-template-columns:1fr!important}
+  .teacher-page-content .builder-actions,.teacher-page-content .diagnostic-list-actions,.teacher-page-content .portfolio-actions{display:grid!important;grid-template-columns:1fr!important}
+  .teacher-page-content .builder-actions>* ,.teacher-page-content .diagnostic-list-actions>* ,.teacher-page-content .portfolio-actions>*{width:100%!important}
+  .teacher-page-content table{min-width:680px!important}
 }
+
 /* Make grade units distinct and readable on laptop; no horizontal overlap. */
 @media (min-width:701px){
   .grades-v11 .gv11-section-tabs{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;overflow:visible!important;padding:3px 0}
   .grades-v11 .gv11-section-tabs button{width:100%;min-width:0;min-height:46px;padding:7px 10px;border-radius:10px;white-space:normal;line-height:1.35}
   .grades-v11 .gv11-planbar{overflow:visible}
 }
-@media (min-width:1281px){
-  .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
-}
+@media (min-width:1281px){.grades-v11 .gv11-section-tabs{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}}
