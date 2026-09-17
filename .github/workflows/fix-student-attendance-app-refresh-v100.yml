@@ -1,0 +1,33 @@
+name: Fix Student Attendance App Refresh v100
+on:
+  push:
+    branches: [fix/student-attendance-app-refresh-v100]
+    paths:
+      - ".github/scripts/fix_student_attendance_app_refresh_v100.py"
+      - ".github/workflows/fix-student-attendance-app-refresh-v100.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22", cache: npm}
+      - run: python .github/scripts/fix_student_attendance_app_refresh_v100.py
+      - run: npm install --package-lock=false --no-audit --no-fund
+      - run: npm run audit:runtime
+      - run: npm run build
+      - run: git diff --check
+      - name: Commit verified source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/student/page.tsx
+          if git diff --cached --quiet; then echo "No source changes"; else
+            git commit -m "fix(student): refresh attendance when app resumes"
+            git push origin HEAD:fix/student-attendance-app-refresh-v100
+          fi
