@@ -1,0 +1,41 @@
+name: Fix Grades Cross Device Refresh v97
+on:
+  push:
+    branches: [fix/grades-cross-device-refresh]
+    paths:
+      - ".github/scripts/fix_grades_cross_device_refresh_v97.py"
+      - ".github/workflows/fix-grades-cross-device-refresh-v97.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Apply guarded grades sync patch
+        run: python .github/scripts/fix_grades_cross_device_refresh_v97.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build portal
+        run: npm run build
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit verified grades source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/grades/page.tsx
+          if git diff --cached --quiet; then
+            echo "No source changes required"
+          else
+            git commit -m "fix(sync): refresh grades safely across devices"
+            git push origin HEAD:fix/grades-cross-device-refresh
+          fi
