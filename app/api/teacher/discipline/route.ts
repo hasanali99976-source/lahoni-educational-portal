@@ -8,6 +8,7 @@ import { canonicalClassName, gradeNumber, sectionNumber } from "../../../../lib/
 
 const ATTENDANCE_START_DATE = "2026-08-23";
 const VALID_STATUSES = new Set(["present", "absent", "late", "excused", "escaped"]);
+type AttendanceRow = Record<string, unknown> & { id: string; class: string };
 
 function normalizedClass(value: unknown) {
   const raw = String(value || "").trim();
@@ -30,12 +31,12 @@ const readDisciplineAttendance = unstable_cache(
       .where("date", ">=", ATTENDANCE_START_DATE)
       .get();
 
-    const raw = snapshot.docs.map(document => {
+    const raw: AttendanceRow[] = snapshot.docs.map(document => {
       const data = document.data() as Record<string, unknown>;
-      return { id: document.id, ...data, class: normalizedClass(data.class || data.className) };
+      return { id: document.id, ...data, class: normalizedClass(data.class || data.className) } as AttendanceRow;
     }).filter(item => String(item.date || "") >= ATTENDANCE_START_DATE);
 
-    const grouped = new Map<string, typeof raw>();
+    const grouped = new Map<string, AttendanceRow[]>();
     raw.forEach(item => {
       const key = `${normalizedClass(item.class)}|${String(item.date || "")}`;
       const list = grouped.get(key) || [];
