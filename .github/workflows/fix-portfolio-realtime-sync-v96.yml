@@ -1,0 +1,41 @@
+name: Fix Portfolio Realtime Sync v96
+on:
+  push:
+    branches: [fix/portfolio-realtime-sync]
+    paths:
+      - ".github/scripts/fix_portfolio_realtime_sync_v96.py"
+      - ".github/workflows/fix-portfolio-realtime-sync-v96.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Apply guarded realtime patch
+        run: python .github/scripts/fix_portfolio_realtime_sync_v96.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Build portal
+        run: npm run build
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit verified source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/portfolio/page.tsx
+          if git diff --cached --quiet; then
+            echo "No source changes required"
+          else
+            git commit -m "fix(sync): realtime portfolio across web and app"
+            git push origin HEAD:fix/portfolio-realtime-sync
+          fi
