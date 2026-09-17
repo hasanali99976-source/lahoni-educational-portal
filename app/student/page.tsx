@@ -51,7 +51,28 @@ export default function StudentPage(){
   function logout(){try{window.speechSynthesis?.cancel();}catch{}setMatches([]);setSelectedKey("");setSubjectGate(false);setView("home");setAccessCode("");setMessage("");}
 
   useEffect(()=>{const query=new URLSearchParams(window.location.search);const code=normalizeStudentCode(query.get("code")||"");if(code)setAccessCode(code);if(query.size)window.history.replaceState({},"","/student");if(CODE_PATTERN.test(code)&&!automaticLoginStarted.current){automaticLoginStarted.current=true;void lookup(code,false);}},[]);
-  // بيانات الطالب تُحمّل عند الدخول فقط؛ لا إعادة قراءة تلقائية عند focus أو الرجوع للتطبيق.
+  // حدّث بيانات الطالب والحضور عند الرجوع للتطبيق/المتصفح بدون polling أو listener دائم.
+  useEffect(()=>{
+    if(!matches.length)return;
+    let refreshing=false;
+    const refresh=async()=>{
+      if(refreshing)return;
+      refreshing=true;
+      try{await hydrateAll(matches);}finally{refreshing=false;}
+    };
+    const onVisible=()=>{if(document.visibilityState==="visible")void refresh();};
+    const onPageShow=()=>{void refresh();};
+    window.addEventListener("focus",refresh);
+    window.addEventListener("online",refresh);
+    window.addEventListener("pageshow",onPageShow);
+    document.addEventListener("visibilitychange",onVisible);
+    return()=>{
+      window.removeEventListener("focus",refresh);
+      window.removeEventListener("online",refresh);
+      window.removeEventListener("pageshow",onPageShow);
+      document.removeEventListener("visibilitychange",onVisible);
+    };
+  },[matches]);
 
   const metrics=useMemo(()=>matches.map(metricFor),[matches]);
   const selectedMetric=useMemo(()=>metrics.find(item=>item.match.subjectKey===selectedKey)||null,[metrics,selectedKey]);
