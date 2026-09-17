@@ -6,7 +6,8 @@ import "./student-portal-v1000.css";
 import "./student-classic-v103.css";
 
 type GradeDeduction={id?:string;planId?:string;scope?:"plan"|"section"|"item";sectionId?:string;itemId?:string;amount?:number;reason?:string;note?:string;reversedAt?:string};
-type AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number;latestDate?:string};
+type AttendanceDayCounts={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number};
+type AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number;latestDate?:string;latestDayCounts?:AttendanceDayCounts};
 type TeacherNote={id?:string;label?:string;message?:string;createdAt?:string;teacherName?:string;subject?:string};
 type CounselorReferral={id?:string;referralType?:string;referralTypeLabel?:string;reason?:string;status?:string;teacherName?:string;subject?:string;createdAt?:string;severity?:string};
 type CounselorNotice={title?:string;message?:string;referralType?:string;subject?:string;teacherName?:string;referralId?:string;createdAt?:string};
@@ -91,7 +92,7 @@ export default function StudentPage(){
       if(referrals.length)referrals.forEach((ref,index)=>rows.push({id:`ref-${match.subjectKey}-${ref.id||index}`,kind:"referral",subject,title:ref.referralTypeLabel||"إحالة للمرشد الطلابي",text:ref.reason||"إحالة للمتابعة مع المرشد الطلابي.",meta:`${ref.status||"جديدة"} • ${ref.teacherName||match.teacherName}`,createdAt:ref.createdAt||"",tone:"violet"}));
       else if(data.parentCounselorLastNotice?.message)rows.push({id:`notice-${match.subjectKey}-${data.parentCounselorLastNotice.referralId||"latest"}`,kind:"referral",subject,title:data.parentCounselorLastNotice.title||"إحالة للمرشد الطلابي",text:data.parentCounselorLastNotice.message,meta:data.parentCounselorLastNotice.teacherName||match.teacherName,createdAt:data.parentCounselorLastNotice.createdAt||"",tone:"violet"});
       const active=normalizeGradePlan(data.gradePlan);if(active){const deductions=activeDeductions(data,active);if(deductions.length){const total=deductions.reduce((sum,item)=>sum+Number(item.amount||0),0);rows.push({id:`deduction-${match.subjectKey}`,kind:"alert",subject,title:"تنبيه تحصيلي",text:`يوجد خصم معتمد بمقدار ${ar(total)} درجة في هذه المادة.`,meta:"التحصيل العلمي",createdAt:"",tone:"gold"});}}
-      const attendance=data.attendanceSummary;if(Number(attendance?.absent||0)>0||Number(attendance?.late||0)>0||Number(attendance?.escaped||0)>0)rows.push({id:`attendance-${match.subjectKey}`,kind:"alert",subject,title:"تنبيه الحضور والانضباط",text:`الغياب ${ar(Number(attendance?.absent||0))} • التأخر ${ar(Number(attendance?.late||0))} • الهروب ${ar(Number(attendance?.escaped||0))}`,meta:"متابعة الانضباط",createdAt:attendance?.latestDate||"",tone:"red"});
+      const attendance=data.attendanceSummary;const attendanceDay=attendance?.latestDayCounts||attendance;if(Number(attendanceDay?.absent||0)>0||Number(attendanceDay?.late||0)>0||Number(attendanceDay?.escaped||0)>0)rows.push({id:`attendance-${match.subjectKey}`,kind:"alert",subject,title:"آخر سجل حضور وانضباط",text:`الغياب ${ar(Number(attendanceDay?.absent||0))} • التأخر ${ar(Number(attendanceDay?.late||0))} • الهروب ${ar(Number(attendanceDay?.escaped||0))}`,meta:attendance?.latestDate?`سجل ${attendance.latestDate}`:"متابعة الانضباط",createdAt:attendance?.latestDate||"",tone:"red"});
     });
     return rows.sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
   },[matches]);

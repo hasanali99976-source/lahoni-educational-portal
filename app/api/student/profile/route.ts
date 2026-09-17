@@ -153,6 +153,11 @@ export async function GET(request: Request) {
   const automaticPresent = 0;
   explicitByDate.forEach((entry, date) => { counts[entry.status] += 1; counts.total += 1; if (date > latestDate) latestDate = date; });
   const today = riyadhDateInput(new Date());
+  // The teacher attendance page shows one selected day's roster counts. Expose the same
+  // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
+  const latestEntry = latestDate ? explicitByDate.get(latestDate) : undefined;
+  const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
+  if (latestEntry) latestDayCounts[latestEntry.status] = 1;
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
 
   const activePlan = gradePlanState.activePlan;
@@ -171,5 +176,5 @@ export async function GET(request: Request) {
     referralCount: counselorReferrals.length,
   };
 
-  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, automaticThrough: today, attendanceMode: "teacher_saved_only", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
+  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, automaticThrough: today, attendanceMode: "teacher_saved_only", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 }
