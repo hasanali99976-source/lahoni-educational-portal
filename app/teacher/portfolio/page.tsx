@@ -325,8 +325,13 @@ export default function PortfolioPage() {
 
     const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
     let cancelled = false;
-    void getDoc(ref)
-      .then((snap) => {
+    let refreshing = false;
+
+    const refreshFromCloud = async () => {
+      if (cancelled || refreshing) return;
+      refreshing = true;
+      try {
+        const snap = await getDoc(ref);
         if (cancelled) return;
         if (snap.exists()) {
           const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
@@ -340,17 +345,29 @@ export default function PortfolioPage() {
         } else if (localForm) {
           setForm(localForm);
         }
-      })
-      .catch(() => {
+      } catch {
         if (cancelled) return;
         if (localForm) setForm(localForm);
-        else setMessage("تعذر الاتصال مؤقتًا. ستتم المزامنة عند الحفظ بعد عودة الشبكة.");
-      })
-      .finally(() => {
+        else setMessage("تعذر الاتصال مؤقتًا. أعد فتح الصفحة بعد عودة الشبكة.");
+      } finally {
+        refreshing = false;
         if (!cancelled) setLoaded(true);
-      });
+      }
+    };
 
-    return () => { cancelled = true; };
+    const refreshWhenActive = () => {
+      if (document.visibilityState === "visible") void refreshFromCloud();
+    };
+
+    void refreshFromCloud();
+    window.addEventListener("focus", refreshWhenActive);
+    document.addEventListener("visibilitychange", refreshWhenActive);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", refreshWhenActive);
+      document.removeEventListener("visibilitychange", refreshWhenActive);
+    };
   }, [teacherId, subjectKey, localKey]);
 
   useEffect(() => {
