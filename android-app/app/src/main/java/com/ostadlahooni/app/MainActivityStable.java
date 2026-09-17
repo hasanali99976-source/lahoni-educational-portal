@@ -17,7 +17,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 public class MainActivityStable extends Activity {
-    private static final String HOME_URL = "https://tahdheeb-history.vercel.app/?appVersion=1.8.4";
+    private static final String HOME_URL = "https://tahdheeb-history.vercel.app/?appVersion=1.8.5";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
@@ -41,11 +41,12 @@ public class MainActivityStable extends Activity {
         settings.setSupportZoom(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/1.8.4");
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setUserAgentString(settings.getUserAgentString() + " OstadhLahooniAndroid/1.8.5");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+        webView.clearCache(true);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -103,7 +104,7 @@ public class MainActivityStable extends Activity {
             }
         });
 
-        if (savedInstanceState == null) webView.loadUrl(HOME_URL);
+        if (savedInstanceState == null) webView.loadUrl(HOME_URL + "&fresh=" + System.currentTimeMillis());
         else webView.restoreState(savedInstanceState);
     }
 
