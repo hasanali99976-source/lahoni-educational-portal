@@ -1,4 +1,4 @@
-/* Teacher UI v107 — laptop-first navigation clarity without data/runtime changes */
+/* Teacher UI — unified laptop/mobile navigation and grade clarity. */
 @media (min-width:901px){
   .teacher-pro-header{grid-template-columns:minmax(155px,auto) minmax(150px,205px) minmax(560px,1fr) auto;gap:7px;padding-inline:clamp(9px,1vw,16px)}
   .teacher-pro-tabs{overflow:visible!important;justify-content:center;gap:3px}
@@ -6,12 +6,31 @@
   .teacher-pro-tabs svg{width:18px;height:18px}
   .teacher-pro-tools{gap:4px}
   .teacher-pro-home,.teacher-pro-logout{padding-inline:7px}
+  .teacher-command-panel{top:92px;width:min(620px,calc(100vw - 36px));padding:18px;border-radius:22px}
+  .teacher-command-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .teacher-command-links a{min-height:82px;padding:11px 12px;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center}
+  .teacher-command-link-copy{min-width:0;gap:2px}
+  .teacher-command-link-copy b{font-size:11.5px;line-height:1.35;white-space:normal}
+  .teacher-command-link-copy small{font-size:9px;line-height:1.45;white-space:normal}
 }
 @media (min-width:901px) and (max-width:1280px){
   .teacher-pro-brand-copy{display:none}
   .teacher-pro-date{display:none}
   .teacher-pro-header{grid-template-columns:46px minmax(145px,190px) minmax(535px,1fr) auto}
   .teacher-pro-tabs a,.teacher-pro-more{min-width:58px;font-size:9px;gap:3px}
+  .teacher-command-panel{width:min(570px,calc(100vw - 28px));left:14px}
+}
+@media (max-width:900px){
+  .teacher-command-panel{padding:14px}
+  .teacher-command-head{position:sticky;top:-14px;z-index:2;background:#fff;padding-top:12px}
+  .teacher-command-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .teacher-command-links a{min-width:0;min-height:72px;padding:9px;grid-template-columns:26px minmax(0,1fr);gap:7px}
+  .teacher-command-link-copy{min-width:0}
+  .teacher-command-link-copy b,.teacher-command-link-copy small{white-space:normal;overflow-wrap:anywhere}
+}
+@media (max-width:520px){
+  .teacher-command-links{grid-template-columns:1fr}
+  .teacher-command-links a{min-height:60px}
 }
 /* Make grade units distinct and readable on laptop; no horizontal overlap. */
 @media (min-width:701px){
