@@ -1,0 +1,24 @@
+/* Teacher UI v107 — laptop-first navigation clarity without data/runtime changes */
+@media (min-width:901px){
+  .teacher-pro-header{grid-template-columns:minmax(155px,auto) minmax(150px,205px) minmax(560px,1fr) auto;gap:7px;padding-inline:clamp(9px,1vw,16px)}
+  .teacher-pro-tabs{overflow:visible!important;justify-content:center;gap:3px}
+  .teacher-pro-tabs a,.teacher-pro-more{min-width:62px;padding-inline:5px;font-size:9.5px}
+  .teacher-pro-tabs svg{width:18px;height:18px}
+  .teacher-pro-tools{gap:4px}
+  .teacher-pro-home,.teacher-pro-logout{padding-inline:7px}
+}
+@media (min-width:901px) and (max-width:1280px){
+  .teacher-pro-brand-copy{display:none}
+  .teacher-pro-date{display:none}
+  .teacher-pro-header{grid-template-columns:46px minmax(145px,190px) minmax(535px,1fr) auto}
+  .teacher-pro-tabs a,.teacher-pro-more{min-width:58px;font-size:9px;gap:3px}
+}
+/* Make grade units distinct and readable on laptop; no horizontal overlap. */
+@media (min-width:701px){
+  .grades-v11 .gv11-section-tabs{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;overflow:visible!important;padding:3px 0}
+  .grades-v11 .gv11-section-tabs button{width:100%;min-width:0;min-height:46px;padding:7px 10px;border-radius:10px;white-space:normal;line-height:1.35}
+  .grades-v11 .gv11-planbar{overflow:visible}
+}
+@media (min-width:1281px){
+  .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+}
