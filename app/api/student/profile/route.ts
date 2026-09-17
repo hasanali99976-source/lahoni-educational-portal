@@ -72,9 +72,9 @@ export async function GET(request: Request) {
   [studentData.code, studentData.accessCode, studentData.studentCode].map(clean).filter(Boolean).forEach(value => aliases.add(value));
   const aliasList = [...aliases].filter(Boolean).slice(0, 10);
 
-  const attendanceQuery = studentClass
-    ? adminDb().collection(`${root}/attendance`).where("class", "==", studentClass)
-    : adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE);
+  // Read attendance records from the same subject cloud collection used by the teacher.
+  // Filter class after normalization so legacy/canonical class spellings cannot hide saved attendance.
+  const attendanceQuery = adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE);
   const referralQuery = aliasList.length
     ? adminDb().collection(`${root}/counselorReferrals`).where("studentId", "in", aliasList)
     : adminDb().collection(`${root}/counselorReferrals`).where("studentId", "==", access.studentId);
@@ -114,6 +114,8 @@ export async function GET(request: Request) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
     if (!date || date < ATTENDANCE_START_DATE) continue;
+    const recordClass = normalizeClass(data.class || data.className || "");
+    if (studentClass && recordClass && recordClass !== studentClass) continue;
     const recordMap = data?.records && typeof data.records === "object" ? data.records as Record<string, unknown> : {};
     let status: unknown;
     for (const alias of aliasList) {
@@ -143,19 +145,14 @@ export async function GET(request: Request) {
   timetableLessons.sort((a, b) => a.dayIndex - b.dayIndex || a.period - b.period);
 
   const expectedWeekdays = timetableWeekdays.size ? timetableWeekdays : new Set<number>(SCHOOL_WEEKDAYS);
-  const attendanceSource = timetableWeekdays.size ? "timetable_automatic_until_teacher_override" : "school_days_automatic_until_teacher_override";
+  // Counts shown in the app must match teacher-saved attendance exactly.
+  // Do not invent automatic present days that were never saved by the teacher.
+  const attendanceSource = "teacher_saved_attendance";
   const counts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0 };
   let latestDate = "";
-  let automaticPresent = 0;
+  const automaticPresent = 0;
   explicitByDate.forEach((entry, date) => { counts[entry.status] += 1; counts.total += 1; if (date > latestDate) latestDate = date; });
   const today = riyadhDateInput(new Date());
-  const cursor = dateObject(ATTENDANCE_START_DATE);
-  const end = dateObject(today);
-  while (cursor <= end) {
-    const date = cursor.toISOString().slice(0, 10);
-    if (expectedWeekdays.has(cursor.getUTCDay()) && !explicitByDate.has(date)) { counts.present += 1; counts.total += 1; automaticPresent += 1; if (date > latestDate) latestDate = date; }
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
 
   const activePlan = gradePlanState.activePlan;
@@ -174,5 +171,5 @@ export async function GET(request: Request) {
     referralCount: counselorReferrals.length,
   };
 
-  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, automaticThrough: today, attendanceMode: "automatic_until_teacher_override", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
+  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, automaticThrough: today, attendanceMode: "teacher_saved_only", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 }
