@@ -1,0 +1,43 @@
+name: Fix FollowUp Cross Device Sync v101
+on:
+  push:
+    branches: [fix/full-portal-sync-followup-v101]
+    paths:
+      - ".github/scripts/fix_followup_cross_device_sync_v101.py"
+      - ".github/workflows/fix-followup-cross-device-sync-v101.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Apply guarded follow-up sync patch
+        run: python .github/scripts/fix_followup_cross_device_sync_v101.py
+      - name: Install dependencies
+        run: npm install --package-lock=false --no-audit --no-fund
+      - name: Runtime audit
+        run: npm run audit:runtime
+      - name: Build portal
+        run: npm run build
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit verified source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/teacher/follow-up/page.tsx
+          if git diff --cached --quiet; then
+            echo "No source changes required"
+          else
+            git commit -m "fix(sync): refresh follow-up across devices"
+            git push origin HEAD:fix/full-portal-sync-followup-v101
+          fi
