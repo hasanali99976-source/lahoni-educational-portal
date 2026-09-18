@@ -233,7 +233,7 @@ export default function GradesPage(){
       <header><div><small>الخطة المعتمدة</small><h2>{GRADE_PLAN_MODE_LABELS[activePlan.mode]} • نسخة {activePlan.version}</h2></div><span>اختر {activePlan.mode==="units"?"الوحدة":"الفترة"} ثم ابدأ الرصد</span></header>
       <div className="gv11-section-tabs">{activePlan.sections.map(item=>{
         const active=item.id===section?.id;
-        return <button type="button" key={item.id} className={active?"active":""} onClick={()=>setSelectedSection(item.id)}><span>{active?"تعمل الآن":"فتح"}</span><b>{item.label}</b><small>{item.max} درجة • {item.items.length} عناصر</small></button>;
+        return <button type="button" key={item.id} className={active?"active":""} onClick={()=>setSelectedSection(item.id)}><span>{active?"محدد":"اختيار"}</span><b>{item.label}</b><small>{item.max} درجة • {item.items.length} عناصر</small></button>;
       })}</div>
     </section>
 
