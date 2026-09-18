@@ -259,6 +259,15 @@ export default function FollowUpPage() {
     setNote("");
   }
 
+  function printMasteryTable() {
+    const win = window.open("", "_blank", "width=1100,height=820");
+    if (!win) return setMessage("تعذر فتح نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.");
+    const escapeHtml = (value: unknown) => String(value ?? "—").replace(/[&<>"\']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "\'": "&#039;" }[char] || char));
+    const rows = evaluated.map((student, index) => { const status = statusFor(student, threshold); return `<tr><td>${index + 1}</td><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.class)}</td><td>${student.finalScore !== null ? `${student.finalScore}%` : `${student.performance}% مبدئي`}</td><td>${student.completion}%</td><td>${escapeHtml(status.label)}</td></tr>`; }).join("");
+    win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الإتقان والمتابعة</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,Tahoma,sans-serif;color:#17384a;margin:0}h1{margin:0 0 5px;color:#0b716d}p{margin:3px 0;color:#5f7480}.meta{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0;padding:10px 12px;background:#eef7f6;border:1px solid #d5e8e5;border-radius:9px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #cbdad8;padding:8px;text-align:center}th{background:#0b716d;color:#fff}td:nth-child(2){text-align:right;font-weight:bold}tbody tr:nth-child(even){background:#f7faf9}</style></head><body><h1>تقرير الإتقان والمتابعة</h1><p>بوابة أستاذ لحوني التعليمية</p><div class="meta"><b>المعلم: ${escapeHtml(teacherName)}</b><b>المادة: ${escapeHtml(subject)}</b><b>الفصل: ${escapeHtml(selectedClass || "جميع الفصول")}</b><b>معيار الإتقان: ${threshold}%</b></div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th></tr></thead><tbody>${rows || `<tr><td colspan="6">لا توجد بيانات في النطاق الحالي.</td></tr>`}</tbody></table><script>window.onload=()=>setTimeout(()=>window.print(),220)<\/script></body></html>`);
+    win.document.close();
+  }
+
   async function copySupportList() {
     if (!support.length) return setMessage("لا توجد قائمة دعم مكتملة الرصد لنسخها.");
     await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("\n"));
@@ -289,7 +298,7 @@ export default function FollowUpPage() {
     </section>
 
     <section className="follow-card students-follow-card">
-      <header><div><h2>الطلاب</h2><p>درجة نهائية فقط عند اكتمال الرصد ١٠٠٪. قبل ذلك يظهر الأداء الحالي بوصفه مبدئيًا.</p></div><div className="follow-actions"><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
+      <header><div><h2>الطلاب</h2><p>درجة نهائية فقط عند اكتمال الرصد ١٠٠٪. قبل ذلك يظهر الأداء الحالي بوصفه مبدئيًا.</p></div><div className="follow-actions"><button type="button" onClick={printMasteryTable}>PDF / طباعة جدول الإتقان</button><a className="follow-action-link" href="/teacher/follow-up/referrals">سجل الإحالات</a><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
       <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
         {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}>
           <td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td>
