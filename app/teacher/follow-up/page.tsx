@@ -36,7 +36,8 @@ function aliases(student: Student) {
 function evaluateStudent(student: Student, plan: GradePlan | null): EvaluatedStudent {
   const result = calculateGradePlanResult(plan, student);
   const missing = result.sections.reduce((sum, section) => sum + section.items.filter(item => !item.recorded).length, 0);
-  const completedSections = result.sections.filter(section => section.complete);\n  const latestCompleted = completedSections[completedSections.length - 1];\n  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing, masteryScore: latestCompleted ? Math.round(latestCompleted.percentage) : (result.finalScore === null ? null : Math.round(result.finalScore)), masteryBasis: latestCompleted?.label || (result.complete ? "الخطة كاملة" : ""), hasCompletedSection: Boolean(latestCompleted || result.complete) };
+  const completedSections = result.sections.filter(section => section.complete);
+  const latestCompleted = completedSections[completedSections.length - 1];\n  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing, masteryScore: latestCompleted ? Math.round(latestCompleted.percentage) : (result.finalScore === null ? null : Math.round(result.finalScore)), masteryBasis: latestCompleted?.label || (result.complete ? "الخطة كاملة" : ""), hasCompletedSection: Boolean(latestCompleted || result.complete) };
 }
 
 function insightProfile(student: Student, plan: GradePlan | null) {
