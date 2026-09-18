@@ -37,7 +37,8 @@ function evaluateStudent(student: Student, plan: GradePlan | null): EvaluatedStu
   const result = calculateGradePlanResult(plan, student);
   const missing = result.sections.reduce((sum, section) => sum + section.items.filter(item => !item.recorded).length, 0);
   const completedSections = result.sections.filter(section => section.complete);
-  const latestCompleted = completedSections[completedSections.length - 1];\n  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing, masteryScore: latestCompleted ? Math.round(latestCompleted.percentage) : (result.finalScore === null ? null : Math.round(result.finalScore)), masteryBasis: latestCompleted?.label || (result.complete ? "الخطة كاملة" : ""), hasCompletedSection: Boolean(latestCompleted || result.complete) };
+  const latestCompleted = completedSections[completedSections.length - 1];
+  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing, masteryScore: latestCompleted ? Math.round(latestCompleted.percentage) : (result.finalScore === null ? null : Math.round(result.finalScore)), masteryBasis: latestCompleted?.label || (result.complete ? "الخطة كاملة" : ""), hasCompletedSection: Boolean(latestCompleted || result.complete) };
 }
 
 function insightProfile(student: Student, plan: GradePlan | null) {
@@ -207,7 +208,16 @@ export default function FollowUpPage() {
       });
       if (notifyParents) await setDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason.trim()}.`, percentage, reason: reason.trim(), referralType, className: student.class || "", teacherId, teacherName, subjectId: subjectKey, subject, explicitTeacherAction: true, createdAt: now } }, { merge: true });
     }));
-    const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالفصل: ${referralClass}\nنوع الإحالة: ${referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى"}\nالسبب: ${reason.trim()}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"}${student.finalScore !== null ? ` — ${student.finalScore}%` : ""}`).join("\n")}\n\nالمعلم: ${teacherName}`;
+    const text = `السلام عليكم،
+إحالة طلاب للمرشد في مادة ${subject}
+الفصل: ${referralClass}
+نوع الإحالة: ${referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى"}
+السبب: ${reason.trim()}
+
+${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"}${student.finalScore !== null ? ` — ${student.finalScore}%` : ""}`).join("
+")}
+
+المعلم: ${teacherName}`;
     window.open(`https://wa.me/${counselorPhone}?text=${encodeURIComponent(text)}`, "_blank");
     setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`);
     setReferralOpen(false);
@@ -267,7 +277,8 @@ export default function FollowUpPage() {
 
   async function copySupportList() {
     if (!support.length) return setMessage("لا توجد قائمة دعم مكتملة الرصد لنسخها.");
-    await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("\n"));
+    await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("
+"));
     setMessage("تم نسخ قائمة الطلاب الذين يحتاجون دعمًا.");
   }
 
