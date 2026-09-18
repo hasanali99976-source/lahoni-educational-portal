@@ -23,7 +23,7 @@ type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: S
 
 const primaryTabs: TeacherTab[] = [
   { href: "/teacher/dashboard", key: "dashboard", label: "يومي", note: "مركز العمل اليومي" },
-  { href: "/teacher/timetable", key: "timetable", label: "الجدول والحصص", note: "حصص الأسبوع" },
+  { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", note: "جدول الحصص الأسبوعي" },
   { href: "/teacher/attendance", key: "attendance", label: "الحضور", note: "الحضور والمتابعة" },
   { href: "/teacher/grades", key: "grades", label: "الدرجات", note: "الرصد والحفظ" },
   { href: "/teacher/students", key: "students", label: "الطلاب", note: "الفصول وبيانات الدخول" },
