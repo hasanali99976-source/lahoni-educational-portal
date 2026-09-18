@@ -53,8 +53,8 @@ function insightProfile(student: Student, plan: GradePlan | null) {
 }
 
 function statusFor(student: EvaluatedStudent, threshold: number) {
-  if (student.completion < 100) return { label: "الرصد غير مكتمل", className: "incomplete" };
-  if ((student.finalScore || 0) >= threshold) return { label: "متقن", className: "mastered" };
+  if (student.masteryScore === null) return { label: "اختيار المعلم", className: "incomplete" };
+  if (student.masteryScore >= threshold) return { label: "متقن", className: "mastered" };
   return { label: "يحتاج دعمًا", className: "support" };
 }
 
@@ -165,10 +165,10 @@ export default function FollowUpPage() {
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
   const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)).filter(student => Boolean(selectedStudent) || student.hasCompletedSection), [visible, activePlan, selectedStudent]);
-  const completed = useMemo(() => evaluated.filter(student => student.completion === 100), [evaluated]);
-  const mastered = useMemo(() => completed.filter(student => (student.finalScore || 0) >= threshold), [completed, threshold]);
-  const support = useMemo(() => completed.filter(student => (student.finalScore || 0) < threshold), [completed, threshold]);
-  const incomplete = useMemo(() => evaluated.filter(student => student.completion < 100), [evaluated]);
+  const completed = useMemo(() => evaluated.filter(student => student.masteryScore !== null), [evaluated]);
+  const mastered = useMemo(() => completed.filter(student => (student.masteryScore || 0) >= threshold), [completed, threshold]);
+  const support = useMemo(() => completed.filter(student => (student.masteryScore || 0) < threshold), [completed, threshold]);
+  const incomplete = useMemo(() => evaluated.filter(student => student.masteryScore === null), [evaluated]);
   const referralCandidates = useMemo(() => students.filter(student => !referralClass || (student.class || "").trim() === referralClass).map(student => evaluateStudent(student, activePlan)), [students, referralClass, activePlan]);
   const selectedStudents = referralCandidates.filter(student => selectedIds.includes(student.id));
 
@@ -208,16 +208,7 @@ export default function FollowUpPage() {
       });
       if (notifyParents) await setDoc(doc(db, studentsPath, student.storageId || student.id), { parentCounselorNoticeCount: increment(1), parentCounselorLastNotice: { title: `إحالة للمرشد من معلم ${subject}`, message: `تمت إحالة الطالب للمتابعة بسبب: ${reason.trim()}.`, percentage, reason: reason.trim(), referralType, className: student.class || "", teacherId, teacherName, subjectId: subjectKey, subject, explicitTeacherAction: true, createdAt: now } }, { merge: true });
     }));
-    const text = `السلام عليكم،
-إحالة طلاب للمرشد في مادة ${subject}
-الفصل: ${referralClass}
-نوع الإحالة: ${referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى"}
-السبب: ${reason.trim()}
-
-${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"}${student.finalScore !== null ? ` — ${student.finalScore}%` : ""}`).join("
-")}
-
-المعلم: ${teacherName}`;
+    const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالفصل: ${referralClass}\nنوع الإحالة: ${referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى"}\nالسبب: ${reason.trim()}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"}${student.finalScore !== null ? ` — ${student.finalScore}%` : ""}`).join("\n")}\n\nالمعلم: ${teacherName}`;
     window.open(`https://wa.me/${counselorPhone}?text=${encodeURIComponent(text)}`, "_blank");
     setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`);
     setReferralOpen(false);
@@ -277,8 +268,7 @@ ${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—
 
   async function copySupportList() {
     if (!support.length) return setMessage("لا توجد قائمة دعم مكتملة الرصد لنسخها.");
-    await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("
-"));
+    await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("\n"));
     setMessage("تم نسخ قائمة الطلاب الذين يحتاجون دعمًا.");
   }
 
