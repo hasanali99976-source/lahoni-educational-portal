@@ -93,3 +93,31 @@
  .teacher-command-foot{margin-top:3px!important;padding-top:4px!important;border-color:#e1eaf3!important}.teacher-command-foot a,.teacher-command-foot button{min-height:28px!important;font-size:8px!important;background:#fff!important;color:#263c52!important;border-color:#d5e2ef!important}.teacher-command-foot button{background:#1768c5!important;color:#fff!important;border-color:#1768c5!important}
 }
 @media(max-width:900px){.teacher-page-content{font-size:13px!important}.teacher-command-panel{background:#fff!important}.teacher-command-links a.active{background:#1768c5!important;color:#fff!important}.teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important}}
+
+
+/* v127 — balanced sidebar, always-visible footer, neutral black typography. */
+.teacher-app-shell,.teacher-page-content{color:#171717!important}
+.teacher-page-content :is(h1,h2,h3,h4,p,label,td,th,b,strong,small,span){color:#171717}
+.teacher-page-content th{color:#171717!important}
+.teacher-pro-context strong,.teacher-pro-subject-copy strong,.teacher-pro-subject select{color:#171717!important}
+@media(min-width:901px){
+ .teacher-app-shell{grid-template-columns:220px minmax(0,1fr)!important}
+ .teacher-command-panel{width:220px!important;padding:8px!important;overflow:hidden!important}
+ .teacher-command-head{flex:0 0 auto!important}
+ .teacher-command-subject{flex:0 0 auto!important;margin:4px 0 6px!important}
+ .teacher-command-links{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:thin;padding-inline:1px!important;align-content:start!important}
+ .teacher-command-links a{height:38px!important;min-height:38px!important;padding:4px 6px!important;grid-template-columns:20px minmax(0,1fr)!important;gap:6px!important}
+ .teacher-command-links svg{width:15px!important;height:15px!important}
+ .teacher-command-link-copy b{font-size:10.5px!important;line-height:1.15!important;color:#171717!important}
+ .teacher-command-link-copy small{font-size:8px!important;line-height:1.1!important;color:#707070!important}
+ .teacher-command-links a.active b,.teacher-command-links a.active small{color:#fff!important}
+ .teacher-command-foot{flex:0 0 auto!important;position:sticky!important;bottom:0!important;z-index:3!important;background:#fff!important;margin-top:5px!important;padding-top:6px!important}
+ .teacher-command-foot a,.teacher-command-foot button{min-height:34px!important;font-size:9.5px!important}
+}
+@media(max-width:900px){
+ .teacher-command-panel{display:flex!important;flex-direction:column!important;max-height:calc(100dvh - 18px)!important;overflow:hidden!important}
+ .teacher-command-links{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
+ .teacher-command-foot{flex:0 0 auto!important;position:sticky!important;bottom:0!important;background:#fff!important;z-index:3!important}
+ .teacher-command-link-copy b{color:#171717!important}.teacher-command-link-copy small{color:#707070!important}
+ .teacher-command-links a.active b,.teacher-command-links a.active small{color:#fff!important}
+}
