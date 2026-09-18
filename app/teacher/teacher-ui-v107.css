@@ -121,3 +121,25 @@
  .teacher-command-link-copy b{color:#171717!important}.teacher-command-link-copy small{color:#707070!important}
  .teacher-command-links a.active b,.teacher-command-links a.active small{color:#fff!important}
 }
+
+
+/* v128 — calmer sidebar and readable tab states. */
+.teacher-page-content{color:#171717!important}
+.teacher-page-content :is(p,label,td){color:#171717}
+.teacher-page-content :is(button,.button,.btn,[role="tab"],.active,[aria-selected="true"]){text-shadow:none!important}
+.teacher-page-content :is(button,.button,.btn,[role="tab"]):not(.active):not([aria-selected="true"]){color:#171717}
+.teacher-page-content :is(button,.button,.btn,[role="tab"]).active,
+.teacher-page-content :is(button,.button,.btn,[role="tab"])[aria-selected="true"]{color:#fff!important}
+.teacher-page-content :is(button,.button,.btn,[role="tab"]).active :is(span,b,strong,small),
+.teacher-page-content :is(button,.button,.btn,[role="tab"])[aria-selected="true"] :is(span,b,strong,small){color:inherit!important}
+@media(min-width:901px){
+ .teacher-app-shell{grid-template-columns:228px minmax(0,1fr)!important}
+ .teacher-command-panel{width:228px!important;padding:10px 9px!important}
+ .teacher-command-head{padding:2px 5px 7px!important;border-bottom:1px solid #e5edf5!important}
+ .teacher-command-head strong{font-size:13px!important}.teacher-command-head small{font-size:8px!important}
+ .teacher-command-subject{margin:7px 0!important;padding:7px!important}
+ .teacher-command-links{gap:3px!important;padding:2px 1px 5px!important}
+ .teacher-command-links a{height:39px!important;min-height:39px!important;padding:5px 7px!important;border-radius:9px!important}
+ .teacher-command-link-copy b{font-size:10.5px!important}.teacher-command-link-copy small{font-size:7.8px!important}
+ .teacher-command-foot{padding-top:7px!important}
+}
