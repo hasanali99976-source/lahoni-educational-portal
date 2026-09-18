@@ -3,3 +3,14 @@
 @media(max-width:620px){.follow-page{gap:12px}.follow-head,.follow-card{padding:14px;border-radius:14px}.follow-head h1{font-size:25px}.follow-filters{display:grid;grid-template-columns:1fr 1fr}.follow-filters label:last-child{grid-column:1/-1}.follow-overview{grid-template-columns:1fr 1fr}.follow-overview article:first-child{grid-column:1/-1}.follow-modal>section{padding:14px}.note-options label{grid-template-columns:auto 1fr}.note-options em{grid-column:2}.modal-actions{display:grid;grid-template-columns:1fr 1fr}.follow-toast{right:12px;left:12px;bottom:12px}}
 
 .follow-action-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 11px;border:1px solid #ccdae4;border-radius:9px;background:#f5faf9;color:#0b716d!important;text-decoration:none;font-size:11px;font-weight:900}.referral-print-button{background:#0b716d!important;color:#fff!important;border-color:#0b716d!important}
+
+/* v125 — clearer mastery workspace. */
+.follow-page{--teacher-accent:#1768c5!important;--teacher-accent-dark:#0d4f9d!important;background:linear-gradient(180deg,#f2f7fd,#fff 45%)!important}
+.follow-head{border:1px solid #d5e5f5!important;background:linear-gradient(135deg,#0f5ba8,#2f80d0)!important;color:#fff!important;box-shadow:0 10px 28px rgba(23,104,197,.13)!important}
+.follow-head h1,.follow-head p,.follow-head>div>span{color:#fff!important}.follow-head p{opacity:.9}
+.follow-filters label{color:#eaf4ff!important}.follow-filters select{background:#fff!important;color:#174d82!important;border-color:#d5e5f5!important}
+.follow-overview{gap:9px!important}.follow-overview article{border:1px solid #d8e7f6!important;background:#fff!important;border-radius:12px!important;box-shadow:0 5px 16px rgba(25,78,125,.05)!important}.follow-overview article strong{color:#155da8!important}
+.follow-overview article.mastered{border-top:3px solid #268b69!important}.follow-overview article.support{border-top:3px solid #d97735!important}.follow-overview article.incomplete{border-top:3px solid #7890a6!important}
+.students-follow-card>header{padding-bottom:10px!important;border-bottom:1px solid #e0ebf5!important}.students-follow-card h2{color:#123f70!important}
+.follow-actions button,.follow-action-link{min-height:36px!important;padding:7px 10px!important;border-color:#cfe0f1!important;background:#f7fbff!important;color:#155da8!important}.follow-actions .counselor-button{background:#1768c5!important;color:#fff!important}
+.follow-table-wrap{border-color:#d5e5f5!important}.follow-table-wrap th{background:#1768c5!important;color:#fff!important}.follow-table-wrap tbody tr:nth-child(even){background:#f7fbff!important}.completion i{background:#1768c5!important}
