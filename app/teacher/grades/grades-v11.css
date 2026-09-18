@@ -3,3 +3,14 @@
 
 /* V122 — clearer academic section/unit selector without changing grade data */
 .gv11-planbar{background:linear-gradient(135deg,#fff,#f2f8f7);border-color:#a9c9c2;padding:14px}.gv11-planbar:before{font-size:12px;margin-bottom:10px}.gv11-section-tabs{gap:9px;padding:3px}.gv11-section-tabs button{position:relative;min-width:145px;min-height:62px;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"state title" "state meta";text-align:right;justify-content:stretch;padding:10px 12px;border-radius:13px;background:#fff;border:1px solid #bfd6d1;box-shadow:0 5px 14px rgba(16,63,73,.05)}.gv11-section-tabs button>span{grid-area:state;align-self:center;padding:4px 7px;border-radius:999px;background:#edf5f3;color:#41676a}.gv11-section-tabs button>b{grid-area:title;font-size:13px}.gv11-section-tabs button>small{grid-area:meta;display:block;font-size:9px;color:#647e82}.gv11-section-tabs button.active{background:#103f49;border-color:#103f49;box-shadow:0 8px 20px rgba(16,63,73,.18)}.gv11-section-tabs button.active>small{color:#dcebea}.gv11-section-tabs button.active>span{background:#fff;color:#103f49}@media(max-width:700px){.gv11-section-tabs button{min-height:58px;min-width:0}}
+
+
+/* V123 — calm, clearly color-coded academic units */
+.gv11-planbar{background:#f8fbfa;border:1px solid #c9d9d5;box-shadow:none;padding:12px}
+.gv11-planbar:before{color:#294d54;font-size:11px;margin-bottom:8px}
+.gv11-section-tabs{gap:7px;padding:2px}
+.gv11-section-tabs button{min-width:132px;min-height:54px;padding:8px 10px;border-radius:10px;box-shadow:none;border-width:1px;background:#fff}
+.gv11-section-tabs button:nth-child(6n+1){background:#edf7f5;border-color:#9dcac2;color:#185b55}.gv11-section-tabs button:nth-child(6n+2){background:#fff7e7;border-color:#e6c98c;color:#75551a}.gv11-section-tabs button:nth-child(6n+3){background:#f1f4fb;border-color:#b8c7e3;color:#405879}.gv11-section-tabs button:nth-child(6n+4){background:#f8f0f7;border-color:#d5b8d0;color:#704b69}.gv11-section-tabs button:nth-child(6n+5){background:#f4f7eb;border-color:#c4d49b;color:#526529}.gv11-section-tabs button:nth-child(6n+6){background:#fff1ed;border-color:#e1b5a8;color:#7b493c}
+.gv11-section-tabs button>span{padding:3px 6px;background:rgba(255,255,255,.72);color:inherit;border:1px solid currentColor;opacity:.72}.gv11-section-tabs button>b{font-size:12px;color:inherit}.gv11-section-tabs button>small{font-size:8px;color:inherit;opacity:.72}
+.gv11-section-tabs button.active{background:#174a54!important;border-color:#174a54!important;color:#fff!important;box-shadow:0 3px 8px rgba(23,74,84,.12)}.gv11-section-tabs button.active>span{background:#fff;color:#174a54;border-color:#fff;opacity:1}.gv11-section-tabs button.active>small{color:#e7f1ef;opacity:1}
+@media(max-width:700px){.gv11-section-tabs{grid-template-columns:1fr 1fr;gap:6px}.gv11-section-tabs button{min-height:52px;padding:7px 8px}}
