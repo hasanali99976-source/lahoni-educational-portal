@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createSessionToken, findUserByUsername, PORTAL_SESSION_COOKIE, SESSION_MAX_AGE, type PortalUser } from "../../../lib/server/portal-auth";
 import { findLegacyTeacherByCredentials } from "../../../lib/server/legacy-teacher-auth";
 import { verifyPassword } from "../../../lib/server/password";
-import { adminAuth } from "../../../lib/server/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -35,19 +34,8 @@ export async function POST(request: Request) {
 
     const subjectId = user.subjectIds[0];
     const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
-    let firebaseToken = "";
-    try {
-      const auth = await adminAuth();
-      firebaseToken = await auth.createCustomToken(user.id, {
-        role: "teacher",
-        subjectIds: user.subjectIds,
-      });
-    } catch (error) {
-      console.warn("firebase client token creation skipped", error);
-    }
-
     const response = NextResponse.json(
-      { ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId, firebaseToken: firebaseToken || undefined },
+      { ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId },
       { headers: { "Cache-Control": "no-store" } },
     );
 
