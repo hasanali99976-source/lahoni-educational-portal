@@ -1,8 +1,6 @@
 "use client";
 import Link from "next/link";
 import { FormEvent,useState } from "react";
-import { signInWithCustomToken } from "firebase/auth";
-import { auth } from "../../lib/firebase";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-entry.css";
 
@@ -16,7 +14,6 @@ export default function TeacherLoginPage(){
      const r=await fetch("/api/teacher-login",{method:"POST",credentials:"include",cache:"no-store",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({name:name.trim(),password})});
      const d=await r.json().catch(()=>null);
      if(!r.ok){setError(d?.message||"اسم المعلم أو الرقم السري غير صحيح");return;}
-     if(d?.firebaseToken){try{await signInWithCustomToken(auth,d.firebaseToken)}catch{}}
      if(d?.teacherId)setGradePlanCurrentTeacher(d.teacherId);
      window.location.assign("/teacher/dashboard");
    }catch{setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.")}
