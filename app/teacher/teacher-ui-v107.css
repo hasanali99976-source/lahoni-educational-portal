@@ -35,3 +35,19 @@
 @media (min-width:901px){.teacher-page-content{min-height:calc(100vh - 104px)}.teacher-page-content :is(.toolbar,.filters,.actions,.controls){align-items:center}.teacher-page-content :is(.grid,.cards,.stats,.summary-grid,.student-grid){gap:12px}}
 @media (max-width:900px){.teacher-page-content{padding:10px}.teacher-page-content :is(.toolbar,.filters,.actions,.controls){width:100%}.teacher-page-content :is(.toolbar,.filters,.actions,.controls)>*{min-width:0}.teacher-page-content :is(input,select,textarea){width:100%;font-size:16px}.teacher-page-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card){border-radius:14px}.teacher-page-content table{font-size:13px}}
 @media (max-width:520px){.teacher-page-content{padding:7px}.teacher-page-content :is(.toolbar,.filters,.actions,.controls){display:grid;grid-template-columns:1fr}.teacher-page-content :is(.toolbar,.filters,.actions,.controls)>*{width:100%;max-width:100%}.teacher-page-content :is(button,.button,.btn){min-height:44px}.teacher-page-content h1{font-size:22px!important}.teacher-page-content h2{font-size:18px!important}}
+
+
+/* v124 — permanent teacher side navigation on desktop; one clean drawer trigger on mobile. */
+@media (min-width:901px){
+ .teacher-app-shell{display:grid!important;grid-template-columns:250px minmax(0,1fr)!important;align-items:start}
+ .teacher-pro-header{grid-column:2;grid-row:1;grid-template-columns:minmax(180px,260px) 1fr auto!important;position:sticky!important;top:0}
+ .teacher-pro-brand{display:none!important}.teacher-pro-tabs{display:none!important}
+ .teacher-pro-main{grid-column:2;grid-row:2;max-width:none!important;width:100%;margin:0!important}
+ .teacher-command-backdrop{display:none!important}
+ .teacher-command-panel{display:flex!important;flex-direction:column;position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;width:250px!important;max-height:none!important;height:100dvh!important;padding:16px 12px!important;border:0!important;border-left:1px solid #d3e3e7!important;border-radius:0!important;background:#fff!important;box-shadow:-10px 0 30px rgba(6,29,43,.07)!important;transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;overflow:auto!important;z-index:180!important}
+ .teacher-command-head{padding:2px 4px 12px}.teacher-command-head button{display:none!important}.teacher-command-head small{font-size:10px}.teacher-command-head strong{font-size:16px}
+ .teacher-command-subject{margin:10px 0}.teacher-command-links{grid-template-columns:1fr!important;gap:3px!important;flex:1}.teacher-command-links a{min-height:48px!important;padding:7px 9px!important;border-radius:11px!important;grid-template-columns:25px minmax(0,1fr)!important;gap:8px!important}.teacher-command-links svg{width:19px!important;height:19px!important}.teacher-command-link-copy b{font-size:11.5px!important}.teacher-command-link-copy small{font-size:8.5px!important}.teacher-command-foot{margin-top:10px}
+}
+@media (max-width:900px){
+ .teacher-pro-tabs a{display:none!important}.teacher-pro-tabs{right:10px!important;left:auto!important;bottom:10px!important;width:auto!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}.teacher-pro-more{display:flex!important;flex-direction:row!important;min-width:92px!important;height:48px!important;min-height:48px!important;padding:7px 12px!important;border:1px solid #c8dedb!important;border-radius:14px!important;background:#0b716d!important;color:#fff!important;box-shadow:0 9px 24px rgba(6,63,60,.2)!important}.teacher-pro-more span{font-size:11px!important}.teacher-pro-main{padding-bottom:74px!important}
+}
