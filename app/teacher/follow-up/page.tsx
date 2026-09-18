@@ -13,7 +13,7 @@ type TeacherNoteEntry = { id: string; type: string; label: string; message?: str
 type Student = GradeStudentLike & { id: string; storageId?: string; name?: string; class?: string; className?: string; code?: string; accessCode?: string; studentCode?: string; researchScore?: number; teacherNote?: string; teacherNoteCount?: number; teacherNoteCounts?: Record<string, number>; teacherNotes?: TeacherNoteEntry[]; units?: Record<string, UnitRecord> };
 type SchoolClass = { id: string; name: string; grade?: number; section?: string };
 type AiInsight = { analysis: string; recommendedAction: string; suggestedNote: string };
-type EvaluatedStudent = Student & { points: number; completion: number; performance: number; finalScore: number | null; missing: number };
+type EvaluatedStudent = Student & { points: number; completion: number; performance: number; finalScore: number | null; missing: number; masteryScore: number | null; masteryBasis: string; hasCompletedSection: boolean };
 
 const unitKeys = ["unit1", "unit2", "unit3", "unit4", "unit5"];
 const counselorPhone = "966598353651";
@@ -36,7 +36,7 @@ function aliases(student: Student) {
 function evaluateStudent(student: Student, plan: GradePlan | null): EvaluatedStudent {
   const result = calculateGradePlanResult(plan, student);
   const missing = result.sections.reduce((sum, section) => sum + section.items.filter(item => !item.recorded).length, 0);
-  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing };
+  const completedSections = result.sections.filter(section => section.complete);\n  const latestCompleted = completedSections[completedSections.length - 1];\n  return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing, masteryScore: latestCompleted ? Math.round(latestCompleted.percentage) : (result.finalScore === null ? null : Math.round(result.finalScore)), masteryBasis: latestCompleted?.label || (result.complete ? "الخطة كاملة" : ""), hasCompletedSection: Boolean(latestCompleted || result.complete) };
 }
 
 function insightProfile(student: Student, plan: GradePlan | null) {
@@ -162,7 +162,7 @@ export default function FollowUpPage() {
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
-  const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)), [visible, activePlan]);
+  const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)).filter(student => Boolean(selectedStudent) || student.hasCompletedSection), [visible, activePlan, selectedStudent]);
   const completed = useMemo(() => evaluated.filter(student => student.completion === 100), [evaluated]);
   const mastered = useMemo(() => completed.filter(student => (student.finalScore || 0) >= threshold), [completed, threshold]);
   const support = useMemo(() => completed.filter(student => (student.finalScore || 0) < threshold), [completed, threshold]);
