@@ -99,7 +99,7 @@ export default function FollowUpPage() {
       controller = new AbortController();
       try {
         const response = await fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(String(subjectKey).split("--")[0])}`, {
-          cache: "no-store", credentials: "same-origin", signal: controller.signal,
+          credentials: "same-origin", signal: controller.signal,
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.message || "تعذر تحميل بيانات الطلاب.");
@@ -113,12 +113,10 @@ export default function FollowUpPage() {
         if (active) setMessage(error instanceof Error ? error.message : "تعذر تحميل بيانات الطلاب.");
       } finally { loading = false; }
     };
-    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    // Load once for the active scope. Focus/visibility/online refreshes caused
+    // repeated students + grade-data requests without any underlying data change.
     void refresh();
-    window.addEventListener("focus", refresh);
-    window.addEventListener("online", refresh);
-    document.addEventListener("visibilitychange", onVisible);
-    return () => { active = false; controller?.abort(); window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", onVisible); };
+    return () => { active = false; controller?.abort(); };
   }, [teacherId, subjectKey]);
 
   useEffect(() => {
@@ -134,7 +132,7 @@ export default function FollowUpPage() {
       controller = new AbortController();
       setScopeLoading(true);
       try {
-        const response = await fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal });
+        const response = await fetch(`/api/teacher/students?${params.toString()}`, { signal: controller.signal });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.message || "تعذر تحميل الفصول المحددة.");
         if (!active) return;
@@ -145,12 +143,10 @@ export default function FollowUpPage() {
         if (active) setMessage(error instanceof Error ? error.message : "تعذر تحميل الفصول المحددة.");
       } finally { loading = false; if (active) setScopeLoading(false); }
     };
-    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    // Load once for the active scope. Focus/visibility/online refreshes caused
+    // repeated students + grade-data requests without any underlying data change.
     void refresh();
-    window.addEventListener("focus", refresh);
-    window.addEventListener("online", refresh);
-    document.addEventListener("visibilitychange", onVisible);
-    return () => { active = false; controller?.abort(); window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", onVisible); };
+    return () => { active = false; controller?.abort(); };
   }, [teacherId, subjectKey, activeGrade]);
 
   const students = useMemo(() => {
