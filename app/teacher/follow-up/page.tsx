@@ -36,8 +36,8 @@ function aliases(student: Student) {
 function evaluateStudent(student: Student, plan: GradePlan | null): EvaluatedStudent {
   const result = calculateGradePlanResult(plan, student);
   const missing = result.sections.reduce((sum, section) => sum + section.items.filter(item => !item.recorded).length, 0);
-  const completedSections = result.sections.filter(section => section.complete);
-  const latestCompleted = completedSections[completedSections.length - 1];
+  const closedSections = result.sections.filter((section, index, sections) => section.complete || sections.slice(index + 1).some(next => next.recordedMaximum > 0));
+  const latestCompleted = closedSections[closedSections.length - 1];
   return { ...student, points: result.earned, completion: Math.round(result.completion), performance: Math.round(result.percentage), finalScore: result.finalScore === null ? null : Math.round(result.finalScore), missing, masteryScore: latestCompleted ? Math.round(latestCompleted.percentage) : (result.finalScore === null ? null : Math.round(result.finalScore)), masteryBasis: latestCompleted?.label || (result.complete ? "الخطة كاملة" : ""), hasCompletedSection: Boolean(latestCompleted || result.complete) };
 }
 
@@ -164,7 +164,7 @@ export default function FollowUpPage() {
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
-  const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)).filter(student => Boolean(selectedStudent) || student.hasCompletedSection), [visible, activePlan, selectedStudent]);
+  const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)).filter(student => Boolean(selectedStudent) || (student.hasCompletedSection && (student.masteryScore ?? 100) < threshold)), [visible, activePlan, selectedStudent, threshold]);
   const completed = useMemo(() => evaluated.filter(student => student.masteryScore !== null), [evaluated]);
   const mastered = useMemo(() => completed.filter(student => (student.masteryScore || 0) >= threshold), [completed, threshold]);
   const support = useMemo(() => completed.filter(student => (student.masteryScore || 0) < threshold), [completed, threshold]);
@@ -277,7 +277,7 @@ export default function FollowUpPage() {
   return <main className="follow-page" dir="rtl">
     {!activePlan && <div className="follow-toast" role="status">لم تُعتمد خطة توزيع الدرجات بعد. <a href="/teacher/grade-plan">إعداد التوزيع الآن</a></div>}
     <section className="follow-head">
-      <div><span>متابعة التحصيل — {subject}</span><h1>متابعة الإتقان</h1><p>صفحة مختصرة: تفرّق بين الإتقان الحقيقي والرصد غير المكتمل، وتترك التحليل الذكي كإجراء اختياري لكل طالب.</p></div>
+      <div><span>متابعة التحصيل — {subject}</span><h1>متابعة الإتقان</h1><p>تظهر تلقائيًا أسماء الطلاب الذين يحتاجون دعمًا بعد اكتمال رصد الوحدة/الفترة، أو عند بدء الرصد في الوحدة التالية. ويمكن للمعلم اختيار أي طالب يدويًا من القائمة.</p></div>
       <div className="follow-filters">
         <label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
         <label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label>
@@ -288,7 +288,7 @@ export default function FollowUpPage() {
     {scopeLoading ? <p className="follow-inline-message">جارٍ تحميل الفصول…</p> : !classes.length ? <p className="follow-inline-message">لا توجد فصول محددة لهذه المادة.</p> : null}
 
     <section className="follow-overview">
-      <article><span>الطلاب</span><strong>{evaluated.length}</strong><small>في النطاق الحالي</small></article>
+      <article><span>المحتاجون للإتقان</span><strong>{support.length}</strong><small>ظهروا تلقائيًا بعد إغلاق الرصد</small></article>
       <article><span>مكتملو الرصد</span><strong>{completed.length}</strong><small>يمكن الحكم على الإتقان</small></article>
       <article className="mastered"><span>متقنون</span><strong>{mastered.length}</strong><small>حسب معيار {threshold}٪</small></article>
       <article className="support"><span>يحتاجون دعمًا</span><strong>{support.length}</strong><small>بعد اكتمال الرصد</small></article>
@@ -296,7 +296,7 @@ export default function FollowUpPage() {
     </section>
 
     <section className="follow-card students-follow-card">
-      <header><div><h2>الطلاب</h2><p>درجة نهائية فقط عند اكتمال الرصد ١٠٠٪. قبل ذلك يظهر الأداء الحالي بوصفه مبدئيًا.</p></div><div className="follow-actions"><button type="button" onClick={printMasteryTable}>PDF / طباعة جدول الإتقان</button><a className="follow-action-link" href="/teacher/follow-up/referrals">سجل الإحالات</a><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
+      <header><div><h2>قائمة الإتقان</h2><p>القائمة التلقائية تعرض من هم دون معيار الإتقان بعد إغلاق الوحدة/الفترة. اختيار طالب من الأعلى يضيفه للعرض يدويًا حتى لو لم يكتمل رصده.</p></div><div className="follow-actions"><button type="button" onClick={printMasteryTable}>PDF / طباعة جدول الإتقان</button><a className="follow-action-link" href="/teacher/follow-up/referrals">سجل الإحالات</a><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
       <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
         {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}>
           <td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td>

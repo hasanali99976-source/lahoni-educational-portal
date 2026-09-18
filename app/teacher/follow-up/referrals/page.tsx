@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTeacherClient } from "../../../../lib/teacher-client";
 import "../follow-up.css";
+import "./referrals.css";
 
 type Referral={id:string;studentName?:string;className?:string;referralType?:"mastery"|"other";referralTypeLabel?:string;reason?:string;status?:string;createdAt?:string};
 export default function PreviousReferralsPage(){
