@@ -2,3 +2,6 @@
 /* V120 — clearer, color-coded timetable across desktop and mobile */
 .ttv9-week>article:nth-child(1){background:#fff8e8;border-color:#e7c76f}.ttv9-week>article:nth-child(2){background:#eef8ff;border-color:#8fc4e8}.ttv9-week>article:nth-child(3){background:#f1fbf1;border-color:#91cf99}.ttv9-week>article:nth-child(4){background:#fff0f5;border-color:#e6a5bb}.ttv9-week>article:nth-child(5){background:#f5f0ff;border-color:#bba6e6}.ttv9-week>article.today{background:#e8f8f4!important;border-color:#08766f!important}.ttv9-periods button.filled{box-shadow:inset 4px 0 0 #08766f}.ttv9-periods button:not(.filled){opacity:.82}.ttv9-week article>header>span{box-shadow:0 3px 9px rgba(16,47,57,.10)}
 @media(max-width:700px){.ttv9-week>article{border-width:2px}.ttv9-periods button{min-height:62px}.ttv9-periods button.filled{box-shadow:inset 5px 0 0 #08766f}}
+
+/* v130 — iPhone/Safari editing safety. */
+@supports (-webkit-touch-callout:none){.ttv9-periods button,.ttv9-hero-actions button,.ttv9-modal button,.ttv9-modal select,.ttv9-modal textarea{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ttv9-modal{align-items:start;overflow-y:auto;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom))}.ttv9-modal>section{max-height:calc(100dvh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch}}

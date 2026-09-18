@@ -15,7 +15,7 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 
-const ADMIN_ROSTER_CACHE_TTL_MS = 60 * 60 * 1000;
+const ADMIN_ROSTER_CACHE_TTL_MS = 15 * 1000;
 type AdminRosterCache = { students: SchoolStudent[]; classes: SchoolClass[]; expiresAt: number };
 const rosterCache = new Map<string, AdminRosterCache>();
 const rosterInflight = new Map<string, Promise<AdminRosterCache>>();
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
   try {
     const includeArchived = new URL(request.url).searchParams.get("archived") === "1";
     const { students, classes } = await loadRosterCached(includeArchived);
-    return NextResponse.json({ ok: true, students, classes }, { headers: { "Cache-Control": "private, max-age=300, stale-while-revalidate=3300" } });
+    return NextResponse.json({ ok: true, students, classes }, { headers: { "Cache-Control": "private, no-store, max-age=0" } });
   } catch (error) {
     console.error("load school students failed", error);
     return NextResponse.json({ ok: false, message: "تعذر تحميل سجل الطلاب" }, { status: 500 });
