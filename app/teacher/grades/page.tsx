@@ -86,8 +86,8 @@ export default function GradesPage(){
       setLoading(true);setMessage("");
       try{
         const [data,academicData]=await Promise.all([
-          fetch(`/api/teacher/students?${params.toString()}`,{cache:"no-store",signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل الطلاب");return data;}),
-          fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(tenant.subjectKey)}`,{cache:"no-store",signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل التحصيل المحفوظ");return data;}),
+          fetch(`/api/teacher/students?${params.toString()}`,{signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل الطلاب");return data;}),
+          fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(tenant.subjectKey)}`,{signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل التحصيل المحفوظ");return data;}),
         ]);
         if(disposed)return;
         const byCode=academicData.byCode&&typeof academicData.byCode==="object"?academicData.byCode as Record<string,Record<string,unknown>>:{};
@@ -106,12 +106,12 @@ export default function GradesPage(){
       finally{refreshing=false;if(!disposed)setLoading(false);}
     };
 
-    const refreshWhenActive=()=>{if(document.visibilityState==="visible")void refreshFromCloud();};
+    // Load once for the active teacher/subject/grade. Do not refetch on focus,
+    // visibility changes, or local grade/deduction state changes: those state
+    // updates previously created a request loop between students and grade-data.
     void refreshFromCloud();
-    window.addEventListener("focus",refreshWhenActive);
-    document.addEventListener("visibilitychange",refreshWhenActive);
-    return()=>{disposed=true;controller?.abort();window.removeEventListener("focus",refreshWhenActive);document.removeEventListener("visibilitychange",refreshWhenActive);};
-  },[tenant,session.activeGrade,dirty,deductionDirty]);
+    return()=>{disposed=true;controller?.abort();};
+  },[tenant,session.activeGrade]);
 
   const classes=useMemo(()=>[...new Set(students.map(student=>student.class))].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})),[students]);
   const classStudents=useMemo(()=>students.filter(student=>student.class===selectedClass),[students,selectedClass]);
