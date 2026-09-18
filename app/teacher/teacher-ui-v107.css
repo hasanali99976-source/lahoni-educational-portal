@@ -143,3 +143,13 @@
  .teacher-command-link-copy b{font-size:10.5px!important}.teacher-command-link-copy small{font-size:7.8px!important}
  .teacher-command-foot{padding-top:7px!important}
 }
+
+
+/* v129 — keep the teacher workspace fully inside the viewport beside the fixed RTL sidebar. */
+@media(min-width:901px){
+ .teacher-app-shell{display:block!important;padding-right:228px!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;box-sizing:border-box!important}
+ .teacher-pro-header,.teacher-pro-main{width:100%!important;max-width:100%!important;margin:0!important;box-sizing:border-box!important}
+ .teacher-pro-header{grid-column:auto!important;grid-row:auto!important}
+ .teacher-pro-main{grid-column:auto!important;grid-row:auto!important;min-width:0!important;overflow-x:hidden!important}
+ .teacher-page-content{width:100%!important;max-width:100%!important;margin:0!important;min-width:0!important;overflow-x:hidden!important}
+}
