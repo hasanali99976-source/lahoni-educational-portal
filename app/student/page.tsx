@@ -61,17 +61,12 @@ export default function StudentPage(){
       refreshing=true;
       try{await hydrateAll(matches);}finally{refreshing=false;}
     };
-    const onVisible=()=>{if(document.visibilityState==="visible")void refresh();};
-    const onPageShow=()=>{void refresh();};
-    window.addEventListener("focus",refresh);
+    const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void refresh();};
     window.addEventListener("online",refresh);
     window.addEventListener("pageshow",onPageShow);
-    document.addEventListener("visibilitychange",onVisible);
     return()=>{
-      window.removeEventListener("focus",refresh);
       window.removeEventListener("online",refresh);
       window.removeEventListener("pageshow",onPageShow);
-      document.removeEventListener("visibilitychange",onVisible);
     };
   },[matches]);
 
