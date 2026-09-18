@@ -71,3 +71,25 @@
  .teacher-command-foot{margin-top:4px!important;padding-top:5px!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important}.teacher-command-foot a,.teacher-command-foot button{min-height:30px!important;padding:4px!important;font-size:8.5px!important;border-radius:7px!important}.teacher-command-foot button{background:#1768c5!important;color:#fff!important;border-color:#1768c5!important}
 }
 @media(max-width:900px){.teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important}.teacher-command-links a.active{background:#1768c5!important;color:#fff!important}}
+
+/* v126 — final sizing and hierarchy: blue + white + neutral ink only. */
+.teacher-app-shell{font-size:14px!important;color:#172b3f!important}
+.teacher-pro-header{min-height:68px!important;padding-block:7px!important}
+.teacher-pro-subject{background:#f6f9fc!important;border-color:#d7e4f1!important}.teacher-pro-subject-mark{background:#1768c5!important}.teacher-pro-subject-copy strong,.teacher-pro-subject select{color:#173c63!important}
+.teacher-pro-home,.teacher-pro-logout{border-color:#d5e2ef!important;background:#fff!important;color:#23496f!important}.teacher-pro-logout{color:#172b3f!important}
+.teacher-page-content{font-size:13px!important;color:#172b3f!important;padding:clamp(8px,1.25vw,16px)!important}
+.teacher-page-content h1{font-size:clamp(21px,1.9vw,28px)!important}.teacher-page-content h2{font-size:clamp(17px,1.4vw,21px)!important}.teacher-page-content h3{font-size:clamp(15px,1.15vw,18px)!important}
+.teacher-page-content :is(input,select,textarea){border-color:#ccdceb!important;color:#172b3f!important;background:#fff!important}
+.teacher-page-content :is(button,.button,.btn){font-size:12px!important;border-color:#d2dfec}
+.teacher-page-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card){border-color:#d7e4f1!important;box-shadow:0 5px 16px rgba(23,63,112,.045)!important}
+.teacher-page-content table{color:#172b3f!important}.teacher-page-content th{background:#eaf3fc!important;color:#123f70!important;border-color:#d5e3f0!important}.teacher-page-content td{border-color:#e4ecf4!important}.teacher-page-content tbody tr:hover{background:#f7faff!important}
+.teacher-page-content :is(.active,[aria-selected="true"]):not(.level):not(.status){--local-active:#1768c5}
+@media(min-width:901px){
+ .teacher-app-shell{grid-template-columns:196px minmax(0,1fr)!important}
+ .teacher-command-panel{width:196px!important;padding:7px!important;background:#fff!important;border-left:1px solid #d7e4f1!important;box-shadow:-5px 0 18px rgba(23,63,112,.045)!important;overflow:hidden!important}
+ .teacher-command-head{padding:0 4px 4px!important}.teacher-command-head strong{font-size:12px!important}.teacher-command-head small{font-size:7.5px!important}
+ .teacher-command-subject{margin:3px 0 5px!important;padding:5px 6px!important;background:#edf5fd!important;border:1px solid #d8e7f5!important;border-radius:8px!important}.teacher-command-subject>span{background:#1768c5!important;width:24px!important;height:24px!important}.teacher-command-subject b{font-size:9px!important}.teacher-command-subject small{font-size:7px!important}
+ .teacher-command-links{gap:1px!important}.teacher-command-links a{height:32px!important;min-height:32px!important;padding:2px 5px!important;border-radius:7px!important;grid-template-columns:18px minmax(0,1fr)!important;gap:5px!important;color:#294b6c!important}.teacher-command-links svg{width:14px!important;height:14px!important}.teacher-command-link-copy b{font-size:9px!important;line-height:1.05!important}.teacher-command-link-copy small{font-size:6.7px!important;line-height:1!important;color:#73869a!important}.teacher-command-links a:hover{background:#f2f7fc!important;border-color:#dce8f3!important}.teacher-command-links a.active{background:#1768c5!important;border-color:#1768c5!important;color:#fff!important}.teacher-command-links a.active small{color:#eaf4ff!important}
+ .teacher-command-foot{margin-top:3px!important;padding-top:4px!important;border-color:#e1eaf3!important}.teacher-command-foot a,.teacher-command-foot button{min-height:28px!important;font-size:8px!important;background:#fff!important;color:#263c52!important;border-color:#d5e2ef!important}.teacher-command-foot button{background:#1768c5!important;color:#fff!important;border-color:#1768c5!important}
+}
+@media(max-width:900px){.teacher-page-content{font-size:13px!important}.teacher-command-panel{background:#fff!important}.teacher-command-links a.active{background:#1768c5!important;color:#fff!important}.teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important}}
