@@ -6,7 +6,7 @@ import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan
 import { normalizeClass } from "../../../../lib/unified-roster";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
-type AttendanceEntry = { status: AttendanceStatus; updatedAt: string };
+type AttendanceEntry = { status: AttendanceStatus; updatedAt: string; period?: number };
 type TimetableLesson = { className?: unknown; subject?: unknown; notes?: unknown };
 type ReferralRow = Record<string, unknown> & { id: string };
 type StudentSnapshot = { id: string; exists: boolean; data(): unknown };
@@ -128,7 +128,7 @@ export async function GET(request: Request) {
     if (!validStatus(status)) continue;
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
     const existing = explicitByDate.get(date);
-    if (!existing || updatedAt >= existing.updatedAt) explicitByDate.set(date, { status, updatedAt });
+    const rawPeriod = Number(data.period || data.lesson || data.periodNumber || 0);\n    const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : undefined;\n    if (!existing || updatedAt >= existing.updatedAt) explicitByDate.set(date, { status, updatedAt, period });
   }
 
   const timetableWeekdays = new Set<number>();
@@ -155,7 +155,7 @@ export async function GET(request: Request) {
   const today = riyadhDateInput(new Date());
   // The teacher attendance page shows one selected day's roster counts. Expose the same
   // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
-  const latestEntry = latestDate ? explicitByDate.get(latestDate) : undefined;
+  const attendanceEvents = [...explicitByDate.entries()].filter(([,entry])=>entry.status!=="present").sort((a,b)=>b[0].localeCompare(a[0])).map(([date,entry])=>({date,status:entry.status,period:entry.period||null}));\n  const latestEntry = latestDate ? explicitByDate.get(latestDate) : undefined;
   const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
   if (latestEntry) latestDayCounts[latestEntry.status] = 1;
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
@@ -176,5 +176,5 @@ export async function GET(request: Request) {
     referralCount: counselorReferrals.length,
   };
 
-  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, automaticThrough: today, attendanceMode: "teacher_saved_only", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
+  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, events: attendanceEvents, automaticThrough: today, attendanceMode: "teacher_saved_only", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 }
