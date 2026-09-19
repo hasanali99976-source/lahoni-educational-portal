@@ -234,42 +234,8 @@ export default function DailyAttendanceInsights() {
 
   const scopeLabel = scopeClasses.length === classes.length ? "جميع الفصول" : scopeClasses.length === 1 ? `الفصل: ${scopeClasses[0]}` : `الفصول: ${scopeClasses.join("، ")}`;
 
-  async function downloadPdf() {
-    if (!reportRef.current || pdfBusy) return;
-    setPdfBusy(true);
-    try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
-      const source = reportRef.current;
-      const clone = source.cloneNode(true) as HTMLElement;
-      clone.classList.add("pdf-export-mode");
-      clone.style.position = "fixed";
-      clone.style.right = "-20000px";
-      clone.style.top = "0";
-      clone.style.width = "1180px";
-      clone.style.background = "#f5f8f8";
-      clone.style.padding = "24px";
-      document.body.appendChild(clone);
-      const canvas = await html2canvas(clone, { scale: 1.7, useCORS: true, backgroundColor: "#f5f8f8", logging: false });
-      clone.remove();
-      const img = canvas.toDataURL("image/jpeg", 0.94);
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-      const pageW = 297, pageH = 210, margin = 8;
-      const usableW = pageW - margin * 2;
-      const imgH = canvas.height * usableW / canvas.width;
-      let y = margin;
-      pdf.addImage(img, "JPEG", margin, y, usableW, imgH, undefined, "FAST");
-      let remaining = imgH - (pageH - margin * 2);
-      while (remaining > 0) {
-        pdf.addPage("a4", "landscape");
-        y = margin - (imgH - remaining);
-        pdf.addImage(img, "JPEG", margin, y, usableW, imgH, undefined, "FAST");
-        remaining -= (pageH - margin * 2);
-      }
-      const title = mode === "all" ? "جميع-حالات-الانضباط" : labels[mode];
-      pdf.save(`تقرير-${title}-${session?.subject || "المادة"}.pdf`);
-    } catch {
-      setError("تعذر إنشاء ملف PDF الآن. حاول مرة أخرى.");
-    } finally { setPdfBusy(false); }
+  function printStudentTable() {
+    window.print();
   }
 
   const selectedRow = selectedStudent ? allRows.find(r => r.id === selectedStudent) : null;
@@ -278,7 +244,7 @@ export default function DailyAttendanceInsights() {
   return <section className="daily-attendance-v300" dir="rtl" ref={reportRef}>
     <div className="dav300-head"><div><small>تحليل الانضباط حسب حصص المادة</small><h2>سجل الحضور والانضباط</h2><p>سجل تراكمي فعلي من أول رصد محفوظ في البوابة حتى آخر يوم مسجل، مع دمج السجل السحابي والنسخة المحلية دون تكرار.</p></div><div className="dav300-head-badge"><span>{session?.subject || "المادة"}</span><strong>{scopeLessons}</strong><small>حصة في النطاق</small>{reportRange.first?<em>من {shortDate(reportRange.first)} إلى {shortDate(reportRange.last)}</em>:null}</div></div>
 
-    <div className="dav300-filters no-pdf"><select value={mode} onChange={e => setMode(e.target.value as Mode)}><option value="all">جميع الحالات</option><option value="absent">الغياب</option><option value="late">التأخير</option><option value="excused">الاستئذان</option><option value="escaped">الهروب</option></select><select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)}><option value="">جميع الطلاب في النطاق</option>{visibleStudents.map(s => <option key={s.id} value={s.id}>{s.name} — {s.className}</option>)}</select><button type="button" onClick={downloadPdf} disabled={pdfBusy || loading}>{pdfBusy ? "جاري إنشاء PDF..." : "تحميل PDF مباشرة"}</button></div>
+    <div className="dav300-filters no-pdf"><select value={mode} onChange={e => setMode(e.target.value as Mode)}><option value="all">جميع الحالات</option><option value="absent">الغياب</option><option value="late">التأخير</option><option value="excused">الاستئذان</option><option value="escaped">الهروب</option></select><select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)}><option value="">جميع الطلاب في النطاق</option>{visibleStudents.map(s => <option key={s.id} value={s.id}>{s.name} — {s.className}</option>)}</select><button type="button" onClick={printStudentTable} disabled={loading}>طباعة جدول الطلاب</button></div>
 
     <div className="dav300-class-picker no-pdf"><div className="dav300-class-title"><b>الفصل</b><span>اعرض بيانات فصل محدد أو جميع الفصول</span></div><select className="dav300-class-select" value={selectedClasses.length===classes.length?"__all__":selectedClasses.length===1?selectedClasses[0]:"__all__"} onChange={e=>{setSelectedStudent("");setSelectedClasses(e.target.value==="__all__"?classes:[e.target.value])}}><option value="__all__">جميع الفصول</option>{classes.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
 
@@ -292,8 +258,19 @@ export default function DailyAttendanceInsights() {
 
     <div className="dav300-ranking"><div className="dav300-ranking-head"><div><b>الإحصائيات الأعلى</b><span>الترتيب حسب عدد الحالات ثم نسبتها من حصص المادة</span></div><div className="rank-scope">{scopeLabel}</div></div>{rankingGroups.map(group => <div className={`dav300-rank-group ${statusClass[group.status]}`} key={group.status}><h3><span />الأكثر في {labels[group.status]}</h3><div className="rank-grid">{group.rows.length ? group.rows.map((r, i) => <article key={`${group.status}-${r.id}`}><span className="rank-no">{i + 1}</span><div className="rank-student"><b>{r.name}</b><small>{r.className} • من {shortDate(r.firstDate)} إلى {shortDate(r.lastDate)}</small></div><div className="rank-count"><strong>{r[group.status]}</strong><small>من {r.reportLessons} حصة</small></div><div className="rank-percent">{ar(pct(r[group.status], r.reportLessons))}٪</div></article>) : <div className="dav300-empty">لا توجد حالات مسجلة.</div>}</div></div>)}</div>
 
-    {error ? <div className="dav300-empty">{error}</div> : <div className="dav300-table"><div className="table-caption"><div><b>تفاصيل التقرير</b><span>{selectedRow ? `الطالب: ${selectedRow.name}` : scopeLabel}</span></div><small>الحالة / إجمالي حصص المادة / النسبة</small></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th>{mode === "all" ? <><th className="th-absence">غياب</th><th className="th-late">تأخير</th><th className="th-excused">استئذان</th><th className="th-escaped">هروب</th><th>حصص المادة</th></> : <><th className={`th-${statusClass[mode]}`}>{labels[mode]}</th><th>حصص المادة</th><th>النسبة</th></>}</tr></thead><tbody>{displayRows.map((r, i) => <tr key={r.id}><td>{i + 1}</td><td className="name">{r.name}</td><td>{r.className}</td>{mode === "all" ? <><td className="cell-absence">{r.absent}</td><td className="cell-late">{r.late}</td><td className="cell-excused">{r.excused}</td><td className="cell-escaped">{r.escaped}</td><td><b>{r.reportLessons}</b></td></> : <><td className={`cell-${statusClass[mode]}`}><b>{r[mode]}</b></td><td>{r.reportLessons}</td><td><b>{ar(pct(r[mode], r.reportLessons))}٪</b></td></>}</tr>)}{!loading && !displayRows.length ? <tr><td colSpan={mode === "all" ? 8 : 6} className="dav300-empty">لا توجد سجلات مطابقة.</td></tr> : null}</tbody></table></div>}
+    {error ? <div className="dav300-empty">{error}</div> : <div className="dav300-table print-student-table"><div className="table-caption"><div><b>تفاصيل التقرير</b><span>{selectedRow ? `الطالب: ${selectedRow.name}` : scopeLabel}</span></div><small>الحالة / إجمالي حصص المادة / النسبة</small></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th>{mode === "all" ? <><th className="th-absence">غياب</th><th className="th-late">تأخير</th><th className="th-excused">استئذان</th><th className="th-escaped">هروب</th><th>حصص المادة</th></> : <><th className={`th-${statusClass[mode]}`}>{labels[mode]}</th><th>حصص المادة</th><th>النسبة</th></>}</tr></thead><tbody>{displayRows.map((r, i) => <tr key={r.id}><td>{i + 1}</td><td className="name">{r.name}</td><td>{r.className}</td>{mode === "all" ? <><td className="cell-absence">{r.absent}</td><td className="cell-late">{r.late}</td><td className="cell-excused">{r.excused}</td><td className="cell-escaped">{r.escaped}</td><td><b>{r.reportLessons}</b></td></> : <><td className={`cell-${statusClass[mode]}`}><b>{r[mode]}</b></td><td>{r.reportLessons}</td><td><b>{ar(pct(r[mode], r.reportLessons))}٪</b></td></>}</tr>)}{!loading && !displayRows.length ? <tr><td colSpan={mode === "all" ? 8 : 6} className="dav300-empty">لا توجد سجلات مطابقة.</td></tr> : null}</tbody></table></div>}
 
     <div className="dav300-formula"><b>طريقة الحساب:</b> عدد حصص الحالة للطالب ÷ عدد حصص المادة من أول تحضير محفوظ إلى آخر تحضير × 100. إذا كان في اليوم أكثر من حصة للمادة والسجل محفوظ مرة واحدة فقط، تُحسب الحالة مرة واحدة ولا يتم افتراض تكرارها على كل حصص اليوم.</div>
   </section>;
 }
+
+<style jsx global>{`
+@media print {
+  body * { visibility: hidden !important; }
+  .print-student-table, .print-student-table * { visibility: visible !important; }
+  .print-student-table { position: absolute !important; inset: 0 !important; width: 100% !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; background: #fff !important; }
+  .print-student-table .table-caption { display: flex !important; }
+  .print-student-table table { width: 100% !important; border-collapse: collapse !important; font-size: 11pt !important; direction: rtl !important; }
+  .print-student-table th, .print-student-table td { border: 1px solid #777 !important; padding: 7px 6px !important; background: #fff !important; color: #000 !important; }
+  @page { size: A4 landscape; margin: 10mm; }
+}`}</style>
