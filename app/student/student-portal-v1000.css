@@ -124,3 +124,14 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
  .sc-feed-item{grid-template-columns:38px minmax(0,1fr);padding:11px;gap:9px}.sc-feed-icon{width:36px;height:36px}
  .sc-feed-item header,.sc-feed-item footer{align-items:flex-start;flex-direction:column;gap:3px}
 }
+
+
+/* Unified student entry identity */
+.student-current-login{padding:14px}
+.scl-frame{background:linear-gradient(155deg,rgba(3,26,40,.90),rgba(7,68,75,.74));backdrop-filter:blur(18px) saturate(1.15)}
+.scl-grid{grid-template-columns:minmax(0,1.05fr) minmax(350px,.55fr)}
+.scl-intro{padding:30px 18px}
+.scl-intro h1{font-size:clamp(42px,4.7vw,68px)}
+.scl-card{background:linear-gradient(155deg,rgba(3,26,40,.96),rgba(7,68,75,.88));border-color:rgba(239,199,105,.22)}
+.scl-card>button{background:linear-gradient(180deg,#f6db8e,#c78d31)}
+.scl-features article{background:rgba(4,30,45,.62)}
