@@ -35,3 +35,55 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
   #student-certificate{position:absolute!important;inset:0!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:13mm 11mm 9mm!important;border-radius:0!important;box-shadow:none!important;border:1px solid #cbb98d!important;background:linear-gradient(145deg,#fbfaf6,#f2eee1)!important;page-break-inside:avoid!important;break-inside:avoid!important;transform:none!important}
   .sc-certificate>header{grid-template-columns:55px 1fr 38px!important}.sc-certificate>header img{width:52px!important;height:52px!important}.sc-certificate>header h2{font-size:17px!important}.cert-student{padding:7px 0!important}.cert-student>div{padding:5px 7px!important}.cert-summary{padding:7px 10px!important}.cert-summary .cert-ring{width:64px!important;height:64px!important}.cert-table{margin-top:6px!important}.cert-table>header,.cert-table>div{padding:5px 7px!important}.sc-certificate>footer{margin-top:7px!important;padding-top:6px!important}.cert-seal{width:86px!important;height:86px!important}.cert-watermark{font-size:68px!important}
 }
+
+
+/* Student discipline layout hardening */
+.student-current-shell{padding-right:0;overflow-x:hidden}
+.sc-stage{width:100%;min-width:0}
+.sc-discipline{width:100%;max-width:100%;overflow:hidden}
+.sc-discipline .sc-page-title>div:first-child{min-width:0}
+.sc-discipline .sc-page-title p{display:none}
+.discipline-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+.discipline-summary{width:100%;overflow:hidden}
+.discipline-events{padding:16px}
+.discipline-events>h3{margin:0 0 10px;color:#fff5df;font-size:14px}
+.discipline-table{width:100%;overflow:hidden;border:1px solid rgba(255,255,255,.11);border-radius:16px;background:rgba(2,27,38,.5)}
+.discipline-row{display:grid;grid-template-columns:1fr 1.15fr 1fr 1fr;align-items:center;gap:10px;min-width:0;padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);color:#dce8ea;font-size:10px;text-align:right}
+.discipline-row.head{border-top:0;background:rgba(239,199,105,.12);color:#f2d27d;font-weight:900}
+.discipline-row>span{min-width:0}
+.discipline-row>span:last-child{justify-self:start;min-width:78px;padding:6px 10px;border-radius:999px;text-align:center;font-weight:900}
+.discipline-row .status-present{background:rgba(35,177,135,.18);color:#78e4bf}
+.discipline-row .status-absent{background:rgba(213,72,82,.18);color:#ff9da5}
+.discipline-row .status-late{background:rgba(239,181,72,.18);color:#f6d27d}
+.discipline-row .status-excused{background:rgba(126,103,190,.20);color:#d0baff}
+.discipline-row .status-escaped{background:rgba(220,71,71,.24);color:#ff9b9b}
+.discipline-empty{padding:22px;text-align:center;color:#9fb6bb;font-size:10px}
+.discipline-meter{padding:14px 16px 4px}
+.discipline-meter>u{display:block;height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.discipline-meter>u>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#27b8a1,#f0cc72)}
+.discipline-meter>div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;color:#bcd0d4;font-size:9px}
+.discipline-meter b{color:#f3d37e}
+
+@media(max-width:980px) and (min-width:721px){
+  .student-current-shell{--rail:220px;padding-left:calc(var(--rail) + 14px)}
+  .discipline-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .student-current-shell{padding:0 0 88px}
+  .sc-sidebar{height:76px;grid-template-columns:minmax(0,1fr) auto}
+  .sc-sidebar nav{overflow-x:auto;scrollbar-width:none}
+  .sc-sidebar nav::-webkit-scrollbar{display:none}
+  .sc-sidebar nav button{flex:0 0 68px}
+  .sc-sidebar footer{display:flex!important;margin:0 3px 0 0;gap:3px;align-items:center}
+  .sc-sidebar footer button:first-child{display:none}
+  .sc-sidebar footer button:last-child{display:block;min-width:54px;min-height:52px;padding:4px 6px;border-color:rgba(239,199,105,.2);background:rgba(239,199,105,.1);color:#f3d27b;font-size:7px}
+  .sc-head-tools{display:flex}
+  .sc-head-tools button{display:block;min-width:58px;font-size:8px}
+  .sc-discipline .sc-page-title{padding:14px;gap:10px}
+  .sc-discipline .sc-score-orb{width:74px;height:74px;border-radius:20px;flex:0 0 74px}
+  .discipline-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .discipline-events{padding:10px}
+  .discipline-table{overflow-x:auto}
+  .discipline-row{min-width:520px;padding:11px 12px;font-size:9px}
+  .discipline-meter>div{flex-direction:column;gap:4px}
+}
