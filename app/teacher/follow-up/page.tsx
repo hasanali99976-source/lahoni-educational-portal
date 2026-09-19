@@ -90,6 +90,7 @@ export default function FollowUpPage() {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [referralsLoading, setReferralsLoading] = useState(false);
   const [referralView, setReferralView] = useState<"required"|"all"|"mastery"|"other">("required");
+  const [printScope, setPrintScope] = useState<"current"|"all">("current");
   const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "students") : "", [teacherId, subjectKey]);
   const referralsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "counselorReferrals") : "", [teacherId, subjectKey]);
 
@@ -306,10 +307,30 @@ export default function FollowUpPage() {
   function printMasteryTable() {
     const win = window.open("", "_blank", "width=1100,height=820");
     if (!win) return setMessage("تعذر فتح نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.");
-    const escapeHtml = (value: unknown) => String(value ?? "—").replace(/[&<>"\']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "\'": "&#039;" }[char] || char));
-    const rows = evaluated.map((student, index) => { const status = statusFor(student, threshold); return `<tr><td>${index + 1}</td><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.class)}</td><td>${student.finalScore !== null ? `${student.finalScore}%` : `${student.performance}% مبدئي`}</td><td>${student.completion}%</td><td>${escapeHtml(status.label)}</td></tr>`; }).join("");
-    win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الإتقان والمتابعة</title><style>@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#173c63;margin:0;background:#fff}.report-head{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1768c5;padding:0 0 10px;margin-bottom:10px}.report-head h1{margin:0;color:#124f8c;font-size:22px}.report-head p{margin:4px 0 0;color:#647d95}.badge{background:#1768c5;color:#fff;padding:7px 12px;border-radius:8px;font-weight:700}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 12px}.meta b{padding:8px 9px;background:#eef6ff;border:1px solid #d4e5f6;border-radius:7px;font-size:11px}table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}th,td{border:1px solid #c9d9e8;padding:7px 6px;text-align:center;vertical-align:middle}th{background:#1768c5;color:#fff;font-size:11px}th:nth-child(1){width:5%}th:nth-child(2){width:28%}td:nth-child(2){text-align:right;font-weight:bold}tbody tr:nth-child(even){background:#f4f8fc}.foot{margin-top:9px;display:flex;justify-content:space-between;color:#70869b;font-size:9px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="report-head"><div><h1>تقرير الإتقان والمتابعة</h1><p>بوابة أستاذ لحوني التعليمية</p></div><span class="badge">${escapeHtml(subject)}</span></div><div class="meta"><b>المعلم: ${escapeHtml(teacherName)}</b><b>الفصل: ${escapeHtml(selectedClass || "جميع الفصول")}</b><b>معيار الإتقان: ${threshold}%</b><b>عدد الطلاب: ${evaluated.length}</b></div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th></tr></thead><tbody>${rows || `<tr><td colspan="6">لا توجد بيانات في النطاق الحالي.</td></tr>`}</tbody></table><div class="foot"><span>تقرير منظم للطباعة والحفظ بصيغة PDF</span><span>إعداد: ${escapeHtml(teacherName)}</span></div><script>window.onload=()=>setTimeout(()=>window.print(),220)<\/script></body></html>`);
-    win.document.close();
+    const escapeHtml = (value: unknown) => String(value ?? "—").replace(/[&<>"\\']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "\\'": "&#039;" }[char] || char));
+    const source = printScope === "all" ? students : classStudents;
+    const evaluatedForPrint = source.map(student => {
+      const base = evaluateStudent(student, activePlan);
+      if (!activePlan) return base;
+      const result = calculateGradePlanResult(activePlan, student);
+      const sectionRows = source.filter(row => (row.class || "") === (student.class || "")).map(row => calculateGradePlanResult(activePlan, row));
+      const sectionCount = Math.max(0, ...sectionRows.map(row => row.sections.length));
+      const closed = Array.from({length: sectionCount}, (_, index) => {
+        const rows = sectionRows.map(row => row.sections[index]).filter(Boolean);
+        return rows.length > 0 && (rows.every(row => row.complete) || sectionRows.some(row => row.sections.slice(index + 1).some(next => next.recordedMaximum > 0)));
+      });
+      const last = closed.map((value,index)=>value?index:-1).filter(index=>index>=0).at(-1);
+      const section = last === undefined ? null : result.sections[last];
+      return {...base, masteryScore: section ? Math.round(section.percentage) : null, masteryBasis: section?.label || "", hasCompletedSection:Boolean(section)};
+    }).filter(student => student.hasCompletedSection && (student.masteryScore ?? 100) < threshold);
+    const groups = [...new Set((printScope === "all" ? classes : [selectedClass || "جميع الفصول"]).filter(Boolean))];
+    const pages = groups.map((className, pageIndex) => {
+      const rowsForClass = className === "جميع الفصول" ? evaluatedForPrint : evaluatedForPrint.filter(student => (student.class || "") === className);
+      const rows = rowsForClass.map((student,index) => `<tr><td>${index+1}</td><td>${escapeHtml(student.name)}</td><td>${escapeHtml(student.class)}</td><td><b>${student.masteryScore ?? "—"}%</b></td><td>${escapeHtml(student.masteryBasis)}</td><td>يحتاج دعمًا</td></tr>`).join("");
+      return `<section class="sheet ${pageIndex ? "new-page" : ""}"><header><div><small>بوابة أستاذ لحوني التعليمية</small><h1>تقرير الإتقان والمتابعة</h1><p>قائمة الطلاب الذين يحتاجون دعمًا بعد إغلاق الرصد</p></div><strong>${escapeHtml(subject)}</strong></header><div class="meta"><span>المعلم: <b>${escapeHtml(teacherName)}</b></span><span>الفصل: <b>${escapeHtml(className)}</b></span><span>معيار الإتقان: <b>${threshold}%</b></span><span>العدد: <b>${rowsForClass.length}</b></span></div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>الإتقان</th><th>الفترة / الوحدة</th><th>الحالة</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-print">لا يوجد طلاب يحتاجون دعمًا في هذا الفصل.</td></tr>'}</tbody></table><footer><span>تاريخ الطباعة: ${new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}</span><span>توقيع المعلم: __________________</span></footer></section>`;
+    }).join("");
+    win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الإتقان</title><style>@page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;color:#18344f;background:#fff}.sheet{min-height:260mm;position:relative;padding-bottom:22mm}.new-page{page-break-before:always}header{display:flex;justify-content:space-between;align-items:center;border:1px solid #cbdbea;border-top:7px solid #1768c5;border-radius:10px;padding:14px 16px}header small{color:#1768c5;font-weight:700}header h1{margin:3px 0;font-size:22px;color:#123f70}header p{margin:0;color:#63798d;font-size:11px}header>strong{background:#1768c5;color:#fff;border-radius:9px;padding:9px 13px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.meta span{border:1px solid #dbe6ef;background:#f6f9fc;border-radius:7px;padding:8px;font-size:10.5px}table{width:100%;border-collapse:collapse;font-size:10.5px}th,td{border:1px solid #cbd9e6;padding:8px 6px;text-align:center}th{background:#1768c5;color:#fff}td:nth-child(2){text-align:right;font-weight:700}tbody tr:nth-child(even){background:#f5f9fd}.empty-print{padding:25px;color:#708397}footer{position:absolute;bottom:0;right:0;left:0;display:flex;justify-content:space-between;border-top:1px solid #d8e3ed;padding-top:8px;color:#6d8295;font-size:9px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>${pages}</body></html>`);
+    win.document.close(); setTimeout(()=>win.print(),250);
   }
 
   function printReferrals() {
@@ -330,7 +351,7 @@ export default function FollowUpPage() {
 
   if (!teacherId) return <main className="follow-page referral-history-page unified-mastery-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
 
-  return <main className="follow-page" dir="rtl">
+  return <main className="follow-page referral-history-page unified-mastery-page mastery-premium" dir="rtl">
     {!activePlan && <div className="follow-toast" role="status">لم تُعتمد خطة توزيع الدرجات بعد. <a href="/teacher/grade-plan">إعداد التوزيع الآن</a></div>}
     <section className="follow-head">
       <div><span>الإتقان والمتابعة — {subject}</span><h1>الإتقان والإحالات</h1><p>مساحة موحدة لمتابعة الطلاب المطلوب دعمهم، تسجيل الإحالات، ومراجعة جميع الإحالات السابقة دون الانتقال إلى صفحة أخرى.</p></div>
@@ -343,15 +364,16 @@ export default function FollowUpPage() {
 
     {scopeLoading ? <p className="follow-inline-message">جارٍ تحميل الفصول…</p> : !classes.length ? <p className="follow-inline-message">لا توجد فصول محددة لهذه المادة.</p> : null}
 
-    <section className="follow-overview referral-overview unified-overview">
-      <article><span>المطلوب متابعتهم</span><strong>{support.length}</strong><small>دون معيار الإتقان بعد إغلاق الرصد</small></article>
-      <article className="mastered"><span>إحالات الإتقان والتحصيل</span><strong>{referralMasteryCount}</strong><small>المحفوظة لهذه المادة</small></article>
-      <article className="support"><span>إحالات أخرى</span><strong>{referralOtherCount}</strong><small>سلوكية أو متابعة أخرى</small></article>
+    <section className="mastery-summary-strip">
+      <div><span>الطلاب المطلوب دعمهم</span><strong>{support.length}</strong></div>
+      <div><span>الإحالات المسجلة</span><strong>{referrals.length}</strong></div>
+      <div><span>الفصول</span><strong>{classes.length}</strong></div>
+      <p>كل أدوات الإتقان والإحالات في مساحة واحدة، بدون صناديق منفصلة أو تكرار.</p>
     </section>
 
     <section className="follow-card unified-referral-card">
-      <header className="referral-history-head"><div><h2>الإتقان والإحالات</h2><p>اختر العرض المطلوب. لا يتم إنشاء أو حذف أي إحالة بمجرد فتح هذه الصفحة.</p></div><div className="referral-filter"><button className={referralView==="required"?"active":""} onClick={()=>setReferralView("required")}>المطلوب إحالتهم ({support.length})</button><button className={referralView==="all"?"active":""} onClick={()=>setReferralView("all")}>كل الإحالات ({referrals.length})</button><button className={referralView==="mastery"?"active":""} onClick={()=>setReferralView("mastery")}>الإتقان والتحصيل ({referralMasteryCount})</button><button className={referralView==="other"?"active":""} onClick={()=>setReferralView("other")}>إحالات أخرى ({referralOtherCount})</button></div></header>
-      <div className="unified-toolbar"><div><button className="counselor-button" onClick={openReferral}>+ إحالة جديدة للمرشد</button>{referralView==="required" && <button type="button" onClick={printMasteryTable}>طباعة قائمة الإتقان</button>}{referralView!=="required" && <button type="button" className="referral-print-button" onClick={printReferrals} disabled={referralsLoading}>PDF / طباعة سجل الإحالات</button>}<button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button></div><small>البيانات محفوظة في نفس قاعدة البوابة المشتركة.</small></div>
+      <header className="referral-history-head"><div><span className="section-kicker">لوحة الإتقان</span><h2>المتابعة والإحالات</h2><p>اعرض المطلوب دعمهم أو سجل الإحالات من نفس الجدول.</p></div><label className="view-select">العرض<select value={referralView} onChange={event=>setReferralView(event.target.value as typeof referralView)}><option value="required">المطلوب دعمهم ({support.length})</option><option value="all">كل الإحالات ({referrals.length})</option><option value="mastery">إحالات الإتقان والتحصيل ({referralMasteryCount})</option><option value="other">الإحالات الأخرى ({referralOtherCount})</option></select></label></header>
+      <div className="unified-toolbar"><div><button className="counselor-button" onClick={openReferral}>+ إحالة جديدة للمرشد</button>{referralView==="required" ? <><label className="print-scope">طباعة<select value={printScope} onChange={event=>setPrintScope(event.target.value as "current"|"all")}><option value="current">{selectedClass ? `الفصل: ${selectedClass}` : "الفصول المعروضة"}</option><option value="all">جميع الفصول — كل فصل في صفحة</option></select></label><button type="button" className="print-primary" onClick={printMasteryTable}>طباعة التقرير</button></> : <button type="button" className="referral-print-button" onClick={printReferrals} disabled={referralsLoading}>طباعة سجل الإحالات</button>}<button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button></div><small>اختيار نوع الإحالة والعرض من داخل نفس المربع.</small></div>
       {referralView==="required" ? <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>الفترة/الوحدة</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
         {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}><td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td><td className="student-name-cell"><b>{student.name || "—"}</b></td><td>{student.class || "—"}</td><td><strong>{student.masteryScore !== null ? `${student.masteryScore}%` : "—"}</strong></td><td>{student.masteryBasis || "—"}</td><td><span className={`level ${status.className}`}>{status.label}</span></td><td><div className="row-actions"><button type="button" className="analysis-btn" onClick={() => { setAnalysisStudent(student); setAiInsight(null); }}>تحليل الطالب</button><button type="button" className="note-btn" onClick={() => { setNoteStudent(student); setSelectedNoteType(""); setNote(""); }}>ملاحظة <small>{Number(student.teacherNoteCount || student.teacherNotes?.length || 0)}</small></button><button type="button" onClick={() => { setSelectedIds([student.id]); setReferralClass(student.class || ""); setReferralType("achievement"); setReason("انخفاض مستوى التحصيل الدراسي"); setReferralOpen(true); }}>إحالة</button></div></td></tr>; })}
       </tbody></table>{!evaluated.length && <p className="empty">لا يوجد طلاب مطلوب إحالتهم للإتقان بعد إغلاق الوحدة أو الفترة الحالية.</p>}</div>
