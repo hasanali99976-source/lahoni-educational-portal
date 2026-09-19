@@ -92,3 +92,35 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
 .sc-quick-actions button{min-height:38px;border:1px solid rgba(255,255,255,.09);border-radius:11px;background:rgba(255,255,255,.05);color:#dce8ea;font:800 8px "Tajawal",sans-serif;cursor:pointer}
 .sc-quick-actions button.logout{border-color:rgba(239,199,105,.18);background:rgba(239,199,105,.09);color:#f2d17b}
 @media(max-width:720px){.sc-quick-actions{display:flex;gap:3px;margin:0}.sc-quick-actions button{min-width:58px;min-height:52px;padding:4px;font-size:7px}.sc-sidebar{grid-template-columns:minmax(0,1fr) auto}.sc-sidebar footer{display:none!important}}
+
+
+/* Student navigation + notes visual repair */
+.sc-sidebar{overflow:hidden}
+.sc-sidebar nav{min-height:0;overflow-y:auto;scrollbar-width:thin;padding-left:2px}
+.sc-quick-actions{flex:0 0 auto}
+.sc-side-progress{flex:0 0 auto}
+.sc-notes{display:grid;gap:12px}
+.sc-notes .sc-page-title{background:linear-gradient(125deg,rgba(8,65,76,.88),rgba(8,42,56,.82))}
+.sc-notes-total{display:grid;place-items:center;min-width:92px;padding:12px;border:1px solid rgba(239,199,105,.22);border-radius:18px;background:rgba(239,199,105,.09)}
+.sc-notes-total b{font-size:25px;color:#f0cf78}.sc-notes-total span{font-size:8px;color:#cbdadd}
+.sc-notes-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.sc-notes-stats article{display:flex;align-items:center;gap:10px;padding:13px;border:1px solid rgba(255,255,255,.10);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.035));box-shadow:0 12px 28px rgba(0,0,0,.12)}
+.sc-notes-stats article>i{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;font-style:normal;font-size:15px;background:rgba(255,255,255,.07)}
+.sc-notes-stats article>i.violet{color:#d0baff;background:rgba(126,103,190,.18)}.sc-notes-stats article>i.teal{color:#7be2c4;background:rgba(35,177,135,.16)}.sc-notes-stats article>i.gold{color:#f2d27d;background:rgba(239,181,72,.16)}
+.sc-notes-stats article>span{display:grid}.sc-notes-stats small{font-size:8px;color:#a9bec3}.sc-notes-stats b{font-size:18px;color:#fff5df}
+.sc-feed{display:grid;gap:9px}
+.sc-feed-item{display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;padding:14px;border:1px solid rgba(255,255,255,.10);border-radius:17px;background:linear-gradient(120deg,rgba(255,255,255,.07),rgba(5,41,54,.62));box-shadow:0 12px 30px rgba(0,0,0,.12);overflow:hidden}
+.sc-feed-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:rgba(239,199,105,.11);color:#f0ce77;font-style:normal;font-size:17px}
+.sc-feed-item>div{min-width:0}.sc-feed-item header,.sc-feed-item footer{display:flex;align-items:center;justify-content:space-between;gap:10px}.sc-feed-item header span{padding:4px 8px;border-radius:999px;background:rgba(239,199,105,.10);color:#f0cf79;font-size:7.5px}.sc-feed-item header small{color:#8fa8ae;font-size:7px}
+.sc-feed-item h3{margin:7px 0 3px;color:#fff6e2;font-size:12px}.sc-feed-item p{margin:0;color:#c9d9dc;font-size:9px;line-height:1.9;white-space:normal;overflow-wrap:anywhere}
+.sc-feed-item footer{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);font-size:7.5px}.sc-feed-item footer b{color:#e7c76f}.sc-feed-item footer span{color:#91a9ae}
+.sc-feed-item.red{border-right:3px solid rgba(221,83,91,.8)}.sc-feed-item.gold{border-right:3px solid rgba(239,181,72,.8)}.sc-feed-item.teal{border-right:3px solid rgba(35,177,135,.8)}.sc-feed-item.violet{border-right:3px solid rgba(126,103,190,.8)}
+@media(max-width:720px){
+ .sc-sidebar{height:72px;display:flex;align-items:center;gap:4px}
+ .sc-sidebar nav{flex:1 1 auto;overflow-x:auto;overflow-y:hidden;display:flex}
+ .sc-quick-actions{flex:0 0 auto;display:flex}
+ .sc-quick-actions button{min-width:54px;min-height:52px}
+ .sc-notes-stats{grid-template-columns:1fr}
+ .sc-feed-item{grid-template-columns:38px minmax(0,1fr);padding:11px;gap:9px}.sc-feed-icon{width:36px;height:36px}
+ .sc-feed-item header,.sc-feed-item footer{align-items:flex-start;flex-direction:column;gap:3px}
+}
