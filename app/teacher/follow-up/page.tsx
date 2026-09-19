@@ -164,7 +164,29 @@ export default function FollowUpPage() {
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
   const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
-  const evaluated = useMemo(() => visible.map(student => evaluateStudent(student, activePlan)).filter(student => Boolean(selectedStudent) || (student.hasCompletedSection && (student.masteryScore ?? 100) < threshold)), [visible, activePlan, selectedStudent, threshold]);
+  const classClosure = useMemo(() => {
+    if (!activePlan || !classStudents.length) return [] as boolean[];
+    const results = classStudents.map(student => calculateGradePlanResult(activePlan, student));
+    const sectionCount = Math.max(0, ...results.map(result => result.sections.length));
+    return Array.from({ length: sectionCount }, (_, index) => {
+      const sectionRows = results.map(result => result.sections[index]).filter(Boolean);
+      if (!sectionRows.length) return false;
+      const fullyRecorded = sectionRows.every(section => section.complete);
+      const laterStarted = results.some(result => result.sections.slice(index + 1).some(section => section.recordedMaximum > 0));
+      return fullyRecorded || laterStarted;
+    });
+  }, [activePlan, classStudents]);
+  const evaluated = useMemo(() => visible.map(student => {
+    const base = evaluateStudent(student, activePlan);
+    if (!activePlan) return base;
+    const result = calculateGradePlanResult(activePlan, student);
+    const closedIndexes = classClosure.map((closed, index) => closed ? index : -1).filter(index => index >= 0);
+    const latestClosedIndex = closedIndexes[closedIndexes.length - 1];
+    if (latestClosedIndex === undefined) return { ...base, masteryScore: null, masteryBasis: "", hasCompletedSection: false };
+    const section = result.sections[latestClosedIndex];
+    if (!section) return { ...base, masteryScore: null, masteryBasis: "", hasCompletedSection: false };
+    return { ...base, masteryScore: Math.round(section.percentage), masteryBasis: section.label, hasCompletedSection: true };
+  }).filter(student => student.hasCompletedSection && (student.masteryScore ?? 100) < threshold), [visible, activePlan, classClosure, threshold]);
   const completed = useMemo(() => evaluated.filter(student => student.masteryScore !== null), [evaluated]);
   const mastered = useMemo(() => completed.filter(student => (student.masteryScore || 0) >= threshold), [completed, threshold]);
   const support = useMemo(() => completed.filter(student => (student.masteryScore || 0) < threshold), [completed, threshold]);
@@ -306,7 +328,7 @@ export default function FollowUpPage() {
           <td><span className={`level ${status.className}`}>{status.label}</span></td>
           <td><div className="row-actions"><button type="button" className="analysis-btn" onClick={() => { setAnalysisStudent(student); setAiInsight(null); }}>تحليل الطالب</button><button type="button" className="note-btn" onClick={() => { setNoteStudent(student); setSelectedNoteType(""); setNote(""); }}>ملاحظة <small>{Number(student.teacherNoteCount || student.teacherNotes?.length || 0)}</small></button></div></td>
         </tr>; })}
-      </tbody></table>{!evaluated.length && <p className="empty">لا توجد بيانات طلاب في النطاق المختار.</p>}</div>
+      </tbody></table>{!evaluated.length && <p className="empty">لا يوجد طلاب غير متقنين بعد إغلاق الوحدة أو الفترة الحالية.</p>}</div>
     </section>
 
     {analysisStudent && (() => { const evaluation = evaluateStudent(analysisStudent, activePlan); const profile = insightProfile(analysisStudent, activePlan); return <div className="follow-modal" onClick={() => setAnalysisStudent(null)}><section className="analysis-modal" onClick={event => event.stopPropagation()}>
