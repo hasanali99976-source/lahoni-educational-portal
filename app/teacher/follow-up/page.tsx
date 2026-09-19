@@ -336,8 +336,8 @@ export default function FollowUpPage() {
 
   return <main className="follow-page referral-history-page unified-mastery-page mastery-premium" dir="rtl">
     {!activePlan && <div className="follow-toast" role="status">لم تُعتمد خطة توزيع الدرجات بعد. <a href="/teacher/grade-plan">إعداد التوزيع الآن</a></div>}
-    <section className="follow-head">
-      <div className="mastery-title"><span>{subject}</span><h1>الإتقان</h1></div>
+    <section className="follow-head mastery-dashboard-head">
+      <div className="mastery-title"><span>متابعة مستوى إتقان الطلاب</span><h1>الإتقان</h1><small>{subject}</small></div>
       <div className="follow-filters">
         <label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
         <label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label>
