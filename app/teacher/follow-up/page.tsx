@@ -186,7 +186,7 @@ export default function FollowUpPage() {
     return `${name} (${section})`;
   }).filter(Boolean), [scopeClasses]);
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
-  const classStudents = useMemo(() => students.filter(student => !selectedClass || { const own=(student.class || "").trim(); return own === selectedClass || selectedClass.startsWith(own+" ("); }), [students, selectedClass]);
+  const classStudents = useMemo(() => students.filter(student => { if (!selectedClass) return true; const own=(student.class || "").trim(); return own === selectedClass || (Boolean(own) && selectedClass.startsWith(own+" (")); }), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
   const classClosure = useMemo(() => {
     if (!activePlan || !classStudents.length) return [] as boolean[];
