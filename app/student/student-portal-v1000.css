@@ -135,3 +135,9 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
 .scl-card{background:linear-gradient(155deg,rgba(3,26,40,.96),rgba(7,68,75,.88));border-color:rgba(239,199,105,.22)}
 .scl-card>button{background:linear-gradient(180deg,#f6db8e,#c78d31)}
 .scl-features article{background:rgba(4,30,45,.62)}
+
+/* Student login final visual alignment */
+.student-current-login .scl-frame{background:linear-gradient(155deg,rgba(3,28,42,.68),rgba(8,76,75,.46));border-color:rgba(255,255,255,.10);backdrop-filter:blur(14px)}
+.student-current-login .scl-card{background:linear-gradient(150deg,rgba(4,38,52,.76),rgba(10,92,83,.38));border-color:rgba(239,199,105,.18);box-shadow:0 22px 55px rgba(0,0,0,.18)}
+.student-current-login .scl-features article{background:linear-gradient(145deg,rgba(7,70,76,.34),rgba(12,111,96,.20));border-color:rgba(115,218,199,.14)}
+.student-current-login .scl-intro em{color:#f0cd74}
