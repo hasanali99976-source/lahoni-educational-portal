@@ -347,11 +347,11 @@ export default function FollowUpPage() {
 
     {scopeLoading ? <p className="follow-inline-message">جارٍ تحميل الفصول…</p> : !classes.length ? <p className="follow-inline-message">لا توجد فصول محددة لهذه المادة.</p> : null}
 
-    <section className="mastery-v140-stats">
-      <div><span>الطلاب المطلوب دعمهم</span><strong>{support.length}</strong></div>
-      <div><span>الإحالات المسجلة</span><strong>{referrals.length}</strong></div>
-      <div><span>الفصول</span><strong>{classes.length}</strong></div>
-      
+    <section className="mastery-v140-stats mastery-v144-kpis">
+      <div className="kpi-mastery"><span>مستوى الإتقان</span><strong>{evaluated.length ? Math.round((evaluated.filter(s => (s.masteryScore ?? -1) >= threshold).length / evaluated.length) * 100) : 0}%</strong><small>حسب المعيار المحدد</small></div>
+      <div className="kpi-follow"><span>قيد المتابعة</span><strong>{referrals.filter(r=>r.status!=="closed").length}</strong><small>إحالات مفتوحة</small></div>
+      <div className="kpi-support"><span>بحاجة إلى دعم</span><strong>{support.length}</strong><small>أقل من معيار الإتقان</small></div>
+      <div className="kpi-students"><span>الطلاب المسجلون</span><strong>{evaluated.length}</strong><small>{classes.length} فصول</small></div>
     </section>
 
     <section className="mastery-v144-charts">
