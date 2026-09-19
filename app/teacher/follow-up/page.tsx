@@ -179,9 +179,14 @@ export default function FollowUpPage() {
       return { ...rosterStudent, ...(live || {}), id: rosterStudent.id, storageId: live?.id || rosterStudent.id, code: rosterStudent.code || live?.code, class: officialClass, className: officialClass };
     }).sort((a, b) => (a.name || "").localeCompare(b.name || "", "ar"));
   }, [scopeStudents, storedStudents]);
-  const classes = useMemo(() => scopeClasses.map(item => item.name), [scopeClasses]);
+  const classes = useMemo(() => scopeClasses.map(item => {
+    const name=String(item.name||"").trim();
+    const section=String(item.section||"").trim();
+    if (!section || name.includes(section)) return name;
+    return `${name} (${section})`;
+  }).filter(Boolean), [scopeClasses]);
   useEffect(() => { if (selectedClass && !classes.includes(selectedClass)) { setSelectedClass(""); setSelectedStudent(""); } }, [classes, selectedClass]);
-  const classStudents = useMemo(() => students.filter(student => !selectedClass || (student.class || "").trim() === selectedClass), [students, selectedClass]);
+  const classStudents = useMemo(() => students.filter(student => !selectedClass || { const own=(student.class || "").trim(); return own === selectedClass || selectedClass.startsWith(own+" ("); }), [students, selectedClass]);
   const visible = useMemo(() => classStudents.filter(student => !selectedStudent || student.id === selectedStudent), [classStudents, selectedStudent]);
   const classClosure = useMemo(() => {
     if (!activePlan || !classStudents.length) return [] as boolean[];
