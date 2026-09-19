@@ -20,3 +20,5 @@
 .dav300-kpis article.lessons{--accent:#1768c5;--soft:#eaf4ff}.dav300-kpis article.absence{--accent:#d84646}.dav300-kpis article.late{--accent:#e29422}.dav300-kpis article.excused{--accent:#2787c9}.dav300-kpis article.escaped{--accent:#7959bd}
 .dav300-table{border-top:4px solid #1768c5!important}.dav300-table th{background:#0f5fa9!important;color:#fff!important}.dav300-table tbody tr:hover td{background:#eef7ff!important}
 .dav300-ranking{border-top:4px solid #25a46d!important}.dav300-class-picker{border-top:4px solid #e7a72e!important}.dav300-filters{border-top:4px solid #6d5bd0!important}
+
+.dav300-class-select{width:100%;min-height:44px;border:1px solid #cbddec;border-radius:11px;background:#f8fbff;color:#174f7e;padding:0 12px;font:900 12px inherit;outline:none}.dav300-class-select:focus{border-color:#1768c5;box-shadow:0 0 0 3px rgba(23,104,197,.1)}
