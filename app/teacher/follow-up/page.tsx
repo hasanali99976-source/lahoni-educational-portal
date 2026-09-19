@@ -347,11 +347,17 @@ export default function FollowUpPage() {
 
     {scopeLoading ? <p className="follow-inline-message">جارٍ تحميل الفصول…</p> : !classes.length ? <p className="follow-inline-message">لا توجد فصول محددة لهذه المادة.</p> : null}
 
-    <section className="mastery-v140-stats">
-      <div><span>الطلاب المطلوب دعمهم</span><strong>{support.length}</strong></div>
-      <div><span>الإحالات المسجلة</span><strong>{referrals.length}</strong></div>
-      <div><span>الفصول</span><strong>{classes.length}</strong></div>
-      
+    <section className="mastery-v140-stats mastery-v144-kpis">
+      <div className="kpi-mastery"><span>مستوى الإتقان</span><strong>{evaluated.length ? Math.round((evaluated.filter(s => (s.masteryScore ?? -1) >= threshold).length / evaluated.length) * 100) : 0}%</strong><small>حسب المعيار المحدد</small></div>
+      <div className="kpi-follow"><span>قيد المتابعة</span><strong>{referrals.filter(r=>r.status!=="closed").length}</strong><small>إحالات مفتوحة</small></div>
+      <div className="kpi-support"><span>بحاجة إلى دعم</span><strong>{support.length}</strong><small>أقل من معيار الإتقان</small></div>
+      <div className="kpi-students"><span>الطلاب المسجلون</span><strong>{evaluated.length}</strong><small>{classes.length} فصول</small></div>
+    </section>
+
+    <section className="mastery-v144-charts">
+      <article><header><b>توزيع مستويات الإتقان</b><small>{evaluated.length} طالب</small></header><div className="mastery-donut" style={{"--mastery": `${evaluated.length ? Math.round((evaluated.filter(s => (s.masteryScore ?? -1) >= threshold).length / evaluated.length) * 100) : 0}%`} as React.CSSProperties}><strong>{evaluated.length ? Math.round((evaluated.filter(s => (s.masteryScore ?? -1) >= threshold).length / evaluated.length) * 100) : 0}%</strong><span>متقنون</span></div><div className="chart-legend"><span><i className="green"/>متقن {evaluated.filter(s => (s.masteryScore ?? -1) >= threshold).length}</span><span><i className="red"/>بحاجة لدعم {support.length}</span></div></article>
+      <article><header><b>مقارنة الإتقان حسب الفصل</b><small>متوسط الأداء</small></header><div className="class-bars">{classes.map(cls=>{const rs=evaluated.filter(s=>s.class===cls&&s.masteryScore!==null);const avg=rs.length?Math.round(rs.reduce((a,s)=>a+(s.masteryScore||0),0)/rs.length):0;return <div key={cls}><span>{cls}</span><div><i style={{width:`${avg}%`}}/></div><strong>{avg}%</strong></div>})}</div></article>
+      <article><header><b>مؤشرات المتابعة</b><small>صورة سريعة لعمل المعلم</small></header><div className="followup-metrics"><div><strong>{referrals.length}</strong><span>إحالة مسجلة</span></div><div><strong>{support.length}</strong><span>بحاجة لدعم</span></div><div><strong>{selectedIds.length}</strong><span>محدد للمتابعة</span></div></div></article>
     </section>
 
     <section className="mastery-v140-panel">
