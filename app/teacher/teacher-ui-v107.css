@@ -214,3 +214,11 @@
 
 /* v147 — keep only the approved desktop sidebar; no extra data reads */
 @media(min-width:981px){.teacher-command-panel,.teacher-command-backdrop{display:none!important}.teacher-app-shell{display:block!important;padding-right:0!important;grid-template-columns:none!important}.teacher-reference-sidebar{display:flex!important;z-index:220!important}.teacher-pro-main{margin-right:184px!important;width:calc(100% - 184px)!important}.teacher-page-content{overflow:visible!important}}
+
+
+/* v148 — persistent sidebar logout; UI only, zero data reads */
+.teacher-reference-side-foot{display:grid!important;gap:10px!important}
+.teacher-reference-side-foot>span{display:block}
+.teacher-reference-logout{width:100%;min-height:38px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:10px;font-weight:700;cursor:pointer}
+.teacher-reference-logout:hover{background:#fff;color:#0b4167}
+.teacher-reference-logout>span{font-size:16px;color:inherit!important}
