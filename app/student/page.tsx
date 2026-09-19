@@ -22,7 +22,10 @@ const CODE_PATTERN=/^TH[123]\d{3}$/;
 const LOGO="/icons/lahooni-identity-320.jpg";
 const AVATAR="/student/student-avatar.svg";
 const ar=(value:number)=>new Intl.NumberFormat("ar-SA-u-nu-arab",{maximumFractionDigits:2}).format(Number.isFinite(value)?value:0);
-const gradeWord=(value:number)=>value>=90?"ممتاز":value>=80?"جيد جدًا":value>=70?"جيد":value>=60?"مقبول":"يحتاج دعمًا";\nconst PROFILE_CACHE_TTL_MS=5*60*1000;\nconst profileCache=new Map<string,{expiresAt:number;match:Match}>();\nconst profileInflight=new Map<string,Promise<Match>>();
+const gradeWord=(value:number)=>value>=90?"ممتاز":value>=80?"جيد جدًا":value>=70?"جيد":value>=60?"مقبول":"يحتاج دعمًا";
+const PROFILE_CACHE_TTL_MS=5*60*1000;
+const profileCache=new Map<string,{expiresAt:number;match:Match}>();
+const profileInflight=new Map<string,Promise<Match>>();
 
 function normalizeStudentCode(value:string){return value.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);}
 function activeDeductions(data:StudentRecord,plan:GradePlan){return (Array.isArray(data.gradeDeductions)?data.gradeDeductions:[]).filter(item=>!item.reversedAt&&Number(item.amount||0)>0&&(!item.planId||item.planId===plan.id));}
