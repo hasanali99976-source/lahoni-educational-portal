@@ -1,9 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
-import { tenantCollection } from "../../../lib/teacher-tenant";
 import { canonicalClassName, gradeNumber as rosterGradeNumber, sectionNumber as rosterSectionNumber } from "../../../lib/school-roster";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
@@ -104,10 +101,15 @@ export default function DailyAttendanceInsights() {
         name: clean(s.name) || "طالب",
         className: canonicalClassFromParts(s.grade,s.section,s.className || s.class),
       })).filter((s: Student) => s.id && s.name && s.className);
-      const snapshot = await getDocs(collection(db, tenantCollection(teacherId, subjectKey as any, "attendance")));
+      const hr = await fetch(`/api/teacher/attendance/history?subjectId=${encodeURIComponent(subjectKey)}`, { cache: "no-store", credentials: "same-origin" });
+      const hp = await hr.json().catch(() => ({}));
+      if (!hr.ok) throw new Error("attendance_history_failed");
+      const cloud = Array.isArray(hp.records) ? hp.records : [];
+      const merged = new Map<string,any>();
+      [...localAttendanceIndex(teacherId,subjectKey),...cloud].forEach((d:any)=>{const cls=docClass(d),date=docDate(d);if(cls&&date)merged.set(`${cls}|${date}`,d)});
       setStudents(roster);
-      setOfficialClasses([...new Set([...classNamesFromPayload(rp.classes),...classNamesFromPayload(rp.availableClasses),...roster.map((x:Student)=>x.className)].filter(Boolean))]);
-      setAttendance(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      setOfficialClasses([...new Set([...classNamesFromPayload(rp.classes),...classNamesFromPayload(rp.availableClasses),...roster.map((x:Student)=>x.className),...cloud.map(docClass)].filter(Boolean))]);
+      setAttendance([...merged.values()]);
       setTimetable(tp.lessons && typeof tp.lessons === "object" ? tp.lessons : {});
     } catch {
       setError("تعذر تحميل سجل الانضباط الآن");
