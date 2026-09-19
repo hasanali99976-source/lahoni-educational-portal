@@ -112,7 +112,7 @@ export default function DailyAttendanceInsights() {
       const merged = new Map<string,any>();
       [...localAttendanceIndex(teacherId,subjectKey),...cloud].forEach((d:any)=>{const cls=docClass(d),date=docDate(d);if(cls&&date)merged.set(`${cls}|${date}`,d)});
       setStudents(roster);
-      setOfficialClasses([...new Set([...classNamesFromPayload(rp.classes),...classNamesFromPayload(rp.availableClasses),...roster.map((x:Student)=>x.className),...cloud.map(docClass)].filter(Boolean))]);
+      setOfficialClasses([...new Set([...classNamesFromPayload(rp.classes),...roster.map((x:Student)=>x.className),...cloud.map(docClass)].filter(Boolean))]);
       setAttendance([...merged.values()]);
       setTimetable(tp.lessons && typeof tp.lessons === "object" ? tp.lessons : {});
     } catch {
@@ -131,10 +131,10 @@ export default function DailyAttendanceInsights() {
     };
   }, [load]);
 
-  const classes = useMemo(() => [...new Set([...officialClasses,...students.map(s => s.className),...attendance.map(docClass)].filter(Boolean))].filter(c => assignedClasses.length ? assignedClasses.includes(normalizeClass(c)) : (!assignmentScoped || classMatchesAssignments(c, assignments, subjectKey as any))).sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses,students,attendance,assignedClasses,assignmentScoped,assignments,subjectKey]);
+  const classes = useMemo(() => [...new Set([...officialClasses, ...students.map(s => s.className)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses, students]);
   useEffect(() => { if (classes.length && !selectedClasses.length) setSelectedClasses(classes); }, [classes, selectedClasses.length]);
   const scopeClasses = selectedClasses.length ? selectedClasses : classes;
-  const visibleStudents = useMemo(() => students.filter(s => (assignedClasses.length ? assignedClasses.includes(normalizeClass(s.className)) : (!assignmentScoped || classMatchesAssignments(s.className, assignments, subjectKey as any))) && scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses, assignedClasses, assignmentScoped, assignments, subjectKey]);
+  const visibleStudents = useMemo(() => students.filter(s => scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses]);
 
   const classPeriodMap = useMemo(() => {
     const result = new Map<string, Map<number, number>>();
@@ -258,18 +258,18 @@ export default function DailyAttendanceInsights() {
 
     <div className="dav300-ranking"><div className="dav300-ranking-head"><div><b>الإحصائيات الأعلى</b><span>الترتيب حسب عدد الحالات ثم نسبتها من حصص المادة</span></div><div className="rank-scope">{scopeLabel}</div></div>{rankingGroups.map(group => <div className={`dav300-rank-group ${statusClass[group.status]}`} key={group.status}><h3><span />الأكثر في {labels[group.status]}</h3><div className="rank-grid">{group.rows.length ? group.rows.map((r, i) => <article key={`${group.status}-${r.id}`}><span className="rank-no">{i + 1}</span><div className="rank-student"><b>{r.name}</b><small>{r.className} • من {shortDate(r.firstDate)} إلى {shortDate(r.lastDate)}</small></div><div className="rank-count"><strong>{r[group.status]}</strong><small>من {r.reportLessons} حصة</small></div><div className="rank-percent">{ar(pct(r[group.status], r.reportLessons))}٪</div></article>) : <div className="dav300-empty">لا توجد حالات مسجلة.</div>}</div></div>)}</div>
 
-    {error ? <div className="dav300-empty">{error}</div> : <div className="dav300-table print-student-table"><div className="table-caption"><div><b>تفاصيل التقرير</b><span>{selectedRow ? `الطالب: ${selectedRow.name}` : scopeLabel}</span></div><small>الحالة / إجمالي حصص المادة / النسبة</small></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th>{mode === "all" ? <><th className="th-absence">غياب</th><th className="th-late">تأخير</th><th className="th-excused">استئذان</th><th className="th-escaped">هروب</th><th>حصص المادة</th></> : <><th className={`th-${statusClass[mode]}`}>{labels[mode]}</th><th>حصص المادة</th><th>النسبة</th></>}</tr></thead><tbody>{displayRows.map((r, i) => <tr key={r.id}><td>{i + 1}</td><td className="name">{r.name}</td><td>{r.className}</td>{mode === "all" ? <><td className="cell-absence">{r.absent}</td><td className="cell-late">{r.late}</td><td className="cell-excused">{r.excused}</td><td className="cell-escaped">{r.escaped}</td><td><b>{r.reportLessons}</b></td></> : <><td className={`cell-${statusClass[mode]}`}><b>{r[mode]}</b></td><td>{r.reportLessons}</td><td><b>{ar(pct(r[mode], r.reportLessons))}٪</b></td></>}</tr>)}{!loading && !displayRows.length ? <tr><td colSpan={mode === "all" ? 8 : 6} className="dav300-empty">لا توجد سجلات مطابقة.</td></tr> : null}</tbody></table></div>}
+    {error ? <div className="dav300-empty">{error}</div> : <div className="dav300-table print-student-table"><div className="print-report-head"><h1>سجل الحضور والانضباط</h1><div><b>{session?.subject || "المادة"}</b><span>{scopeLabel}</span><span>{reportRange.first ? `الفترة: ${shortDate(reportRange.first)} — ${shortDate(reportRange.last)}` : ""}</span></div></div><div className="table-caption"><div><b>تفاصيل التقرير</b><span>{selectedRow ? `الطالب: ${selectedRow.name}` : scopeLabel}</span></div><small>الحالة / إجمالي حصص المادة / النسبة</small></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th>{mode === "all" ? <><th className="th-absence">غياب</th><th className="th-late">تأخير</th><th className="th-excused">استئذان</th><th className="th-escaped">هروب</th><th>حصص المادة</th></> : <><th className={`th-${statusClass[mode]}`}>{labels[mode]}</th><th>حصص المادة</th><th>النسبة</th></>}</tr></thead><tbody>{displayRows.map((r, i) => <tr key={r.id}><td>{i + 1}</td><td className="name">{r.name}</td><td>{r.className}</td>{mode === "all" ? <><td className="cell-absence">{r.absent}</td><td className="cell-late">{r.late}</td><td className="cell-excused">{r.excused}</td><td className="cell-escaped">{r.escaped}</td><td><b>{r.reportLessons}</b></td></> : <><td className={`cell-${statusClass[mode]}`}><b>{r[mode]}</b></td><td>{r.reportLessons}</td><td><b>{ar(pct(r[mode], r.reportLessons))}٪</b></td></>}</tr>)}{!loading && !displayRows.length ? <tr><td colSpan={mode === "all" ? 8 : 6} className="dav300-empty">لا توجد سجلات مطابقة.</td></tr> : null}</tbody></table></div>}
 
     <div className="dav300-formula"><b>طريقة الحساب:</b> عدد حصص الحالة للطالب ÷ عدد حصص المادة من أول تحضير محفوظ إلى آخر تحضير × 100. إذا كان في اليوم أكثر من حصة للمادة والسجل محفوظ مرة واحدة فقط، تُحسب الحالة مرة واحدة ولا يتم افتراض تكرارها على كل حصص اليوم.</div>
-    <style jsx global>{`
+    <style jsx>{`\n.print-report-head{display:none}\n`}</style>\n    <style jsx global>{`
 @media print {
   body * { visibility: hidden !important; }
-  .print-student-table, .print-student-table * { visibility: visible !important; }
+  .print-student-table, .print-student-table * { visibility: visible !important; }\n  .print-report-head { display: block !important; text-align: center !important; margin: 0 0 12mm !important; padding-bottom: 5mm !important; border-bottom: 2px solid #111 !important; }\n  .print-report-head h1 { margin: 0 0 4mm !important; font-size: 20pt !important; }\n  .print-report-head div { display: flex !important; justify-content: center !important; gap: 12mm !important; font-size: 11pt !important; }
   .print-student-table { position: absolute !important; inset: 0 !important; width: 100% !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; background: #fff !important; }
   .print-student-table .table-caption { display: flex !important; }
-  .print-student-table table { width: 100% !important; border-collapse: collapse !important; font-size: 11pt !important; direction: rtl !important; }
-  .print-student-table th, .print-student-table td { border: 1px solid #777 !important; padding: 7px 6px !important; background: #fff !important; color: #000 !important; }
-  @page { size: A4 landscape; margin: 10mm; }
+  .print-student-table table { width: 100% !important; border-collapse: collapse !important; font-size: 10.5pt !important; direction: rtl !important; table-layout: fixed !important; }
+  .print-student-table th, .print-student-table td { border: 1px solid #777 !important; padding: 6px 5px !important; background: #fff !important; color: #000 !important; text-align: center !important; vertical-align: middle !important; }
+  @page { size: A4 landscape; margin: 12mm; }\n  .print-student-table thead { display: table-header-group !important; }\n  .print-student-table tr { break-inside: avoid !important; page-break-inside: avoid !important; }\n  .print-student-table .name { text-align: right !important; font-weight: 700 !important; }
 }`}</style>
   </section>;
 }
