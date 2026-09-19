@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { tenantCollection } from "../../../lib/teacher-tenant";
+import { canonicalClassName, gradeNumber as rosterGradeNumber, sectionNumber as rosterSectionNumber } from "../../../lib/school-roster";
 import { useTeacherClient } from "../../../lib/teacher-client";
 
 type Status = "absent" | "late" | "excused" | "escaped";
@@ -63,7 +64,9 @@ function shiftDate(value: string, amount: number) {
   return `${y}-${m}-${d}`;
 }
 function normalizeClass(value: unknown) { return clean(value).replace(/\s+/g, " "); }
-function docClass(doc:any){return normalizeClass(doc?.class||doc?.className||doc?.section||doc?.gradeClass)}
+function canonicalClassFromParts(g:unknown,s:unknown,c:unknown){const raw=clean(c),grade=rosterGradeNumber(g||raw),section=rosterSectionNumber(s,raw);return grade&&section?canonicalClassName(grade,section):normalizeClass(raw)||raw}
+function classNamesFromPayload(v:unknown){if(!Array.isArray(v))return[] as string[];return v.map(i=>{if(typeof i==="string")return normalizeClass(i);if(!i||typeof i!=="object")return"";const r=i as Record<string,unknown>;return canonicalClassFromParts(r.grade,r.section,r.name||r.className||r.class||r.id)}).filter(Boolean)}
+function docClass(doc:any){return canonicalClassFromParts(doc?.grade,doc?.section,doc?.class||doc?.className||doc?.gradeClass)}
 function codeKey(v:unknown){return clean(v).toUpperCase().replace(/[^A-Z0-9\u0660-\u0669\u06F0-\u06F9]/g,"")}
 function attendanceIndexKey(t:string,s:string){return `lahooni-attendance-index:${t}:${s}`}
 function localAttendanceIndex(t:string,s:string){try{const p=JSON.parse(localStorage.getItem(attendanceIndexKey(t,s))||"{}");return p&&typeof p==="object"?Object.values(p):[]}catch{return[]}}
@@ -73,6 +76,7 @@ export default function DailyAttendanceInsights() {
   const teacherId = session?.teacherId || "";
   const subjectKey = String(session?.subjectKey || "history");
   const [students, setStudents] = useState<Student[]>([]);
+  const [officialClasses, setOfficialClasses] = useState<string[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [timetable, setTimetable] = useState<Record<string, TimetableLesson>>({});
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
@@ -98,10 +102,11 @@ export default function DailyAttendanceInsights() {
       const roster = (Array.isArray(rp.students) ? rp.students : []).map((s: any) => ({
         id: clean(s.code || s.id || s.accessCode).toUpperCase(),
         name: clean(s.name) || "طالب",
-        className: normalizeClass(s.className || s.class),
+        className: canonicalClassFromParts(s.grade,s.section,s.className || s.class),
       })).filter((s: Student) => s.id && s.name && s.className);
       const snapshot = await getDocs(collection(db, tenantCollection(teacherId, subjectKey as any, "attendance")));
       setStudents(roster);
+      setOfficialClasses([...new Set([...classNamesFromPayload(rp.classes),...classNamesFromPayload(rp.availableClasses),...roster.map((x:Student)=>x.className)].filter(Boolean))]);
       setAttendance(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       setTimetable(tp.lessons && typeof tp.lessons === "object" ? tp.lessons : {});
     } catch {
@@ -120,7 +125,7 @@ export default function DailyAttendanceInsights() {
     };
   }, [load]);
 
-  const classes = useMemo(() => [...new Set(students.map(s => s.className).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+  const classes = useMemo(() => [...new Set([...officialClasses,...students.map(s => s.className),...attendance.map(docClass)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses,students,attendance]);
   useEffect(() => { if (classes.length && !selectedClasses.length) setSelectedClasses(classes); }, [classes, selectedClasses.length]);
   const scopeClasses = selectedClasses.length ? selectedClasses : classes;
   const visibleStudents = useMemo(() => students.filter(s => scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses]);
@@ -185,7 +190,7 @@ export default function DailyAttendanceInsights() {
       });
     }
     for (const doc of attendance) {
-      const cls = normalizeClass(doc.class);
+      const cls = docClass(doc);
       if (scopeClasses.length && !scopeClasses.includes(cls)) continue;
       const records = doc.records && typeof doc.records === "object" ? doc.records : {};
       for (const [id, val] of Object.entries(records)) {
