@@ -8,3 +8,15 @@
 .dav300-class-picker{padding:10px!important}.dav300-class-chips button.active{background:#1768c5!important;border-color:#1768c5!important}
 .dav300-kpis{gap:8px!important}.dav300-kpis article{padding:10px 11px!important;border-radius:13px!important;border-color:#d8e5f2!important}.dav300-kpis strong{font-size:21px!important}.kpi-icon{width:38px!important;height:38px!important;border-radius:10px!important}
 .dav300-ranking{padding:12px!important}.rank-grid{gap:6px!important}.dav300-rank-group article{padding:8px!important;border-radius:10px!important}.dav300-table th{background:#1768c5!important;padding:7px 6px!important}.dav300-table td{padding:6px!important;font-size:9px!important}
+
+
+/* v149 — data-first cumulative register */
+.daily-report-page{gap:12px!important;background:linear-gradient(180deg,#eef6ff 0,#f8fbff 260px,#fff 100%)!important}
+.dr-head{border:0!important;background:linear-gradient(110deg,#073f78,#0b69bd 58%,#1689df)!important}
+.dav300-head{border:0!important;background:linear-gradient(110deg,#0b4f91,#147bd0)!important}
+.dav300-head-badge{display:grid!important;gap:2px!important;background:rgba(255,255,255,.14)!important}
+.dav300-head-badge em{font-style:normal;font-size:8px;color:#d9efff}
+.dav300-kpis article{box-shadow:0 8px 22px rgba(21,80,130,.07)!important}
+.dav300-kpis article.lessons{--accent:#1768c5;--soft:#eaf4ff}.dav300-kpis article.absence{--accent:#d84646}.dav300-kpis article.late{--accent:#e29422}.dav300-kpis article.excused{--accent:#2787c9}.dav300-kpis article.escaped{--accent:#7959bd}
+.dav300-table{border-top:4px solid #1768c5!important}.dav300-table th{background:#0f5fa9!important;color:#fff!important}.dav300-table tbody tr:hover td{background:#eef7ff!important}
+.dav300-ranking{border-top:4px solid #25a46d!important}.dav300-class-picker{border-top:4px solid #e7a72e!important}.dav300-filters{border-top:4px solid #6d5bd0!important}
