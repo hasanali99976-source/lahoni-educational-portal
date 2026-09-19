@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { canonicalClassName, gradeNumber as rosterGradeNumber, sectionNumber as rosterSectionNumber } from "../../../lib/school-roster";
 import { useTeacherClient } from "../../../lib/teacher-client";
+import { assignmentClassNames, classMatchesAssignments, hasDetailedAssignments } from "../../../lib/unified-roster";
 
 type Status = "absent" | "late" | "excused" | "escaped";
 type Mode = Status | "all";
@@ -72,6 +73,9 @@ export default function DailyAttendanceInsights() {
   const session = useTeacherClient();
   const teacherId = session?.teacherId || "";
   const subjectKey = String(session?.subjectKey || "history");
+  const assignments = session?.assignments || [];
+  const assignmentScoped = hasDetailedAssignments(assignments, subjectKey as any);
+  const assignedClasses = useMemo(() => assignmentClassNames(assignments, subjectKey as any), [assignments, subjectKey]);
   const [students, setStudents] = useState<Student[]>([]);
   const [officialClasses, setOfficialClasses] = useState<string[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
@@ -127,10 +131,10 @@ export default function DailyAttendanceInsights() {
     };
   }, [load]);
 
-  const classes = useMemo(() => [...new Set([...officialClasses,...students.map(s => s.className),...attendance.map(docClass)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses,students,attendance]);
+  const classes = useMemo(() => [...new Set([...officialClasses,...students.map(s => s.className),...attendance.map(docClass)].filter(Boolean))].filter(c => !assignmentScoped || classMatchesAssignments(c, assignments, subjectKey as any)).sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses,students,attendance,assignmentScoped,assignments,subjectKey]);
   useEffect(() => { if (classes.length && !selectedClasses.length) setSelectedClasses(classes); }, [classes, selectedClasses.length]);
   const scopeClasses = selectedClasses.length ? selectedClasses : classes;
-  const visibleStudents = useMemo(() => students.filter(s => scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses]);
+  const visibleStudents = useMemo(() => students.filter(s => (!assignmentScoped || classMatchesAssignments(s.className, assignments, subjectKey as any)) && scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses, assignmentScoped, assignments, subjectKey]);
 
   const classPeriodMap = useMemo(() => {
     const result = new Map<string, Map<number, number>>();

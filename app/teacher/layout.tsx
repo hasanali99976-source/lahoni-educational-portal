@@ -26,9 +26,8 @@ const sideTabs: TeacherTab[] = [
   { href: "/teacher/students", key: "students", label: "الطلاب", note: "الفصول وبيانات الدخول" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/daily-report", key: "evaluation", label: "السجل اليومي", note: "إحصائيات العمل اليومي" },
-  { href: "/teacher/assignments", key: "preparation", label: "الواجبات", note: "واجبات الطلاب" },
-  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات", note: "الاختبارات والنتائج" },
-  { href: "/teacher/grade-plan", key: "gradeplan", label: "الخطط العلاجية", note: "الخطط والمتابعة" },
+  { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "الاختبارات والنتائج" },
+  { href: "/teacher/grade-plan", key: "gradeplan", label: "خطة رصد المعلم", note: "الرصد والمتابعة" },
   { href: "/teacher/reports", key: "evaluation", label: "التقارير", note: "التقارير والطباعة" },
   { href: "/teacher/notes", key: "evaluation", label: "الرسائل", note: "الملاحظات والرسائل" },
 ];
@@ -48,7 +47,7 @@ const moreTabs: TeacherTab[] = [
   { href: "/teacher/report", key: "evaluation", label: "ملخص عمل المعلم", note: "المؤشرات والمقارنات" },
   { href: "/teacher/reports", key: "evaluation", label: "مركز التقارير", note: "التقارير والطباعة" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
-  { href: "/teacher/grade-plan", key: "gradeplan", label: "الخطة الدراسية", note: "توزيع الدرجات" },
+  { href: "/teacher/grade-plan", key: "gradeplan", label: "خطة رصد المعلم", note: "توزيع الدرجات والرصد" },
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
 ];
 
