@@ -87,3 +87,8 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
   .discipline-row{min-width:520px;padding:11px 12px;font-size:9px}
   .discipline-meter>div{flex-direction:column;gap:4px}
 }
+
+.sc-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.sc-quick-actions button{min-height:38px;border:1px solid rgba(255,255,255,.09);border-radius:11px;background:rgba(255,255,255,.05);color:#dce8ea;font:800 8px "Tajawal",sans-serif;cursor:pointer}
+.sc-quick-actions button.logout{border-color:rgba(239,199,105,.18);background:rgba(239,199,105,.09);color:#f2d17b}
+@media(max-width:720px){.sc-quick-actions{display:flex;gap:3px;margin:0}.sc-quick-actions button{min-width:58px;min-height:52px;padding:4px;font-size:7px}.sc-sidebar{grid-template-columns:minmax(0,1fr) auto}.sc-sidebar footer{display:none!important}}
