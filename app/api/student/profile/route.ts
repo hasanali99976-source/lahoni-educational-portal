@@ -128,7 +128,9 @@ export async function GET(request: Request) {
     if (!validStatus(status)) continue;
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
     const existing = explicitByDate.get(date);
-    const rawPeriod = Number(data.period || data.lesson || data.periodNumber || 0);\n    const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : undefined;\n    if (!existing || updatedAt >= existing.updatedAt) explicitByDate.set(date, { status, updatedAt, period });
+    const rawPeriod = Number(data.period || data.lesson || data.periodNumber || 0);
+    const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : undefined;
+    if (!existing || updatedAt >= existing.updatedAt) explicitByDate.set(date, { status, updatedAt, period });
   }
 
   const timetableWeekdays = new Set<number>();
@@ -155,7 +157,8 @@ export async function GET(request: Request) {
   const today = riyadhDateInput(new Date());
   // The teacher attendance page shows one selected day's roster counts. Expose the same
   // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
-  const attendanceEvents = [...explicitByDate.entries()].filter(([,entry])=>entry.status!=="present").sort((a,b)=>b[0].localeCompare(a[0])).map(([date,entry])=>({date,status:entry.status,period:entry.period||null}));\n  const latestEntry = latestDate ? explicitByDate.get(latestDate) : undefined;
+  const attendanceEvents = [...explicitByDate.entries()].filter(([,entry])=>entry.status!=="present").sort((a,b)=>b[0].localeCompare(a[0])).map(([date,entry])=>({date,status:entry.status,period:entry.period||null}));
+  const latestEntry = latestDate ? explicitByDate.get(latestDate) : undefined;
   const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
   if (latestEntry) latestDayCounts[latestEntry.status] = 1;
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
