@@ -8,7 +8,7 @@ import "./daily-report.css";
 export default function DisciplineRegisterPage(){
  const session=useTeacherClient();
  return <main className="daily-report-page" dir="rtl">
-  <section className="dr-head"><div><small>تقارير المعلم</small><h1>سجل الانضباط</h1><p>{session?.subject||"المادة"}{session?.activeGradeLabel?` • ${session.activeGradeLabel}`:""} • سجل تراكمي لجميع الأيام</p></div><div className="dr-actions"><Link href="/teacher/attendance">تسجيل الحضور</Link></div></section>
+  <section className="dr-head"><div><small>مركز المتابعة والتحليل</small><h1>السجل اليومي</h1><p>{session?.subject||"المادة"}{session?.activeGradeLabel?` • ${session.activeGradeLabel}`:""} • متابعة شاملة لجميع الأيام والحصص</p></div><div className="dr-actions"><Link href="/teacher/attendance">تسجيل الحضور</Link></div></section>
   <DailyAttendanceInsights />
   <footer className="dr-footer"><span>المعلم: {session?.teacherName||"—"}</span><span>السجل: جميع التواريخ المسجلة</span><span>بوابة أستاذ لحوني التعليمية</span></footer>
  </main>;
