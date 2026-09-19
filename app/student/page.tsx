@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type GradeValueMap } from "../../lib/grade-plan";
-import "./student-classic-v103.css";
 import "./student-portal-v1000.css";
 
 type GradeDeduction={id?:string;planId?:string;scope?:"plan"|"section"|"item";sectionId?:string;itemId?:string;amount?:number;reason?:string;note?:string;reversedAt?:string};
