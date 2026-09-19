@@ -8,11 +8,11 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .portal-entry-brand img{width:46px;height:46px;border:1px solid rgba(239,199,105,.55)}
 .portal-entry-brand strong{font-size:16px;font-weight:900;letter-spacing:-.3px}.portal-entry-brand small{font-size:10px}
 .portal-entry-home{color:#f0cf78;border-color:rgba(239,199,105,.20);background:rgba(6,43,52,.55)}
-.portal-entry-hero{min-height:calc(100dvh - 100px);grid-template-columns:minmax(0,1fr) minmax(340px,430px);gap:clamp(30px,6vw,80px);padding:clamp(36px,6vw,78px)}
+.portal-entry-hero{min-height:calc(100dvh - 100px);grid-template-columns:minmax(0,1.18fr) minmax(340px,430px);gap:clamp(34px,6vw,88px);padding:clamp(36px,6vw,78px)}
 .portal-entry-copy:before{background:rgba(8,73,74,.58);border-color:rgba(105,218,197,.18);box-shadow:none}
 .portal-entry-copy:after{color:#f0cf78}.portal-entry-kicker{color:#f0cf78;font-size:11px}
 .portal-entry-copy h1{font-size:clamp(48px,6.3vw,82px);letter-spacing:-1.6px;font-weight:900}
-.portal-entry-copy p{color:#c8d8dc;font-size:14px;line-height:1.95}
+.portal-entry-copy p{max-width:760px;color:#dce7e9;font-size:16px;line-height:2.05;font-weight:600;letter-spacing:-.15px}
 .portal-entry-card{padding:30px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(4,39,50,.72);box-shadow:0 20px 50px rgba(0,0,0,.18);backdrop-filter:blur(8px)}
 .portal-entry-card>small{color:#f0cf78}.portal-entry-card h2{font-weight:900;letter-spacing:-.4px}
 .portal-entry-submit{background:linear-gradient(180deg,#efd27e,#c58c32);color:#17353e;box-shadow:none}
