@@ -131,10 +131,10 @@ export default function DailyAttendanceInsights() {
     };
   }, [load]);
 
-  const classes = useMemo(() => [...new Set([...officialClasses,...students.map(s => s.className),...attendance.map(docClass)].filter(Boolean))].filter(c => !assignmentScoped || classMatchesAssignments(c, assignments, subjectKey as any)).sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses,students,attendance,assignmentScoped,assignments,subjectKey]);
+  const classes = useMemo(() => [...new Set([...officialClasses,...students.map(s => s.className),...attendance.map(docClass)].filter(Boolean))].filter(c => assignedClasses.length ? assignedClasses.includes(normalizeClass(c)) : (!assignmentScoped || classMatchesAssignments(c, assignments, subjectKey as any))).sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [officialClasses,students,attendance,assignedClasses,assignmentScoped,assignments,subjectKey]);
   useEffect(() => { if (classes.length && !selectedClasses.length) setSelectedClasses(classes); }, [classes, selectedClasses.length]);
   const scopeClasses = selectedClasses.length ? selectedClasses : classes;
-  const visibleStudents = useMemo(() => students.filter(s => (!assignmentScoped || classMatchesAssignments(s.className, assignments, subjectKey as any)) && scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses, assignmentScoped, assignments, subjectKey]);
+  const visibleStudents = useMemo(() => students.filter(s => (assignedClasses.length ? assignedClasses.includes(normalizeClass(s.className)) : (!assignmentScoped || classMatchesAssignments(s.className, assignments, subjectKey as any))) && scopeClasses.includes(s.className)).sort((a, b) => a.name.localeCompare(b.name, "ar")), [students, scopeClasses, assignedClasses, assignmentScoped, assignments, subjectKey]);
 
   const classPeriodMap = useMemo(() => {
     const result = new Map<string, Map<number, number>>();
@@ -261,10 +261,7 @@ export default function DailyAttendanceInsights() {
     {error ? <div className="dav300-empty">{error}</div> : <div className="dav300-table print-student-table"><div className="table-caption"><div><b>تفاصيل التقرير</b><span>{selectedRow ? `الطالب: ${selectedRow.name}` : scopeLabel}</span></div><small>الحالة / إجمالي حصص المادة / النسبة</small></div><table><thead><tr><th>م</th><th>اسم الطالب</th><th>الفصل</th>{mode === "all" ? <><th className="th-absence">غياب</th><th className="th-late">تأخير</th><th className="th-excused">استئذان</th><th className="th-escaped">هروب</th><th>حصص المادة</th></> : <><th className={`th-${statusClass[mode]}`}>{labels[mode]}</th><th>حصص المادة</th><th>النسبة</th></>}</tr></thead><tbody>{displayRows.map((r, i) => <tr key={r.id}><td>{i + 1}</td><td className="name">{r.name}</td><td>{r.className}</td>{mode === "all" ? <><td className="cell-absence">{r.absent}</td><td className="cell-late">{r.late}</td><td className="cell-excused">{r.excused}</td><td className="cell-escaped">{r.escaped}</td><td><b>{r.reportLessons}</b></td></> : <><td className={`cell-${statusClass[mode]}`}><b>{r[mode]}</b></td><td>{r.reportLessons}</td><td><b>{ar(pct(r[mode], r.reportLessons))}٪</b></td></>}</tr>)}{!loading && !displayRows.length ? <tr><td colSpan={mode === "all" ? 8 : 6} className="dav300-empty">لا توجد سجلات مطابقة.</td></tr> : null}</tbody></table></div>}
 
     <div className="dav300-formula"><b>طريقة الحساب:</b> عدد حصص الحالة للطالب ÷ عدد حصص المادة من أول تحضير محفوظ إلى آخر تحضير × 100. إذا كان في اليوم أكثر من حصة للمادة والسجل محفوظ مرة واحدة فقط، تُحسب الحالة مرة واحدة ولا يتم افتراض تكرارها على كل حصص اليوم.</div>
-  </section>;
-}
-
-<style jsx global>{`
+    <style jsx global>{`
 @media print {
   body * { visibility: hidden !important; }
   .print-student-table, .print-student-table * { visibility: visible !important; }
@@ -274,3 +271,5 @@ export default function DailyAttendanceInsights() {
   .print-student-table th, .print-student-table td { border: 1px solid #777 !important; padding: 7px 6px !important; background: #fff !important; color: #000 !important; }
   @page { size: A4 landscape; margin: 10mm; }
 }`}</style>
+  </section>;
+}
