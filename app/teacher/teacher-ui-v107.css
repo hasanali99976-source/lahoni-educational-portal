@@ -180,3 +180,14 @@
  .teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important;box-shadow:0 8px 20px rgba(23,104,197,.22)!important}
  .teacher-pro-context{margin:8px 8px 0!important;border-radius:13px!important}
 }
+
+
+/* v133 — clearer Arabic typography across the teacher portal */
+.teacher-app-shell,.teacher-app-shell button,.teacher-app-shell input,.teacher-app-shell select,.teacher-app-shell textarea{
+  font-family:Tahoma,Arial,"Segoe UI",sans-serif!important;
+}
+.teacher-page-content{font-size:15px;line-height:1.65;letter-spacing:0}
+.teacher-page-content h1{font-size:clamp(25px,2.2vw,34px);font-weight:700;line-height:1.35}
+.teacher-page-content h2{font-weight:700;line-height:1.4}
+.teacher-page-content h3,.teacher-page-content b,.teacher-page-content strong{font-weight:700}
+.teacher-command-link-copy b,.teacher-pro-brand-copy strong{font-weight:700}
