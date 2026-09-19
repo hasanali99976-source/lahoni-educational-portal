@@ -63,6 +63,10 @@ function shiftDate(value: string, amount: number) {
   return `${y}-${m}-${d}`;
 }
 function normalizeClass(value: unknown) { return clean(value).replace(/\s+/g, " "); }
+function docClass(doc:any){return normalizeClass(doc?.class||doc?.className||doc?.section||doc?.gradeClass)}
+function codeKey(v:unknown){return clean(v).toUpperCase().replace(/[^A-Z0-9\u0660-\u0669\u06F0-\u06F9]/g,"")}
+function attendanceIndexKey(t:string,s:string){return `lahooni-attendance-index:${t}:${s}`}
+function localAttendanceIndex(t:string,s:string){try{const p=JSON.parse(localStorage.getItem(attendanceIndexKey(t,s))||"{}");return p&&typeof p==="object"?Object.values(p):[]}catch{return[]}}
 
 export default function DailyAttendanceInsights() {
   const session = useTeacherClient();
@@ -139,7 +143,7 @@ export default function DailyAttendanceInsights() {
   const classDateRange = useMemo(() => {
     const map = new Map<string, { first: string; last: string }>();
     for (const doc of attendance) {
-      const cls = normalizeClass(doc.class);
+      const cls = docClass(doc);
       const date = docDate(doc);
       if (!cls || !date) continue;
       const current = map.get(cls);
@@ -155,7 +159,7 @@ export default function DailyAttendanceInsights() {
       const range = classDateRange.get(cls);
       const days = classPeriodMap.get(cls);
       if (!range || !days?.size) {
-        const savedDays = new Set(attendance.filter(d => normalizeClass(d.class) === cls).map(docDate).filter(Boolean));
+        const savedDays = new Set(attendance.filter(d => docClass(d) === cls).map(docDate).filter(Boolean));
         result.set(cls, savedDays.size);
         continue;
       }
@@ -173,7 +177,7 @@ export default function DailyAttendanceInsights() {
     for (const s of students) {
       if (scopeClasses.length && !scopeClasses.includes(s.className)) continue;
       const range = classDateRange.get(s.className);
-      map.set(s.id, {
+      map.set(codeKey(s.id), {
         id: s.id, name: s.name, className: s.className,
         absent: 0, late: 0, excused: 0, escaped: 0, total: 0,
         reportLessons: classLessonCounts.get(s.className) || 0,
@@ -186,7 +190,7 @@ export default function DailyAttendanceInsights() {
       const records = doc.records && typeof doc.records === "object" ? doc.records : {};
       for (const [id, val] of Object.entries(records)) {
         if (!statuses.includes(String(val) as Status)) continue;
-        const row = map.get(String(id).toUpperCase());
+        const row = map.get(codeKey(id));
         if (row) { row[val as Status]++; row.total++; }
       }
     }
@@ -208,6 +212,7 @@ export default function DailyAttendanceInsights() {
   }), { absent: 0, late: 0, excused: 0, escaped: 0, total: 0 }), [allRows]);
 
   const scopeLessons = useMemo(() => scopeClasses.reduce((sum, cls) => sum + (classLessonCounts.get(cls) || 0), 0), [scopeClasses, classLessonCounts]);
+  const reportRange=useMemo(()=>{const dates=attendance.map(docDate).filter(Boolean).sort();return{first:dates[0]||"",last:dates[dates.length-1]||""}},[attendance]);
   const topFor = useCallback((status: Status) => [...allRows].filter(r => r[status] > 0).sort((a, b) => b[status] - a[status] || pct(b[status], b.reportLessons) - pct(a[status], a.reportLessons) || a.name.localeCompare(b.name, "ar")).slice(0, 5), [allRows]);
   const rankingGroups = useMemo(() => mode === "all" ? statuses.map(status => ({ status, rows: topFor(status) })) : [{ status: mode, rows: topFor(mode) }], [mode, topFor]);
 
@@ -260,7 +265,7 @@ export default function DailyAttendanceInsights() {
   const displayRows = selectedRow ? [selectedRow] : rows;
 
   return <section className="daily-attendance-v300" dir="rtl" ref={reportRef}>
-    <div className="dav300-head"><div><small>تحليل الانضباط حسب حصص المادة</small><h2>سجل الحضور والانضباط</h2><p>كل نسبة مبنية على عدد حصص المادة الفعلية من أول تحضير محفوظ إلى آخر تحضير داخل التقرير.</p></div><div className="dav300-head-badge"><span>{session?.subject || "المادة"}</span><strong>{scopeLessons}</strong><small>حصة في النطاق</small></div></div>
+    <div className="dav300-head"><div><small>تحليل الانضباط حسب حصص المادة</small><h2>سجل الحضور والانضباط</h2><p>سجل تراكمي فعلي من أول رصد محفوظ في البوابة حتى آخر يوم مسجل، مع دمج السجل السحابي والنسخة المحلية دون تكرار.</p></div><div className="dav300-head-badge"><span>{session?.subject || "المادة"}</span><strong>{scopeLessons}</strong><small>حصة في النطاق</small>{reportRange.first?<em>من {shortDate(reportRange.first)} إلى {shortDate(reportRange.last)}</em>:null}</div></div>
 
     <div className="dav300-filters no-pdf"><select value={mode} onChange={e => setMode(e.target.value as Mode)}><option value="all">جميع الحالات</option><option value="absent">الغياب</option><option value="late">التأخير</option><option value="excused">الاستئذان</option><option value="escaped">الهروب</option></select><select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)}><option value="">جميع الطلاب في النطاق</option>{visibleStudents.map(s => <option key={s.id} value={s.id}>{s.name} — {s.className}</option>)}</select><button type="button" onClick={downloadPdf} disabled={pdfBusy || loading}>{pdfBusy ? "جاري إنشاء PDF..." : "تحميل PDF مباشرة"}</button></div>
 
