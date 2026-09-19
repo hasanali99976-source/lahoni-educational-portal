@@ -7,7 +7,8 @@ import "./student-classic-v103.css";
 
 type GradeDeduction={id?:string;planId?:string;scope?:"plan"|"section"|"item";sectionId?:string;itemId?:string;amount?:number;reason?:string;note?:string;reversedAt?:string};
 type AttendanceDayCounts={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number};
-type AttendanceEvent={date:string;status:"absent"|"late"|"excused"|"escaped";period?:number|null};\ntype AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number;latestDate?:string;latestDayCounts?:AttendanceDayCounts;events?:AttendanceEvent[]};
+type AttendanceEvent={date:string;status:"absent"|"late"|"excused"|"escaped";period?:number|null};
+type AttendanceSummary={present?:number;absent?:number;late?:number;excused?:number;escaped?:number;total?:number;disciplineRate?:number;latestDate?:string;latestDayCounts?:AttendanceDayCounts;events?:AttendanceEvent[]};
 type TeacherNote={id?:string;label?:string;message?:string;createdAt?:string;teacherName?:string;subject?:string};
 type CounselorReferral={id?:string;referralType?:string;referralTypeLabel?:string;reason?:string;status?:string;teacherName?:string;subject?:string;createdAt?:string;severity?:string};
 type CounselorNotice={title?:string;message?:string;referralType?:string;subject?:string;teacherName?:string;referralId?:string;createdAt?:string};
