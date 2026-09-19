@@ -22,7 +22,7 @@ const CODE_PATTERN=/^TH[123]\d{3}$/;
 const LOGO="/icons/lahooni-identity-320.jpg";
 const AVATAR="/student/student-avatar.svg";
 const ar=(value:number)=>new Intl.NumberFormat("ar-SA-u-nu-arab",{maximumFractionDigits:2}).format(Number.isFinite(value)?value:0);
-const gradeWord=(value:number)=>value>=90?"ممتاز":value>=80?"جيد جدًا":value>=70?"جيد":value>=60?"مقبول":"يحتاج دعمًا";
+const gradeWord=(value:number)=>value>=90?"ممتاز":value>=80?"جيد جدًا":value>=70?"جيد":value>=60?"مقبول":"يحتاج دعمًا";\nconst PROFILE_CACHE_TTL_MS=5*60*1000;\nconst profileCache=new Map<string,{expiresAt:number;match:Match}>();\nconst profileInflight=new Map<string,Promise<Match>>();
 
 function normalizeStudentCode(value:string){return value.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);}
 function activeDeductions(data:StudentRecord,plan:GradePlan){return (Array.isArray(data.gradeDeductions)?data.gradeDeductions:[]).filter(item=>!item.reversedAt&&Number(item.amount||0)>0&&(!item.planId||item.planId===plan.id));}
@@ -44,9 +44,9 @@ export default function StudentPage(){
   const [accessCode,setAccessCode]=useState("");const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);
   const [matches,setMatches]=useState<Match[]>([]);const [selectedKey,setSelectedKey]=useState("");const [subjectGate,setSubjectGate]=useState(false);const [view,setView]=useState<StudentView>("home");const automaticLoginStarted=useRef(false);
 
-  async function hydrate(match:Match){try{const response=await fetch("/api/student/profile",{headers:{Authorization:`Bearer ${match.accessToken}`},cache:"no-store"});const payload=await response.json().catch(()=>({}));return response.ok&&payload.data?{...match,data:payload.data as StudentRecord}:match;}catch{return match;}}
+  async function hydrate(match:Match,force=false){const key=`${match.teacherId}:${match.subjectKey}:${match.id}`;const cached=profileCache.get(key);if(!force&&cached&&cached.expiresAt>Date.now())return cached.match;const pending=profileInflight.get(key);if(pending)return pending;const request=(async()=>{try{const response=await fetch("/api/student/profile",{headers:{Authorization:`Bearer ${match.accessToken}`},cache:"no-store"});const payload=await response.json().catch(()=>({}));const next=response.ok&&payload.data?{...match,data:payload.data as StudentRecord}:match;profileCache.set(key,{expiresAt:Date.now()+PROFILE_CACHE_TTL_MS,match:next});return next;}catch{return match;}finally{profileInflight.delete(key);}})();profileInflight.set(key,request);return request;}
   function speakWelcome(name:string){try{if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(`مرحبًا ${name}. أهلًا بك في بوابة أستاذ لحوني التعليمية. نتمنى لك يومًا دراسيًا مميزًا.`);utterance.lang="ar-SA";utterance.rate=.94;utterance.pitch=1;window.speechSynthesis.speak(utterance);}catch{}}
-  async function hydrateAll(raw:Match[]){const enriched=await Promise.all(raw.map(hydrate));setMatches(current=>current.length?enriched:current);}
+  async function hydrateAll(raw:Match[],force=false){const enriched=await Promise.all(raw.map(match=>hydrate(match,force)));setMatches(current=>current.length?enriched:current);}
   async function lookup(value:string,allowVoice=true){const code=normalizeStudentCode(value);setMessage("");if(!CODE_PATTERN.test(code))return setMessage("أدخل كود الطالب الصحيح المكوّن من 6 خانات.");setLoading(true);try{const response=await fetch("/api/student/lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessCode:code}),cache:"no-store"});const payload=await response.json().catch(()=>({}));if(!response.ok)return setMessage(payload.message||"تعذر الدخول بكود الطالب.");const raw=Array.isArray(payload.matches)?payload.matches as Match[]:[];if(!raw.length)return setMessage("لا توجد مواد مرتبطة بهذا الطالب حتى الآن.");setAccessCode(code);setMatches(raw);setSelectedKey("");setView("home");setSubjectGate(true);setLoading(false);const knownName=raw[0]?.data?.name||"طالبنا";if(allowVoice)window.setTimeout(()=>speakWelcome(knownName),120);void hydrateAll(raw);}catch{setMessage("تعذر الاتصال بالبوابة الآن.");setLoading(false);}}
   function submit(event:FormEvent){event.preventDefault();void lookup(accessCode,true);}
   function chooseSubject(key:string){setSelectedKey(key);setSubjectGate(false);setView("home");window.scrollTo({top:0,behavior:"smooth"});}
@@ -60,7 +60,7 @@ export default function StudentPage(){
     const refresh=async()=>{
       if(refreshing)return;
       refreshing=true;
-      try{await hydrateAll(matches);}finally{refreshing=false;}
+      try{await hydrateAll(matches,false);}finally{refreshing=false;}
     };
     const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void refresh();};
     window.addEventListener("online",refresh);
