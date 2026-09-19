@@ -34,3 +34,12 @@
 .mastery-v140-tablewrap table{min-width:0!important;font-size:9px!important}.mastery-v140-tablewrap th{padding:5px 4px!important}.mastery-v140-tablewrap td{padding:4px!important;height:34px!important}
 .mastery-v140-tablewrap .row-actions{gap:3px!important}.mastery-v140-tablewrap .row-actions button{padding:3px!important;font-size:7.5px!important}
 @media(max-width:900px){.mastery-v140-hero{grid-template-columns:1fr!important}}
+
+/* v143 — the follow-up route owns one visible workspace only. */
+.teacher-page-content:has(> .mastery-v140)>:not(.mastery-v140){display:none!important}
+.teacher-page-content:has(.mastery-v140) .referral-history-page:not(.mastery-v140),
+.teacher-page-content:has(.mastery-v140) .referral-overview,
+.teacher-page-content:has(.mastery-v140) .unified-referral-summary,
+.teacher-page-content:has(.mastery-v140) .counselor-referrals-hero{display:none!important}
+.teacher-page-content:has(> .mastery-v140){padding-top:8px!important}
+.mastery-v140{margin:0!important;min-height:0!important}
