@@ -330,7 +330,9 @@ export default function FollowUpPage() {
     setMessage("تم نسخ قائمة الطلاب الذين يحتاجون دعمًا.");
   }
 
-  const masteryGroups = (selectedClass ? [selectedClass] : classes).map(className => ({ className, rows: evaluated.filter(student => (student.class || "") === className) })).filter(group => group.rows.length > 0);\n\n  if (!teacherId) return <main className="follow-page referral-history-page unified-mastery-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
+  const masteryGroups = (selectedClass ? [selectedClass] : classes).map(className => ({ className, rows: evaluated.filter(student => (student.class || "") === className) })).filter(group => group.rows.length > 0);
+
+  if (!teacherId) return <main className="follow-page referral-history-page unified-mastery-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
 
   return <main className="follow-page referral-history-page unified-mastery-page mastery-premium" dir="rtl">
     {!activePlan && <div className="follow-toast" role="status">لم تُعتمد خطة توزيع الدرجات بعد. <a href="/teacher/grade-plan">إعداد التوزيع الآن</a></div>}
