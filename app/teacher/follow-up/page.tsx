@@ -14,6 +14,7 @@ type Student = GradeStudentLike & { id: string; storageId?: string; name?: strin
 type SchoolClass = { id: string; name: string; grade?: number; section?: string };
 type AiInsight = { analysis: string; recommendedAction: string; suggestedNote: string };
 type EvaluatedStudent = Student & { points: number; completion: number; performance: number; finalScore: number | null; missing: number; masteryScore: number | null; masteryBasis: string; hasCompletedSection: boolean };
+type Referral = { id:string; studentName?:string; className?:string; referralType?:"mastery"|"achievement"|"other"; referralTypeLabel?:string; reason?:string; status?:string; createdAt?:string };
 
 const unitKeys = ["unit1", "unit2", "unit3", "unit4", "unit5"];
 const counselorPhone = "966598353651";
@@ -86,6 +87,9 @@ export default function FollowUpPage() {
   const [aiInsight, setAiInsight] = useState<AiInsight | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [referralsLoading, setReferralsLoading] = useState(false);
+  const [referralView, setReferralView] = useState<"required"|"all"|"mastery"|"other">("required");
   const studentsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "students") : "", [teacherId, subjectKey]);
   const referralsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "counselorReferrals") : "", [teacherId, subjectKey]);
 
@@ -151,6 +155,20 @@ export default function FollowUpPage() {
     return () => { active = false; controller?.abort(); };
   }, [teacherId, subjectKey, activeGrade]);
 
+  useEffect(() => {
+    if (!subjectKey) { setReferrals([]); return; }
+    let active = true;
+    const controller = new AbortController();
+    setReferralsLoading(true);
+    const subjectId = String(subjectKey).split("--")[0];
+    fetch(`/api/teacher/counselor-referrals?subjectId=${encodeURIComponent(subjectId)}`, { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+      .then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل سجل الإحالات."); return data; })
+      .then(data => { if (active) setReferrals(Array.isArray(data.referrals) ? data.referrals : []); })
+      .catch(error => { if (active && error?.name !== "AbortError") setMessage(error instanceof Error ? error.message : "تعذر تحميل سجل الإحالات."); })
+      .finally(() => { if (active) setReferralsLoading(false); });
+    return () => { active = false; controller.abort(); };
+  }, [subjectKey]);
+
   const students = useMemo(() => {
     const liveByAlias = new Map<string, Student>();
     storedStudents.forEach(student => aliases(student).forEach(alias => liveByAlias.set(alias, student)));
@@ -193,6 +211,11 @@ export default function FollowUpPage() {
   const incomplete = useMemo(() => evaluated.filter(student => student.masteryScore === null), [evaluated]);
   const referralCandidates = useMemo(() => students.filter(student => !referralClass || (student.class || "").trim() === referralClass).map(student => evaluateStudent(student, activePlan)), [students, referralClass, activePlan]);
   const selectedStudents = referralCandidates.filter(student => selectedIds.includes(student.id));
+  const referralMasteryCount = useMemo(() => referrals.filter(row => row.referralType === "mastery" || row.referralType === "achievement").length, [referrals]);
+  const referralOtherCount = useMemo(() => referrals.filter(row => row.referralType === "other").length, [referrals]);
+  const shownReferrals = useMemo(() => referralView === "all" ? referrals : referralView === "mastery" ? referrals.filter(row => row.referralType === "mastery" || row.referralType === "achievement") : referralView === "other" ? referrals.filter(row => row.referralType === "other") : [], [referrals, referralView]);
+  const referralDate = (value?: string) => { if (!value) return "—"; const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? value : new Intl.DateTimeFormat("ar-SA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" }).format(parsed); };
+
 
   function openReferral() {
     if (!students.length) return setMessage("لا توجد قائمة طلاب متاحة للإحالة في هذه المادة.");
@@ -232,6 +255,7 @@ export default function FollowUpPage() {
     }));
     const text = `السلام عليكم،\nإحالة طلاب للمرشد في مادة ${subject}\nالفصل: ${referralClass}\nنوع الإحالة: ${referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى"}\nالسبب: ${reason.trim()}\n\n${selectedStudents.map((student, index) => `${index + 1}. ${student.name || "—"} — ${student.class || "—"}${student.finalScore !== null ? ` — ${student.finalScore}%` : ""}`).join("\n")}\n\nالمعلم: ${teacherName}`;
     window.open(`https://wa.me/${counselorPhone}?text=${encodeURIComponent(text)}`, "_blank");
+    setReferrals(current => [...selectedStudents.map(student => ({ id: crypto.randomUUID(), studentName: student.name || "", className: student.class || "", referralType, referralTypeLabel: referralType === "achievement" ? "مرتبطة بالتحصيل/الإتقان" : "إحالة أخرى", reason: reason.trim(), status: "جديدة", createdAt: now } as Referral)), ...current]);
     setMessage(`تم تسجيل إحالة ${selectedStudents.length} طالب للمرشد.`);
     setReferralOpen(false);
   }
@@ -288,18 +312,28 @@ export default function FollowUpPage() {
     win.document.close();
   }
 
+  function printReferrals() {
+    const win = window.open("", "_blank", "width=1200,height=850");
+    if (!win) return setMessage("تعذر فتح نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.");
+    const esc = (value: unknown) => String(value ?? "—").replace(/[&<>"']/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[ch] || ch));
+    const label = referralView === "all" ? "جميع الإحالات" : referralView === "mastery" ? "إحالات الإتقان والتحصيل" : "الإحالات الأخرى";
+    const body = shownReferrals.map((row,index) => `<tr><td>${index+1}</td><td>${esc(row.studentName)}</td><td>${esc(row.className)}</td><td>${esc(row.referralTypeLabel || (row.referralType === "other" ? "إحالة أخرى" : "الإتقان والتحصيل"))}</td><td class="reason">${esc(row.reason)}</td><td>${esc(row.status || "جديدة")}</td><td>${esc(referralDate(row.createdAt))}</td></tr>`).join("");
+    win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>سجل الإحالات - بوابة أستاذ لحوني التعليمية</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;color:#20364d;background:#fff}.letterhead{border:1px solid #cfdbe7;border-top:6px solid #1768c5;padding:16px 18px;margin-bottom:14px}.brand{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.brand h1{margin:0;color:#123f70;font-size:24px}.brand p{margin:5px 0 0;color:#667d91}.stamp{border:1px solid #bdd1e5;background:#f4f8fc;border-radius:8px;padding:8px 12px;font-weight:700;color:#174f83}.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.meta div{border:1px solid #d9e4ee;background:#f8fafc;padding:8px 10px;border-radius:6px}.meta small{display:block;color:#71869a;margin-bottom:3px}.meta b{font-size:11px}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5px}th,td{border:1px solid #cbd8e4;padding:8px 7px;text-align:right;vertical-align:middle}th{background:#1768c5;color:#fff;font-weight:700}th:first-child,td:first-child{width:4%;text-align:center}th:nth-child(2){width:20%}th:nth-child(3){width:11%}th:nth-child(4){width:17%}th:nth-child(5){width:28%}th:nth-child(6){width:9%}th:nth-child(7){width:11%}.reason{line-height:1.55}tbody tr:nth-child(even){background:#f7f9fc}.footer{display:flex;justify-content:space-between;margin-top:12px;padding-top:8px;border-top:1px solid #d7e1eb;color:#718397;font-size:9px}.sign{margin-top:22px;display:flex;justify-content:flex-end}.sign div{min-width:220px;text-align:center;border-top:1px solid #8093a5;padding-top:6px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><section class="letterhead"><div class="brand"><div><h1>سجل الإحالات للمرشد الطلابي</h1><p>بوابة أستاذ لحوني التعليمية — تقرير رسمي للمتابعة</p></div><div class="stamp">${esc(subject)}</div></div><div class="meta"><div><small>المعلم</small><b>${esc(teacherName)}</b></div><div><small>المادة</small><b>${esc(subject)}</b></div><div><small>نوع التقرير</small><b>${esc(label)}</b></div><div><small>عدد الإحالات</small><b>${shownReferrals.length}</b></div></div></section><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>نوع الإحالة</th><th>سبب الإحالة</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>${body || '<tr><td colspan="7" style="text-align:center;padding:24px">لا توجد إحالات في التصنيف المحدد.</td></tr>'}</tbody></table><div class="sign"><div>توقيع المعلم</div></div><div class="footer"><span>تم إصدار التقرير من بوابة أستاذ لحوني التعليمية</span><span>تاريخ الطباعة: ${new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}</span></div><script>window.onload=()=>setTimeout(()=>window.print(),220)<\/script></body></html>`);
+    win.document.close();
+  }
+
   async function copySupportList() {
     if (!support.length) return setMessage("لا توجد قائمة دعم مكتملة الرصد لنسخها.");
     await navigator.clipboard.writeText(support.map((student, index) => `${index + 1}. ${student.name} — ${student.class} — ${student.finalScore}%`).join("\n"));
     setMessage("تم نسخ قائمة الطلاب الذين يحتاجون دعمًا.");
   }
 
-  if (!teacherId) return <main className="follow-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
+  if (!teacherId) return <main className="follow-page referral-history-page unified-mastery-page" dir="rtl"><p>جارٍ تجهيز صفحة المتابعة…</p></main>;
 
   return <main className="follow-page" dir="rtl">
     {!activePlan && <div className="follow-toast" role="status">لم تُعتمد خطة توزيع الدرجات بعد. <a href="/teacher/grade-plan">إعداد التوزيع الآن</a></div>}
     <section className="follow-head">
-      <div><span>متابعة التحصيل — {subject}</span><h1>متابعة الإتقان</h1><p>تظهر تلقائيًا أسماء الطلاب الذين يحتاجون دعمًا بعد اكتمال رصد الوحدة/الفترة، أو عند بدء الرصد في الوحدة التالية. ويمكن للمعلم اختيار أي طالب يدويًا من القائمة.</p></div>
+      <div><span>الإتقان والمتابعة — {subject}</span><h1>الإتقان والإحالات</h1><p>مساحة موحدة لمتابعة الطلاب المطلوب دعمهم، تسجيل الإحالات، ومراجعة جميع الإحالات السابقة دون الانتقال إلى صفحة أخرى.</p></div>
       <div className="follow-filters">
         <label>الفصل<select value={selectedClass} onChange={event => { setSelectedClass(event.target.value); setSelectedStudent(""); }}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>
         <label>الطالب<select value={selectedStudent} onChange={event => setSelectedStudent(event.target.value)}><option value="">جميع الطلاب</option>{classStudents.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label>
@@ -309,26 +343,19 @@ export default function FollowUpPage() {
 
     {scopeLoading ? <p className="follow-inline-message">جارٍ تحميل الفصول…</p> : !classes.length ? <p className="follow-inline-message">لا توجد فصول محددة لهذه المادة.</p> : null}
 
-    <section className="follow-overview">
-      <article><span>المحتاجون للإتقان</span><strong>{support.length}</strong><small>ظهروا تلقائيًا بعد إغلاق الرصد</small></article>
-      <article><span>مكتملو الرصد</span><strong>{completed.length}</strong><small>يمكن الحكم على الإتقان</small></article>
-      <article className="mastered"><span>متقنون</span><strong>{mastered.length}</strong><small>حسب معيار {threshold}٪</small></article>
-      <article className="support"><span>يحتاجون دعمًا</span><strong>{support.length}</strong><small>بعد اكتمال الرصد</small></article>
-      <article className="incomplete"><span>الرصد غير مكتمل</span><strong>{incomplete.length}</strong><small>لا يصدر عليهم حكم نهائي</small></article>
+    <section className="follow-overview referral-overview unified-overview">
+      <article><span>المطلوب متابعتهم</span><strong>{support.length}</strong><small>دون معيار الإتقان بعد إغلاق الرصد</small></article>
+      <article className="mastered"><span>إحالات الإتقان والتحصيل</span><strong>{referralMasteryCount}</strong><small>المحفوظة لهذه المادة</small></article>
+      <article className="support"><span>إحالات أخرى</span><strong>{referralOtherCount}</strong><small>سلوكية أو متابعة أخرى</small></article>
     </section>
 
-    <section className="follow-card students-follow-card">
-      <header><div><h2>قائمة الإتقان</h2><p>القائمة التلقائية تعرض من هم دون معيار الإتقان بعد إغلاق الوحدة/الفترة. اختيار طالب من الأعلى يضيفه للعرض يدويًا حتى لو لم يكتمل رصده.</p></div><div className="follow-actions"><button type="button" onClick={printMasteryTable}>PDF / طباعة جدول الإتقان</button><a className="follow-action-link" href="/teacher/follow-up/referrals">سجل الإحالات</a><button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button><button className="counselor-button" onClick={openReferral}>إحالة للمرشد</button></div></header>
-      <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>اكتمال الرصد</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
-        {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}>
-          <td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td>
-          <td className="student-name-cell"><b>{student.name || "—"}</b></td><td>{student.class || "—"}</td>
-          <td><strong>{student.finalScore !== null ? `${student.finalScore}%` : `${student.performance}% مبدئي`}</strong></td>
-          <td><div className="completion"><span><i style={{ width: `${student.completion}%` }} /></span><b>{student.completion}%</b></div></td>
-          <td><span className={`level ${status.className}`}>{status.label}</span></td>
-          <td><div className="row-actions"><button type="button" className="analysis-btn" onClick={() => { setAnalysisStudent(student); setAiInsight(null); }}>تحليل الطالب</button><button type="button" className="note-btn" onClick={() => { setNoteStudent(student); setSelectedNoteType(""); setNote(""); }}>ملاحظة <small>{Number(student.teacherNoteCount || student.teacherNotes?.length || 0)}</small></button></div></td>
-        </tr>; })}
-      </tbody></table>{!evaluated.length && <p className="empty">لا يوجد طلاب غير متقنين بعد إغلاق الوحدة أو الفترة الحالية.</p>}</div>
+    <section className="follow-card unified-referral-card">
+      <header className="referral-history-head"><div><h2>الإتقان والإحالات</h2><p>اختر العرض المطلوب. لا يتم إنشاء أو حذف أي إحالة بمجرد فتح هذه الصفحة.</p></div><div className="referral-filter"><button className={referralView==="required"?"active":""} onClick={()=>setReferralView("required")}>المطلوب إحالتهم ({support.length})</button><button className={referralView==="all"?"active":""} onClick={()=>setReferralView("all")}>كل الإحالات ({referrals.length})</button><button className={referralView==="mastery"?"active":""} onClick={()=>setReferralView("mastery")}>الإتقان والتحصيل ({referralMasteryCount})</button><button className={referralView==="other"?"active":""} onClick={()=>setReferralView("other")}>إحالات أخرى ({referralOtherCount})</button></div></header>
+      <div className="unified-toolbar"><div><button className="counselor-button" onClick={openReferral}>+ إحالة جديدة للمرشد</button>{referralView==="required" && <button type="button" onClick={printMasteryTable}>طباعة قائمة الإتقان</button>}{referralView!=="required" && <button type="button" className="referral-print-button" onClick={printReferrals} disabled={referralsLoading}>PDF / طباعة سجل الإحالات</button>}<button onClick={() => void copySupportList()}>نسخ قائمة الدعم</button></div><small>البيانات محفوظة في نفس قاعدة البوابة المشتركة.</small></div>
+      {referralView==="required" ? <div className="follow-table-wrap"><table><thead><tr><th>تحديد</th><th>الطالب</th><th>الفصل</th><th>الأداء</th><th>الفترة/الوحدة</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>
+        {evaluated.map(student => { const status = statusFor(student, threshold); return <tr key={student.id}><td><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /></td><td className="student-name-cell"><b>{student.name || "—"}</b></td><td>{student.class || "—"}</td><td><strong>{student.masteryScore !== null ? `${student.masteryScore}%` : "—"}</strong></td><td>{student.masteryBasis || "—"}</td><td><span className={`level ${status.className}`}>{status.label}</span></td><td><div className="row-actions"><button type="button" className="analysis-btn" onClick={() => { setAnalysisStudent(student); setAiInsight(null); }}>تحليل الطالب</button><button type="button" className="note-btn" onClick={() => { setNoteStudent(student); setSelectedNoteType(""); setNote(""); }}>ملاحظة <small>{Number(student.teacherNoteCount || student.teacherNotes?.length || 0)}</small></button><button type="button" onClick={() => { setSelectedIds([student.id]); setReferralClass(student.class || ""); setReferralType("achievement"); setReason("انخفاض مستوى التحصيل الدراسي"); setReferralOpen(true); }}>إحالة</button></div></td></tr>; })}
+      </tbody></table>{!evaluated.length && <p className="empty">لا يوجد طلاب مطلوب إحالتهم للإتقان بعد إغلاق الوحدة أو الفترة الحالية.</p>}</div>
+      : <div className="follow-table-wrap"><table><thead><tr><th>الطالب</th><th>الفصل</th><th>نوع الإحالة</th><th>سبب الإحالة</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>{shownReferrals.map(row=><tr key={row.id}><td className="student-name-cell"><b>{row.studentName||"—"}</b></td><td>{row.className||"—"}</td><td><span className={`referral-type ${row.referralType==="other"?"other":"mastery"}`}>{row.referralTypeLabel||(row.referralType==="other"?"إحالة أخرى":"الإتقان والتحصيل")}</span></td><td className="referral-reason">{row.reason||"—"}</td><td><span className="referral-status">{row.status||"جديدة"}</span></td><td>{referralDate(row.createdAt)}</td></tr>)}</tbody></table>{referralsLoading?<p className="empty">جارٍ تحميل سجل الإحالات…</p>:!shownReferrals.length?<p className="empty">لا توجد إحالات محفوظة في هذا التصنيف.</p>:null}</div>}
     </section>
 
     {analysisStudent && (() => { const evaluation = evaluateStudent(analysisStudent, activePlan); const profile = insightProfile(analysisStudent, activePlan); return <div className="follow-modal" onClick={() => setAnalysisStudent(null)}><section className="analysis-modal" onClick={event => event.stopPropagation()}>
