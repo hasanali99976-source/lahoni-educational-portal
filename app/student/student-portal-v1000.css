@@ -125,19 +125,24 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
  .sc-feed-item header,.sc-feed-item footer{align-items:flex-start;flex-direction:column;gap:3px}
 }
 
-
-/* Unified student entry identity */
-.student-current-login{padding:14px}
-.scl-frame{background:linear-gradient(155deg,rgba(3,26,40,.90),rgba(7,68,75,.74));backdrop-filter:blur(18px) saturate(1.15)}
-.scl-grid{grid-template-columns:minmax(0,1.05fr) minmax(350px,.55fr)}
-.scl-intro{padding:30px 18px}
-.scl-intro h1{font-size:clamp(42px,4.7vw,68px)}
-.scl-card{background:linear-gradient(155deg,rgba(3,26,40,.96),rgba(7,68,75,.88));border-color:rgba(239,199,105,.22)}
-.scl-card>button{background:linear-gradient(180deg,#f6db8e,#c78d31)}
-.scl-features article{background:rgba(4,30,45,.62)}
-
-/* Student login final visual alignment */
-.student-current-login .scl-frame{background:linear-gradient(155deg,rgba(3,28,42,.68),rgba(8,76,75,.46));border-color:rgba(255,255,255,.10);backdrop-filter:blur(14px)}
-.student-current-login .scl-card{background:linear-gradient(150deg,rgba(4,38,52,.76),rgba(10,92,83,.38));border-color:rgba(239,199,105,.18);box-shadow:0 22px 55px rgba(0,0,0,.18)}
-.student-current-login .scl-features article{background:linear-gradient(145deg,rgba(7,70,76,.34),rgba(12,111,96,.20));border-color:rgba(115,218,199,.14)}
-.student-current-login .scl-intro em{color:#f0cd74}
+/* Student entry — single final definition */
+.student-current-login{padding:14px;background:#061923}
+.student-current-login:before{background:linear-gradient(180deg,rgba(3,18,29,.46),rgba(4,26,39,.60)),url('/student/student-campus.png') center/cover no-repeat}
+.scl-frame{background:linear-gradient(145deg,rgba(4,32,46,.86),rgba(7,67,70,.72));border:1px solid rgba(255,255,255,.11);border-radius:30px;box-shadow:0 30px 80px rgba(0,0,0,.28);backdrop-filter:blur(10px)}
+.scl-top{border-bottom-color:rgba(255,255,255,.08)}
+.scl-grid{grid-template-columns:minmax(0,1fr) minmax(340px,460px);gap:clamp(28px,5vw,70px);align-items:center}
+.scl-intro{padding:28px 20px}
+.scl-intro h1{font-size:clamp(42px,4.8vw,66px);line-height:1.08}
+.scl-intro em{color:#f0cd74}
+.scl-card{padding:28px;border:1px solid rgba(239,199,105,.20);border-radius:24px;background:linear-gradient(150deg,rgba(5,43,56,.94),rgba(9,83,78,.82));box-shadow:0 22px 55px rgba(0,0,0,.24)}
+.scl-card>button{background:linear-gradient(180deg,#f3d887,#c78d31);color:#17343d}
+.scl-features{gap:9px}
+.scl-features article{background:rgba(8,71,74,.72);border:1px solid rgba(115,218,199,.14);box-shadow:none}
+@media(max-width:760px){
+ .student-current-login{padding:7px}
+ .scl-frame{border-radius:22px}
+ .scl-grid{grid-template-columns:1fr;gap:16px}
+ .scl-intro{padding:22px 14px}
+ .scl-intro h1{font-size:38px}
+ .scl-card{padding:20px;border-radius:20px}
+}
