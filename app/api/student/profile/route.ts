@@ -8,6 +8,7 @@ import { normalizeClass } from "../../../../lib/unified-roster";
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
 type AttendanceEntry = { status: AttendanceStatus; updatedAt: string; period?: number };
 type TimetableLesson = { className?: unknown; subject?: unknown; notes?: unknown };
+type HistoricalTimetable = { lessons?: Record<string, TimetableLesson> };
 type ReferralRow = Record<string, unknown> & { id: string };
 type StudentSnapshot = { id: string; exists: boolean; data(): unknown };
 
@@ -78,11 +79,12 @@ export async function GET(request: Request) {
   const referralQuery = aliasList.length
     ? adminDb().collection(`${root}/counselorReferrals`).where("studentId", "in", aliasList)
     : adminDb().collection(`${root}/counselorReferrals`).where("studentId", "==", access.studentId);
-  const [attendance, timetable, gradePlanState, referralSnapshot] = await Promise.all([
+  const [attendance, timetable, gradePlanState, referralSnapshot, timetableHistory] = await Promise.all([
     attendanceQuery.get(),
     adminDb().collection(`${root}/timetable`).doc("weekly").get(),
     readActiveGradePlanForSubject(access.teacherId, access.subjectId),
     referralQuery.get(),
+    adminDb().collection(`${root}/timetableHistory`).get().catch(() => null),
   ]);
 
   const counselorReferrals = referralSnapshot.docs
@@ -109,7 +111,7 @@ export async function GET(request: Request) {
 
   // Recover old and current attendance records using every known student identifier.
   // This reads the existing records in place; it does not rename, migrate or delete attendance data.
-  const explicitEntries: Array<{date:string;status:AttendanceStatus;updatedAt:string;period?:number}> = [];
+  const explicitEntries: Array<{date:string;status:AttendanceStatus;updatedAt:string;period?:number;className?:string}> = [];
   for (const record of attendance.docs) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
@@ -130,7 +132,7 @@ export async function GET(request: Request) {
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
     const rawPeriod = Number(data.period || data.lesson || data.periodNumber || 0);
     const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : undefined;
-    explicitEntries.push({ date, status, updatedAt, period });
+    explicitEntries.push({ date, status, updatedAt, period, className: recordClass });
   }
 
   const timetableWeekdays = new Set<number>();
@@ -146,6 +148,21 @@ export async function GET(request: Request) {
   });
   timetableLessons.sort((a, b) => a.dayIndex - b.dayIndex || a.period - b.period);
 
+  // Build a historical class/day -> periods index. Old attendance rows did not always persist
+  // the period, so recover it from every timetable snapshot we still have instead of only the current timetable.
+  const historicalPeriods = new Map<string, number[]>();
+  const addLessonsToHistory = (source: Record<string, TimetableLesson> | undefined) => {
+    Object.entries(source || {}).forEach(([cell, lesson]) => {
+      const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/); if (!match) return;
+      const cls = normalizeClass(lesson?.className); if (!cls) return;
+      const key = cls + "|" + DAY_INDEX[match[1]]; const period = Number(match[2]);
+      const values = historicalPeriods.get(key) || []; if (!values.includes(period)) values.push(period);
+      historicalPeriods.set(key, values.sort((a,b)=>a-b));
+    });
+  };
+  addLessonsToHistory(lessons);
+  timetableHistory?.docs?.forEach((doc:any) => { const data=(doc.data()||{}) as HistoricalTimetable; addLessonsToHistory(data.lessons); });
+
   const expectedWeekdays = timetableWeekdays.size ? timetableWeekdays : new Set<number>(SCHOOL_WEEKDAYS);
   // Counts shown in the app must match teacher-saved attendance exactly.
   // Do not invent automatic present days that were never saved by the teacher.
@@ -157,7 +174,7 @@ export async function GET(request: Request) {
   const today = riyadhDateInput(new Date());
   // The teacher attendance page shows one selected day's roster counts. Expose the same
   // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
-  const attendanceEvents = explicitEntries.filter(entry=>entry.status!=="present").sort((a,b)=>b.date.localeCompare(a.date)||Number(a.period||0)-Number(b.period||0)).map(entry=>{ const weekday=dateObject(entry.date).getUTCDay(); const sameDay=timetableLessons.filter(lesson=>lesson.dayIndex===weekday); const timetablePeriod=entry.period||sameDay[0]?.period; return {date:entry.date,status:entry.status,period:timetablePeriod||null}; });
+  const attendanceEvents = explicitEntries.filter(entry=>entry.status!=="present").sort((a,b)=>b.date.localeCompare(a.date)||Number(a.period||0)-Number(b.period||0)).map(entry=>{ const weekday=dateObject(entry.date).getUTCDay(); const historical=historicalPeriods.get(`${entry.className||studentClass}|${weekday}`)||[]; const current=timetableLessons.filter(lesson=>lesson.dayIndex===weekday).map(lesson=>lesson.period); const timetablePeriod=entry.period||historical[0]||current[0]; return {date:entry.date,status:entry.status,period:timetablePeriod||null}; });
   const latestEntry = latestDate ? explicitEntries.filter(entry=>entry.date===latestDate).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0] : undefined;
   const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
   if (latestEntry) latestDayCounts[latestEntry.status] = 1;
