@@ -56,3 +56,13 @@
 @media(max-width:600px){
  .teacher-student-shell{padding:7px}.tss-head{align-items:flex-start;flex-direction:column}.tss-head-actions{width:100%;justify-content:space-between}
 }
+
+/* Unified teacher page integration */
+/* Apply the new transparent visual language to remaining teacher workspaces without changing their data logic. */
+.tss-content :is(.students-management .card,.sv9-overview article,.sv9-panel,.teacher-notes-compose,.teacher-notes-history,.teacher-report-toolbar,.teacher-report-card,.teacher-report-section){background:rgba(6,42,55,.20)!important;border-color:rgba(255,255,255,.25)!important;box-shadow:none!important;color:#f5fbfc!important}
+.tss-content :is(.students-management,.students-v9,.teacher-notes-workspace,.teacher-report-workspace) :is(h1,h2,h3,strong,b){color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.28)}
+.tss-content :is(.students-management,.students-v9,.teacher-notes-workspace,.teacher-report-workspace) :is(p,small,label){color:#dcebed!important}
+.tss-content :is(.students-management .form-grid,.students-management .class-grid){background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.16)!important}
+.tss-content :is(.students-management .class-card,.sv9-overview article):nth-child(4n+1){background:rgba(24,148,121,.18)!important}.tss-content :is(.students-management .class-card,.sv9-overview article):nth-child(4n+2){background:rgba(35,118,174,.18)!important}.tss-content :is(.students-management .class-card,.sv9-overview article):nth-child(4n+3){background:rgba(184,132,32,.18)!important}.tss-content :is(.students-management .class-card,.sv9-overview article):nth-child(4n){background:rgba(112,74,150,.18)!important}
+.tss-content :is(.teacher-notes-compose,.teacher-notes-history,.teacher-report-toolbar){background:rgba(6,42,55,.18)!important}
+@media(max-width:700px){.tss-main{min-width:0!important}.tss-content{padding-inline:8px!important;overflow-x:hidden!important}.tss-head{gap:7px!important}.tss-head-center{min-width:0!important}.tss-top-subject{max-width:100%!important}.tss-content :is(.teacher-notes-grid,.teacher-report-hero){grid-template-columns:1fr!important}.tss-content :is(.teacher-report-toolbar,.teacher-notes-hero,.sv9-hero){flex-direction:column!important;align-items:stretch!important}.tss-content button,.tss-content a,.tss-content select{touch-action:manipulation}}
