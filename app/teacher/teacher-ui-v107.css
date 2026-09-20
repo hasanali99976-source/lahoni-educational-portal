@@ -222,3 +222,57 @@
 .teacher-reference-logout{width:100%;min-height:38px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:10px;font-weight:700;cursor:pointer}
 .teacher-reference-logout:hover{background:#fff;color:#0b4167}
 .teacher-reference-logout>span{font-size:16px;color:inherit!important}
+
+
+/* v132 — mirror the approved student portal visual language in Teacher Portal only.
+   Visual layer only: no routes, tabs, data sources, session logic, attendance, grades,
+   notes, discipline, linking, or API behavior are changed. */
+.teacher-app-shell{
+  --student-ink:#173d4b;--student-muted:#70858d;--student-teal:#0b8f88;
+  --student-deep:#0b5963;--student-line:#dce7ea;--student-bg:#f4f7f8;
+  background:var(--student-bg)!important;color:var(--student-ink)!important;
+  font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important
+}
+.teacher-pro-header{
+  background:#fff!important;border-bottom:1px solid var(--student-line)!important;
+  box-shadow:0 1px 0 #dce7ea!important
+}
+.teacher-pro-subject{background:#f7fafb!important;border-color:var(--student-line)!important}
+.teacher-pro-subject-mark{background:linear-gradient(145deg,var(--student-teal),var(--student-deep))!important;color:#fff!important}
+.teacher-pro-home,.teacher-pro-logout,.teacher-sound-toggle{border-color:var(--student-line)!important;background:#fff!important;color:var(--student-ink)!important}
+.teacher-pro-context{
+  background:linear-gradient(110deg,var(--student-deep),var(--student-teal))!important;
+  border:0!important;border-radius:20px!important;box-shadow:0 14px 30px rgba(8,61,84,.12)!important
+}
+.teacher-pro-context small,.teacher-pro-context strong,.teacher-pro-context span{color:#fff!important}
+.teacher-pro-context-actions a,.teacher-pro-ready{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.25)!important;color:#fff!important}
+.teacher-page-content{color:var(--student-ink)!important}
+.teacher-page-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card){
+  background:#fff!important;border-color:var(--student-line)!important;border-radius:16px!important;
+  box-shadow:0 7px 20px rgba(12,58,78,.045)!important
+}
+.teacher-page-content th{background:#eef6f6!important;color:var(--student-ink)!important;border-color:var(--student-line)!important}
+.teacher-page-content td{border-color:#e5edef!important}
+.teacher-page-content tbody tr:hover{background:#f7fbfb!important}
+.teacher-page-content :is(input,select,textarea){border-color:#d2e1e3!important;color:var(--student-ink)!important}
+.teacher-page-content :is(button,.button,.btn).active,
+.teacher-page-content :is([role="tab"])[aria-selected="true"]{background:var(--student-teal)!important;border-color:var(--student-teal)!important;color:#fff!important}
+@media(min-width:901px){
+  .teacher-command-panel{
+    background:linear-gradient(180deg,#fff 0%,#f7fbfb 100%)!important;
+    border-left:1px solid var(--student-line)!important;
+    box-shadow:-5px 0 18px rgba(12,58,78,.045)!important
+  }
+  .teacher-command-subject{background:#eef7f6!important;border-color:#d8e8e6!important}
+  .teacher-command-subject>span{background:var(--student-teal)!important}
+  .teacher-command-links a{color:#315460!important}
+  .teacher-command-links a:hover{background:#f1f6f7!important;border-color:#dce7ea!important}
+  .teacher-command-links a.active{background:var(--student-teal)!important;border-color:var(--student-teal)!important;color:#fff!important;box-shadow:0 6px 14px rgba(11,143,136,.14)!important}
+  .teacher-command-foot{background:#fff!important}
+  .teacher-command-foot a{border-color:var(--student-line)!important}
+  .teacher-command-foot button{background:var(--student-teal)!important;border-color:var(--student-teal)!important;color:#fff!important}
+}
+@media(max-width:900px){
+  .teacher-command-panel{background:#fff!important}
+  .teacher-command-links a.active,.teacher-pro-more{background:var(--student-teal)!important;border-color:var(--student-teal)!important;color:#fff!important}
+}
