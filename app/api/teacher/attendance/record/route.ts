@@ -53,7 +53,8 @@ export async function PUT(request: Request) {
   const ctx = await context(request, body); if ("error" in ctx) return ctx.error;
   const records = cleanRecords(body.records);
   const updatedAt = new Date().toISOString();
-  const payload = { class: ctx.className, date: ctx.date, hijriDate: clean(body.hijriDate), records, teacherId: ctx.session.userId, teacherName: ctx.session.name || "", subjectKey: ctx.subjectId, subject: clean(body.subject), manualEdited: true, updatedAt, savedThroughApiAt: updatedAt };
+  const rawPeriod = Number(body.period || 0); const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : null;
+  const payload = { class: ctx.className, date: ctx.date, hijriDate: clean(body.hijriDate), records, period, teacherId: ctx.session.userId, teacherName: ctx.session.name || "", subjectKey: ctx.subjectId, subject: clean(body.subject), manualEdited: true, updatedAt, savedThroughApiAt: updatedAt };
   try { await withTimeout(ctx.reference.set(payload, { merge: true })); return NextResponse.json({ ok: true, data: payload }, { headers: { "Cache-Control": "no-store, max-age=0" } }); }
   catch { return NextResponse.json({ ok: false, message: "تعذر حفظ الحضور في السحابة الآن. بقيت النسخة المحلية محفوظة." }, { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } }); }
 }
@@ -64,12 +65,13 @@ export async function PATCH(request: Request) {
   const status = body.status as AttendanceStatus;
   if (!studentCode || !VALID_STATUS.has(status)) return NextResponse.json({ ok: false, message: "حالة الطالب غير صحيحة." }, { status: 400 });
   const updatedAt = new Date().toISOString();
+  const rawPeriod = Number(body.period || 0); const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : null;
   try {
     await withTimeout(adminDb().runTransaction(async tx => {
       const snapshot = await tx.get(ctx.reference);
       const previous = snapshot.exists ? cleanRecords(snapshot.data()?.records) : {};
       const records = { ...previous, [studentCode]: status };
-      tx.set(ctx.reference, { class: ctx.className, date: ctx.date, records, teacherId: ctx.session.userId, teacherName: ctx.session.name || "", subjectKey: ctx.subjectId, manualEdited: true, updatedAt, savedThroughApiAt: updatedAt }, { merge: true });
+      tx.set(ctx.reference, { class: ctx.className, date: ctx.date, records, period: period || snapshot.data()?.period || null, teacherId: ctx.session.userId, teacherName: ctx.session.name || "", subjectKey: ctx.subjectId, manualEdited: true, updatedAt, savedThroughApiAt: updatedAt }, { merge: true });
     }));
     return NextResponse.json({ ok: true, studentCode, status, updatedAt }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch { return NextResponse.json({ ok: false, message: "تعذر مزامنة حالة الطالب سحابيًا الآن." }, { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } }); }
