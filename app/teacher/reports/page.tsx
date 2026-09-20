@@ -269,7 +269,6 @@ export default function ReportsPage() {
   }
 
   function exportExcel() {
-    if (reportType === "summary") { window.location.assign("/teacher/report"); return; }
     try {
       validateSelection();
       const workbook = XLSX.utils.book_new();
