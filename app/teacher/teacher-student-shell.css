@@ -101,3 +101,15 @@
 .tss-nav a.active:before{display:none}.tss-nav a.active svg{background:rgba(239,203,115,.12)}
 .tss-nav a:hover{transform:none;background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.2)}
 @media(max-width:980px){.tss-nav a{min-height:48px}}
+
+/* Clear teacher navigation hierarchy */
+.tss-sidebar{width:238px;padding:11px 9px}
+.tss-nav{display:grid;gap:4px;margin-top:10px}
+.tss-nav a{position:relative;display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:9px;min-height:49px;padding:7px 9px;border:1px solid rgba(255,255,255,.13);border-radius:11px;background:rgba(4,45,59,.22)}
+.tss-nav a svg{width:18px;height:18px;padding:5px;border-radius:9px;color:#f2d58d;background:rgba(255,255,255,.06)}
+.tss-nav a span{min-width:0}.tss-nav a b{display:block;font-size:10px;font-weight:950;color:#f8fbfc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tss-nav a small{display:block;margin-top:2px;font-size:6.8px;color:#b9cdd0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tss-nav a:before{content:"";position:absolute;right:0;top:7px;bottom:7px;width:3px;border-radius:0 8px 8px 0;background:rgba(103,224,177,.42)}
+.tss-nav a:nth-child(3n+2):before{background:rgba(111,184,232,.5)}.tss-nav a:nth-child(3n):before{background:rgba(239,203,115,.55)}
+.tss-nav a.active{background:linear-gradient(100deg,rgba(24,148,121,.28),rgba(239,203,115,.08));border-color:rgba(239,203,115,.52);box-shadow:inset 0 0 0 1px rgba(239,203,115,.08)}
+.tss-nav a.active:before{display:block;width:4px;background:#efcb73}.tss-nav a.active b{color:#fff}.tss-nav a.active small{color:#e9d8a7}.tss-nav a.active svg{color:#ffe09a;background:rgba(239,203,115,.13)}
+@media(max-width:980px){.tss-sidebar.open{width:min(270px,calc(100vw - 18px))}.tss-nav a{min-height:50px}}
