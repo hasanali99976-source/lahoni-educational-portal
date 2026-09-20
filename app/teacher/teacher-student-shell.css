@@ -89,3 +89,15 @@
 .tss-top-subject select{font-size:8.5px}
 @media(max-width:980px){.tss-sidebar.open{padding:12px}.tss-nav a{min-height:52px}.tss-head-actions{justify-content:flex-start}}
 @media(max-width:600px){.tss-head-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.tss-head-actions>span,.tss-top-subject{grid-column:1/-1}.tss-head-actions button,.tss-head-actions a{width:100%;text-align:center}.tss-top-subject select{width:100%;max-width:none}}
+
+/* Refined teacher side navigation */
+.tss-nav{gap:5px;margin-top:10px}
+.tss-nav a{grid-template-columns:32px minmax(0,1fr);min-height:46px;padding:6px 8px;border-radius:11px;border-color:rgba(255,255,255,.12);background:rgba(7,57,70,.16);box-shadow:none}
+.tss-nav a:before{top:8px;bottom:8px;width:2px}
+.tss-nav a svg{width:17px;height:17px;padding:4px;border-radius:8px;background:rgba(255,255,255,.055)}
+.tss-nav a b{font-size:9.5px;line-height:1.25}.tss-nav a small{font-size:6.6px;color:#bdd2d5}
+.tss-nav a:nth-child(2n),.tss-nav a:nth-child(3n),.tss-nav a:nth-child(4n){background:rgba(7,57,70,.16)}
+.tss-nav a.active{background:rgba(25,132,127,.22);border-color:rgba(239,203,115,.42);box-shadow:inset -3px 0 0 #efcb73}
+.tss-nav a.active:before{display:none}.tss-nav a.active svg{background:rgba(239,203,115,.12)}
+.tss-nav a:hover{transform:none;background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.2)}
+@media(max-width:980px){.tss-nav a{min-height:48px}}
