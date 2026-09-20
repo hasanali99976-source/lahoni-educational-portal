@@ -24,7 +24,7 @@ type Student = GradeStudentLike & {
 };
 type AttendanceDoc = { class?: string; date?: string; records?: Record<string, AttendanceStatus> };
 type ReportType = "grades" | "attendance";
-type AttendanceMode = "daily" | "range";
+type AttendanceMode = "daily" | "range" | "all";
 type RangeRow = {
   number: number; name: string; present: number; absentDates: string[]; lateDates: string[];
   excusedDates: string[]; escapedDates: string[]; attendanceRate: number;
@@ -102,6 +102,7 @@ export default function ReportsPage() {
     const controller = new AbortController();
     const params = new URLSearchParams({ subjectId: subjectKey, mode: attendanceMode });
     if (attendanceMode === "daily") params.set("date", selectedDate);
+    else if (attendanceMode === "all") params.set("all", "1");
     else {
       params.set("from", reportFrom);
       params.set("to", reportTo);
@@ -135,7 +136,7 @@ export default function ReportsPage() {
   const selectedStudents = useMemo(() => students.filter(student => selectedClasses.includes(String(student.className || student.class || ""))), [students, selectedClasses]);
   const rangeLength = inclusiveDays(reportFrom, reportTo);
   const rangeValid = rangeLength > 0 && rangeLength <= 31 && reportFrom <= reportTo && reportTo <= today;
-  const attendanceReadyClasses = useMemo(() => new Set(selectedClasses.filter(className => attendanceDocs.some(item => item.class === className && item.date && (attendanceMode === "daily" ? item.date === selectedDate : item.date >= reportFrom && item.date <= reportTo)))), [attendanceDocs, attendanceMode, reportFrom, reportTo, selectedDate, selectedClasses]);
+  const attendanceReadyClasses = useMemo(() => new Set(selectedClasses.filter(className => attendanceDocs.some(item => item.class === className && item.date && (attendanceMode === "daily" ? item.date === selectedDate : attendanceMode === "all" ? true : item.date >= reportFrom && item.date <= reportTo)))), [attendanceDocs, attendanceMode, reportFrom, reportTo, selectedDate, selectedClasses]);
   const unsavedClasses = selectedClasses.filter(name => !attendanceReadyClasses.has(name));
   const selectedSectionLabel = selectedSection === "all" ? "جميع الوحدات / الفترات" : activePlan?.sections.find(item => item.id === selectedSection)?.label || "—";
 
@@ -196,7 +197,7 @@ export default function ReportsPage() {
 
   function rangeClass(className: string) {
     const roster = students.filter(student => String(student.className || student.class || "") === className);
-    const documents = attendanceDocs.filter(item => item.class === className && item.date && item.date >= reportFrom && item.date <= reportTo).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const documents = attendanceDocs.filter(item => item.class === className && item.date && (attendanceMode === "all" || (item.date >= reportFrom && item.date <= reportTo))).sort((a, b) => String(a.date).localeCompare(String(b.date)));
     const days = [...new Set(documents.map(item => String(item.date || "")).filter(Boolean))];
     const rows: RangeRow[] = roster.map((student, index) => {
       const absentDates: string[] = [], lateDates: string[] = [], excusedDates: string[] = [], escapedDates: string[] = [];
@@ -314,7 +315,7 @@ export default function ReportsPage() {
   }
 
   const previewTitle = reportType === "grades" ? "تقرير التحصيل العلمي" : "سجل المتابعة الأكاديمي";
-  const previewPeriod = reportType === "grades" ? selectedSectionLabel : attendanceMode === "daily" ? `${selectedDate} • ${hijri(selectedDate)}` : `${reportFrom} ← ${reportTo} • ${rangeLength || 0} يوم`;
+  const previewPeriod = reportType === "grades" ? selectedSectionLabel : attendanceMode === "daily" ? `${selectedDate} • ${hijri(selectedDate)}` : attendanceMode === "all" ? "جميع السجلات المحفوظة للمادة" : `${reportFrom} ← ${reportTo} • ${rangeLength || 0} يوم`;
   const readyCount = reportType === "attendance" ? attendanceReadyClasses.size : selectedClasses.length;
 
   return <main className="smart-reports-v12" dir="rtl">
@@ -344,8 +345,8 @@ export default function ReportsPage() {
       <div className="sr12-panel sr12-details">
         <header><div><small>الخطوة 2</small><h3>{reportType === "attendance" ? "الفترة" : "الوحدة / الفترة"}</h3></div></header>
         {reportType === "attendance" ? (<>
-          <div className="sr12-mode"><button type="button" className={attendanceMode === "range" ? "active" : ""} onClick={() => setAttendanceMode("range")}><b>فترة زمنية</b><small>حتى 31 يومًا</small></button><button type="button" className={attendanceMode === "daily" ? "active" : ""} onClick={() => setAttendanceMode("daily")}><b>يوم واحد</b><small>سجل يومي</small></button></div>
-          {attendanceMode === "range" ? <div className="sr12-range"><label><span>من تاريخ</span><input type="date" max={today} value={reportFrom} onChange={event => setFrom(event.target.value)} /></label><label><span>إلى تاريخ</span><input type="date" min={reportFrom} max={reportFrom ? (addDays(reportFrom, 30) < today ? addDays(reportFrom, 30) : today) : today} value={reportTo} onChange={event => setTo(event.target.value)} /></label><div className={rangeValid ? "range-status good" : "range-status bad"}><b>{rangeLength > 0 ? `${rangeLength} يوم` : "—"}</b><small>{rangeValid ? "الفترة صالحة للطباعة" : "الحد الأقصى 31 يومًا"}</small></div></div> : <label className="sr12-single-date"><span>تاريخ المتابعة</span><input type="date" max={today} value={selectedDate} onChange={event => setSelectedDate(event.target.value)} /><small>{hijri(selectedDate)}</small></label>}
+          <div className="sr12-mode"><button type="button" className={attendanceMode === "all" ? "active" : ""} onClick={() => setAttendanceMode("all")}><b>جميع سجلات المادة</b><small>من أول سجل محفوظ إلى اليوم</small></button><button type="button" className={attendanceMode === "range" ? "active" : ""} onClick={() => setAttendanceMode("range")}><b>فترة محددة</b><small>حتى 31 يومًا</small></button><button type="button" className={attendanceMode === "daily" ? "active" : ""} onClick={() => setAttendanceMode("daily")}><b>يوم واحد</b><small>سجل يومي</small></button></div>
+          {attendanceMode === "all" ? <p className="sr12-ok">سيشمل التقرير جميع سجلات الحضور والانضباط المحفوظة لهذه المادة.</p> : attendanceMode === "range" ? <div className="sr12-range"><label><span>من تاريخ</span><input type="date" max={today} value={reportFrom} onChange={event => setFrom(event.target.value)} /></label><label><span>إلى تاريخ</span><input type="date" min={reportFrom} max={reportFrom ? (addDays(reportFrom, 30) < today ? addDays(reportFrom, 30) : today) : today} value={reportTo} onChange={event => setTo(event.target.value)} /></label><div className={rangeValid ? "range-status good" : "range-status bad"}><b>{rangeLength > 0 ? `${rangeLength} يوم` : "—"}</b><small>{rangeValid ? "الفترة صالحة للطباعة" : "الحد الأقصى 31 يومًا"}</small></div></div> : <label className="sr12-single-date"><span>تاريخ المتابعة</span><input type="date" max={today} value={selectedDate} onChange={event => setSelectedDate(event.target.value)} /><small>{hijri(selectedDate)}</small></label>}
           {unsavedClasses.length ? <p className="sr12-warning">{unsavedClasses.length} من الفصول المختارة لا تحتوي سجلات محفوظة في النطاق الحالي، ولن تدخل في PDF حتى يوجد لها سجل.</p> : <p className="sr12-ok">كل الفصول المختارة لديها بيانات في النطاق الحالي.</p>}
         </>) : (<>
           {planLoading ? <p>جارٍ تحميل الخطة…</p> : !activePlan ? <div className="sr12-warning-box"><b>لا توجد خطة درجات معتمدة</b><span>اعتمد الخطة أولًا ولن تتأثر أي درجات محفوظة.</span><Link href="/teacher/grade-plan">فتح الخطة الدراسية</Link></div> : <div className="sr12-section-grid"><button type="button" className={selectedSection === "all" ? "active" : ""} onClick={() => setSelectedSection("all")}><b>التقرير الكامل</b><small>جميع الوحدات / الفترات</small></button>{activePlan.sections.map(section => <button type="button" key={section.id} className={selectedSection === section.id ? "active" : ""} onClick={() => setSelectedSection(section.id)}><b>{section.label}</b><small>{section.max} درجة • {section.items.length} عناصر</small></button>)}</div>}
