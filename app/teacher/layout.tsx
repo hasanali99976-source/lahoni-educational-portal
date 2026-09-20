@@ -24,7 +24,7 @@ type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: S
 
 const sideTabs: TeacherTab[] = [
   { href: "/teacher/dashboard", key: "dashboard", label: "يومي", note: "ملخص عمل المعلم" },
-  { href: "/teacher/students", key: "students", label: "الطلاب", note: "الفصول وبيانات الدخول" },
+  { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/daily-report", key: "evaluation", label: "السجل اليومي", note: "إحصائيات العمل اليومي" },
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "الاختبارات والنتائج" },
@@ -38,7 +38,7 @@ const primaryTabs: TeacherTab[] = [
   { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", note: "جدول الحصص الأسبوعي" },
   { href: "/teacher/attendance", key: "attendance", label: "سجل المتابعة", note: "الحضور والمتابعة" },
   { href: "/teacher/grades", key: "grades", label: "التحصيل العلمي", note: "الرصد والحفظ" },
-  { href: "/teacher/students", key: "students", label: "الطلاب", note: "الفصول وبيانات الدخول" },
+  { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
 ];
 const moreTabs: TeacherTab[] = [
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
