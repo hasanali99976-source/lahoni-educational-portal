@@ -38,6 +38,7 @@ const primaryTabs: TeacherTab[] = [
   { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", note: "جدول الحصص الأسبوعي" },
   { href: "/teacher/attendance", key: "attendance", label: "سجل المتابعة", note: "الحضور والمتابعة" },
   { href: "/teacher/grades", key: "grades", label: "التحصيل العلمي", note: "الرصد والحفظ" },
+  { href: "/teacher/certificates", key: "certificate", label: "شهادات الطلاب", note: "ملف الطالب والشهادات" },
   { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
 ];
 const moreTabs: TeacherTab[] = [
@@ -54,6 +55,7 @@ const moreTabs: TeacherTab[] = [
 function TabIcon({ type }: { type: string }) {
   const common = { width: 23, height: 23, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   if (type === "dashboard") return <svg {...common}><path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/></svg>;
+  if (type === "certificate") return <svg {...common}><path d="M6 3.5h12v17H6z"/><path d="M9 8h6M9 12h6"/><circle cx="12" cy="16" r="2"/><path d="m10.7 17.5-.5 3 1.8-1 1.8 1-.5-3"/></svg>;
   if (type === "grades") return <svg {...common}><path d="M4 19.5h16M6.5 16V9.5M11.8 16V5M17.1 16v-3.8"/><path d="m5.8 6.8 3-2.3 3 1.8 5.4-3"/></svg>;
   if (type === "gradeplan") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M8 8h8M8 12h5M8 16h3"/><path d="m15.5 15 1.5 1.5 3-3"/></svg>;
   if (type === "attendance") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
