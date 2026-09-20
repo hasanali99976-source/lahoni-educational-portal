@@ -468,3 +468,7 @@
   max-height:1123px!important;
   overflow:hidden!important;
 }
+
+
+/* Teacher integrated transparent theme */
+.portfolio-page{--portfolio-ink:#fff;--portfolio-muted:#dcebed;--portfolio-line:rgba(255,255,255,.24);--portfolio-surface:rgba(6,42,55,.20);--portfolio-soft:rgba(24,148,121,.14);color:#f5fbfc}.portfolio-hero,.achievement-builder,.portfolio-command,.portfolio-dashboard article,.portfolio-library,.portfolio-settings{background:rgba(6,42,55,.20)!important;border-color:rgba(255,255,255,.24)!important;box-shadow:none!important}.portfolio-hero{background:rgba(13,83,97,.34)!important}.portfolio-page :is(h1,h2,h3,b,strong){color:#fff!important}.portfolio-page :is(p,small,label){color:#dcebed!important}.portfolio-dashboard article:nth-child(4n+1){background:rgba(24,148,121,.18)!important}.portfolio-dashboard article:nth-child(4n+2){background:rgba(35,118,174,.18)!important}.portfolio-dashboard article:nth-child(4n+3){background:rgba(184,132,32,.18)!important}.portfolio-dashboard article:nth-child(4n){background:rgba(112,74,150,.18)!important}@media(max-width:700px){.portfolio-hero{grid-template-columns:1fr!important;min-height:0!important;padding:18px!important}.achievement-builder form{grid-template-columns:1fr!important;padding:14px!important}.portfolio-page{gap:10px}}
