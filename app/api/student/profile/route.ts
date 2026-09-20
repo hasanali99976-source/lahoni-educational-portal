@@ -115,7 +115,8 @@ export async function GET(request: Request) {
     const date = typeof data.date === "string" ? data.date : "";
     if (!date || date < ATTENDANCE_START_DATE) continue;
     const recordClass = normalizeClass(data.class || data.className || "");
-    if (studentClass && recordClass && recordClass !== studentClass) continue;
+    // Do not discard a saved student event merely because the student moved class later.
+    // Student aliases are the durable link; class is only descriptive historical metadata.
     const recordMap = data?.records && typeof data.records === "object" ? data.records as Record<string, unknown> : {};
     let status: unknown;
     for (const alias of aliasList) {
