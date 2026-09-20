@@ -13,7 +13,7 @@ export type AttendanceRangePdfOptions={portalName:string;teacherName:string;subj
 
 function shortDate(value:string){const p=value.split("-");return p.length===3?`${p[2]}/${p[1]}`:value;}
 function dates(values:string[]){return values.length?values.map(shortDate).join("، "):"—";}
-function metrics(report:AttendanceRangePdfClass){const totalAbs=report.rows.reduce((s,r)=>s+r.absentDates.length,0);const totalLate=report.rows.reduce((s,r)=>s+r.lateDates.length,0);const totalExc=report.rows.reduce((s,r)=>s+r.excusedDates.length,0);const avg=report.rows.length?Math.round(report.rows.reduce((s,r)=>s+r.attendanceRate,0)/report.rows.length):0;return{totalAbs,totalLate,totalExc,avg};}
+function metrics(report:AttendanceRangePdfClass){const totalAbs=report.rows.reduce((s,r)=>s+r.absentDates.length,0);const totalLate=report.rows.reduce((s,r)=>s+r.lateDates.length,0);const totalExc=report.rows.reduce((s,r)=>s+r.excusedDates.length,0);const totalEsc=report.rows.reduce((s,r)=>s+r.escapedDates.length,0);const avg=report.rows.length?Math.round(report.rows.reduce((s,r)=>s+r.attendanceRate,0)/report.rows.length):0;return{totalAbs,totalLate,totalExc,totalEsc,avg};}
 
 function drawHeader(ctx:CanvasRenderingContext2D,o:AttendanceRangePdfOptions,report:AttendanceRangePdfClass,accent:string,logo:HTMLImageElement|null){
   roundedRect(ctx,34,24,PRINT_WIDTH-68,128,22,"#fff","#d9e6e3");ctx.fillStyle=accent;ctx.fillRect(34,24,PRINT_WIDTH-68,13);
@@ -22,8 +22,8 @@ function drawHeader(ctx:CanvasRenderingContext2D,o:AttendanceRangePdfOptions,rep
   roundedRect(ctx,PRINT_WIDTH-400,44,334,88,18,accent);drawFixedText(ctx,"سجل المتابعة للفترة",PRINT_WIDTH-92,73,{size:27,weight:900,color:"#fff",maxWidth:278});drawFixedText(ctx,report.className,PRINT_WIDTH-92,109,{size:20,weight:900,color:"#e3f5f2",maxWidth:278});
   const meta=[["المعلم",o.teacherName],["المادة",o.subject],["الفصل",report.className],["الفترة",`${o.from} — ${o.to}`],["أيام التحضير",report.days.length]];const gap=10,margin=34,top=166,boxW=(PRINT_WIDTH-margin*2-gap*4)/5;
   meta.forEach(([label,value],i)=>{const x=PRINT_WIDTH-margin-boxW-i*(boxW+gap);roundedRect(ctx,x,top,boxW,70,13,"#f7faf9","#dce7e4");drawFixedText(ctx,label,x+boxW-14,top+21,{size:14,weight:850,color:"#7a9095",maxWidth:boxW-28});drawFittedText(ctx,value,x+boxW-14,top+49,{size:19,weight:900,color:"#21464c",maxWidth:boxW-28});});
-  const m=metrics(report);const summary=[["طلاب الفصل",report.rows.length],["متوسط الحضور",`${m.avg}%`],["الغياب",m.totalAbs],["التأخير",m.totalLate],["الاستئذان",m.totalExc]] as const;const sw=(PRINT_WIDTH-68-gap*4)/5;
-  summary.forEach(([label,value],i)=>{const x=PRINT_WIDTH-34-sw-i*(sw+gap);const good=i===1;roundedRect(ctx,x,250,sw,64,13,good?"#e6f5ed":"#f7faf9","#dfe8e6");drawFixedText(ctx,value,x+sw/2,272,{size:23,weight:900,color:good?"#216c4c":"#244b51",align:"center",maxWidth:sw-20});drawFixedText(ctx,label,x+sw/2,299,{size:13.5,weight:850,color:"#667d84",align:"center"});});
+  const m=metrics(report);const summary=[["طلاب الفصل",report.rows.length],["أيام التحضير",report.days.length],["متوسط الحضور",`${m.avg}%`],["الغياب",m.totalAbs],["التأخير",m.totalLate],["الاستئذان",m.totalExc],["الهروب",m.totalEsc]] as const;const sw=(PRINT_WIDTH-68-gap*6)/7;
+  summary.forEach(([label,value],i)=>{const x=PRINT_WIDTH-34-sw-i*(sw+gap);const good=i===2;roundedRect(ctx,x,250,sw,64,13,good?"#e6f5ed":"#f7faf9","#dfe8e6");drawFixedText(ctx,value,x+sw/2,272,{size:23,weight:900,color:good?"#216c4c":"#244b51",align:"center",maxWidth:sw-20});drawFixedText(ctx,label,x+sw/2,299,{size:12.5,weight:850,color:"#667d84",align:"center"});});
 }
 
 function drawTable(ctx:CanvasRenderingContext2D,rows:AttendanceRangePdfRow[],accent:string){
