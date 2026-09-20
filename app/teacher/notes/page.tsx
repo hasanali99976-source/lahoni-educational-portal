@@ -44,7 +44,7 @@ export default function TeacherNotesPage(){
   const [custom,setCustom]=useState("");
   const [search,setSearch]=useState("");
   const [message,setMessage]=useState("");
-  const [busy,setBusy]=useState(false);
+  const [busy,setBusy]=useState(false);\n  const [classView,setClassView]=useState(false);\n  const [pdfBusy,setPdfBusy]=useState(false);
   const subjectId=String(session?.subjectKey||"");
   const grade=session?.activeGrade||null;
 
@@ -123,7 +123,7 @@ export default function TeacherNotesPage(){
     }finally{setBusy(false);}
   }
 
-  async function remove(noteId?:string){
+  async function exportClassPdf(){\n    if(!className||!classNotes)return setMessage("لا توجد ملاحظات في هذا الفصل للتصدير.");\n    const target=document.getElementById("nv13-class-report");if(!target)return;setPdfBusy(true);setMessage("");\n    try{const html2canvas=(await import("html2canvas")).default;const{jsPDF}=await import("jspdf");const canvas=await html2canvas(target,{scale:1.8,backgroundColor:"#ffffff",useCORS:true});const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});const margin=7,w=196,h=canvas.height*w/canvas.width,pageH=283,data=canvas.toDataURL("image/png");for(let i=0;i<Math.max(1,Math.ceil(h/pageH));i++){if(i)pdf.addPage();pdf.addImage(data,"PNG",margin,margin-i*pageH,w,h);}pdf.save(`ملاحظات-${className}.pdf`);setMessage("تم إنشاء PDF لملاحظات الفصل.");}catch{setMessage("تعذر إنشاء PDF الآن.");}finally{setPdfBusy(false);}\n  }\n\n  async function remove(noteId?:string){
     if(!noteId||!selectedStudent)return;
     if(!confirm("حذف هذه الملاحظة؟"))return;
     setBusy(true);
@@ -161,7 +161,7 @@ export default function TeacherNotesPage(){
       </div>
     </section>
 
-    <section className="nv13-layout">
+{classView?<section className="nv13-class-report" id="nv13-class-report"><header><div><small>سجل ملاحظات الفصل</small><h2>{className}</h2><p>{session?.subject||"المادة"} • المعلم: {session?.teacherName||"المعلم"} • {classNotes} ملاحظة</p></div><b>{classFollowed}/{studentsInClass.length}</b></header><div>{studentsInClass.map(student=>{const notes=[...(rows.find(row=>row.studentCode===student.code)?.notes||[])].sort((a,b)=>noteTime(b)-noteTime(a));return notes.length?<article key={student.code}><h3>{student.name}<small>{student.code}</small></h3>{notes.map(note=><div key={note.id||`${note.createdAt}-${note.message}`}><span>{note.label||"ملاحظة"} • {arabicDate(note.createdAt)}</span><p>{note.message}</p></div>)}</article>:null})}{!classNotes?<p className="nv13-empty-list">لا توجد ملاحظات محفوظة لهذا الفصل.</p>:null}</div></section>:null}\n\n    <section className="nv13-layout">
       <aside className="nv13-roster">
         <header>
           <div><small>{className||"الفصل"}</small><h2>الطلاب</h2></div>
