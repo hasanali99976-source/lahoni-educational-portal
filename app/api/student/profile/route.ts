@@ -111,7 +111,7 @@ export async function GET(request: Request) {
 
   // Recover old and current attendance records using every known student identifier.
   // This reads the existing records in place; it does not rename, migrate or delete attendance data.
-  const explicitEntries: Array<{date:string;status:AttendanceStatus;updatedAt:string;period?:number;className?:string}> = [];
+  const explicitEntries: Array<{date:string;status:AttendanceStatus;updatedAt:string;period?:number;className?:string;docId?:string}> = [];
   for (const record of attendance.docs) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
@@ -132,7 +132,9 @@ export async function GET(request: Request) {
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
     const rawPeriod = Number(data.period || data.lesson || data.periodNumber || 0);
     const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : undefined;
-    explicitEntries.push({ date, status, updatedAt, period, className: recordClass });
+    const idPeriodMatch = record.id.match(/(?:^|[_-])(?:p|period|lesson|h|ح)?([1-7])(?:$|[_-])/i);
+    const idPeriod = idPeriodMatch ? Number(idPeriodMatch[1]) : undefined;
+    explicitEntries.push({ date, status, updatedAt, period: period || idPeriod, className: recordClass, docId: record.id });
   }
 
   const timetableWeekdays = new Set<number>();
@@ -174,7 +176,7 @@ export async function GET(request: Request) {
   const today = riyadhDateInput(new Date());
   // The teacher attendance page shows one selected day's roster counts. Expose the same
   // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
-  const attendanceEvents = explicitEntries.filter(entry=>entry.status!=="present").sort((a,b)=>b.date.localeCompare(a.date)||Number(a.period||0)-Number(b.period||0)).map(entry=>{ const weekday=dateObject(entry.date).getUTCDay(); const historical=historicalPeriods.get(`${entry.className||studentClass}|${weekday}`)||[]; const current=timetableLessons.filter(lesson=>lesson.dayIndex===weekday).map(lesson=>lesson.period); const timetablePeriod=entry.period||historical[0]||current[0]; return {date:entry.date,status:entry.status,period:timetablePeriod||null}; });
+  const attendanceEvents = explicitEntries.filter(entry=>entry.status!=="present").sort((a,b)=>b.date.localeCompare(a.date)||Number(a.period||0)-Number(b.period||0)).map(entry=>{ const weekday=dateObject(entry.date).getUTCDay(); const historical=historicalPeriods.get(`${entry.className||studentClass}|${weekday}`)||[]; const current=timetableLessons.filter(lesson=>lesson.dayIndex===weekday).map(lesson=>lesson.period); const candidates=[...new Set([...historical,...current])].sort((a,b)=>a-b); const timetablePeriod=entry.period||(candidates.length===1?candidates[0]:undefined); return {date:entry.date,status:entry.status,period:timetablePeriod||null}; });
   const latestEntry = latestDate ? explicitEntries.filter(entry=>entry.date===latestDate).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0] : undefined;
   const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
   if (latestEntry) latestDayCounts[latestEntry.status] = 1;
