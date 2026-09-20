@@ -120,7 +120,9 @@ export default function ReportsPage() {
     return () => controller.abort();
   }, [teacherId, subjectKey, reportType, attendanceMode, selectedDate, reportFrom, reportTo]);
 
-  const classes = useMemo(() => [...new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+  const rosterClasses = useMemo(() => [...new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
+  const recordedClasses = useMemo(() => [...new Set(attendanceDocs.map(item => String(item.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [attendanceDocs]);
+  const classes = reportType === "attendance" ? recordedClasses : rosterClasses;
   useEffect(() => {
     if (!classes.length) { setSelectedClasses([]); return; }
     setSelectedClasses(current => {
@@ -199,7 +201,9 @@ export default function ReportsPage() {
     const roster = students.filter(student => String(student.className || student.class || "") === className);
     const documents = attendanceDocs.filter(item => item.class === className && item.date && (attendanceMode === "all" || (item.date >= reportFrom && item.date <= reportTo))).sort((a, b) => String(a.date).localeCompare(String(b.date)));
     const days = [...new Set(documents.map(item => String(item.date || "")).filter(Boolean))];
-    const rows: RangeRow[] = roster.map((student, index) => {
+    const codes = [...new Set(documents.flatMap(item => Object.keys(item.records || {})))];
+    const reportRoster = roster.length ? roster : codes.map((code, index) => ({ id: code, code, name: `طالب ${index + 1}`, className } as Student));
+    const rows: RangeRow[] = reportRoster.map((student, index) => {
       const absentDates: string[] = [], lateDates: string[] = [], excusedDates: string[] = [], escapedDates: string[] = [];
       let present = 0;
       documents.forEach(item => {
@@ -354,14 +358,6 @@ export default function ReportsPage() {
       </div>
     </section>
 
-    <section className="sr12-preview">
-      <div className="sr12-paper">
-        <header><div><img src="/icons/lahooni-identity-320.jpg" alt="هوية البوابة"/><span><small>بوابة أستاذ لحوني التعليمية</small><h3>{previewTitle}</h3></span></div><b>معاينة</b></header>
-        <div className="sr12-meta"><span><small>المعلم</small><b>{session.teacherName || "المعلم"}</b></span><span><small>المادة</small><b>{session.subject || "المادة"}</b></span><span><small>الفصول</small><b>{selectedClasses.length}</b></span><span><small>الطلاب</small><b>{selectedStudents.length}</b></span></div>
-        <div className="sr12-preview-info"><b>{reportType === "attendance" ? "يشمل التقرير" : "محتوى التقرير"}</b><span>{reportType === "attendance" ? "أسماء الطلاب، عدد أيام التحضير، الحضور، الغياب وتواريخه، التأخير وتواريخه، الاستئذان وتواريخه، الهروب وتواريخه، ونسبة الحضور." : "أسماء الطلاب، عناصر التقويم، مجموع كل فترة، المجموع الحالي والنسبة."}</span></div>
-        <footer><span>{previewPeriod}</span><b>{readyCount} فصل جاهز</b></footer>
-      </div>
-      <aside className="sr12-actions"><small>الخطوة 3</small><h3>طباعة التقرير</h3><p>{reportType === "attendance" && attendanceMode === "range" ? "كل فصل يخرج في صفحات مكتملة بدون فقد أي طالب، ولكل فصل لون تعريفي مختلف. Excel يضع كل فصل في ورقة مستقلة." : "الطباعة تلتزم بالوحدة أو الفترة التي اخترتها، ويمكن اختيار جميع الفصول دفعة واحدة، وكل فصل يبدأ في صفحة مستقلة."}</p><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "إنشاء PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></aside>
-    </section>
+    <section className="sr12-actions"><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "طباعة / حفظ PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></section>
   </main>;
 }
