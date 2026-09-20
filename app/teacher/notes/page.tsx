@@ -177,8 +177,10 @@ export default function TeacherNotesPage(){
     </section>
 
     {showReport?<section className="nv13-class-report" id="nv13-class-report">
-      <header><div><small>تقرير الملاحظات</small><h2>{reportScope==="all"?"جميع الفصول":className}</h2><p>{session?.subject||"المادة"} • {reportNoteTotal()} ملاحظة</p></div></header>
-      <div>{reportClasses().map(reportClass=><section className="nv13-report-class" key={reportClass}><h2>{reportClass}</h2>{students.filter(student=>student.className===reportClass).map(student=>{const notes=[...(rows.find(row=>row.studentCode===student.code)?.notes||[])].sort((a,b)=>noteTime(b)-noteTime(a));return notes.length?<article key={student.code}><h3>{student.name}<small>{student.code}</small></h3>{notes.map(note=><div key={note.id||`${note.createdAt}-${note.message}`}><span>{note.label||"ملاحظة"} • {arabicDate(note.createdAt)}</span><p>{note.message}</p></div>)}</article>:null})}</section>)}</div>
+      {reportClasses().map(reportClass=>{const reportStudents=students.filter(student=>student.className===reportClass).map(student=>({student,notes:[...(rows.find(row=>row.studentCode===student.code)?.notes||[])].sort((x,y)=>noteTime(y)-noteTime(x))})).filter(item=>item.notes.length);return <section className="nv13-report-class" key={reportClass}>
+        <header><div><small>سجل ملاحظات الطلاب</small><h2>{reportClass}</h2><p>{session?.subject||"المادة"} • الطلاب المسجل لهم ملاحظات: {reportStudents.length}</p></div></header>
+        <table className="nv13-print-table"><thead><tr><th>#</th><th>الطالب</th><th>نوع الملاحظة</th><th>الملاحظة</th><th>التاريخ</th></tr></thead><tbody>{reportStudents.flatMap(({student,notes},studentIndex)=>notes.map((note,noteIndex)=><tr key={note.id||`${student.code}-${note.createdAt}-${noteIndex}`}><td>{studentIndex+1}</td><td><b>{student.name}</b></td><td>{note.label||"ملاحظة"}</td><td>{note.message}</td><td>{arabicDate(note.createdAt)}</td></tr>))}</tbody></table>
+      </section>})}
     </section>:null}
 
     <section className="nv13-layout">
