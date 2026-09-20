@@ -44,7 +44,9 @@ export default function TeacherNotesPage(){
   const [custom,setCustom]=useState("");
   const [search,setSearch]=useState("");
   const [message,setMessage]=useState("");
-  const [busy,setBusy]=useState(false);\n  const [reportScope,setReportScope]=useState<"current"|"all">("current");\n  const [showReport,setShowReport]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [reportScope,setReportScope]=useState<"current"|"all">("current");
+  const [showReport,setShowReport]=useState(false);
   const subjectId=String(session?.subjectKey||"");
   const grade=session?.activeGrade||null;
 
