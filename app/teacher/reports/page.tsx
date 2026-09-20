@@ -319,20 +319,20 @@ export default function ReportsPage() {
 
   return <main className="smart-reports-v12" dir="rtl">
     <section className="sr12-head">
-      <div><small>مركز التقارير الذكي</small><h2>التقرير يبدأ من اختيارك، وليس من زر طباعة</h2><p>حدد نوع التقرير والفصول والفترة. المعاينة تبين لك ما سيدخل في الوثيقة قبل إنشائها، بدون أي تعديل على البيانات المحفوظة.</p></div>
-      <div className="sr12-trust"><b>قراءة فقط</b><span>PDF + Excel</span><span>حتى 31 يوم للحضور</span></div>
+      <div><small>مركز التقارير</small><h2>تقارير المعلم</h2><p>اختر التقرير والفصل والفترة، ثم اطبع التقرير أو احفظه PDF.</p></div>
+      <div className="sr12-trust"><b>طباعة PDF</b><span>تصدير Excel</span><span>صفحة مستقلة لكل فصل</span></div>
     </section>
 
     {message ? <p className="sr12-message">{message}</p> : null}
 
     <section className="sr12-typebar">
-      <button className={reportType === "attendance" ? "active" : ""} onClick={() => setReportType("attendance")}><b>سجل المتابعة</b><small>يومي أو فترة حتى شهر</small></button>
-      <button className={reportType === "grades" ? "active" : ""} onClick={() => setReportType("grades")}><b>التحصيل العلمي</b><small>حسب الوحدة أو الفترة</small></button>
+      <button className={reportType === "attendance" ? "active" : ""} onClick={() => setReportType("attendance")}><b>الحضور والانضباط</b><small>غياب • تأخير • استئذان • هروب</small></button>
+      <button className={reportType === "grades" ? "active" : ""} onClick={() => setReportType("grades")}><b>التحصيل العلمي</b><small>درجات الطلاب حسب الخطة</small></button>
     </section>
 
     <section className="sr12-builder">
       <div className="sr12-panel sr12-classes">
-        <header><div><small>1 • نطاق التقرير</small><h3>الفصول</h3></div><div><button type="button" onClick={chooseAll} className={selectedClasses.length === classes.length && classes.length ? "active" : ""}>جميع الفصول</button><button type="button" onClick={clearAll}>إلغاء</button></div></header>
+        <header><div><small>الخطوة 1</small><h3>اختر الفصل</h3></div><div><button type="button" onClick={chooseAll} className={selectedClasses.length === classes.length && classes.length ? "active" : ""}>جميع الفصول</button><button type="button" onClick={clearAll}>إلغاء</button></div></header>
         <div className="sr12-class-grid">{classes.map(name => {
           const count = students.filter(student => String(student.className || student.class || "") === name).length;
           const selected = selectedClasses.includes(name);
@@ -342,7 +342,7 @@ export default function ReportsPage() {
       </div>
 
       <div className="sr12-panel sr12-details">
-        <header><div><small>2 • تفاصيل التقرير</small><h3>{reportType === "attendance" ? "الفترة" : "الوحدة / الفترة"}</h3></div></header>
+        <header><div><small>الخطوة 2</small><h3>{reportType === "attendance" ? "الفترة" : "الوحدة / الفترة"}</h3></div></header>
         {reportType === "attendance" ? (<>
           <div className="sr12-mode"><button type="button" className={attendanceMode === "range" ? "active" : ""} onClick={() => setAttendanceMode("range")}><b>فترة زمنية</b><small>حتى 31 يومًا</small></button><button type="button" className={attendanceMode === "daily" ? "active" : ""} onClick={() => setAttendanceMode("daily")}><b>يوم واحد</b><small>سجل يومي</small></button></div>
           {attendanceMode === "range" ? <div className="sr12-range"><label><span>من تاريخ</span><input type="date" max={today} value={reportFrom} onChange={event => setFrom(event.target.value)} /></label><label><span>إلى تاريخ</span><input type="date" min={reportFrom} max={reportFrom ? (addDays(reportFrom, 30) < today ? addDays(reportFrom, 30) : today) : today} value={reportTo} onChange={event => setTo(event.target.value)} /></label><div className={rangeValid ? "range-status good" : "range-status bad"}><b>{rangeLength > 0 ? `${rangeLength} يوم` : "—"}</b><small>{rangeValid ? "الفترة صالحة للطباعة" : "الحد الأقصى 31 يومًا"}</small></div></div> : <label className="sr12-single-date"><span>تاريخ المتابعة</span><input type="date" max={today} value={selectedDate} onChange={event => setSelectedDate(event.target.value)} /><small>{hijri(selectedDate)}</small></label>}
@@ -357,10 +357,10 @@ export default function ReportsPage() {
       <div className="sr12-paper">
         <header><div><img src="/icons/lahooni-identity-320.jpg" alt="هوية البوابة"/><span><small>بوابة أستاذ لحوني التعليمية</small><h3>{previewTitle}</h3></span></div><b>معاينة</b></header>
         <div className="sr12-meta"><span><small>المعلم</small><b>{session.teacherName || "المعلم"}</b></span><span><small>المادة</small><b>{session.subject || "المادة"}</b></span><span><small>الفصول</small><b>{selectedClasses.length}</b></span><span><small>الطلاب</small><b>{selectedStudents.length}</b></span></div>
-        <div className="sr12-preview-lines"><i/><i/><i/><i/></div>
+        <div className="sr12-preview-info"><b>{reportType === "attendance" ? "يشمل التقرير" : "محتوى التقرير"}</b><span>{reportType === "attendance" ? "أسماء الطلاب، عدد أيام التحضير، الحضور، الغياب وتواريخه، التأخير وتواريخه، الاستئذان وتواريخه، الهروب وتواريخه، ونسبة الحضور." : "أسماء الطلاب، عناصر التقويم، مجموع كل فترة، المجموع الحالي والنسبة."}</span></div>
         <footer><span>{previewPeriod}</span><b>{readyCount} فصل جاهز</b></footer>
       </div>
-      <aside className="sr12-actions"><small>3 • إنشاء الوثيقة</small><h3>جاهز للطباعة؟</h3><p>{reportType === "attendance" && attendanceMode === "range" ? "كل فصل يخرج في صفحات مكتملة بدون فقد أي طالب، ولكل فصل لون تعريفي مختلف. Excel يضع كل فصل في ورقة مستقلة." : "الطباعة تلتزم بالوحدة أو الفترة التي اخترتها، ويمكن اختيار جميع الفصول دفعة واحدة، وكل فصل يبدأ في صفحة مستقلة."}</p><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "إنشاء PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></aside>
+      <aside className="sr12-actions"><small>الخطوة 3</small><h3>طباعة التقرير</h3><p>{reportType === "attendance" && attendanceMode === "range" ? "كل فصل يخرج في صفحات مكتملة بدون فقد أي طالب، ولكل فصل لون تعريفي مختلف. Excel يضع كل فصل في ورقة مستقلة." : "الطباعة تلتزم بالوحدة أو الفترة التي اخترتها، ويمكن اختيار جميع الفصول دفعة واحدة، وكل فصل يبدأ في صفحة مستقلة."}</p><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "إنشاء PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></aside>
     </section>
   </main>;
 }
