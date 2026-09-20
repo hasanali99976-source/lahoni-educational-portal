@@ -4,7 +4,7 @@ import { hashPassword } from "../../../../lib/server/password";
 import { normalizeUsername, requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
-const ADMIN_TEACHERS_CACHE_TTL_MS = 60 * 60 * 1000;
+const ADMIN_TEACHERS_CACHE_TTL_MS = 30 * 1000;
 type AdminTeacherRow = { id: string; username: unknown; name: string; active: unknown; subjectIds: string[]; assignments: ReturnType<typeof normalizeAssignments>; createdAt: unknown };
 let teacherListCache: { teachers: AdminTeacherRow[]; expiresAt: number } | null = null;
 let teacherListInflight: Promise<AdminTeacherRow[]> | null = null;
@@ -58,7 +58,7 @@ export async function GET() {
 
   try {
     const teachers = await loadTeacherList();
-    return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "private, max-age=300, stale-while-revalidate=3300" } });
+    return NextResponse.json({ ok: true, teachers }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.warn("admin teacher list temporarily unavailable", error);
     return NextResponse.json({
