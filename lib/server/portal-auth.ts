@@ -48,14 +48,13 @@ export async function requireSession(role?: PortalRole): Promise<VerifiedPortalS
     if (!fallbackUser?.active) return null;
     return { ...session, name: fallbackUser.name, user: fallbackUser };
   }
-  const snapshot = session.userSnapshot;
-  if (snapshot && snapshot.id === session.userId && snapshot.role === "teacher" && snapshot.active && snapshot.updatedAt === session.authVersion) {
-    const user: PortalUser = { ...snapshot, passwordHash: "" };
-    return { ...session, name: user.name, user };
-  }
-  const user = await findUserByIdCached(session.userId);
+  // Teacher assignments can be changed by administration while the teacher is
+  // already signed in. Always read the current teacher record so assignment
+  // changes are reflected immediately instead of serving the signed snapshot.
+  const user = await findUserById(session.userId);
   if (!user || !user.active || user.role !== session.role) return null;
-  if (!user.updatedAt || user.updatedAt !== session.authVersion) return null;
+  // Keep the authenticated session valid after an administrative assignment
+  // edit. Password/account activation are still enforced by the live record.
   return { ...session, name: user.name, user };
 }
 export function normalizeUsername(value: string) { return value.trim().toLocaleLowerCase("ar").replace(/\s+/g, " "); }
