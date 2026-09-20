@@ -97,16 +97,23 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <span><small>بوابة أستاذ لحوني التعليمية</small><b>بوابة المعلم</b></span>
         </Link>
         <div className="tss-profile"><div className="tss-profile-avatar">م</div><div><small>مرحبًا بك</small><strong>{teacherName}</strong><span>مساحة المعلم</span></div></div>
-        <div className="tss-subject">
-          <i>{subjectConfig.shortMark}</i>
-          {subjects.length>1?<span><small>المادة الحالية</small><select aria-label="تغيير المادة أو المرحلة" value={workspaceKey} onChange={e=>void changeSubject(e.target.value)} disabled={switchingSubject}>{subjects.map(subject=><option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel?` — ${subject.gradeLabel}`:""}</option>)}</select><em>{activeGradeLabel||"المرحلة المسندة"}</em></span>:<span><small>المادة الحالية</small><b>{subjectName}</b><em>{activeGradeLabel||"المرحلة المسندة"}</em></span>}
-        </div>
+
         <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
         <footer className="tss-footer"><span>بالعلم .. نصنع المستقبل</span><Link prefetch={false} href="/">العودة للرئيسية</Link><button type="button" onClick={logout}>تسجيل الخروج</button></footer>
       </aside>
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
-        <header className="tss-head"><div><small>بوابة المعلم / {subjectName}</small><h1>{currentTab?.label||"بوابة المعلم"}</h1><p>{currentTab?.note||activeGradeLabel||"مساحة العمل التعليمية"}</p></div><div className="tss-head-actions"><span>{todayLabel}</span><button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button><button type="button" onClick={()=>speakTeacherWelcome()}>🔊 الترحيب</button>{hasGradePlan?<Link prefetch={false} href="/teacher/grade-plan">الخطة جاهزة</Link>:<Link prefetch={false} href="/teacher/grade-plan">إعداد الخطة</Link>}</div></header>
+        <header className="tss-head">
+          <div className="tss-teacher-identity"><div className="tss-identity-mark">م</div><div><small>هوية المعلم</small><h1>{teacherName}</h1><p>{subjectName}{activeGradeLabel?` — ${activeGradeLabel}`:""}</p></div></div>
+          <div className="tss-head-center"><small>بوابة المعلم / {subjectName}</small><strong>{currentTab?.label||"بوابة المعلم"}</strong><span>{currentTab?.note||"مساحة العمل التعليمية"}</span></div>
+          <div className="tss-head-actions">
+            <span>{todayLabel}</span>
+            {subjects.length>1?<label className="tss-top-subject"><small>تغيير المادة</small><select aria-label="تغيير المادة أو المرحلة" value={workspaceKey} onChange={e=>void changeSubject(e.target.value)} disabled={switchingSubject}>{subjects.map(subject=><option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel?` — ${subject.gradeLabel}`:""}</option>)}</select></label>:null}
+            <button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button>
+            <button type="button" onClick={()=>speakTeacherWelcome()}>🔊 الترحيب</button>
+            {hasGradePlan?<Link prefetch={false} href="/teacher/grade-plan">الخطة جاهزة</Link>:<Link prefetch={false} href="/teacher/grade-plan">إعداد الخطة</Link>}
+          </div>
+        </header>
         <div className="tss-content">{children}</div>
       </main>
     </div>
