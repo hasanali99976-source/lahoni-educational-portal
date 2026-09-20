@@ -63,9 +63,14 @@ export async function GET(request: Request) {
   } else {
     const from = String(url.searchParams.get("from") || "");
     const to = String(url.searchParams.get("to") || "");
-    if (!validDate(from) || !validDate(to) || from > to || inclusiveDays(from, to) > 31) return NextResponse.json({ ok: false, message: "فترة التقرير غير صحيحة أو تتجاوز 31 يومًا." }, { status: 400 });
-    query = collection.where("date", ">=", from).where("date", "<=", to);
-    cacheKey += `:${from}:${to}`;
+    const all = url.searchParams.get("all") === "1";
+    if (all) {
+      cacheKey += ":all";
+    } else {
+      if (!validDate(from) || !validDate(to) || from > to || inclusiveDays(from, to) > 31) return NextResponse.json({ ok: false, message: "فترة التقرير غير صحيحة أو تتجاوز 31 يومًا." }, { status: 400 });
+      query = collection.where("date", ">=", from).where("date", "<=", to);
+      cacheKey += `:${from}:${to}`;
+    }
   }
   try {
     const attendance = await readReport(cacheKey, query);
