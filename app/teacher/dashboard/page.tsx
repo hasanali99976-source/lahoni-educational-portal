@@ -7,7 +7,11 @@ import "./dashboard-v11.css";
 
 type Lesson={subject?:string;className?:string;notes?:string};
 type Schedule=Record<string,Lesson>;
-const DAY_KEYS=["sunday","monday","tuesday","wednesday","thursday"];\nconst TIMETABLE_CACHE_TTL_MS=5*60*1000;\nconst timetableCache=new Map<string,{expiresAt:number;schedule:Schedule}>();\nconst timetableInflight=new Map<string,Promise<Schedule>>();\nasync function loadTimetableOnce(key:string,url:string,signal:AbortSignal){const cached=timetableCache.get(key);if(cached&&cached.expiresAt>Date.now())return cached.schedule;const existing=timetableInflight.get(key);if(existing)return existing;const pending=fetch(url,{signal,cache:"no-store",credentials:"same-origin"}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok||!d.lessons||typeof d.lessons!=="object")return{} as Schedule;const schedule=d.lessons as Schedule;timetableCache.set(key,{expiresAt:Date.now()+TIMETABLE_CACHE_TTL_MS,schedule});return schedule}).finally(()=>timetableInflight.delete(key));timetableInflight.set(key,pending);return pending;}
+const DAY_KEYS=["sunday","monday","tuesday","wednesday","thursday"];
+const TIMETABLE_CACHE_TTL_MS=5*60*1000;
+const timetableCache=new Map<string,{expiresAt:number;schedule:Schedule}>();
+const timetableInflight=new Map<string,Promise<Schedule>>();
+async function loadTimetableOnce(key:string,url:string,signal:AbortSignal){const cached=timetableCache.get(key);if(cached&&cached.expiresAt>Date.now())return cached.schedule;const existing=timetableInflight.get(key);if(existing)return existing;const pending=fetch(url,{signal,cache:"no-store",credentials:"same-origin"}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok||!d.lessons||typeof d.lessons!=="object")return{} as Schedule;const schedule=d.lessons as Schedule;timetableCache.set(key,{expiresAt:Date.now()+TIMETABLE_CACHE_TTL_MS,schedule});return schedule}).finally(()=>timetableInflight.delete(key));timetableInflight.set(key,pending);return pending;}
 function dateLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(value)}
 function timeLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"}).format(value)}
 function riyadhDay(){return new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",weekday:"long"}).format(new Date()).toLowerCase()}
