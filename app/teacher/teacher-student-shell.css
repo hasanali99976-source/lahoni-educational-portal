@@ -1,0 +1,56 @@
+/* Teacher shell — native student-inspired visual system.
+   This file owns shell appearance only. No teacher routes, tabs, data, linking or APIs. */
+
+.teacher-student-shell{
+  --rail:252px;
+  --ink:#fff7e4;
+  --muted:#b9cfd3;
+  --gold:#efcb73;
+  min-height:100dvh;
+  padding-right:calc(var(--rail) + 18px);
+  color:#fff;
+  background:
+    linear-gradient(180deg,rgba(3,18,29,.35),rgba(4,26,39,.24) 35%,rgba(3,20,31,.38) 70%,rgba(3,16,27,.72)),
+    radial-gradient(circle at 52% 15%,rgba(255,220,140,.18),transparent 38%),
+    #061923;
+  font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif;
+}
+.teacher-student-shell *{box-sizing:border-box}
+.tss-sidebar{
+  position:fixed;z-index:220;right:9px;top:9px;bottom:9px;width:var(--rail);
+  display:flex;flex-direction:column;padding:9px;border:1px solid rgba(255,255,255,.13);
+  border-radius:26px;background:linear-gradient(155deg,rgba(3,26,40,.97),rgba(7,68,75,.91));
+  box-shadow:0 28px 70px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.08);
+  backdrop-filter:blur(18px) saturate(1.2);overflow:auto
+}
+.tss-brand{display:flex;align-items:center;gap:9px;padding:5px 5px 11px;border-bottom:1px solid rgba(255,255,255,.08);color:#fff;text-decoration:none}
+.tss-brand img{width:40px;height:40px;border-radius:13px;border:1px solid rgba(239,199,105,.66)}
+.tss-brand span,.tss-profile>div:last-child,.tss-subject span{display:grid;min-width:0}
+.tss-brand small,.tss-profile small,.tss-subject small{font-size:7px;color:#c9dade}
+.tss-brand b{font-size:11px;color:#fff5df}.tss-profile{display:flex;align-items:center;gap:10px;padding:13px 6px 10px}
+.tss-profile-avatar{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,#f1cc75,#bf8530);color:#173741;font-size:17px;font-weight:900;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.tss-profile strong{font-size:12px;color:#fff7e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tss-profile span{font-size:7.5px;color:var(--gold)}
+.tss-subject{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:8px;width:100%;padding:9px;border:1px solid rgba(239,199,105,.20);border-radius:14px;background:linear-gradient(110deg,rgba(239,199,105,.13),rgba(255,255,255,.05));color:#fff}
+.tss-subject>i{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.08);font-style:normal;font-size:13px;font-weight:900}
+.tss-subject b{font-size:9.5px;color:#fff5dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tss-subject em{font-size:6.8px;color:var(--gold);font-style:normal}
+.tss-subject select{width:100%;border:0;outline:0;background:transparent;color:#fff5dc;font:800 9px inherit}.tss-subject option{color:#173741;background:#fff}
+.tss-nav{display:grid;gap:5px;margin-top:10px}.tss-nav a{display:grid;grid-template-columns:31px minmax(0,1fr);align-items:center;gap:8px;min-height:45px;padding:6px 8px;border:1px solid transparent;border-radius:12px;background:transparent;color:#cad9dc;text-decoration:none;transition:.22s}
+.tss-nav a svg{width:18px;height:18px;margin:auto}.tss-nav a span{display:grid;min-width:0}.tss-nav a b{font-size:9.8px;color:inherit}.tss-nav a small{font-size:6.5px;color:#9fb4b9}.tss-nav a:hover{background:rgba(255,255,255,.05)}
+.tss-nav a.active{background:linear-gradient(100deg,rgba(239,199,105,.22),rgba(255,255,255,.06));border-color:rgba(239,199,105,.24);color:#fff6e0}.tss-nav a.active svg{color:#f0ce78}.tss-nav a.active small{color:#e2d6b2}
+.tss-footer{display:grid;gap:7px;margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.tss-footer span{text-align:center;font-size:6.8px;color:#a9c0c4}.tss-footer button,.tss-footer a{min-height:34px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.04);color:#d2dfe1;font:700 7.8px inherit;text-decoration:none;cursor:pointer}
+.tss-main{min-width:0;padding:9px 10px 25px}.tss-head{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:72px;padding:10px 14px;margin-bottom:10px;border:1px solid rgba(255,255,255,.12);border-radius:19px;background:linear-gradient(115deg,rgba(5,42,56,.76),rgba(9,90,91,.43));box-shadow:0 18px 40px rgba(0,0,0,.14);backdrop-filter:blur(16px)}
+.tss-head small{display:block;font-size:7.5px;color:var(--gold)}.tss-head h1{margin:1px 0;font-size:18px;color:#fff8e8}.tss-head p{margin:0;font-size:7.5px;color:#c3d5d8}.tss-head-actions{display:flex;align-items:center;gap:7px}.tss-head-actions button,.tss-head-actions a{padding:7px 10px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:rgba(255,255,255,.06);color:var(--gold);font:800 7.5px inherit;text-decoration:none;cursor:pointer}
+.tss-content{width:100%;min-width:0;padding:2px}.tss-content>*{max-width:100%;box-sizing:border-box}
+.tss-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card){border-radius:18px!important;box-shadow:0 16px 34px rgba(0,0,0,.10)!important}
+.tss-mobile-menu{display:none}
+
+@media(max-width:980px){
+ .teacher-student-shell{padding:10px;min-height:100dvh}
+ .tss-sidebar{display:none}.tss-main{padding:0}.tss-head{min-height:64px}
+ .tss-mobile-menu{display:inline-flex!important}.tss-sidebar.open{display:flex;right:9px;width:min(300px,calc(100vw - 18px));z-index:400}
+ .tss-backdrop{display:none}.tss-sidebar.open+.tss-backdrop{display:block;position:fixed;inset:0;z-index:390;background:rgba(0,0,0,.45)}
+}
+@media(max-width:600px){
+ .teacher-student-shell{padding:7px}.tss-head{align-items:flex-start;flex-direction:column}.tss-head-actions{width:100%;justify-content:space-between}
+}
