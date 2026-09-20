@@ -109,7 +109,7 @@ export async function GET(request: Request) {
 
   // Recover old and current attendance records using every known student identifier.
   // This reads the existing records in place; it does not rename, migrate or delete attendance data.
-  const explicitByDate = new Map<string, AttendanceEntry>();
+  const explicitEntries: Array<{date:string;status:AttendanceStatus;updatedAt:string;period?:number}> = [];
   for (const record of attendance.docs) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
@@ -127,10 +127,9 @@ export async function GET(request: Request) {
     }
     if (!validStatus(status)) continue;
     const updatedAt = typeof data.updatedAt === "string" ? data.updatedAt : "";
-    const existing = explicitByDate.get(date);
     const rawPeriod = Number(data.period || data.lesson || data.periodNumber || 0);
     const period = Number.isFinite(rawPeriod) && rawPeriod > 0 ? rawPeriod : undefined;
-    if (!existing || updatedAt >= existing.updatedAt) explicitByDate.set(date, { status, updatedAt, period });
+    explicitEntries.push({ date, status, updatedAt, period });
   }
 
   const timetableWeekdays = new Set<number>();
@@ -153,12 +152,12 @@ export async function GET(request: Request) {
   const counts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0 };
   let latestDate = "";
   const automaticPresent = 0;
-  explicitByDate.forEach((entry, date) => { counts[entry.status] += 1; counts.total += 1; if (date > latestDate) latestDate = date; });
+  explicitEntries.forEach(entry => { counts[entry.status] += 1; counts.total += 1; if (entry.date > latestDate) latestDate = entry.date; });
   const today = riyadhDateInput(new Date());
   // The teacher attendance page shows one selected day's roster counts. Expose the same
   // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
-  const attendanceEvents = [...explicitByDate.entries()].filter(([,entry])=>entry.status!=="present").sort((a,b)=>b[0].localeCompare(a[0])).map(([date,entry])=>{ const weekday=dateObject(date).getUTCDay(); const timetablePeriod=timetableLessons.find(lesson=>lesson.dayIndex===weekday)?.period; return {date,status:entry.status,period:entry.period||timetablePeriod||null}; });
-  const latestEntry = latestDate ? explicitByDate.get(latestDate) : undefined;
+  const attendanceEvents = explicitEntries.filter(entry=>entry.status!=="present").sort((a,b)=>b.date.localeCompare(a.date)||Number(a.period||0)-Number(b.period||0)).map(entry=>{ const weekday=dateObject(entry.date).getUTCDay(); const sameDay=timetableLessons.filter(lesson=>lesson.dayIndex===weekday); const timetablePeriod=entry.period||sameDay[0]?.period; return {date:entry.date,status:entry.status,period:timetablePeriod||null}; });
+  const latestEntry = latestDate ? explicitEntries.filter(entry=>entry.date===latestDate).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0] : undefined;
   const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
   if (latestEntry) latestDayCounts[latestEntry.status] = 1;
   const disciplineRate = counts.total ? Math.max(0, Math.round(((counts.present + counts.excused + counts.late * 0.5) / counts.total) * 100)) : 100;
