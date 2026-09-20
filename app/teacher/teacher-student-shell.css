@@ -19,9 +19,9 @@
 .tss-sidebar{
   position:fixed;z-index:220;right:9px;top:9px;bottom:9px;width:var(--rail);
   display:flex;flex-direction:column;padding:9px;border:1px solid rgba(255,255,255,.13);
-  border-radius:26px;background:linear-gradient(155deg,rgba(3,26,40,.97),rgba(7,68,75,.91));
-  box-shadow:0 28px 70px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.08);
-  backdrop-filter:blur(18px) saturate(1.2);overflow:auto
+  border-radius:26px;background:rgba(4,35,47,.22);
+  box-shadow:none;
+  backdrop-filter:none;overflow:auto
 }
 .tss-brand{display:flex;align-items:center;gap:9px;padding:5px 5px 11px;border-bottom:1px solid rgba(255,255,255,.08);color:#fff;text-decoration:none}
 .tss-brand img{width:40px;height:40px;border-radius:13px;border:1px solid rgba(239,199,105,.66)}
@@ -34,13 +34,13 @@
 .tss-subject>i{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.08);font-style:normal;font-size:13px;font-weight:900}
 .tss-subject b{font-size:9.5px;color:#fff5dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tss-subject em{font-size:6.8px;color:var(--gold);font-style:normal}
 .tss-subject select{width:100%;border:0;outline:0;background:transparent;color:#fff5dc;font:800 9px inherit}.tss-subject option{color:#173741;background:#fff}
-.tss-nav{display:grid;gap:5px;margin-top:10px}.tss-nav a{display:grid;grid-template-columns:31px minmax(0,1fr);align-items:center;gap:8px;min-height:45px;padding:6px 8px;border:1px solid transparent;border-radius:12px;background:transparent;color:#cad9dc;text-decoration:none;transition:.22s}
-.tss-nav a svg{width:18px;height:18px;margin:auto}.tss-nav a span{display:grid;min-width:0}.tss-nav a b{font-size:9.8px;color:inherit}.tss-nav a small{font-size:6.5px;color:#9fb4b9}.tss-nav a:hover{background:rgba(255,255,255,.05)}
-.tss-nav a.active{background:linear-gradient(100deg,rgba(239,199,105,.22),rgba(255,255,255,.06));border-color:rgba(239,199,105,.24);color:#fff6e0}.tss-nav a.active svg{color:#f0ce78}.tss-nav a.active small{color:#e2d6b2}
+.tss-nav{display:grid;gap:6px;margin-top:10px}.tss-nav a{display:grid;grid-template-columns:31px minmax(0,1fr);align-items:center;gap:8px;min-height:45px;padding:6px 8px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(13,116,144,.18);color:#fff;text-decoration:none;transition:.22s}
+.tss-nav a svg{width:18px;height:18px;margin:auto}.tss-nav a span{display:grid;min-width:0}.tss-nav a b{font-size:10.5px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55)}.tss-nav a small{font-size:7px;font-weight:700;color:#eef7f8;text-shadow:0 1px 3px rgba(0,0,0,.55)}.tss-nav a:nth-child(2n){background:rgba(24,148,121,.18)}.tss-nav a:nth-child(3n){background:rgba(183,132,45,.18)}.tss-nav a:nth-child(4n){background:rgba(112,87,176,.18)}.tss-nav a:hover{background:rgba(255,255,255,.13)}
+.tss-nav a.active{background:rgba(224,178,75,.30);border-color:rgba(245,207,116,.58);color:#fff}.tss-nav a.active svg{color:#ffe39a}.tss-nav a.active small{color:#fff7df}
 .tss-footer{display:grid;gap:7px;margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
 .tss-footer span{text-align:center;font-size:6.8px;color:#a9c0c4}.tss-footer button,.tss-footer a{min-height:34px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.04);color:#d2dfe1;font:700 7.8px inherit;text-decoration:none;cursor:pointer}
-.tss-main{min-width:0;padding:9px 10px 25px;background:transparent}.tss-head{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:72px;padding:10px 14px;margin-bottom:10px;border:1px solid rgba(255,255,255,.12);border-radius:19px;background:linear-gradient(115deg,rgba(5,42,56,.76),rgba(9,90,91,.43));box-shadow:0 18px 40px rgba(0,0,0,.14);backdrop-filter:blur(16px)}
-.tss-head small{display:block;font-size:7.5px;color:var(--gold)}.tss-head h1{margin:1px 0;font-size:18px;color:#fff8e8}.tss-head p{margin:0;font-size:7.5px;color:#c3d5d8}
+.tss-main{min-width:0;padding:9px 10px 25px;background:transparent}.tss-head{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:72px;padding:10px 14px;margin-bottom:10px;border:1px solid rgba(255,255,255,.12);border-radius:19px;background:rgba(5,42,56,.22);box-shadow:none;backdrop-filter:none}
+.tss-head small{display:block;font-size:8px;font-weight:800;color:#f5d78c}.tss-head h1{margin:1px 0;font-size:18px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)}.tss-head p{margin:0;font-size:8px;font-weight:700;color:#edf6f7}
 .tss-teacher-identity{display:flex;align-items:center;gap:10px;min-width:210px}.tss-identity-mark{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#f1cc75,#bf8530);color:#173741;font-size:17px;font-weight:900;box-shadow:0 10px 24px rgba(0,0,0,.18)}.tss-teacher-identity h1{font-size:14px}.tss-teacher-identity p{color:#e5eef0}.tss-head-center{display:grid;text-align:center}.tss-head-center strong{font-size:13px;color:#fff8e8}.tss-head-center span{font-size:7px;color:#c3d5d8}
 .tss-top-subject{display:grid;gap:2px;padding:5px 8px;border:1px solid rgba(239,199,105,.20);border-radius:11px;background:rgba(255,255,255,.055)}.tss-top-subject small{font-size:6px}.tss-top-subject select{min-width:150px;max-width:230px;border:0;outline:0;background:transparent;color:#fff6df;font:800 8px inherit}.tss-top-subject option{color:#173741;background:#fff}.tss-head-actions{display:flex;align-items:center;gap:7px}.tss-head-actions button,.tss-head-actions a{padding:7px 10px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:rgba(255,255,255,.06);color:var(--gold);font:800 7.5px inherit;text-decoration:none;cursor:pointer}
 .tss-content{width:100%;min-width:0;padding:2px;background:transparent}.tss-content>*{max-width:100%;box-sizing:border-box}
@@ -56,47 +56,3 @@
 @media(max-width:600px){
  .teacher-student-shell{padding:7px}.tss-head{align-items:flex-start;flex-direction:column}.tss-head-actions{width:100%;justify-content:space-between}
 }
-
-
-/* Teacher content is one visual plane with the portal background */
-.tss-content{
-  color:#f7fbfc;
-}
-.tss-content :where(h1,h2,h3,h4,h5,strong,b,label,legend){
-  color:#fffaf0 !important;
-  opacity:1 !important;
-  text-shadow:0 2px 5px rgba(0,0,0,.38);
-}
-.tss-content :where(p,span,small,li,td){
-  color:#e8f1f3;
-  opacity:1;
-}
-.tss-content :where(.card,.panel,.section,.box,.stat-card,.dashboard-card,.teacher-card,.report-card,.student-card,.content-card,.table-card,.workspace-card){
-  background:rgba(4,31,43,.22) !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  box-shadow:none !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
-}
-.tss-content :where(.tabs,.tab-list,.nav-tabs,.segmented,.filters,.toolbar){
-  background:transparent !important;
-  border-color:rgba(255,255,255,.12) !important;
-  box-shadow:none !important;
-}
-.tss-content :where(.tab,.tab-button,[role="tab"],.filter-button){
-  background:rgba(4,34,46,.34) !important;
-  border:1px solid rgba(255,255,255,.13) !important;
-  color:#fff !important;
-  font-weight:800 !important;
-  opacity:1 !important;
-  text-shadow:0 2px 4px rgba(0,0,0,.42);
-}
-.tss-content :where(.tab.active,.tab-button.active,[role="tab"][aria-selected="true"],.filter-button.active){
-  background:rgba(213,171,77,.26) !important;
-  border-color:rgba(239,199,105,.58) !important;
-  color:#fff8e7 !important;
-}
-.tss-content :where(table){background:transparent !important}
-.tss-content :where(th){background:rgba(5,45,58,.52) !important;color:#fffaf0 !important}
-.tss-content :where(td){background:rgba(4,31,43,.18) !important;color:#f0f6f7 !important}
-.tss-content :where(input,select,textarea){background:rgba(255,255,255,.94);color:#173741;border-color:rgba(230,201,132,.36)}
