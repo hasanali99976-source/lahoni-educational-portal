@@ -344,13 +344,13 @@ export default function ReportsPage() {
 
       <div className="sr12-panel sr12-details">
         <header><div><small>2 • تفاصيل التقرير</small><h3>{reportType === "attendance" ? "الفترة" : "الوحدة / الفترة"}</h3></div></header>
-        {reportType === "attendance" ? <>
+        {reportType === "attendance" ? (<>
           <div className="sr12-mode"><button type="button" className={attendanceMode === "range" ? "active" : ""} onClick={() => setAttendanceMode("range")}><b>فترة زمنية</b><small>حتى 31 يومًا</small></button><button type="button" className={attendanceMode === "daily" ? "active" : ""} onClick={() => setAttendanceMode("daily")}><b>يوم واحد</b><small>سجل يومي</small></button></div>
           {attendanceMode === "range" ? <div className="sr12-range"><label><span>من تاريخ</span><input type="date" max={today} value={reportFrom} onChange={event => setFrom(event.target.value)} /></label><label><span>إلى تاريخ</span><input type="date" min={reportFrom} max={reportFrom ? (addDays(reportFrom, 30) < today ? addDays(reportFrom, 30) : today) : today} value={reportTo} onChange={event => setTo(event.target.value)} /></label><div className={rangeValid ? "range-status good" : "range-status bad"}><b>{rangeLength > 0 ? `${rangeLength} يوم` : "—"}</b><small>{rangeValid ? "الفترة صالحة للطباعة" : "الحد الأقصى 31 يومًا"}</small></div></div> : <label className="sr12-single-date"><span>تاريخ المتابعة</span><input type="date" max={today} value={selectedDate} onChange={event => setSelectedDate(event.target.value)} /><small>{hijri(selectedDate)}</small></label>}
           {unsavedClasses.length ? <p className="sr12-warning">{unsavedClasses.length} من الفصول المختارة لا تحتوي سجلات محفوظة في النطاق الحالي، ولن تدخل في PDF حتى يوجد لها سجل.</p> : <p className="sr12-ok">كل الفصول المختارة لديها بيانات في النطاق الحالي.</p>}
-        </> : <>
+        </>) : (<>
           {planLoading ? <p>جارٍ تحميل الخطة…</p> : !activePlan ? <div className="sr12-warning-box"><b>لا توجد خطة درجات معتمدة</b><span>اعتمد الخطة أولًا ولن تتأثر أي درجات محفوظة.</span><Link href="/teacher/grade-plan">فتح الخطة الدراسية</Link></div> : <div className="sr12-section-grid"><button type="button" className={selectedSection === "all" ? "active" : ""} onClick={() => setSelectedSection("all")}><b>التقرير الكامل</b><small>جميع الوحدات / الفترات</small></button>{activePlan.sections.map(section => <button type="button" key={section.id} className={selectedSection === section.id ? "active" : ""} onClick={() => setSelectedSection(section.id)}><b>{section.label}</b><small>{section.max} درجة • {section.items.length} عناصر</small></button>)}</div>}
-        </>}
+        </>)}
       </div>
     </section>
 
