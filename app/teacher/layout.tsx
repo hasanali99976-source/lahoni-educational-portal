@@ -108,7 +108,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <div className="tss-head-center"><small>بوابة المعلم / {subjectName}</small><strong>{currentTab?.label||"بوابة المعلم"}</strong><span>{currentTab?.note||"مساحة العمل التعليمية"}</span></div>
           <div className="tss-head-actions">
             <span>{todayLabel}</span>
-            {subjects.length>1?<label className="tss-top-subject"><small>تغيير المادة</small><select aria-label="تغيير المادة أو المرحلة" value={workspaceKey} onChange={e=>void changeSubject(e.target.value)} disabled={switchingSubject}>{subjects.map(subject=><option key={subject.workspaceKey} value={subject.workspaceKey}>{subject.subjectName}{subject.gradeLabel?` — ${subject.gradeLabel}`:""}</option>)}</select></label>:null}
+            
             <button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button>
             <button type="button" onClick={()=>speakTeacherWelcome()}>🔊 الترحيب</button>
             {hasGradePlan?<Link prefetch={false} href="/teacher/grade-plan">الخطة جاهزة</Link>:<Link prefetch={false} href="/teacher/grade-plan">إعداد الخطة</Link>}
