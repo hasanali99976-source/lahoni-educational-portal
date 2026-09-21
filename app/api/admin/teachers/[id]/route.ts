@@ -65,8 +65,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     update.normalizedUsername = normalizeUsername(body.name);
   }
   let normalizedAssignments: ReturnType<typeof normalizeAssignments> | null = null;
-  if (Array.isArray(body.assignments) && body.assignments.length) {
+  if (Array.isArray(body.assignments)) {
     normalizedAssignments = normalizeAssignments(body.assignments);
+    if (!normalizedAssignments.length) return NextResponse.json({ ok: false, message: "لا يمكن حفظ المعلم بدون إسناد مادة. أعد اختيار المادة والفصول ثم احفظ." }, { status: 400 });
     update.assignments = normalizedAssignments;
     update.subjectIds = [...new Set(normalizedAssignments.map(item => item.subjectId))];
   }
