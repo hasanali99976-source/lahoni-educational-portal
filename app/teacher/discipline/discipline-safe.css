@@ -201,3 +201,19 @@ body *{visibility:hidden!important}
 .discipline-safe .discipline-report-table td:nth-child(2) b{font-size:7pt!important;font-weight:800!important}.discipline-safe .discipline-report-table td:nth-child(3){font-size:6.25pt!important;font-weight:800!important}
 .discipline-safe .print-signatures,.discipline-safe .print-signatures b,.discipline-safe .print-signatures small{font-family:Arial,Tahoma,sans-serif!important;text-shadow:none!important}
 }
+
+
+/* official compact report composition */
+@media print{
+.discipline-safe .discipline-print{grid-template-rows:auto auto minmax(0,1fr) auto auto!important}
+.discipline-safe .print-cover-head{min-height:25mm!important;padding:2mm 3mm 3.5mm!important;border-bottom:2px solid #0b6570!important}
+.discipline-safe .print-brand{gap:3mm!important}.discipline-safe .print-brand img{width:17mm!important;height:17mm!important}.discipline-safe .print-brand div{display:flex!important;flex-direction:column!important;gap:.5mm!important}.discipline-safe .print-brand small{font-size:7pt!important;font-weight:800!important;color:#0f5964!important;opacity:1!important}.discipline-safe .print-brand strong{font-size:10.5pt!important;font-weight:900!important;color:#143f49!important}.discipline-safe .print-brand em{font-style:normal!important;font-size:5.3pt!important;font-weight:700!important;color:#9a7928!important}
+.discipline-safe .print-report-title span{font-size:6.2pt!important}.discipline-safe .print-report-title h1{font-size:16.5pt!important;font-weight:900!important;color:#103c47!important}.discipline-safe .print-report-title p{font-size:7pt!important;font-weight:800!important;color:#687d82!important;opacity:1!important}
+.discipline-safe .print-meta span{font-size:5.8pt!important;font-weight:700!important;color:#6c8085!important}.discipline-safe .print-meta b{font-size:6.8pt!important;font-weight:900!important;color:#173f49!important}
+.discipline-safe .print-summary{margin:2.5mm 1mm 2.6mm!important}
+.discipline-safe .print-class-page{justify-content:flex-start!important;height:auto!important;align-self:start!important;margin:0!important;padding:0 1mm!important}
+.discipline-safe .print-section-title{margin:0 0 1.5mm!important;padding:1.5mm 2.5mm!important;min-height:9mm!important;box-sizing:border-box!important}
+.discipline-safe .discipline-report-table{margin:0!important}
+.discipline-safe .print-signatures{position:absolute!important;right:11mm!important;left:11mm!important;bottom:11mm!important;margin:0!important;background:#fff!important}
+.discipline-safe .discipline-print>footer{position:absolute!important;right:11mm!important;left:11mm!important;bottom:5.5mm!important;margin:0!important;background:#fff!important}
+}
