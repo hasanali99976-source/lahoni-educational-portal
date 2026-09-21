@@ -97,7 +97,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={40} height={40} priority/>
           <span><small>بوابة أستاذ لحوني التعليمية</small><b>بوابة المعلم</b></span>
         </Link>
-        <div className="tss-profile"><div className="tss-profile-avatar" aria-label="هوية المعلم"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="24" r="12" fill="currentColor"/><path d="M15 58c1-14 8-22 17-22s16 8 17 22H15Z" fill="currentColor"/><path d="M20 17c4-9 20-12 27-2l-4 7c-6-4-16-5-23-1v-4Z" fill="#fff"/><path d="M18 18c8-7 22-8 30-1" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round"/></svg></div><div><small>مرحبًا بك</small><strong>{teacherName}</strong><span>مساحة المعلم</span></div></div>
+        <div className="tss-profile"><div className="tss-saudi-avatar" aria-label="هوية المعلم السعودي"><span className="tss-saudi-head"><i className="tss-saudi-ghutra"/><i className="tss-saudi-face"/><i className="tss-saudi-agal"/></span><span className="tss-saudi-body"/></div><div><small>مرحبًا بك</small><strong>{teacherName}</strong><span>مساحة المعلم</span></div></div>
 
         <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
         <footer className="tss-footer"><span>بالعلم .. نصنع المستقبل</span><Link prefetch={false} href="/">العودة للرئيسية</Link><button type="button" onClick={logout}>تسجيل الخروج</button></footer>
@@ -105,7 +105,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
         <header className="tss-head">
-          <div className="tss-teacher-identity"><div className="tss-identity-mark" aria-label="هوية المعلم"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="24" r="12" fill="currentColor"/><path d="M15 58c1-14 8-22 17-22s16 8 17 22H15Z" fill="currentColor"/><path d="M20 17c4-9 20-12 27-2l-4 7c-6-4-16-5-23-1v-4Z" fill="#fff"/><path d="M18 18c8-7 22-8 30-1" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round"/></svg></div><div><small>هوية المعلم</small><h1>{teacherName}</h1><p>{subjectName}{activeGradeLabel?` — ${activeGradeLabel}`:""}</p></div></div>
+          <div className="tss-teacher-identity"><div className="tss-saudi-avatar" aria-label="هوية المعلم السعودي"><span className="tss-saudi-head"><i className="tss-saudi-ghutra"/><i className="tss-saudi-face"/><i className="tss-saudi-agal"/></span><span className="tss-saudi-body"/></div><div><small>هوية المعلم</small><h1>{teacherName}</h1><p>{subjectName}{activeGradeLabel?` — ${activeGradeLabel}`:""}</p></div></div>
           <div className="tss-head-center"><small>بوابة المعلم / {subjectName}</small><strong>{currentTab?.label||"بوابة المعلم"}</strong><span>{currentTab?.note||"مساحة العمل التعليمية"}</span></div>
           <div className="tss-head-actions">
             <span>{todayLabel}</span>
