@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
@@ -12,7 +13,6 @@ import {
   type SchoolClass,
 } from "../../../../lib/school-roster";
 import {
-  SUBJECT_CLASS_OWNERS_COLLECTION,
   TEACHER_CLASS_SCOPES_COLLECTION,
   assignmentScopeSignature,
   normalizeClassIds,
@@ -99,26 +99,7 @@ export async function PATCH(request: Request) {
       officialAdminRoster: true,
       updatedAt: now,
     }, { merge: true });
-
-    // إزالة حجوزات النسخ القديمة لهذا المعلم؛ الاختيار أصبح نطاقًا خاصًا بكل معلم
-    // ولا يُسمح له بإخفاء الفصل عن معلم آخر في المرحلة نفسها.
-    try {
-      const legacyOwners = await database.collection(SUBJECT_CLASS_OWNERS_COLLECTION)
-        .where("teacherId", "==", session.userId)
-        .get();
-      const batch = database.batch();
-      let cleanupCount = 0;
-      legacyOwners.docs.forEach(document => {
-        const data = document.data() as Record<string, unknown>;
-        const ownedGrade = classParts(String(data.classId || "")).grade;
-        if (String(data.subjectId || "") !== subjectId || ownedGrade !== activeGrade) return;
-        batch.delete(database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(document.id));
-        cleanupCount += 1;
-      });
-      if (cleanupCount) await batch.commit();
-    } catch (cleanupError) {
-      console.warn("legacy class ownership cleanup deferred", cleanupError);
-    }
+    revalidateTag("teacher-class-scopes", { expire: 0 });
 
     return NextResponse.json({
       ok: true,
