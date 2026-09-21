@@ -194,3 +194,27 @@ body *{visibility:hidden!important}
 .student-current-login .scl-card label>span{color:#f0f5f6!important}
 .student-current-gate .scg-title p{color:#d8e5e7!important}
 .student-current-gate .scg-subjects button{border-color:rgba(255,255,255,.17)!important}
+
+
+/* student shell aligned with approved teacher navigation/identity */
+@media(min-width:901px){
+.student-current-shell{--rail:226px!important;padding-left:calc(var(--rail) + 14px)!important}
+.sc-sidebar{left:0!important;top:0!important;bottom:0!important;width:var(--rail)!important;padding:16px 10px 12px!important;border:0!important;border-right:1px solid rgba(239,203,115,.20)!important;border-radius:0!important;background:linear-gradient(180deg,rgba(3,28,43,.98),rgba(2,24,38,.98))!important}
+.sc-brand-stacked{display:flex!important;flex-direction:column!important;align-items:center!important;gap:7px!important;padding:5px 5px 13px!important;text-align:center!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
+.sc-brand-stacked img{width:60px!important;height:60px!important;border:0!important;border-radius:0!important;object-fit:contain!important}
+.sc-brand-stacked span{display:grid!important;gap:2px!important}.sc-brand-stacked b{font-size:14px!important;color:#f2cc70!important}.sc-brand-stacked small{font-size:8px!important;color:#eef3f3!important}
+.sc-sidebar>.sc-subject{margin-top:8px!important;min-height:42px!important;border-radius:8px!important}
+.sc-quick-actions{display:none!important}
+.sc-sidebar nav{gap:3px!important;margin-top:5px!important}
+.sc-sidebar nav button{grid-template-columns:28px minmax(0,1fr) auto!important;gap:8px!important;min-height:41px!important;padding:6px 9px!important;border:1px solid transparent!important;border-radius:8px!important;background:transparent!important}
+.sc-sidebar nav button>i{width:17px!important;height:17px!important;background:transparent!important;color:#f1f5f4!important}
+.sc-sidebar nav button b{font-size:10px!important;line-height:1.35!important;font-weight:800!important;white-space:normal!important;overflow:visible!important}.sc-sidebar nav button small{display:none!important}
+.sc-sidebar nav button:hover{background:rgba(255,255,255,.055)!important}.sc-sidebar nav button.active{background:linear-gradient(90deg,rgba(239,203,115,.72),rgba(176,125,39,.64))!important;border-color:rgba(255,224,139,.82)!important;box-shadow:0 0 16px rgba(222,172,66,.18)!important}.sc-sidebar nav button.active>i,.sc-sidebar nav button.active b{color:#fff8e5!important}
+.sc-side-progress{margin-top:7px!important}
+.sc-sidebar footer{display:grid!important;margin-top:auto!important;padding-top:9px!important;border-top:1px solid rgba(255,255,255,.07)!important}.sc-sidebar footer button:first-child{display:none!important}.sc-sidebar footer button:last-child{display:block!important;min-height:39px!important;border:1px solid rgba(239,203,115,.62)!important;border-radius:9px!important;background:transparent!important;color:#f6f4eb!important;font-size:10px!important}
+}
+.sc-head-integrated{min-height:58px!important;margin:0 0 4px!important;padding:4px 6px 7px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+.sc-student-identity{display:flex;align-items:center;gap:9px;min-width:205px}.sc-student-identity .sc-avatar{width:42px!important;height:42px!important;flex:0 0 42px!important;border:2px solid rgba(241,203,113,.72)!important}.sc-student-identity h1{margin:0;font-size:13px;color:#fff}.sc-student-identity p{margin:2px 0 0;font-size:8px;color:#dbe7e8}
+.sc-head-date{display:grid;text-align:center;gap:2px}.sc-head-date strong{font-size:8px;color:#f5f5f1}.sc-head-date small{font-size:6.5px;color:#c6d4d6}
+.sc-head-welcome{display:flex;align-items:center;gap:8px;padding:4px 7px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(4,42,56,.14)}.sc-head-welcome>span{color:#eac66d;font-size:20px}.sc-head-welcome>div{display:grid}.sc-head-welcome strong{font-size:9px;color:#fff}.sc-head-welcome small{font-size:6.5px;color:#b9cccf}.sc-head-welcome button{min-height:31px;padding:0 9px;border:1px solid rgba(239,203,115,.2);border-radius:8px;background:rgba(239,203,115,.08);color:#f0cf78;font:800 7px "Tajawal",sans-serif}
+@media(max-width:900px){.sc-head-integrated{border-radius:12px!important}.sc-head-date,.sc-head-welcome>div{display:none}.sc-head-welcome{margin-right:auto}}
