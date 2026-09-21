@@ -40,3 +40,25 @@
 .discipline-safe .discipline-print tr{break-inside:avoid!important;page-break-inside:avoid!important}
 .discipline-safe .discipline-print thead{display:table-header-group!important}
 }
+
+
+/* official discipline print layout */
+@media print{
+@page{size:A4 landscape;margin:7mm}
+.discipline-safe .discipline-print{font-family:"Tahoma","Arial",sans-serif!important;color:#173743!important}
+.discipline-safe .discipline-print>header{display:grid!important;grid-template-columns:20mm 1fr 20mm!important;align-items:center!important;text-align:center!important;padding:0 0 3mm!important;margin:0 0 3mm!important;border-bottom:2px solid #0b6570!important}
+.discipline-safe .discipline-print>header img{grid-column:3;width:15mm!important;height:15mm!important;margin:0 auto!important}
+.discipline-safe .discipline-print>header small,.discipline-safe .discipline-print>header h1,.discipline-safe .discipline-print>header p{grid-column:2;margin:0!important}
+.discipline-safe .discipline-print>header h1{font-size:15pt!important;color:#123f4c!important}.discipline-safe .discipline-print>header small{font-size:7pt!important;color:#9a711b!important}.discipline-safe .discipline-print>header p{font-size:7.2pt!important;line-height:1.5!important;color:#4d646b!important}
+.discipline-safe .print-summary{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:1.5mm!important;margin:0 0 3mm!important}
+.discipline-safe .print-summary span{padding:1.8mm 1mm!important;border:1px solid #ccdadd!important;border-radius:2mm!important;background:#f3f7f7!important;text-align:center!important;font-size:7pt!important;color:#39555e!important}.discipline-safe .print-summary b{display:block!important;margin-top:.5mm!important;font-size:10pt!important;color:#0b6570!important}
+.discipline-safe .print-class-page{break-before:page!important;page-break-before:always!important}
+.discipline-safe .print-class-page:first-of-type{break-before:auto!important;page-break-before:auto!important}
+.discipline-safe .print-class-page h2{margin:0 0 2mm!important;padding:1.7mm 3mm!important;border-right:3px solid #c49a3a!important;background:#edf4f4!important;color:#164957!important;font-size:10pt!important}
+.discipline-safe .discipline-report-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+.discipline-safe .discipline-report-table th,.discipline-safe .discipline-report-table td{padding:1.45mm .8mm!important;font-size:6.7pt!important;line-height:1.2!important;border:1px solid #cbd6d9!important;color:#203d46!important;text-shadow:none!important}
+.discipline-safe .discipline-report-table th{font-weight:900!important;color:#173743!important}.discipline-safe .discipline-report-table td:nth-child(2){text-align:right!important}.discipline-safe .discipline-report-table td:nth-child(2) small{display:block!important;font-size:5.7pt!important;color:#6f8186!important}
+.discipline-safe .discipline-report-table .abs{background:#f9e4e6!important}.discipline-safe .discipline-report-table .late{background:#fbefcf!important}.discipline-safe .discipline-report-table .esc{background:#eee5f8!important}.discipline-safe .discipline-report-table .exc{background:#e2eff8!important}
+.discipline-safe .discipline-report-table .risk,.discipline-safe .discipline-report-table .watch,.discipline-safe .discipline-report-table .clear{padding:1mm 1.4mm!important;font-size:6pt!important}
+.discipline-safe .discipline-print>footer{margin-top:3mm!important;padding-top:2mm!important;border-top:1px solid #ccd7d9!important;text-align:center!important;font-size:6.2pt!important;color:#718389!important}
+}
