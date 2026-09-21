@@ -161,3 +161,17 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
 #student-certificate{position:fixed!important;inset:0!important;width:210mm!important;height:297mm!important;max-height:297mm!important;margin:0!important;padding:8mm!important;border:0!important;overflow:hidden!important;box-sizing:border-box!important}
 .cert-grade-details{gap:3px!important;margin-top:4px!important}.cert-grade-section>header{padding:3px 5px!important}.cert-items>div{padding:2px 5px!important;font-size:6px!important;line-height:1!important}.cert-deduction{margin-top:3px!important;gap:3px!important}.cert-deduction span{padding:3px!important}.cert-attendance{margin-top:3px!important}.sc-certificate>footer{margin-top:4px!important}
 }
+
+.sc-cert-picks{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.sc-cert-picks label{display:flex;align-items:center;gap:4px;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.05);font-size:7px;color:#e6eff0;cursor:pointer}.sc-cert-picks input{accent-color:#d7b55a}.student-cert-print{display:grid;gap:14px}.student-cert-sheet{margin-top:0}.sc-cert-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+@media print{
+@page{size:A4 portrait;margin:0}
+html,body{margin:0!important;padding:0!important;background:#fff!important}
+body:has(.student-cert-print)>*:not(.student-current-shell){display:none!important}
+.student-current-shell *{visibility:hidden!important}
+.student-current-shell,.sc-stage,.sc-certificate-page,.student-cert-print{display:block!important;position:static!important;width:auto!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important}
+.student-cert-print,.student-cert-print *{visibility:visible!important}
+.student-scene,.sc-sidebar,.sc-head,.sc-cert-toolbar,.sc-empty{display:none!important}
+.student-cert-sheet{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:10mm!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:linear-gradient(145deg,#fbfaf6,#f2eee1)!important;overflow:hidden!important;break-after:page!important;page-break-after:always!important}
+.student-cert-sheet:last-child{break-after:auto!important;page-break-after:auto!important}
+.student-cert-sheet>header{margin-top:2mm!important}.student-cert-sheet .cert-summary{margin-top:3mm!important;padding:10px 13px!important}.student-cert-sheet .cert-grade-details{margin-top:4mm!important}.student-cert-sheet .cert-grade-section>header{padding:6px 8px!important}.student-cert-sheet .cert-items>div{padding:5px 8px!important;font-size:7px!important;line-height:1.25!important}.student-cert-sheet .cert-deduction{margin-top:4mm!important}.student-cert-sheet .cert-deduction span{padding:6px!important}.student-cert-sheet .cert-attendance{margin-top:4mm!important}.student-cert-sheet .cert-attendance>div{padding:6px!important}.student-cert-sheet>footer{margin-top:5mm!important;padding-top:7px!important}
+}
