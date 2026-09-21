@@ -26,3 +26,17 @@
 .discipline-safe .risk{background:#ffe2e7!important;color:#a92e40!important;border:1px solid rgba(255,255,255,.28)}.discipline-safe .watch{background:#ffefc7!important;color:#875900!important;border:1px solid rgba(255,255,255,.25)}.discipline-safe .clear{background:#dff6e9!important;color:#176746!important;border:1px solid rgba(255,255,255,.24)}
 @media(max-width:650px){.discipline-safe thead th,.discipline-safe tbody td{font-size:11px!important;padding:9px 7px!important}}
 @media print{.discipline-safe .discipline-print tbody td{color:#172f38!important;text-shadow:none!important;font-weight:600!important}.discipline-safe .discipline-print tbody td.abs,.discipline-safe .discipline-print tbody td.late,.discipline-safe .discipline-print tbody td.esc,.discipline-safe .discipline-print tbody td.exc{color:#172f38!important;background:#fff!important}.discipline-safe .discipline-print tbody td:first-child,.discipline-safe .discipline-print tbody td:nth-child(3),.discipline-safe .discipline-print tbody td:nth-child(4),.discipline-safe .discipline-print tbody td:nth-child(9){color:#172f38!important}}
+
+
+/* comprehensive non-attendance reporting */
+.discipline-safe td.nonatt{background:rgba(25,132,119,.18)!important;color:#c9fff4!important;font-weight:950!important}
+.discipline-safe td.nonatt-high{background:rgba(190,54,67,.38)!important;color:#fff!important;font-weight:1000!important;box-shadow:inset 0 0 0 1px rgba(255,164,174,.28)}
+@media print{
+.discipline-safe .discipline-print header img{display:block;width:16mm;height:16mm;object-fit:contain;margin:0 auto 2mm;border-radius:3mm}
+.discipline-safe .discipline-print thead th:nth-child(5){background:#f7dfe2!important}.discipline-safe .discipline-print thead th:nth-child(6){background:#f9eccb!important}.discipline-safe .discipline-print thead th:nth-child(7){background:#e8def6!important}.discipline-safe .discipline-print thead th:nth-child(8){background:#dcecf8!important}.discipline-safe .discipline-print thead th:nth-child(10){background:#dcefe9!important}
+.discipline-safe .discipline-print td.nonatt-high{background:#f7dfe2!important;color:#8f2734!important;font-weight:900!important}
+.discipline-safe .discipline-print td.nonatt{background:#e6f4ef!important;color:#235e51!important;font-weight:800!important}
+.discipline-safe .discipline-print table{break-inside:auto!important;page-break-inside:auto!important}
+.discipline-safe .discipline-print tr{break-inside:avoid!important;page-break-inside:avoid!important}
+.discipline-safe .discipline-print thead{display:table-header-group!important}
+}
