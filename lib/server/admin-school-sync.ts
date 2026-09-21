@@ -179,128 +179,20 @@ async function synchronizeStudents(previous: ManagedClass, next: ManagedClass | 
 }
 
 async function synchronizeTeachers(previous: ManagedClass, next: ManagedClass | null) {
-  const database = adminDb();
-  const now = new Date().toISOString();
-  const teachersSnapshot = await database.collection("portalV2Users").where("role", "==", "teacher").get();
-  let teachersUpdated = 0;
-  let assignmentsUpdated = 0;
-
-  for (const teacherDocument of teachersSnapshot.docs) {
-    const teacherData = teacherDocument.data() as Record<string, unknown>;
-    const currentAssignments = normalizeAssignments(teacherData.assignments, teacherData.subjectIds);
-    const affected = currentAssignments.some(assignment => assignmentMatchesExact(assignment, previous));
-    if (!affected) continue;
-
-    const nextAssignments: TeacherAssignment[] = [];
-    currentAssignments.forEach(assignment => {
-      if (!assignmentMatchesExact(assignment, previous)) {
-        nextAssignments.push(assignment);
-        return;
-      }
-      if (next) {
-        nextAssignments.push(assignmentFromId(assignmentId(
-          assignment.subjectId,
-          gradeLabel(next.grade),
-          next.section,
-        )));
-      }
-    });
-    const uniqueAssignments = [...new Map(nextAssignments.map(item => [item.id, item])).values()];
-    const subjectIds = [...new Set(uniqueAssignments.map(item => item.subjectId))];
-
-    await database.collection("portalV2Users").doc(teacherDocument.id).set({
-      assignments: uniqueAssignments,
-      subjectIds,
-      updatedAt: now,
-    }, { merge: true });
-
-    const assignmentCollection = database.collection("portalV2Assignments");
-    const previousDocuments = await assignmentCollection.where("teacherId", "==", teacherDocument.id).get();
-    const operations: WriteOperation[] = previousDocuments.docs.map(document => ({
-      type: "delete",
-      ref: referenceFromPath(document.ref.path),
-    }));
-    uniqueAssignments.forEach(assignment => {
-      operations.push({
-        type: "set",
-        ref: assignmentCollection.doc(`${teacherDocument.id}__${assignment.id}`),
-        data: {
-          teacherId: teacherDocument.id,
-          subjectId: assignment.subjectId,
-          assignmentId: assignment.id,
-          grade: assignment.grade,
-          section: assignment.section,
-          active: true,
-          archivedAt: null,
-          updatedAt: now,
-          createdAt: now,
-        },
-        options: { merge: true },
-      });
-    });
-    await commitOperations(operations);
-    teachersUpdated += 1;
-    assignmentsUpdated += uniqueAssignments.length;
-  }
-
-  return { teachersUpdated, assignmentsUpdated };
+  // Class administration must never rewrite teacher subject assignments.
+  // Assignments define the teacher workspace and are managed only from teacher administration.
+  // Student/class moves are reflected through the central roster instead, preserving all teacher work.
+  void previous;
+  void next;
+  return { teachersUpdated: 0, assignmentsUpdated: 0 };
 }
 
 async function synchronizeScopesAndOwners(previous: ManagedClass, next: ManagedClass | null) {
-  const database = adminDb();
-  const now = new Date().toISOString();
-  const operations: WriteOperation[] = [];
-  let scopesUpdated = 0;
-  let ownersUpdated = 0;
-
-  const scopesSnapshot = await database.collection(TEACHER_CLASS_SCOPES_COLLECTION).get();
-  scopesSnapshot.docs.forEach(document => {
-    const data = document.data() as Record<string, unknown>;
-    const selected = normalizeClassIds(data.selectedClassIds);
-    if (!selected.includes(previous.id)) return;
-    const nextSelected = [...new Set(selected.flatMap(value => value === previous.id ? (next ? [next.id] : []) : [value]))];
-    const teacherId = String(data.teacherId || "");
-    const subjectId = String(data.subjectId || "");
-    const targetGrade = next?.grade || Number(data.grade || previous.grade);
-    const targetId = teacherClassScopeId(teacherId, subjectId, targetGrade);
-    operations.push({ type: "delete", ref: referenceFromPath(document.ref.path) });
-    if (nextSelected.length && teacherId && subjectId) {
-      operations.push({
-        type: "set",
-        ref: database.collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(targetId),
-        data: {
-          ...data,
-          grade: targetGrade,
-          selectedClassIds: nextSelected,
-          customized: true,
-          updatedAt: now,
-        },
-        options: { merge: true },
-      });
-    }
-    scopesUpdated += 1;
-  });
-
-  const ownersSnapshot = await database.collection(SUBJECT_CLASS_OWNERS_COLLECTION)
-    .where("classId", "==", previous.id)
-    .get();
-  ownersSnapshot.docs.forEach(document => {
-    const data = document.data() as Record<string, unknown>;
-    const subjectId = String(data.subjectId || "");
-    operations.push({ type: "delete", ref: referenceFromPath(document.ref.path) });
-    if (next && subjectId) {
-      operations.push({
-        type: "set",
-        ref: database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(subjectClassOwnerId(subjectId, next.id)),
-        data: { ...data, classId: next.id, grade: next.grade, active: true, updatedAt: now },
-        options: { merge: true },
-      });
-    }
-    ownersUpdated += 1;
-  });
-
-  await commitOperations(operations);
-  return { scopesUpdated, ownersUpdated };
+  // Preserve teacher scopes/owners when a school class is removed or renamed.
+  // This prevents an admin roster action from hiding an existing teacher workspace.
+  void previous;
+  void next;
+  return { scopesUpdated: 0, ownersUpdated: 0 };
 }
 
 export async function synchronizeClassChange(input: {
