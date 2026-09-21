@@ -83,3 +83,14 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .teacher-entry-tabs-large span:hover{transform:translateY(-3px)!important;background:linear-gradient(145deg,rgba(235,197,102,.38),rgba(117,91,42,.29))!important;border-color:#f1cf77!important;box-shadow:0 10px 22px rgba(198,148,54,.17),inset 0 1px rgba(255,255,255,.12)!important}
 .teacher-entry-tabs-large span:hover:after{transform:translateY(-50%) scale(1.08)!important;background:rgba(5,58,65,.64)!important}
 @media(max-width:800px){.teacher-entry-tabs-large{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}.teacher-entry-tabs-large span{min-height:50px!important;padding-right:38px!important}}
+
+
+/* readability pass — preserve teacher palette and layout */
+.teacher-entry-page .portal-entry-shell{background:rgba(3,27,39,.40)!important}
+.teacher-entry-page .portal-entry-copy p{color:#edf4f4!important;text-shadow:0 2px 12px rgba(0,0,0,.28)!important}
+.teacher-entry-page .portal-entry-kicker{color:#f7d77f!important}
+.teacher-entry-page .portal-entry-card{background:rgba(3,38,49,.84)!important;border-color:rgba(255,255,255,.20)!important}
+.teacher-entry-page .portal-entry-card>p{color:#cbdcdf!important}.teacher-entry-page .portal-entry-card label{color:#f3f7f7!important}
+.teacher-entry-page .portal-entry-note{color:#b7cbd0!important}
+.teacher-entry-page .portal-entry-brand small{color:#bfd0d5!important}
+.teacher-entry-tabs-large span small{color:#eee3c7!important}
