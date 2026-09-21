@@ -62,3 +62,16 @@
 .discipline-safe .discipline-report-table .risk,.discipline-safe .discipline-report-table .watch,.discipline-safe .discipline-report-table .clear{padding:1mm 1.4mm!important;font-size:6pt!important}
 .discipline-safe .discipline-print>footer{margin-top:3mm!important;padding-top:2mm!important;border-top:1px solid #ccd7d9!important;text-align:center!important;font-size:6.2pt!important;color:#718389!important}
 }
+
+
+/* print only the generated report — never copy the portal screen */
+@media print{
+html,body{background:#fff!important}
+body *{visibility:hidden!important}
+.discipline-safe,.discipline-safe .discipline-print,.discipline-safe .discipline-print *{visibility:visible!important}
+.discipline-safe{position:static!important;width:100%!important;margin:0!important;padding:0!important;background:#fff!important}
+.discipline-safe .screen{display:none!important}
+.discipline-safe .discipline-print{display:block!important;position:absolute!important;inset:0!important;width:100%!important;margin:0!important;padding:0!important;background:#fff!important}
+.teacher-student-shell>.tss-sidebar,.teacher-student-shell>.tss-backdrop,.tss-main>.tss-head{display:none!important}
+.teacher-student-shell,.tss-main,.tss-content{display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important}
+}
