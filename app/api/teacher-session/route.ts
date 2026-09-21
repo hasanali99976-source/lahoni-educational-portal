@@ -83,7 +83,7 @@ export async function GET() {
       assignments,
       resetClassScopes: [],
       legacyRestore: { restored: 0, alreadyChecked: true, skipped: "session_read_safety" },
-    }, { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" } });
+    }, { headers: { "Cache-Control": "no-store" } });
     if (currentWorkspace) response.cookies.set(SUBJECT_COOKIE, currentWorkspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     return response;
   } catch (error) {
