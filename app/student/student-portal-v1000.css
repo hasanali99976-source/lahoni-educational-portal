@@ -218,3 +218,32 @@ body *{visibility:hidden!important}
 .sc-head-date{display:grid;text-align:center;gap:2px}.sc-head-date strong{font-size:8px;color:#f5f5f1}.sc-head-date small{font-size:6.5px;color:#c6d4d6}
 .sc-head-welcome{display:flex;align-items:center;gap:8px;padding:4px 7px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(4,42,56,.14)}.sc-head-welcome>span{color:#eac66d;font-size:20px}.sc-head-welcome>div{display:grid}.sc-head-welcome strong{font-size:9px;color:#fff}.sc-head-welcome small{font-size:6.5px;color:#b9cccf}.sc-head-welcome button{min-height:31px;padding:0 9px;border:1px solid rgba(239,203,115,.2);border-radius:8px;background:rgba(239,203,115,.08);color:#f0cf78;font:800 7px "Tajawal",sans-serif}
 @media(max-width:900px){.sc-head-integrated{border-radius:12px!important}.sc-head-date,.sc-head-welcome>div{display:none}.sc-head-welcome{margin-right:auto}}
+
+
+/* clean dual identity header: teacher right, student left */
+.sc-head-integrated{direction:rtl!important}
+.sc-teacher-head-card,.sc-student-head-card{display:flex;align-items:center;gap:9px;min-width:205px;padding:6px 9px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(4,42,56,.16);transition:.2s ease}
+.sc-teacher-head-card:hover,.sc-student-head-card:hover{transform:translateY(-2px);border-color:rgba(239,203,115,.34);background:rgba(8,57,67,.25)}
+.sc-teacher-head-card{justify-self:start}.sc-student-head-card{justify-self:end}
+.sc-teacher-head-avatar{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:50%;border:1px solid rgba(239,203,115,.55);background:linear-gradient(145deg,rgba(239,203,115,.24),rgba(4,48,59,.5));color:#f2d17a;font-size:14px;font-weight:950}
+.sc-teacher-head-card>div:last-child,.sc-student-head-card>div:nth-child(2){display:grid;min-width:0}
+.sc-teacher-head-card small,.sc-student-head-card small{font-size:6.5px;color:#aebfc3}.sc-teacher-head-card strong,.sc-student-head-card strong{font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sc-teacher-head-card span,.sc-student-head-card span{font-size:7px;color:#e8ca79}
+.sc-student-head-card .sc-avatar{position:relative!important;inset:auto!important;width:38px!important;height:38px!important;flex:0 0 38px!important;margin:0!important;border-radius:50%!important;overflow:hidden!important}.sc-student-head-card .sc-avatar img{width:100%!important;height:100%!important;object-fit:cover!important}
+.sc-student-head-card button{margin-right:auto;min-height:29px;padding:0 8px;border:1px solid rgba(239,203,115,.18);border-radius:7px;background:rgba(239,203,115,.07);color:#f0cf78;font:800 7px "Tajawal",sans-serif}
+@media(max-width:900px){.sc-teacher-head-card,.sc-student-head-card{min-width:0;padding:5px 7px}.sc-head-date{display:none}.sc-teacher-head-card span,.sc-student-head-card span{display:none}}
+
+/* certificate: force each selected certificate onto exactly one A4 page */
+@media print{
+.student-cert-print{display:block!important;margin:0!important;padding:0!important}
+.student-cert-sheet{box-sizing:border-box!important;width:210mm!important;height:296mm!important;min-height:296mm!important;max-height:296mm!important;padding:9mm 11mm 7mm!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important}
+.student-cert-sheet:last-child{break-after:auto!important;page-break-after:auto!important}
+.student-cert-sheet>header{margin:0!important;padding-bottom:5px!important}
+.student-cert-sheet .cert-student{padding:5px 0!important}
+.student-cert-sheet .cert-summary{margin-top:2mm!important;padding:7px 10px!important}
+.student-cert-sheet .cert-grade-details{margin-top:3mm!important;gap:3px!important}
+.student-cert-sheet .cert-grade-section>header{padding:5px 7px!important}
+.student-cert-sheet .cert-items>div{padding:4px 7px!important;font-size:6.8px!important;line-height:1.1!important}
+.student-cert-sheet .cert-deduction{margin-top:3mm!important}
+.student-cert-sheet .cert-attendance{margin-top:3mm!important}
+.student-cert-sheet>footer{margin-top:3mm!important;padding-top:5px!important}
+}
