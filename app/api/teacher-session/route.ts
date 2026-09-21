@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { requireSession } from "../../../lib/server/portal-auth";
+import { findUserById, requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { normalizeAssignments } from "../../../lib/teacher-assignments";
 import { gradeLabel, gradeNumber } from "../../../lib/school-roster";
@@ -60,7 +60,7 @@ export async function GET() {
   try {
     const session = await requireSession("teacher");
     if (!session?.user?.active) return NextResponse.json({ authenticated: false }, { status: 401 });
-    const user = session.user;
+    const user = await findUserById(session.userId) || session.user;
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const subjects = buildWorkspaces(user.subjectIds, assignments);
     const store = await cookies();
