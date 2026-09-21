@@ -234,3 +234,15 @@ body *{visibility:hidden!important}
 .discipline-safe .discipline-report-table td.nonatt-high{background:#efd2d5!important;color:#971f30!important;font-weight:900!important;border:1px solid #d99aa2!important}.discipline-safe .discipline-report-table td.nonatt{background:#e7f0ed!important;color:#28584e!important;font-weight:900!important}
 .discipline-safe .print-signatures{border-top:1px solid #cbd5d5!important}.discipline-safe .discipline-print>footer{border-top:1px solid #cbd5d5!important}
 }
+
+
+/* corrected 10-column report after removing duplicate/absence-rate column */
+@media print{
+.discipline-safe .discipline-report-table th:nth-child(1),.discipline-safe .discipline-report-table td:nth-child(1){width:4%!important}
+.discipline-safe .discipline-report-table th:nth-child(2),.discipline-safe .discipline-report-table td:nth-child(2){width:31%!important}
+.discipline-safe .discipline-report-table th:nth-child(3),.discipline-safe .discipline-report-table td:nth-child(3){width:15%!important}
+.discipline-safe .discipline-report-table th:nth-child(4),.discipline-safe .discipline-report-table td:nth-child(4){width:8%!important}
+.discipline-safe .discipline-report-table th:nth-child(5),.discipline-safe .discipline-report-table td:nth-child(5),.discipline-safe .discipline-report-table th:nth-child(6),.discipline-safe .discipline-report-table td:nth-child(6),.discipline-safe .discipline-report-table th:nth-child(7),.discipline-safe .discipline-report-table td:nth-child(7),.discipline-safe .discipline-report-table th:nth-child(8),.discipline-safe .discipline-report-table td:nth-child(8){width:7%!important}
+.discipline-safe .discipline-report-table th:nth-child(9),.discipline-safe .discipline-report-table td:nth-child(9){width:14%!important}
+.discipline-safe .discipline-report-table th:nth-child(10),.discipline-safe .discipline-report-table td:nth-child(10){width:14%!important}
+}
