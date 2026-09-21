@@ -184,3 +184,20 @@ body *{visibility:hidden!important}
 .discipline-safe .discipline-report-table td:nth-child(3){white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;font-size:6pt!important;font-weight:850!important}
 .discipline-safe .discipline-report-table td:nth-child(2) b{font-size:6.8pt!important}
 }
+
+
+/* print correction: no stretched legend, stronger readable Arabic typography */
+@media print{
+.discipline-safe .discipline-print{font-family:Arial,Tahoma,sans-serif!important}
+.discipline-safe .print-brand small,.discipline-safe .print-report-title p,.discipline-safe .print-section-title small{color:#5f7479!important;opacity:1!important}
+.discipline-safe .print-brand strong,.discipline-safe .print-report-title h1,.discipline-safe .print-meta b,.discipline-safe .print-section-title h2{color:#103e49!important;font-weight:800!important;text-shadow:none!important}
+.discipline-safe .print-legend{display:flex!important;position:static!important;width:auto!important;height:auto!important;min-height:0!important;align-items:center!important;justify-content:flex-start!important;align-self:auto!important;gap:1.4mm!important;margin:0 1mm 1.8mm!important;padding:0!important}
+.discipline-safe .print-legend span{display:inline-flex!important;flex:0 0 auto!important;width:auto!important;height:6mm!important;min-width:0!important;min-height:0!important;align-items:center!important;justify-content:center!important;padding:0 2.2mm!important;border-radius:3mm!important;line-height:1!important;font-size:5.4pt!important;font-weight:800!important}
+.discipline-safe .print-legend .lg-risk{width:auto!important;min-width:31mm!important}
+.discipline-safe .print-summary span{height:12mm!important;min-height:12mm!important;max-height:12mm!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;line-height:1.15!important}
+.discipline-safe .print-summary b{line-height:1!important}
+.discipline-safe .discipline-report-table th{font-family:Arial,Tahoma,sans-serif!important;font-size:6.35pt!important;font-weight:800!important;text-shadow:none!important}
+.discipline-safe .discipline-report-table td{font-family:Arial,Tahoma,sans-serif!important;font-size:6.25pt!important;font-weight:700!important;text-shadow:none!important}
+.discipline-safe .discipline-report-table td:nth-child(2) b{font-size:7pt!important;font-weight:800!important}.discipline-safe .discipline-report-table td:nth-child(3){font-size:6.25pt!important;font-weight:800!important}
+.discipline-safe .print-signatures,.discipline-safe .print-signatures b,.discipline-safe .print-signatures small{font-family:Arial,Tahoma,sans-serif!important;text-shadow:none!important}
+}
