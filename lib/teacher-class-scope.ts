@@ -51,8 +51,7 @@ export function defaultSelectedClassIds(assignments: TeacherAssignment[], subjec
   const exact = availableClasses.filter(schoolClass => relevant.some(assignment => assignmentAllowsClassExact(assignment, schoolClass.grade, schoolClass.section)));
   if (exact.length) return exact.map(item => item.id);
 
-  const grades = new Set(relevant.map(item => gradeNumber(item.grade)).filter(Boolean));
-  return availableClasses.filter(item => grades.has(item.grade as 1 | 2 | 3)).map(item => item.id);
+  return [];
 }
 
 export function classIdFromStudent(student: { grade: number; section: string }) {
