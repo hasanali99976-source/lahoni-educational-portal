@@ -25,16 +25,7 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
 @media(max-width:980px){.scl-grid{grid-template-columns:1fr;gap:12px}.scl-intro{text-align:center}.scl-kicker{margin:auto}.scl-features{margin:20px auto 0}.scl-card{width:min(470px,100%);margin:auto}.scg-subjects{grid-template-columns:repeat(2,1fr)}.student-current-shell{--rail:220px}.sc-kpis{grid-template-columns:repeat(2,1fr)}.sc-analytics-grid{grid-template-columns:1fr}.sc-grade-sections{grid-template-columns:1fr}.sc-dimensions>div{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.student-current-login,.student-current-gate{padding:7px}.scl-frame,.scg-shell{border-radius:22px;min-height:calc(100dvh - 14px);padding:10px}.scl-brand span,.scl-back{display:none}.scl-grid{width:100%}.scl-intro{padding:20px 4px}.scl-intro h1{font-size:37px}.scl-features{grid-template-columns:1fr}.scg-shell>header{align-items:flex-start}.scg-brand span{display:none}.scg-student span{min-width:0}.scg-subjects{grid-template-columns:1fr}.student-current-shell{padding:0 0 76px}.sc-sidebar{left:7px;right:7px;top:auto;bottom:7px;width:auto;height:64px;display:grid;grid-template-columns:1fr auto;padding:5px;border-radius:19px}.sc-brand,.sc-profile,.sc-subject,.sc-side-progress,.sc-sidebar footer{display:none}.sc-sidebar nav{display:flex;margin:0;gap:3px}.sc-sidebar nav button{display:grid;grid-template-columns:1fr;place-items:center;min-width:0;min-height:52px;padding:4px 7px;text-align:center}.sc-sidebar nav button>i{width:25px;height:25px}.sc-sidebar nav button span small{display:none}.sc-sidebar nav button b{font-size:6.5px}.sc-stage{padding:7px}.sc-head{min-height:62px}.sc-head-tools>span{display:none}.sc-hero{grid-template-columns:1fr;padding:15px}.sc-ring{width:88px;height:88px}.sc-kpis{grid-template-columns:repeat(2,1fr)}.sc-subject-bars>div{grid-template-columns:88px 1fr 36px}.sc-report-summary{grid-template-columns:repeat(2,1fr)}.sc-report-table{overflow-x:auto}.sc-report-table>header,.sc-report-table>div{min-width:640px}.sc-dimensions>div{grid-template-columns:1fr}.sc-cert-toolbar{align-items:flex-start}.sc-certificate{padding:16px 13px}.cert-student{grid-template-columns:repeat(2,1fr)}.cert-table{overflow-x:auto}.cert-table>header,.cert-table>div{min-width:650px}.sc-certificate>footer{grid-template-columns:1fr}.cert-seal{order:-1}.cert-sign{text-align:right}}
 
-@media print{
-  @page{size:A4 portrait;margin:8mm}
-  body:has(.student-current-shell){background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body:has(.student-current-shell) *{visibility:hidden!important}
-  #student-certificate,#student-certificate *{visibility:visible!important}
-  .student-current-shell,.sc-stage,.sc-certificate-page{display:block!important;min-height:0!important;padding:0!important;margin:0!important;background:#fff!important}
-  .student-scene,.sc-sidebar,.sc-head,.sc-cert-toolbar{display:none!important}
-  #student-certificate{position:absolute!important;inset:0!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:13mm 11mm 9mm!important;border-radius:0!important;box-shadow:none!important;border:1px solid #cbb98d!important;background:linear-gradient(145deg,#fbfaf6,#f2eee1)!important;page-break-inside:avoid!important;break-inside:avoid!important;transform:none!important}
-  .sc-certificate>header{grid-template-columns:55px 1fr 38px!important}.sc-certificate>header img{width:52px!important;height:52px!important}.sc-certificate>header h2{font-size:17px!important}.cert-student{padding:7px 0!important}.cert-student>div{padding:5px 7px!important}.cert-summary{padding:7px 10px!important}.cert-summary .cert-ring{width:64px!important;height:64px!important}.cert-table{margin-top:6px!important}.cert-table>header,.cert-table>div{padding:5px 7px!important}.sc-certificate>footer{margin-top:7px!important;padding-top:6px!important}.cert-seal{width:86px!important;height:86px!important}.cert-watermark{font-size:68px!important}
-}
+
 
 
 /* Student discipline layout hardening */
@@ -153,35 +144,41 @@ body:has(.student-current-login),body:has(.student-current-gate),body:has(.stude
 
 .cert-attendance{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:9px}.cert-attendance>div{padding:7px;border:1px solid #ddd3bc;border-radius:9px;background:#f5f1e7;text-align:center}.cert-attendance small{display:block;font-size:6px;color:#8b7b62}.cert-attendance b{font-size:12px;color:#173e47}
 @media(max-width:720px){.cert-attendance{grid-template-columns:repeat(2,1fr)}}
-@media print{.cert-attendance{grid-template-columns:repeat(5,1fr)!important;gap:4px!important;margin-top:5px!important}.cert-attendance>div{padding:4px!important}#student-certificate{height:273mm!important;max-height:273mm!important;overflow:hidden!important;box-sizing:border-box!important}}
+
 
 .sc-cert-toolbar label{display:flex;align-items:center;gap:7px;font-size:7px;color:#cbdadd}.sc-cert-toolbar select{min-height:34px;padding:0 9px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#123f4b;color:#fff;font:800 8px "Tajawal",sans-serif}.cert-grade-details{position:relative;display:grid;gap:5px;margin-top:7px}.cert-grade-section{border:1px solid #ddd3bc;border-radius:9px;overflow:hidden}.cert-grade-section>header{display:flex;justify-content:space-between;align-items:center;padding:5px 7px;background:#e9e2d1;color:#705d3e;font-size:7px}.cert-items>div{display:grid;grid-template-columns:1.6fr .6fr .6fr .8fr;gap:5px;padding:4px 7px;border-top:1px solid #e4dcc9;font-size:6.7px}.cert-items .head{background:#f5f1e7;font-weight:800;color:#7c6949}.cert-items strong{color:#a2742d}.cert-deduction{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}.cert-deduction span{padding:5px;border:1px solid #ddd3bc;border-radius:8px;background:#f7f3e9;text-align:center;font-size:6px}.cert-deduction b{display:block;margin-top:2px;font-size:9px;color:#176d62}
-@media print{
-.sc-cert-toolbar{display:none!important}
-#student-certificate{position:fixed!important;inset:0!important;width:210mm!important;height:297mm!important;max-height:297mm!important;margin:0!important;padding:8mm!important;border:0!important;overflow:hidden!important;box-sizing:border-box!important}
-.cert-grade-details{gap:3px!important;margin-top:4px!important}.cert-grade-section>header{padding:3px 5px!important}.cert-items>div{padding:2px 5px!important;font-size:6px!important;line-height:1!important}.cert-deduction{margin-top:3px!important;gap:3px!important}.cert-deduction span{padding:3px!important}.cert-attendance{margin-top:3px!important}.sc-certificate>footer{margin-top:4px!important}
-}
+
 
 .sc-cert-picks{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.sc-cert-picks label{display:flex;align-items:center;gap:4px;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.05);font-size:7px;color:#e6eff0;cursor:pointer}.sc-cert-picks input{accent-color:#d7b55a}.student-cert-print{display:grid;gap:14px}.student-cert-sheet{margin-top:0}.sc-cert-toolbar button:disabled{opacity:.45;cursor:not-allowed}
-@media print{
-@page{size:A4 portrait;margin:0}
-html,body{margin:0!important;padding:0!important;background:#fff!important}
-body:has(.student-cert-print)>*:not(.student-current-shell){display:none!important}
-.student-current-shell *{visibility:hidden!important}
-.student-current-shell,.sc-stage,.sc-certificate-page,.student-cert-print{display:block!important;position:static!important;width:auto!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important}
-.student-cert-print,.student-cert-print *{visibility:visible!important}
-.student-scene,.sc-sidebar,.sc-head,.sc-cert-toolbar,.sc-empty{display:none!important}
-.student-cert-sheet{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:10mm!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:linear-gradient(145deg,#fbfaf6,#f2eee1)!important;overflow:hidden!important;break-after:page!important;page-break-after:always!important}
-.student-cert-sheet:last-child{break-after:auto!important;page-break-after:auto!important}
-.student-cert-sheet>header{margin-top:2mm!important}.student-cert-sheet .cert-summary{margin-top:3mm!important;padding:10px 13px!important}.student-cert-sheet .cert-grade-details{margin-top:4mm!important}.student-cert-sheet .cert-grade-section>header{padding:6px 8px!important}.student-cert-sheet .cert-items>div{padding:5px 8px!important;font-size:7px!important;line-height:1.25!important}.student-cert-sheet .cert-deduction{margin-top:4mm!important}.student-cert-sheet .cert-deduction span{padding:6px!important}.student-cert-sheet .cert-attendance{margin-top:4mm!important}.student-cert-sheet .cert-attendance>div{padding:6px!important}.student-cert-sheet>footer{margin-top:5mm!important;padding-top:7px!important}
-}
+
 
 /* Final student certificate print isolation */
+/* Canonical student certificate print */
 @media print{
-html,body{width:210mm!important;min-height:297mm!important;margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important}
+@page{size:A4 portrait;margin:0}
+html,body{margin:0!important;padding:0!important;width:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
 body *{visibility:hidden!important}
-.student-cert-print{display:block!important;visibility:visible!important;position:absolute!important;top:0!important;right:0!important;left:0!important;width:210mm!important;margin:0!important;padding:0!important;background:#fff!important;z-index:2147483647!important}
-.student-cert-print *{visibility:visible!important}
-.student-cert-sheet{display:block!important;visibility:visible!important;position:relative!important;inset:auto!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:10mm!important;box-sizing:border-box!important;overflow:hidden!important;background:#fbfaf6!important;border:0!important;border-radius:0!important;box-shadow:none!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.student-current-shell,.sc-stage,.sc-certificate-page,.student-cert-print{display:block!important;visibility:visible!important;position:static!important;width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;background:transparent!important}
+.student-cert-print,.student-cert-print *{visibility:visible!important}
+.student-scene,.sc-sidebar,.sc-head,.sc-cert-toolbar,.sc-empty{display:none!important}
+.student-cert-print{direction:rtl!important}
+.student-cert-sheet{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:12mm 12mm 10mm!important;box-sizing:border-box!important;overflow:hidden!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fbfaf6!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .student-cert-sheet:last-child{break-after:auto!important;page-break-after:auto!important}
+.student-cert-sheet>header{margin-top:0!important;grid-template-columns:58px 1fr 40px!important}
+.student-cert-sheet>header img{width:54px!important;height:54px!important}
+.student-cert-sheet>header h2{font-size:18px!important}
+.student-cert-sheet .cert-student{padding:8px 0!important}
+.student-cert-sheet .cert-student>div{padding:6px 8px!important}
+.student-cert-sheet .cert-summary{margin-top:4mm!important;padding:10px 13px!important}
+.student-cert-sheet .cert-summary .cert-ring{width:68px!important;height:68px!important}
+.student-cert-sheet .cert-grade-details{gap:4px!important;margin-top:5mm!important}
+.student-cert-sheet .cert-grade-section>header{padding:7px 9px!important}
+.student-cert-sheet .cert-items>div{padding:6px 9px!important;font-size:7.5px!important;line-height:1.2!important}
+.student-cert-sheet .cert-deduction{margin-top:5mm!important;gap:5px!important}
+.student-cert-sheet .cert-deduction span{padding:7px!important}
+.student-cert-sheet .cert-attendance{grid-template-columns:repeat(5,1fr)!important;gap:5px!important;margin-top:5mm!important}
+.student-cert-sheet .cert-attendance>div{padding:7px!important}
+.student-cert-sheet>footer{margin-top:6mm!important;padding-top:8px!important}
+.student-cert-sheet .cert-seal{width:86px!important;height:86px!important}
+.student-cert-sheet .cert-watermark{font-size:68px!important}
 }
