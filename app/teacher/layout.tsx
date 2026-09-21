@@ -93,14 +93,13 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
     <div className="teacher-student-shell" dir="rtl" data-subject={subjectKey}>
       <aside className={`tss-sidebar ${menuOpen?"open":""}`} aria-label="خدمات المعلم">
-        <Link prefetch={false} href="/" className="tss-brand">
-          <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={40} height={40} priority/>
-          <span><small>بوابة أستاذ لحوني التعليمية</small><b>بوابة المعلم</b></span>
+        <Link prefetch={false} href="/" className="tss-brand tss-brand-stacked">
+          <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={64} height={64} priority/>
+          <span><b>بوابة المعلم</b><small>بوابة أستاذ لحوني التعليمية</small></span>
         </Link>
-        <div className="tss-profile"><div className="tss-saudi-avatar" aria-label="هوية المعلم السعودي"><span className="tss-saudi-head"><i className="tss-saudi-ghutra"/><i className="tss-saudi-face"/><i className="tss-saudi-agal"/></span><span className="tss-saudi-body"/></div><div><small>مرحبًا بك</small><strong>{teacherName}</strong><span>مساحة المعلم</span></div></div>
 
         <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
-        <footer className="tss-footer"><span>بالعلم .. نصنع المستقبل</span><Link prefetch={false} href="/">العودة للرئيسية</Link><button type="button" onClick={logout}>تسجيل الخروج</button></footer>
+        <footer className="tss-footer"><button type="button" className="tss-logout" onClick={logout}><span>↪</span><b>تسجيل الخروج</b></button></footer>
       </aside>
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
