@@ -170,3 +170,17 @@ body *{visibility:hidden!important}
 .discipline-safe .print-signatures{align-self:end!important;margin:3mm 1mm 0!important;padding:2.2mm 3mm 0!important}.discipline-safe .print-signatures span{min-height:11mm!important}.discipline-safe .print-signatures b{font-size:7pt!important}.discipline-safe .print-signatures small{font-size:5.6pt!important}
 .discipline-safe .discipline-print>footer{align-self:end!important}
 }
+
+
+/* fix print overlaps and show full class name */
+@media print{
+.discipline-safe .print-legend{position:static!important;display:flex!important;justify-content:flex-start!important;flex-wrap:nowrap!important;gap:1.2mm!important;margin:0 1mm 1.8mm!important}
+.discipline-safe .print-summary{margin-bottom:1.5mm!important}
+.discipline-safe .print-section-title{clear:both!important;margin-top:0!important}
+.discipline-safe .discipline-report-table th:nth-child(2),.discipline-safe .discipline-report-table td:nth-child(2){width:31%!important}
+.discipline-safe .discipline-report-table th:nth-child(3),.discipline-safe .discipline-report-table td:nth-child(3){width:15%!important}
+.discipline-safe .discipline-report-table th:nth-child(8),.discipline-safe .discipline-report-table td:nth-child(8){width:11%!important}
+.discipline-safe .discipline-report-table th:nth-child(9),.discipline-safe .discipline-report-table td:nth-child(9){width:11%!important}
+.discipline-safe .discipline-report-table td:nth-child(3){white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;font-size:6pt!important;font-weight:850!important}
+.discipline-safe .discipline-report-table td:nth-child(2) b{font-size:6.8pt!important}
+}
