@@ -46,32 +46,18 @@ export default function StudentPage(){
   const [accessCode,setAccessCode]=useState("");const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);
   const [matches,setMatches]=useState<Match[]>([]);const [selectedKey,setSelectedKey]=useState("");const [subjectGate,setSubjectGate]=useState(false);const [view,setView]=useState<StudentView>("home");const [certificateSections,setCertificateSections]=useState<string[]>([]);const automaticLoginStarted=useRef(false);
 
-  async function hydrate(match:Match,force=false){const key=`${match.teacherId}:${match.subjectKey}:${match.id}`;const cached=profileCache.get(key);if(!force&&cached&&cached.expiresAt>Date.now())return cached.match;const pending=profileInflight.get(key);if(pending)return pending;const request=(async()=>{try{const response=await fetch("/api/student/profile",{headers:{Authorization:`Bearer ${match.accessToken}`},cache:"no-store"});const payload=await response.json().catch(()=>({}));const next=response.ok&&payload.data?{...match,data:payload.data as StudentRecord}:match;profileCache.set(key,{expiresAt:Date.now()+PROFILE_CACHE_TTL_MS,match:next});return next;}catch{return match;}finally{profileInflight.delete(key);}})();profileInflight.set(key,request);return request;}
+  async function hydrate(match:Match,force=false){const key=`${match.teacherId}:${match.subjectKey}:${match.id}`;const cached=profileCache.get(key);if(!force&&cached&&cached.expiresAt>Date.now())return cached.match;const pending=profileInflight.get(key);if(pending)return pending;const request=(async()=>{try{const response=await fetch("/api/student/profile",{headers:{Authorization:`Bearer ${match.accessToken}`},cache:"default"});const payload=await response.json().catch(()=>({}));const next=response.ok&&payload.data?{...match,data:payload.data as StudentRecord}:match;profileCache.set(key,{expiresAt:Date.now()+PROFILE_CACHE_TTL_MS,match:next});return next;}catch{return match;}finally{profileInflight.delete(key);}})();profileInflight.set(key,request);return request;}
   function speakWelcome(name:string){try{if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(`مرحبًا ${name}. أهلًا بك في بوابة أستاذ لحوني التعليمية. نتمنى لك يومًا دراسيًا مميزًا.`);utterance.lang="ar-SA";utterance.rate=.94;utterance.pitch=1;window.speechSynthesis.speak(utterance);}catch{}}
   async function hydrateAll(raw:Match[],force=false){const enriched=await Promise.all(raw.map(match=>hydrate(match,force)));setMatches(current=>current.length?enriched:current);}
-  async function lookup(value:string,allowVoice=true){const code=normalizeStudentCode(value);setMessage("");if(!CODE_PATTERN.test(code))return setMessage("أدخل كود الطالب الصحيح المكوّن من 6 خانات.");setLoading(true);try{const response=await fetch("/api/student/lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessCode:code}),cache:"no-store"});const payload=await response.json().catch(()=>({}));if(!response.ok)return setMessage(payload.message||"تعذر الدخول بكود الطالب.");const raw=Array.isArray(payload.matches)?payload.matches as Match[]:[];if(!raw.length)return setMessage("لا توجد مواد مرتبطة بهذا الطالب حتى الآن.");setAccessCode(code);const cachedRaw=raw.map(match=>{const key=`${match.teacherId}:${match.subjectKey}:${match.id}`;const cached=profileCache.get(key);return cached&&cached.expiresAt>Date.now()?cached.match:match;});setMatches(cachedRaw);setSelectedKey("");setView("home");setSubjectGate(true);setLoading(false);const knownName=cachedRaw[0]?.data?.name||"طالبنا";if(allowVoice)window.setTimeout(()=>speakWelcome(knownName),120);void hydrateAll(cachedRaw);}catch{setMessage("تعذر الاتصال بالبوابة الآن.");setLoading(false);}}
+  async function lookup(value:string,allowVoice=true){const code=normalizeStudentCode(value);setMessage("");if(!CODE_PATTERN.test(code))return setMessage("أدخل كود الطالب الصحيح المكوّن من 6 خانات.");setLoading(true);try{const response=await fetch("/api/student/lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessCode:code}),cache:"default"});const payload=await response.json().catch(()=>({}));if(!response.ok)return setMessage(payload.message||"تعذر الدخول بكود الطالب.");const raw=Array.isArray(payload.matches)?payload.matches as Match[]:[];if(!raw.length)return setMessage("لا توجد مواد مرتبطة بهذا الطالب حتى الآن.");setAccessCode(code);const cachedRaw=raw.map(match=>{const key=`${match.teacherId}:${match.subjectKey}:${match.id}`;const cached=profileCache.get(key);return cached&&cached.expiresAt>Date.now()?cached.match:match;});setMatches(cachedRaw);setSelectedKey("");setView("home");setSubjectGate(true);setLoading(false);const knownName=cachedRaw[0]?.data?.name||"طالبنا";if(allowVoice)window.setTimeout(()=>speakWelcome(knownName),120);void hydrateAll(cachedRaw);}catch{setMessage("تعذر الاتصال بالبوابة الآن.");setLoading(false);}}
   function submit(event:FormEvent){event.preventDefault();void lookup(accessCode,true);}
   function chooseSubject(key:string){setSelectedKey(key);setCertificateSections([]);setSubjectGate(false);setView("home");window.scrollTo({top:0,behavior:"auto"});const match=matches.find(item=>item.subjectKey===key);if(match)void hydrate(match,false).then(next=>setMatches(current=>current.map(item=>item.subjectKey===key?next:item)));}
   function logout(){try{window.speechSynthesis?.cancel();}catch{}setMatches([]);setSelectedKey("");setSubjectGate(false);setView("home");setAccessCode("");setMessage("");}
 
   useEffect(()=>{const query=new URLSearchParams(window.location.search);const code=normalizeStudentCode(query.get("code")||"");if(code)setAccessCode(code);if(query.size)window.history.replaceState({},"","/student");if(CODE_PATTERN.test(code)&&!automaticLoginStarted.current){automaticLoginStarted.current=true;void lookup(code,false);}},[]);
-  // حدّث بيانات الطالب والحضور عند الرجوع للتطبيق/المتصفح بدون polling أو listener دائم.
-  useEffect(()=>{
-    if(!matches.length)return;
-    let refreshing=false;
-    const refresh=async()=>{
-      if(refreshing)return;
-      refreshing=true;
-      try{await hydrateAll(matches,false);}finally{refreshing=false;}
-    };
-    const onPageShow=(event:PageTransitionEvent)=>{if(event.persisted)void refresh();};
-    window.addEventListener("online",refresh);
-    window.addEventListener("pageshow",onPageShow);
-    return()=>{
-      window.removeEventListener("online",refresh);
-      window.removeEventListener("pageshow",onPageShow);
-    };
-  },[matches]);
+  // Student profiles are already cached and deduplicated by hydrate().
+  // Do not attach refresh listeners keyed by matches: each hydration updates
+  // matches and used to recreate listeners / trigger unnecessary profile reads.
 
   const metrics=useMemo(()=>matches.map(metricFor),[matches]);
   const selectedMetric=useMemo(()=>metrics.find(item=>item.match.subjectKey===selectedKey)||null,[metrics,selectedKey]);
