@@ -152,3 +152,18 @@
 .tss-footer .tss-logout span{font-size:17px!important;color:#f1d17e!important}.tss-footer .tss-logout b{font-size:10px!important}
 .tss-main{padding:9px 10px 25px!important}
 @media(max-width:980px){.teacher-student-shell{padding:10px!important}.tss-sidebar.open{right:0!important;top:0!important;bottom:0!important;width:min(230px,86vw)!important;border-radius:0!important}}
+
+
+/* balanced teacher sidebar typography — keep every label complete and proportional */
+.tss-sidebar{width:226px!important}
+.teacher-student-shell{--rail:226px!important}
+.tss-nav{gap:3px!important}
+.tss-nav a{grid-template-columns:28px minmax(0,1fr)!important;gap:8px!important;min-height:41px!important;padding:6px 9px!important;border-radius:8px!important}
+.tss-nav a svg{width:17px!important;height:17px!important}
+.tss-nav a span{display:block!important;min-width:0!important;overflow:visible!important}
+.tss-nav a b{display:block!important;font-size:10px!important;line-height:1.35!important;font-weight:800!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:normal!important}
+.tss-nav a small{display:none!important}
+.tss-brand-stacked{padding-bottom:13px!important}
+.tss-brand-stacked b{font-size:14px!important;line-height:1.35!important}.tss-brand-stacked small{font-size:8px!important;line-height:1.4!important}
+.tss-footer .tss-logout,.tss-footer .tss-logout b{font-size:10px!important}
+@media(max-width:980px){.tss-sidebar.open{width:min(240px,88vw)!important}.tss-nav a{min-height:42px!important}}
