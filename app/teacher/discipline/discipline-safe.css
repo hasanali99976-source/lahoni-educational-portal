@@ -143,3 +143,30 @@ body *{visibility:hidden!important}
 .discipline-safe .discipline-report-table td.abs{background:#fae5e7!important;color:#963845!important;font-weight:950!important}.discipline-safe .discipline-report-table td.late{background:#fcf0d4!important;color:#896313!important;font-weight:950!important}.discipline-safe .discipline-report-table td.esc{background:#efe6f8!important;color:#67448c!important;font-weight:950!important}.discipline-safe .discipline-report-table td.exc{background:#e4f0f8!important;color:#376b8c!important;font-weight:950!important}.discipline-safe .discipline-report-table td.nonatt-high{background:#f3d7dc!important;color:#9d2738!important;font-size:6.6pt!important;font-weight:1000!important}.discipline-safe .discipline-report-table td.nonatt{background:#e5f3ee!important;color:#286354!important;font-size:6.5pt!important;font-weight:950!important}
 .discipline-safe .print-signatures{margin-top:2.5mm!important;padding-top:2mm!important}.discipline-safe .print-signatures b{font-size:6.8pt!important}.discipline-safe .print-signatures small{font-size:5.5pt!important}
 }
+
+
+/* executive print refinement: compact header, natural table, balanced page */
+@media print{
+.discipline-safe .discipline-print{grid-template-rows:auto auto minmax(0,1fr) auto auto!important;padding:7mm 10mm 5mm!important}
+.discipline-safe .print-cover-head{grid-template-columns:1fr 1.35fr 1fr!important;min-height:23mm!important;padding:1mm 3mm 3mm!important}
+.discipline-safe .print-brand img{width:14mm!important;height:14mm!important}.discipline-safe .print-brand strong{font-size:9.5pt!important}.discipline-safe .print-report-title h1{font-size:15.5pt!important}.discipline-safe .print-report-title p{font-size:6.8pt!important}
+.discipline-safe .print-meta{padding:1.6mm 2.3mm!important}.discipline-safe .print-meta b{font-size:6.5pt!important}
+.discipline-safe .print-summary{margin:2.2mm 1mm 2mm!important;gap:1.5mm!important}.discipline-safe .print-summary span{padding:1.1mm .8mm!important}.discipline-safe .print-summary b{font-size:9.5pt!important}
+.discipline-safe .print-legend{position:absolute!important;top:39mm!important;left:11mm!important;margin:0!important;z-index:2!important}
+.discipline-safe .print-class-page{height:auto!important;min-height:0!important;align-self:start!important;overflow:visible!important;padding:0 1mm!important}
+.discipline-safe .print-section-title{margin:0 0 1.4mm!important;padding:1.3mm 2.4mm!important;background:#eef4f3!important}
+.discipline-safe .discipline-report-table{height:auto!important;border-collapse:separate!important;border-spacing:0!important}
+.discipline-safe .discipline-report-table thead tr{height:7mm!important}
+.discipline-safe .discipline-report-table tbody tr{height:7.1mm!important;min-height:7.1mm!important;max-height:7.1mm!important}
+.discipline-safe .discipline-report-table th{height:7mm!important;padding:0 .7mm!important;vertical-align:middle!important;font-size:6.2pt!important}
+.discipline-safe .discipline-report-table td{height:7.1mm!important;padding:0 .8mm!important;vertical-align:middle!important;font-size:6.15pt!important}
+.discipline-safe .discipline-report-table th:nth-child(1),.discipline-safe .discipline-report-table td:nth-child(1){width:4%!important}
+.discipline-safe .discipline-report-table th:nth-child(2),.discipline-safe .discipline-report-table td:nth-child(2){width:34%!important}
+.discipline-safe .discipline-report-table th:nth-child(3),.discipline-safe .discipline-report-table td:nth-child(3){width:10%!important}
+.discipline-safe .discipline-report-table th:nth-child(4),.discipline-safe .discipline-report-table td:nth-child(4),.discipline-safe .discipline-report-table th:nth-child(5),.discipline-safe .discipline-report-table td:nth-child(5),.discipline-safe .discipline-report-table th:nth-child(6),.discipline-safe .discipline-report-table td:nth-child(6),.discipline-safe .discipline-report-table th:nth-child(7),.discipline-safe .discipline-report-table td:nth-child(7){width:7%!important}
+.discipline-safe .discipline-report-table th:nth-child(8),.discipline-safe .discipline-report-table td:nth-child(8){width:12%!important}.discipline-safe .discipline-report-table th:nth-child(9),.discipline-safe .discipline-report-table td:nth-child(9){width:12%!important}
+.discipline-safe .discipline-report-table td:nth-child(2){padding-right:3mm!important}.discipline-safe .discipline-report-table td:nth-child(2) b{font-size:7.1pt!important;max-width:none!important;overflow:visible!important;text-overflow:clip!important}.discipline-safe .discipline-report-table td:nth-child(2) small{font-size:4.8pt!important;margin-right:2.2mm!important}
+.discipline-safe .discipline-report-table th,.discipline-safe .discipline-report-table td{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.discipline-safe .print-signatures{align-self:end!important;margin:3mm 1mm 0!important;padding:2.2mm 3mm 0!important}.discipline-safe .print-signatures span{min-height:11mm!important}.discipline-safe .print-signatures b{font-size:7pt!important}.discipline-safe .print-signatures small{font-size:5.6pt!important}
+.discipline-safe .discipline-print>footer{align-self:end!important}
+}
