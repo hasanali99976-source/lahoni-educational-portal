@@ -74,3 +74,19 @@
   .discipline-safe .report-seal{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:20mm!important;height:20mm!important;border:1.2px solid #a97c35!important;border-radius:50%!important;background:#faf6ea!important;color:#8d6528!important;text-align:center!important;transform:none!important;box-shadow:none!important}.discipline-safe .report-seal span,.discipline-safe .report-seal small{font-size:4pt!important}.discipline-safe .report-seal b{font-size:6.3pt!important;line-height:1.05!important}
   .discipline-safe .report-sign{text-align:right!important}.discipline-safe .report-sign b{display:block!important;margin:.6mm 0!important;font-size:7pt!important;color:#173e47!important}.discipline-safe .report-sign span,.discipline-safe .report-sign em{display:block!important;font-size:5.1pt!important;color:#596f74!important}.discipline-safe .report-sign em{margin-top:1.3mm!important;font-style:normal!important}
 }
+
+
+/* overlap corrections */
+@media print{
+.discipline-safe .report-cert-head{flex-basis:22mm!important;height:22mm!important;padding-bottom:2mm!important}
+.discipline-safe .report-identity{flex-basis:16mm!important;height:16mm!important;margin-top:2mm!important}.discipline-safe .report-identity>div{height:16mm!important}
+.discipline-safe .report-hero{flex-basis:15mm!important;height:15mm!important;min-height:15mm!important;margin-top:2mm!important;padding:1.5mm 4mm!important;overflow:hidden!important}
+.discipline-safe .report-hero p{font-size:5.6pt!important;line-height:1.05!important;white-space:nowrap!important}
+.discipline-safe .report-hero-count span{font-size:5.1pt!important;line-height:1.05!important}
+.discipline-safe .report-kpis{flex-basis:12mm!important;height:12mm!important;margin-top:2.5mm!important}.discipline-safe .report-kpis>div{height:12mm!important}
+.discipline-safe .report-table-section{margin-top:3.5mm!important}
+.discipline-safe .report-table-section>header{height:10mm!important;padding:1.4mm 2.5mm!important;overflow:hidden!important}
+.discipline-safe .report-table-section>header>div{display:flex!important;align-items:center!important;gap:3mm!important;min-width:0!important}.discipline-safe .report-table-section>header small{display:inline-block!important;line-height:1!important}.discipline-safe .report-table-section>header h2{display:inline-block!important;margin:0!important;line-height:1!important;white-space:nowrap!important}
+.discipline-safe .discipline-report-table th,.discipline-safe .discipline-report-table td{height:7.4mm!important;line-height:1.15!important}
+.discipline-safe .report-cert-footer{flex-basis:22mm!important;height:22mm!important}
+}
