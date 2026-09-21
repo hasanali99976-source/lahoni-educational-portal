@@ -126,3 +126,9 @@
 .tss-nav a:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.2)}
 .tss-nav a.active{background:linear-gradient(100deg,rgba(20,132,119,.34),rgba(239,203,115,.08));border-color:rgba(239,203,115,.55);box-shadow:none}
 .tss-nav a.active:before{width:4px;background:#efcb73}.tss-nav a.active svg{background:rgba(239,203,115,.14);color:#ffe29a}.tss-nav a.active b{color:#fff}.tss-nav a.active small{color:#f0dfae}
+
+
+/* Saudi teacher identity shared by sidebar and header */
+.tss-saudi-avatar{position:relative;flex:0 0 auto;width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(145deg,rgba(240,205,119,.28),rgba(20,74,80,.16));border:1px solid rgba(205,157,65,.42);overflow:hidden}
+.tss-saudi-head{position:relative;width:31px;height:33px;display:block;margin-top:-7px}.tss-saudi-face{position:absolute;z-index:2;width:21px;height:23px;right:5px;top:10px;border-radius:48%;background:linear-gradient(145deg,#d7a170,#b8794d)}.tss-saudi-face:after{content:"";position:absolute;width:13px;height:5px;right:4px;bottom:1px;border-radius:0 0 8px 8px;background:#3c2922}.tss-saudi-ghutra{position:absolute;z-index:3;width:30px;height:23px;right:0;top:1px;background:linear-gradient(135deg,#fff 0 44%,#e5e9e7 45% 53%,#fff 54%);clip-path:polygon(12% 0,88% 0,100% 100%,69% 77%,50% 92%,31% 77%,0 100%)}.tss-saudi-agal{position:absolute;z-index:4;width:25px;height:7px;right:3px;top:3px;border:2px solid #172126;border-radius:50%}.tss-saudi-body{position:absolute;width:38px;height:21px;bottom:1px;border-radius:20px 20px 8px 8px;background:linear-gradient(145deg,#fff,#dfe6e4)}
+.tss-identity-mark .tss-saudi-avatar,.tss-profile-avatar .tss-saudi-avatar{width:100%;height:100%}
