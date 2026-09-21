@@ -182,3 +182,15 @@ body *{visibility:hidden!important}
 .student-cert-sheet .cert-seal{width:86px!important;height:86px!important}
 .student-cert-sheet .cert-watermark{font-size:68px!important}
 }
+
+
+/* readability pass — preserve student identity/colors, strengthen contrast only */
+.student-current-login .scl-card{background:rgba(5,39,52,.88)!important;border-color:rgba(255,255,255,.18)!important}
+.student-current-login .scl-intro>p,.student-current-login .scl-card>p,.student-current-login .scl-card>em{color:#dce8eb!important}
+.student-current-login .scl-intro h1,.student-current-login .scl-card h2{filter:contrast(1.08)}
+.student-current-login .scl-features article{background:rgba(6,43,55,.68)!important;border-color:rgba(255,255,255,.16)!important}
+.student-current-login .scl-features article span{color:#cbdcdf!important}
+.student-current-login .scl-input{box-shadow:0 0 0 1px rgba(255,255,255,.12)!important}
+.student-current-login .scl-card label>span{color:#f0f5f6!important}
+.student-current-gate .scg-title p{color:#d8e5e7!important}
+.student-current-gate .scg-subjects button{border-color:rgba(255,255,255,.17)!important}
