@@ -35,3 +35,13 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .teacher-brand-tabs i:hover:after{transform:translateX(90%)}
 @media(max-width:1050px){.teacher-brand-tabs i:nth-child(n+6){display:none}}
 @media(max-width:800px){.teacher-brand-tabs{display:none!important}}
+
+
+/* large student-portal-style service cards beneath teacher intro */
+.teacher-entry-page .portal-entry-copy h1{font-size:clamp(58px,7vw,96px)!important;font-weight:950!important;letter-spacing:-2px!important;text-shadow:0 8px 30px rgba(0,0,0,.24)}
+.teacher-entry-tabs-large{max-width:780px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;margin-top:27px!important}
+.teacher-entry-tabs-large span{min-height:76px!important;padding:13px 16px!important;border-radius:20px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;text-align:right!important;background:linear-gradient(145deg,rgba(240,201,105,.26),rgba(176,119,31,.13))!important;border:1px solid rgba(244,210,125,.55)!important;box-shadow:0 12px 28px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.13)!important;cursor:default}
+.teacher-entry-tabs-large span b{position:relative;z-index:2;color:#ffe6a1;font-size:14px;font-weight:950}
+.teacher-entry-tabs-large span small{position:relative;z-index:2;margin-top:5px;color:#e4d5af;font-size:9px;font-weight:700}
+.teacher-entry-tabs-large span:hover{transform:translateY(-5px) scale(1.025)!important;background:linear-gradient(145deg,rgba(244,207,113,.39),rgba(188,130,37,.22))!important;border-color:#f3d27e!important;box-shadow:0 17px 34px rgba(211,158,57,.17),inset 0 1px rgba(255,255,255,.18)!important}
+@media(max-width:800px){.teacher-entry-page .portal-entry-copy h1{font-size:54px!important}.teacher-entry-tabs-large{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}.teacher-entry-tabs-large span{min-height:65px!important;padding:11px 12px!important}.teacher-entry-tabs-large span b{font-size:12px}}
