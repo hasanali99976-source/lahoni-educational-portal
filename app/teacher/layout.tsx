@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
@@ -71,7 +71,7 @@ function TabIcon({ type }: { type: string }) {
 }
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname(); const isLoginPage = pathname === "/teacher"; const entryRedirectKey="lahooni:teacher-entry-complete";
+  const pathname = usePathname(); const router=useRouter(); const isLoginPage = pathname === "/teacher"; const entryRedirectKey="lahooni:teacher-entry-complete";
   const [ready,setReady]=useState(false); const [hasGradePlan,setHasGradePlan]=useState(false); const [menuOpen,setMenuOpen]=useState(false);
   const [teacherId,setTeacherId]=useState<string>(); const [teacherName,setTeacherName]=useState("المعلم"); const [subjectKey,setSubjectKey]=useState<SubjectKey>("history"); const [workspaceKey,setWorkspaceKey]=useState("history"); const [activeGrade,setActiveGrade]=useState<number|null>(null); const [activeGradeLabel,setActiveGradeLabel]=useState(""); const [subjectName,setSubjectName]=useState("التاريخ"); const [subjects,setSubjects]=useState<TeacherClientSubject[]>([]); const [assignments,setAssignments]=useState<TeacherClientAssignment[]>([]); const [switchingSubject,setSwitchingSubject]=useState(false); const [todayLabel,setTodayLabel]=useState("");
   const subjectConfig=getSubjectConfig(subjectKey); const moreActive=moreTabs.some(tab=>pathname.startsWith(tab.href));
@@ -80,14 +80,15 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   function speakTeacherWelcome(name=teacherName){try{if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(`مرحبًا أستاذ ${name||"المعلم"}. أهلًا بك في بوابة أستاذ لحوني التعليمية، ونتمنى لك يومًا دراسيًا موفقًا.`);utterance.lang="ar-SA";utterance.rate=.92;utterance.pitch=1;window.speechSynthesis.speak(utterance);}catch{}}
   async function logout(){try{window.speechSynthesis?.cancel();sessionStorage.removeItem("lahooni:teacher-welcome");sessionStorage.removeItem("lahooni:teacher-subject-picked");sessionStorage.removeItem(entryRedirectKey);}catch{}setReady(false);clearSessionState();try{await Promise.all([fetch("/api/teacher-logout",{method:"POST",cache:"no-store"}),signOut(auth)]);}finally{window.location.replace("/teacher");}}
   useEffect(()=>{setMenuOpen(false);},[pathname]);
+  useEffect(()=>{if(isLoginPage)return;[...primaryTabs,...moreTabs].forEach(tab=>router.prefetch(tab.href));},[isLoginPage,router]);
   useEffect(()=>{setTodayLabel(new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(new Date()));},[]);
   useEffect(()=>{if(!ready||isLoginPage||!teacherName)return;try{if(sessionStorage.getItem("lahooni:teacher-welcome")==="1")return;sessionStorage.setItem("lahooni:teacher-welcome","1");window.setTimeout(()=>speakTeacherWelcome(teacherName),180);}catch{}},[ready,isLoginPage,teacherName]);
   useEffect(()=>{if(isLoginPage){setReady(false);clearSessionState();return;}setReady(false);clearSessionState();let active=true;fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"}).then(r=>r.ok?r.json():Promise.reject(new Error("session_failed"))).then((s:TeacherSession)=>{if(!active)return;if(!s.teacherId)throw new Error("missing_teacher_identity");applySession(s);setReady(true);}).catch(()=>{if(active){clearSessionState();window.location.replace("/teacher");}});return()=>{active=false;};},[isLoginPage]);
-  async function changeSubject(next:string){if(next===workspaceKey||switchingSubject)return;try{setSwitchingSubject(true);const response=await fetch("/api/teacher-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceKey:next}),cache:"no-store",credentials:"same-origin"});if(!response.ok)throw new Error();const session=await response.json().catch(()=>null);if(session?.teacherId)applySession(session);setMenuOpen(false);window.location.assign(pathname);}finally{setSwitchingSubject(false);}}
+  async function changeSubject(next:string){if(next===workspaceKey||switchingSubject)return;try{setSwitchingSubject(true);const response=await fetch("/api/teacher-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceKey:next}),cache:"no-store",credentials:"same-origin"});if(!response.ok)throw new Error();const session=await response.json().catch(()=>null);if(session?.teacherId)applySession(session);setMenuOpen(false);router.refresh();}finally{setSwitchingSubject(false);}}
   if(isLoginPage){try{if(typeof window!=="undefined"&&sessionStorage.getItem(entryRedirectKey)==="1"){window.location.replace("/teacher/dashboard");return <main className="teacher-shell-loading">جارٍ فتح يومي…</main>;}}catch{}return <>{children}</>;} if(!ready)return <main className="teacher-shell-loading">جارٍ تجهيز بوابة المعلم…</main>;
   const contextValue={authenticated:true,teacherId,teacherName,subjectKey,workspaceKey,activeGrade,activeGradeLabel,subject:subjectName,subjects,assignments,setSubject:changeSubject,refresh:async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"});if(response.ok)applySession(await response.json());}};
-  const renderHeaderTab=(tab:TeacherTab)=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>;};
-  const renderCommandTab=(tab:TeacherTab)=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""}><TabIcon type={tab.key}/><span className="teacher-command-link-copy"><b>{tab.label}</b><small>{tab.note}</small></span></Link>;};
+  const renderHeaderTab=(tab:TeacherTab)=>{const active=pathname.startsWith(tab.href);return <Link prefetch={true} key={tab.href} href={tab.href} className={active?"active":""}><TabIcon type={tab.key}/><span>{tab.label}</span></Link>;};
+  const renderCommandTab=(tab:TeacherTab)=>{const active=pathname.startsWith(tab.href);return <Link prefetch={true} key={tab.href} href={tab.href} className={active?"active":""}><TabIcon type={tab.key}/><span className="teacher-command-link-copy"><b>{tab.label}</b><small>{tab.note}</small></span></Link>;};
   const shellTabs=[...primaryTabs,...moreTabs.filter(tab=>!primaryTabs.some(primary=>primary.href===tab.href))];
   const currentTab=shellTabs.find(tab=>pathname.startsWith(tab.href));
   return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
@@ -98,7 +99,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <span><b>بوابة المعلم</b><small>بوابة أستاذ لحوني التعليمية</small></span>
         </Link>
 
-        <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
+        <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={true} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
         <footer className="tss-footer"><button type="button" className="tss-logout" onClick={logout}><span>↪</span><b>تسجيل الخروج</b></button></footer>
       </aside>
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
