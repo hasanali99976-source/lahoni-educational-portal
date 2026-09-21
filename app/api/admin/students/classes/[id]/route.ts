@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../../../lib/server/portal-auth";
@@ -51,6 +52,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       await database.collection(SCHOOL_CLASSES_COLLECTION).doc(previous.id).delete();
     }
 
+    revalidateTag("teacher-central-roster", { expire: 0 });
     return NextResponse.json({
       ok: true,
       previousClass: previous,
@@ -90,6 +92,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     });
     await adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(previous.id).delete();
 
+    revalidateTag("teacher-central-roster", { expire: 0 });
     return NextResponse.json({
       ok: true,
       archivedStudents: force ? studentCount : 0,

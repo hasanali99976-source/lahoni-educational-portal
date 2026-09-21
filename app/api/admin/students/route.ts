@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
@@ -113,6 +114,7 @@ export async function POST(request: Request) {
       createdAt: now,
     }, { merge: true });
     rosterCache.clear();
+    revalidateTag("teacher-central-roster", { expire: 0 });
     return NextResponse.json({ ok: true, student: { id: code, code, name, grade, section, className, active: true } }, { status: 201 });
   } catch (error) {
     console.error("create school student failed", error);
