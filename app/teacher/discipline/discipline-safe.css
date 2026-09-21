@@ -217,3 +217,20 @@ body *{visibility:hidden!important}
 .discipline-safe .print-signatures{position:absolute!important;right:11mm!important;left:11mm!important;bottom:11mm!important;margin:0!important;background:#fff!important}
 .discipline-safe .discipline-print>footer{position:absolute!important;right:11mm!important;left:11mm!important;bottom:5.5mm!important;margin:0!important;background:#fff!important}
 }
+
+
+/* formal paper palette + comprehensive violation rate emphasis */
+@media print{
+.discipline-safe .discipline-print{background:#fff!important;color:#1c3036!important}
+.discipline-safe .discipline-print:before{border:1px solid #c7b06d!important}.discipline-safe .discipline-print:after{height:3mm!important;background:#0d5962!important}
+.discipline-safe .print-cover-head{border-bottom-color:#0d5962!important}.discipline-safe .print-brand small{color:#0d5962!important}.discipline-safe .print-brand strong,.discipline-safe .print-report-title h1{color:#173b44!important}.discipline-safe .print-brand em{color:#8b702b!important}
+.discipline-safe .print-report-title span{background:#e8f1f0!important;color:#0d5962!important;border:1px solid #c9ddda!important}
+.discipline-safe .print-meta{background:#f7f8f6!important;border-color:#d9dfdc!important}
+.discipline-safe .print-summary span{background:#f7f8f7!important;border-color:#d9e0de!important;color:#455e64!important}.discipline-safe .print-summary b{color:#173f48!important}
+.discipline-safe .print-summary .sum-risk{background:#f7e2e3!important;border:1px solid #dcaeb2!important;color:#8b2632!important}.discipline-safe .print-summary .sum-risk b{color:#a32333!important}
+.discipline-safe .print-summary .sum-abs{background:#f9e8e8!important;border-color:#e7c4c6!important}.discipline-safe .print-summary .sum-late{background:#f8efd9!important;border-color:#e5d4a7!important}.discipline-safe .print-summary .sum-esc{background:#eee8f4!important;border-color:#d8cae7!important}.discipline-safe .print-summary .sum-exc{background:#e6f0f4!important;border-color:#c7dce4!important}
+.discipline-safe .print-section-title{background:#eef3f2!important;border-right-color:#a98736!important}.discipline-safe .discipline-report-table{border-color:#bccbcd!important}.discipline-safe .discipline-report-table th{background:#164f58!important;border-color:#356b72!important;color:#fff!important}.discipline-safe .discipline-report-table td{border-color:#d7e0e1!important;color:#243f46!important}.discipline-safe .discipline-report-table tbody tr:nth-child(even) td{background:#f5f7f7!important}
+.discipline-safe .discipline-report-table td.abs{background:#f8e4e5!important;color:#8d303b!important}.discipline-safe .discipline-report-table td.late{background:#f8edcf!important;color:#77580f!important}.discipline-safe .discipline-report-table td.esc{background:#eee6f5!important;color:#5f3e80!important}.discipline-safe .discipline-report-table td.exc{background:#e4eef4!important;color:#315f78!important}
+.discipline-safe .discipline-report-table td.nonatt-high{background:#efd2d5!important;color:#971f30!important;font-weight:900!important;border:1px solid #d99aa2!important}.discipline-safe .discipline-report-table td.nonatt{background:#e7f0ed!important;color:#28584e!important;font-weight:900!important}
+.discipline-safe .print-signatures{border-top:1px solid #cbd5d5!important}.discipline-safe .discipline-print>footer{border-top:1px solid #cbd5d5!important}
+}
