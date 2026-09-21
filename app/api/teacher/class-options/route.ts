@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { findUserById, requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
+import { defaultSelectedClassIds } from "../../../../lib/teacher-class-scope";
 import {
   SCHOOL_CLASSES_COLLECTION,
   SCHOOL_STUDENTS_COLLECTION,
@@ -40,11 +41,11 @@ function classFromStudent(student: SchoolStudent): SchoolClass {
   };
 }
 
-async function loadClassOptions(teacherId: string, subjectId: string, grade: Grade) {
+async function loadClassOptions(teacherId: string, subjectId: string, grade: Grade, assignments: ReturnType<typeof normalizeAssignments>, refresh: boolean) {
   const key = `${teacherId}:${subjectId}:${grade}`;
   const now = Date.now();
   const cached = classOptionsCache.get(key);
-  if (cached && cached.expiresAt > now) return cached.payload;
+  if (!refresh && cached && cached.expiresAt > now) return cached.payload;
   const pending = classOptionsInflight.get(key);
   if (pending) return pending;
 
@@ -74,9 +75,9 @@ async function loadClassOptions(teacherId: string, subjectId: string, grade: Gra
       .filter(item => /^\d+-\d+$/.test(item.id))
       .sort((a, b) => Number(a.section) - Number(b.section));
     const availableIds = new Set(availableClasses.map(item => item.id));
-    const selectedClassIds = scopeSnapshot.exists
+    const selectedClassIds = scopeSnapshot.exists && scopeSnapshot.data()?.customized === true
       ? normalizeClassIds(scopeSnapshot.data()?.selectedClassIds).filter(item => availableIds.has(item))
-      : [];
+      : defaultSelectedClassIds(assignments, subjectId, availableClasses, grade);
 
     const payload = {
       ok: true,
@@ -123,9 +124,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: false, message: "المادة أو المرحلة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
-    const payload = await loadClassOptions(session.userId, subjectId, grade);
+    const payload = await loadClassOptions(session.userId, subjectId, grade, relevant, url.searchParams.get("refresh") === "1");
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=240" },
+      headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {
     console.error("teacher class options failed", error);

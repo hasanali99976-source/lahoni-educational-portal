@@ -27,7 +27,7 @@ async function fetchRoster(subjectId:string,grade:number|null,force=false){
   rosterInflight.set(key,pending);
   try{const data=await pending;rosterCache.set(key,{data,expiresAt:Date.now()+ROSTER_CACHE_TTL_MS});return data;}finally{rosterInflight.delete(key);}
 }
-async function fetchClassOptions(subjectId:string,grade:number|null){if(!grade)return{availableClasses:[],selectedClassIds:[]};return fetchJson(`/api/teacher/class-options?subjectId=${encodeURIComponent(subjectId)}&grade=${grade}`);}
+async function fetchClassOptions(subjectId:string,grade:number|null,refresh=false){if(!grade)return{availableClasses:[],selectedClassIds:[]};return fetchJson(`/api/teacher/class-options?subjectId=${encodeURIComponent(subjectId)}&grade=${grade}${refresh?"&refresh=1":""}`);}
 
 export default function StudentsPage(){
   const session=useTeacherClient();
@@ -36,7 +36,7 @@ export default function StudentsPage(){
   const autoLoadKeyRef=useRef("");
 
   async function load(showMessage=false,force=false){if(!subjectId)return;setLoading(true);if(!showMessage)setMessage("");try{const data=await fetchRoster(subjectId,activeGrade,force);const nextStudents=Array.isArray(data.students)?data.students:[];const nextClasses=Array.isArray(data.classes)?data.classes:[];setStudents(nextStudents);setClasses(nextClasses);setSelectedClass(current=>current&&nextClasses.some((item:SchoolClass)=>item.id===current)?current:(nextClasses[0]?.id||""));if(teacherId){saveLocalRoster(teacherId,nextStudents as UnifiedStudent[],workspaceKey);saveLocalClasses(teacherId,nextClasses.map((item:SchoolClass)=>item.name),workspaceKey);}}catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل قائمة الطلاب");}finally{setLoading(false);}}
-  async function loadClassOptions(){if(!subjectId||!activeGrade)return;setLoadingOptions(true);try{const data=await fetchClassOptions(subjectId,activeGrade);setAvailableClasses(Array.isArray(data.availableClasses)?data.availableClasses:[]);setSelectedClassIds(Array.isArray(data.selectedClassIds)?data.selectedClassIds:[]);}catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل فصول المرحلة");}finally{setLoadingOptions(false);}}
+  async function loadClassOptions(refresh=false){if(!subjectId||!activeGrade)return;setLoadingOptions(true);try{const data=await fetchClassOptions(subjectId,activeGrade,refresh);setAvailableClasses(Array.isArray(data.availableClasses)?data.availableClasses:[]);setSelectedClassIds(Array.isArray(data.selectedClassIds)?data.selectedClassIds:[]);}catch(error){setMessage(error instanceof Error?error.message:"تعذر تحميل فصول المرحلة");}finally{setLoadingOptions(false);}}
   useEffect(()=>{if(!subjectId||!teacherId)return;const key=`${teacherId}:${subjectId}:${activeGrade||"all"}`;if(autoLoadKeyRef.current===key)return;autoLoadKeyRef.current=key;void load();},[subjectId,activeGrade,teacherId]);
 
   const activeClass=classes.find(item=>item.id===selectedClass);
@@ -46,7 +46,7 @@ export default function StudentsPage(){
 
   function toggleClass(classId:string){setSelectedClassIds(current=>current.includes(classId)?current.filter(item=>item!==classId):[...current,classId]);}
   async function openManager(){setManaging(true);await loadClassOptions();}
-  async function saveClassScope(){if(!subjectId||!activeGrade)return;setSavingScope(true);setMessage("");try{await fetchJson("/api/teacher/class-scope",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId,grade:activeGrade,selectedClassIds})});rosterCache.delete(`${subjectId}:${activeGrade||"all"}`);setMessage("تم حفظ فصولك. ستظهر نفس الفصول في المتابعة والتحصيل والتقارير.");setManaging(false);await load(true,true);}catch(error){setMessage(error instanceof Error?error.message:"تعذر حفظ الفصول");}finally{setSavingScope(false);}}
+  async function saveClassScope(){if(!subjectId||!activeGrade)return;setSavingScope(true);setMessage("");try{await fetchJson("/api/teacher/class-scope",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({subjectId,grade:activeGrade,selectedClassIds})});rosterCache.delete(`${subjectId}:${activeGrade||"all"}`);setMessage("تم حفظ فصولك. ستظهر نفس الفصول في المتابعة والتحصيل والتقارير.");setManaging(false);await Promise.all([load(true,true),loadClassOptions(true)]);}catch(error){setMessage(error instanceof Error?error.message:"تعذر حفظ الفصول");}finally{setSavingScope(false);}}
 
   function exportExcel(){const rows=visible.map((student,index)=>({م:index+1,"اسم الطالب":student.name,"الفصل":student.className,"كود الطالب":student.code}));if(!rows.length)return setMessage("لا توجد أسماء للتصدير");const workbook=XLSX.utils.book_new();const sheet=XLSX.utils.json_to_sheet(rows);sheet["!cols"]=[{wch:6},{wch:34},{wch:18},{wch:16}];XLSX.utils.book_append_sheet(workbook,sheet,"الطلاب");XLSX.writeFile(workbook,`طلاب-${activeClass?.name||session?.activeGradeLabel||"المادة"}.xlsx`);}
 

@@ -107,16 +107,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
     await batch.commit();
 
-    const [classScopes, classOwners] = await Promise.all([
-      database.collection(TEACHER_CLASS_SCOPES_COLLECTION).where("teacherId", "==", id).get(),
-      database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).where("teacherId", "==", id).get(),
-    ]);
-    const resetBatch = database.batch();
-    classScopes.docs.forEach(item => resetBatch.delete(database.collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(item.id)));
-    classOwners.docs.forEach(item => resetBatch.delete(database.collection(SUBJECT_CLASS_OWNERS_COLLECTION).doc(item.id)));
-    await resetBatch.commit();
   }
-  return NextResponse.json({ ok: true, preservedTeacherData: true, classScopeReset: !!normalizedAssignments });
+  return NextResponse.json({ ok: true, preservedTeacherData: true, classScopeReset: false });
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
