@@ -111,3 +111,16 @@
 .discipline-safe .discipline-report-table th:nth-child(10),.discipline-safe .discipline-report-table td:nth-child(10){width:11%!important}
 .discipline-safe .discipline-report-table td:nth-child(3){white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;font-size:6.1pt!important;font-weight:900!important}
 }
+
+@media print{
+/* full class name in the single-sheet report */
+.discipline-safe .discipline-report-table th:nth-child(1),.discipline-safe .discipline-report-table td:nth-child(1){width:3.5%!important}
+.discipline-safe .discipline-report-table th:nth-child(2),.discipline-safe .discipline-report-table td:nth-child(2){width:28%!important}
+.discipline-safe .discipline-report-table th:nth-child(3),.discipline-safe .discipline-report-table td:nth-child(3){width:14%!important}
+.discipline-safe .discipline-report-table th:nth-child(4),.discipline-safe .discipline-report-table td:nth-child(4){width:7%!important}
+.discipline-safe .discipline-report-table th:nth-child(5),.discipline-safe .discipline-report-table td:nth-child(5),.discipline-safe .discipline-report-table th:nth-child(6),.discipline-safe .discipline-report-table td:nth-child(6),.discipline-safe .discipline-report-table th:nth-child(7),.discipline-safe .discipline-report-table td:nth-child(7),.discipline-safe .discipline-report-table th:nth-child(8),.discipline-safe .discipline-report-table td:nth-child(8){width:6%!important}
+.discipline-safe .discipline-report-table th:nth-child(9),.discipline-safe .discipline-report-table td:nth-child(9){width:11.5%!important}
+.discipline-safe .discipline-report-table th:nth-child(10),.discipline-safe .discipline-report-table td:nth-child(10){width:12%!important}
+.discipline-safe .discipline-report-table td:nth-child(3){font-size:5.8pt!important;font-weight:900!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
+.discipline-safe .discipline-report-table td:nth-child(2) b{font-size:6.4pt!important}
+}
