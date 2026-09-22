@@ -107,3 +107,13 @@ body *{visibility:hidden!important}
 .summary-print .unit-cell span b{color:#0a6b68!important;font-weight:900!important}
 .summary-print .summary-report tbody tr{height:auto!important;min-height:5mm!important}
 }
+@media print{
+@page{size:A3 landscape;margin:5mm}
+.certificate-print.summary-print{width:410mm!important;height:287mm!important}
+.summary-print .summary-sheet{width:410mm!important;height:287mm!important;padding:5mm!important}
+.summary-print .summary-report{width:400mm!important;height:277mm!important;padding:6mm 7mm!important}
+.summary-print .summary-report header{grid-template-columns:20mm 1fr!important;min-height:20mm!important}.summary-print .summary-report h2{font-size:17pt!important}.summary-print .summary-kpis{grid-template-columns:repeat(10,1fr)!important;gap:1.5mm!important}.summary-print .summary-kpis span{font-size:7pt!important;min-height:11mm!important}.summary-print .summary-kpis b{font-size:10pt!important}
+.summary-print .summary-report th{font-size:7pt!important;padding:1.6mm .7mm!important}.summary-print .summary-report td{font-size:7pt!important;padding:1.3mm .7mm!important;overflow:visible!important;text-overflow:clip!important}.summary-print .summary-report th:nth-child(1),.summary-print .summary-report td:nth-child(1){width:3%!important}.summary-print .summary-report th:nth-child(2),.summary-print .summary-report td:nth-child(2){width:19%!important;font-size:8pt!important}.summary-print .summary-report th:nth-child(3),.summary-print .summary-report td:nth-child(3){width:31%!important}
+.summary-print .unit-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1mm!important}.summary-print .unit-grid span{display:grid!important;grid-template-columns:1fr auto auto!important;align-items:center!important;gap:1mm!important;margin:0!important;padding:1mm!important;border:.25mm solid #d6c18d!important;background:#fbf7ed!important;border-radius:1.5mm!important}.summary-print .unit-grid span b{font-size:6.5pt!important;color:#173f45!important}.summary-print .unit-grid span em{font-style:normal!important;color:#6f5b2b!important;font-size:6pt!important}.summary-print .unit-grid span strong{font-size:7pt!important;color:#08706b!important}
+.summary-print .single-unit-grade{display:grid!important;grid-template-columns:1fr 1fr!important;gap:1mm!important}.summary-print .single-unit-grade span{padding:1.2mm!important;border:.25mm solid #d6c18d!important;background:#fbf7ed!important;border-radius:1.5mm!important}.summary-print .single-unit-grade strong{color:#08706b!important;font-size:8pt!important}
+}
