@@ -60,3 +60,12 @@ body *{visibility:hidden!important}
 .summary-print table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}.summary-print th,.summary-print td{padding:1.15mm .7mm!important;font-size:6pt!important;line-height:1.15!important;vertical-align:middle!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.summary-print th:nth-child(2),.summary-print td:nth-child(2){width:25%!important;text-align:right!important}.summary-print td:nth-child(2) small{display:none!important}
 .summary-print footer{min-height:10mm!important;padding-top:2mm!important;font-size:6.5pt!important}
 }
+@media print{
+.summary-print .summary-kpis{grid-template-columns:repeat(5,1fr)!important;gap:1mm!important}
+.summary-print .summary-kpis span{min-height:10mm!important;padding:1mm .6mm!important;font-size:5.5pt!important}
+.summary-print .summary-kpis b{font-size:8pt!important}
+.summary-print .summary-report th,.summary-print .summary-report td{font-size:4.5pt!important;padding:.85mm .4mm!important;white-space:nowrap!important}
+.summary-print .summary-report th:nth-child(2),.summary-print .summary-report td:nth-child(2){width:22%!important}
+.summary-print .summary-report th:nth-child(3),.summary-print .summary-report td:nth-child(3){width:9%!important}
+.summary-print .summary-report th:nth-child(4),.summary-print .summary-report td:nth-child(4){width:13%!important}
+}
