@@ -83,3 +83,16 @@ body *{visibility:hidden!important}
 .summary-print .summary-report th:nth-child(1),.summary-print .summary-report td:nth-child(1){width:3.5%!important}.summary-print .summary-report th:nth-child(2),.summary-print .summary-report td:nth-child(2){width:24%!important;text-align:right!important;font-size:6.2pt!important}.summary-print .summary-report th:nth-child(3),.summary-print .summary-report td:nth-child(3){width:9%!important}.summary-print .summary-report th:nth-child(4),.summary-print .summary-report td:nth-child(4){width:13%!important}.summary-print .summary-report th:nth-child(5),.summary-print .summary-report td:nth-child(5){width:6%!important}.summary-print .summary-report th:nth-child(n+6),.summary-print .summary-report td:nth-child(n+6){width:5.5%!important}
 .summary-print .summary-report th:last-child,.summary-print .summary-report td:last-child{width:7%!important}.summary-print .summary-report footer{border-top:.6mm solid #b9933d!important;color:#0e5960!important;margin-top:2mm!important;padding-top:1.5mm!important}
 }
+@media print{
+.summary-print .summary-report{padding:4mm!important}
+.summary-print .summary-kpis{grid-template-columns:repeat(10,1fr)!important;gap:.7mm!important}.summary-print .summary-kpis span{min-height:8mm!important;font-size:4.7pt!important;padding:.7mm .3mm!important}.summary-print .summary-kpis b{font-size:7pt!important}
+.summary-print .summary-report th,.summary-print .summary-report td{box-sizing:border-box!important;overflow:hidden!important;text-overflow:clip!important;line-height:1.05!important;padding:.8mm .25mm!important}
+.summary-print .summary-report th{font-size:4.55pt!important}.summary-print .summary-report td{font-size:4.8pt!important}
+.summary-print .summary-report th:nth-child(1),.summary-print .summary-report td:nth-child(1){width:3%!important}
+.summary-print .summary-report th:nth-child(2),.summary-print .summary-report td:nth-child(2){width:24%!important;font-size:5.7pt!important}
+.summary-print .summary-report th:nth-child(3),.summary-print .summary-report td:nth-child(3){width:8%!important}
+.summary-print .summary-report th:nth-child(4),.summary-print .summary-report td:nth-child(4){width:14%!important}
+.summary-print .summary-report th:nth-child(5),.summary-print .summary-report td:nth-child(5){width:5%!important}
+.summary-print .summary-report th:nth-child(n+6):nth-child(-n+12),.summary-print .summary-report td:nth-child(n+6):nth-child(-n+12){width:5.5%!important}
+.summary-print .summary-report th:nth-child(13),.summary-print .summary-report td:nth-child(13){width:7.5%!important}
+}
