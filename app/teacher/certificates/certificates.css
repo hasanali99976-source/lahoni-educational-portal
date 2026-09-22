@@ -3,9 +3,7 @@
 @media print{
 @page{size:A4 portrait;margin:0}
 html,body{margin:0!important;padding:0!important;background:#fff!important}
-body *{visibility:hidden!important}
-.certificate-print,.certificate-print *{visibility:visible!important}
-.certificate-print{position:fixed!important;inset:0!important;margin:0!important;background:#fff!important;overflow:hidden!important}
+.cert-page>*{display:none!important}\n.cert-page>.certificate-print{display:block!important}\n.certificate-print{position:absolute!important;top:0!important;right:0!important;margin:0!important;background:#fff!important;overflow:hidden!important;visibility:visible!important}\n.certificate-print *{visibility:visible!important}
 .certificate-print.student-print{width:210mm!important;height:297mm!important}
 .student-print .certificate-sheet{display:none!important}
 .student-print .certificate-sheet:first-child{display:block!important;width:210mm!important;height:297mm!important;margin:0!important;padding:7mm 9mm!important;box-sizing:border-box!important;overflow:hidden!important;page-break-after:avoid!important}
