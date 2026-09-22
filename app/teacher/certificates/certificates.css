@@ -45,3 +45,9 @@ body *{visibility:hidden!important}
 .student-print{width:210mm!important;height:296mm!important;overflow:hidden!important}
 .student-print .certificate-sheet:first-child{height:296mm!important;overflow:hidden!important}
 }
+.student-records{display:grid;gap:8px;margin:7px 0}.student-records section{padding:9px;border:1px solid #dce4e5;border-radius:10px;background:#fafcfc}.student-records section>b{color:#167563;font-size:11px}.student-records p{margin:5px 0;font-size:10px;line-height:1.5}.student-records p strong{color:#735b20}
+@media print{
+.student-print .student-records{gap:2px!important;margin:2px 0!important}.student-print .student-records section{padding:2px!important;border-radius:3px!important}.student-print .student-records section>b{font-size:6px!important}.student-print .student-records p{margin:1px 0!important;font-size:5.5px!important;line-height:1.15!important}
+.summary-print .summary-report{height:197mm!important;display:flex!important;flex-direction:column!important}.summary-print .summary-report table{flex:0 1 auto!important}.summary-print .summary-report footer{margin-top:auto!important}
+.summary-print .summary-report th,.summary-print .summary-report td{height:auto!important;min-height:4.6mm!important;padding:.7mm .5mm!important;font-size:4.8pt!important}
+}
