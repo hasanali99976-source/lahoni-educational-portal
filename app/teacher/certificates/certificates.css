@@ -51,3 +51,12 @@ body *{visibility:hidden!important}
 .summary-print .summary-report{height:197mm!important;display:flex!important;flex-direction:column!important}.summary-print .summary-report table{flex:0 1 auto!important}.summary-print .summary-report footer{margin-top:auto!important}
 .summary-print .summary-report th,.summary-print .summary-report td{height:auto!important;min-height:4.6mm!important;padding:.7mm .5mm!important;font-size:4.8pt!important}
 }
+@media print{
+.certificate-print.summary-print{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;background:#fff!important}
+.summary-print .summary-sheet{position:relative!important;width:100%!important;height:100%!important;max-width:none!important;padding:5mm!important;box-sizing:border-box!important;display:block!important}
+.summary-print .summary-report{width:100%!important;height:100%!important;max-width:none!important;margin:0!important;padding:5mm 6mm!important;box-sizing:border-box!important;border:1.2mm double #b18d35!important;border-radius:0!important;overflow:hidden!important}
+.summary-print .summary-report header{min-height:18mm!important;padding:0 0 3mm!important;margin:0 0 3mm!important}.summary-print .summary-report header img{width:16mm!important;height:16mm!important}.summary-print .summary-report h2{font-size:15pt!important;margin:0!important}.summary-print .summary-report header p{font-size:7pt!important}
+.summary-print .summary-kpis{display:grid!important;grid-template-columns:repeat(7,1fr)!important;gap:1.2mm!important;margin:0 0 3mm!important}.summary-print .summary-kpis span{padding:1.5mm .8mm!important;font-size:6pt!important;text-align:center!important}.summary-print .summary-kpis b{display:block!important;font-size:9pt!important;margin-top:.5mm!important}
+.summary-print table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}.summary-print th,.summary-print td{padding:1.15mm .7mm!important;font-size:6pt!important;line-height:1.15!important;vertical-align:middle!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.summary-print th:nth-child(2),.summary-print td:nth-child(2){width:25%!important;text-align:right!important}.summary-print td:nth-child(2) small{display:none!important}
+.summary-print footer{min-height:10mm!important;padding-top:2mm!important;font-size:6.5pt!important}
+}
