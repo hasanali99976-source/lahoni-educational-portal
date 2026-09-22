@@ -38,7 +38,7 @@ const primaryTabs: TeacherTab[] = [
   { href: "/teacher/timetable", key: "timetable", label: "الجدول الدراسي", note: "جدول الحصص الأسبوعي" },
   { href: "/teacher/attendance", key: "attendance", label: "سجل المتابعة", note: "الحضور والمتابعة" },
   { href: "/teacher/grades", key: "grades", label: "التحصيل العلمي", note: "الرصد والحفظ" },
-  { href: "/teacher/certificates", key: "certificate", label: "شهادات الطلاب", note: "ملف الطالب والشهادات" },
+  { href: "/teacher/certificates", key: "certificate", label: "تقرير الطالب الكلي", note: "التحصيل والمتابعة والانضباط" },
   { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
 ];
 const moreTabs: TeacherTab[] = [
