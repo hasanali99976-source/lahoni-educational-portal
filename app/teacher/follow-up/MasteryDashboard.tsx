@@ -14,9 +14,7 @@ type SchoolClass = { id:string; name:string; grade?:number; section?:string };
 type StatusFilter = "all" | "mastered" | "support" | "incomplete";
 type MasteryRow = Student & { sectionLabel:string; earned:number; maximum:number; recordedMaximum:number; percentage:number|null; complete:boolean; status:StatusFilter };
 
-function aliases(student: Student) {
-  return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(v => String(v || "").trim()).filter(Boolean))];
-}
+function aliases(student: Student) { return [...new Set([student.id, student.code, student.accessCode, student.studentCode].map(v => String(v || "").trim()).filter(Boolean))]; }
 
 export default function MasteryDashboard() {
   const session = useTeacherClient();
@@ -26,121 +24,46 @@ export default function MasteryDashboard() {
   const subjectKey = session.subjectKey || "history";
   const subject = session.subject || "المادة";
   const activeGrade = session.activeGrade || null;
+  const [storedStudents,setStoredStudents]=useState<Student[]>([]);
+  const [scopeStudents,setScopeStudents]=useState<Student[]>([]);
+  const [scopeClasses,setScopeClasses]=useState<SchoolClass[]>([]);
+  const [loading,setLoading]=useState(false);
+  const [selectedClass,setSelectedClass]=useState("");
+  const [selectedSection,setSelectedSection]=useState("");
+  const [threshold,setThreshold]=useState(80);
+  const [statusFilter,setStatusFilter]=useState<StatusFilter>("support");
+  const [selectedIds,setSelectedIds]=useState<string[]>([]);
+  const [message,setMessage]=useState("");
+  const [referralOpen,setReferralOpen]=useState(false);
+  const [reason,setReason]=useState("انخفاض مستوى الإتقان والتحصيل الدراسي");
+  const referralsPath=useMemo(()=>teacherId?tenantCollection(teacherId,subjectKey as never,"counselorReferrals"):"",[teacherId,subjectKey]);
 
-  const [storedStudents, setStoredStudents] = useState<Student[]>([]);
-  const [scopeStudents, setScopeStudents] = useState<Student[]>([]);
-  const [scopeClasses, setScopeClasses] = useState<SchoolClass[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [threshold, setThreshold] = useState(80);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [message, setMessage] = useState("");
-  const [referralOpen, setReferralOpen] = useState(false);
-  const [reason, setReason] = useState("انخفاض مستوى الإتقان والتحصيل الدراسي");
+  useEffect(()=>{if(!teacherId||!subjectKey)return setStoredStudents([]);let active=true;const controller=new AbortController();fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(String(subjectKey).split("--")[0])}`,{credentials:"same-origin",signal:controller.signal}).then(async r=>{const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.message||"تعذر تحميل الدرجات.");return data;}).then(data=>{if(!active)return;const byCode=data.byCode&&typeof data.byCode==="object"?data.byCode:{};setStoredStudents(Object.entries(byCode).map(([code,row])=>({...(row as object),id:String((row as any).documentId||code),code:String((row as any).code||(row as any).accessCode||(row as any).studentCode||code)})) as Student[]);}).catch(error=>{if(active&&error?.name!=="AbortError")setMessage(error instanceof Error?error.message:"تعذر تحميل الدرجات.");});return()=>{active=false;controller.abort();};},[teacherId,subjectKey]);
+  useEffect(()=>{if(!teacherId||!subjectKey||!activeGrade){setScopeStudents([]);setScopeClasses([]);return;}let active=true;const controller=new AbortController();setLoading(true);const params=new URLSearchParams({subjectId:subjectKey,grade:String(activeGrade)});fetch(`/api/teacher/students?${params.toString()}`,{signal:controller.signal}).then(async r=>{const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.message||"تعذر تحميل الطلاب.");return data;}).then(data=>{if(active){setScopeStudents(Array.isArray(data.students)?data.students:[]);setScopeClasses(Array.isArray(data.classes)?data.classes:[]);}}).catch(error=>{if(active&&error?.name!=="AbortError")setMessage(error instanceof Error?error.message:"تعذر تحميل الطلاب.");}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;controller.abort();};},[teacherId,subjectKey,activeGrade]);
+  useEffect(()=>{if(!activePlan?.sections?.length)return setSelectedSection("");if(!selectedSection||!activePlan.sections.some(s=>s.id===selectedSection))setSelectedSection(activePlan.sections[0].id);},[activePlan,selectedSection]);
 
-  const referralsPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "counselorReferrals") : "", [teacherId, subjectKey]);
-
-  useEffect(() => {
-    if (!teacherId || !subjectKey) return setStoredStudents([]);
-    let active = true;
-    const controller = new AbortController();
-    fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(String(subjectKey).split("--")[0])}`, { credentials:"same-origin", signal:controller.signal })
-      .then(async r => { const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.message||"تعذر تحميل الدرجات."); return data; })
-      .then(data => { if(!active) return; const byCode=data.byCode&&typeof data.byCode==="object"?data.byCode:{}; setStoredStudents(Object.entries(byCode).map(([code,row])=>({...(row as object),id:String((row as any).documentId||code),code:String((row as any).code||(row as any).accessCode||(row as any).studentCode||code)})) as Student[]); })
-      .catch(error => { if(active && error?.name!=="AbortError") setMessage(error instanceof Error?error.message:"تعذر تحميل الدرجات."); });
-    return () => { active=false; controller.abort(); };
-  }, [teacherId, subjectKey]);
-
-  useEffect(() => {
-    if (!teacherId || !subjectKey || !activeGrade) { setScopeStudents([]); setScopeClasses([]); return; }
-    let active=true; const controller=new AbortController(); setLoading(true);
-    const params=new URLSearchParams({subjectId:subjectKey,grade:String(activeGrade)});
-    fetch(`/api/teacher/students?${params.toString()}`,{signal:controller.signal})
-      .then(async r=>{const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.message||"تعذر تحميل الطلاب.");return data;})
-      .then(data=>{if(active){setScopeStudents(Array.isArray(data.students)?data.students:[]);setScopeClasses(Array.isArray(data.classes)?data.classes:[]);}})
-      .catch(error=>{if(active&&error?.name!=="AbortError")setMessage(error instanceof Error?error.message:"تعذر تحميل الطلاب.");})
-      .finally(()=>{if(active)setLoading(false);});
-    return()=>{active=false;controller.abort();};
-  },[teacherId,subjectKey,activeGrade]);
-
-  useEffect(() => {
-    if (!activePlan?.sections?.length) return setSelectedSection("");
-    if (!selectedSection || !activePlan.sections.some(s => s.id === selectedSection)) setSelectedSection(activePlan.sections[0].id);
-  }, [activePlan, selectedSection]);
-
-  const students=useMemo(()=>{
-    const live=new Map<string,Student>(); storedStudents.forEach(s=>aliases(s).forEach(a=>live.set(a,s)));
-    return scopeStudents.map(roster=>{const found=aliases(roster).map(a=>live.get(a)).find(Boolean);const cls=String(roster.className||roster.class||"").trim();return {...roster,...(found||{}),id:roster.id,storageId:found?.id||roster.id,class:cls,className:cls};}).sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
-  },[scopeStudents,storedStudents]);
-
+  const students=useMemo(()=>{const live=new Map<string,Student>();storedStudents.forEach(s=>aliases(s).forEach(a=>live.set(a,s)));return scopeStudents.map(roster=>{const found=aliases(roster).map(a=>live.get(a)).find(Boolean);const cls=String(roster.className||roster.class||"").trim();return {...roster,...(found||{}),id:roster.id,storageId:found?.id||roster.id,class:cls,className:cls};}).sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));},[scopeStudents,storedStudents]);
   const classes=useMemo(()=>scopeClasses.map(c=>{const name=String(c.name||"").trim();const section=String(c.section||"").trim();return !section||name.includes(section)?name:`${name} (${section})`;}).filter(Boolean),[scopeClasses]);
-
-  const rows=useMemo<MasteryRow[]>(()=>{
-    if(!activePlan||!selectedSection)return[];
-    return students.filter(s=>!selectedClass||(s.class||"")===selectedClass||selectedClass.startsWith(`${s.class||""} (`)).map(student=>{
-      const result=calculateGradePlanResult(activePlan,student);
-      const section=result.sections.find(s=>s.id===selectedSection);
-      if(!section)return {...student,sectionLabel:"—",earned:0,maximum:0,recordedMaximum:0,percentage:null,complete:false,status:"incomplete"};
-      const hasRecord=section.recordedMaximum>0;
-      const percentage=hasRecord?Math.round(section.percentage):null;
-      const status:StatusFilter=percentage===null?"incomplete":percentage>=threshold?"mastered":"support";
-      return {...student,sectionLabel:section.label,earned:section.earned,maximum:section.maximum,recordedMaximum:section.recordedMaximum,percentage,complete:section.complete,status};
-    });
-  },[activePlan,selectedSection,students,selectedClass,threshold]);
-
+  const rows=useMemo<MasteryRow[]>(()=>{if(!activePlan||!selectedSection)return[];return students.filter(s=>!selectedClass||(s.class||"")===selectedClass||selectedClass.startsWith(`${s.class||""} (`)).map(student=>{const result=calculateGradePlanResult(activePlan,student);const section=result.sections.find(s=>s.id===selectedSection);if(!section)return {...student,sectionLabel:"—",earned:0,maximum:0,recordedMaximum:0,percentage:null,complete:false,status:"incomplete"};const hasRecord=section.recordedMaximum>0;const percentage=hasRecord?Math.round(section.percentage):null;const status:StatusFilter=percentage===null?"incomplete":percentage>=threshold?"mastered":"support";return {...student,sectionLabel:section.label,earned:section.earned,maximum:section.maximum,recordedMaximum:section.recordedMaximum,percentage,complete:section.complete,status};});},[activePlan,selectedSection,students,selectedClass,threshold]);
   const shownRows=useMemo(()=>statusFilter==="all"?rows:rows.filter(r=>r.status===statusFilter),[rows,statusFilter]);
-  const mastered=rows.filter(r=>r.status==="mastered");
-  const support=rows.filter(r=>r.status==="support");
-  const incomplete=rows.filter(r=>r.status==="incomplete");
-  const average=rows.filter(r=>r.percentage!==null).length?Math.round(rows.filter(r=>r.percentage!==null).reduce((a,r)=>a+(r.percentage||0),0)/rows.filter(r=>r.percentage!==null).length):0;
+  const mastered=rows.filter(r=>r.status==="mastered"),support=rows.filter(r=>r.status==="support"),incomplete=rows.filter(r=>r.status==="incomplete");
+  const recorded=rows.filter(r=>r.percentage!==null);const average=recorded.length?Math.round(recorded.reduce((a,r)=>a+(r.percentage||0),0)/recorded.length):0;
   const selectedSupport=rows.filter(r=>selectedIds.includes(r.id)&&r.status==="support");
-
   function toggle(id:string,checked:boolean){setSelectedIds(current=>checked?[...new Set([...current,id])]:current.filter(x=>x!==id));}
   function selectAllSupport(){setSelectedIds(support.map(r=>r.id));setStatusFilter("support");}
-
-  async function sendReferral(){
-    if(!selectedSupport.length)return setMessage("حدد طالبًا غير متقن واحدًا على الأقل.");
-    if(!reason.trim())return setMessage("اكتب سبب الإحالة.");
-    const now=new Date().toISOString();
-    await Promise.all(selectedSupport.map(row=>setDoc(doc(db,referralsPath,crypto.randomUUID()),{studentId:row.id,studentName:row.name||"",className:row.class||"",grade:activeGrade,percentage:row.percentage??0,earned:row.earned,maximum:row.maximum,masterySectionId:selectedSection,masterySectionLabel:row.sectionLabel,masteryThreshold:threshold,reason:reason.trim(),referralType:"mastery",referralTypeLabel:"إحالة إتقان وتحصيل",status:"جديدة",teacherId,teacherName,subjectId:subjectKey,subject,explicitTeacherAction:true,createdAt:now})));
-    setMessage(`تمت إحالة ${selectedSupport.length} طالب للمرشد.`); setReferralOpen(false); setSelectedIds([]);
-  }
-
-  function printReport(){
-    const target=shownRows; const win=window.open("","_blank","width=1100,height=900"); if(!win)return setMessage("اسمح بالنوافذ المنبثقة للطباعة.");
-    const esc=(v:unknown)=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]||c));
-    const body=target.map((r,i)=>`<tr><td>${i+1}</td><td class="name">${esc(r.name)}</td><td>${esc(r.class)}</td><td>${esc(r.sectionLabel)}</td><td>${r.percentage===null?"—":`${r.earned} / ${r.maximum}`}</td><td>${r.percentage===null?"—":`${r.percentage}%`}</td><td>${r.status==="mastered"?"متقن":r.status==="support"?"غير متقن":"غير مكتمل الرصد"}</td><td>${esc(r.teacherNote||"—")}</td></tr>`).join("");
-    win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الإتقان</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Tahoma,Arial;margin:0;color:#18334d}header{border:1px solid #b9cce0;border-top:6px solid #1768c5;padding:12px 16px;display:flex;justify-content:space-between}h1{margin:0;color:#155a9c}.meta{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}.meta div{border:1px solid #d3e0ec;padding:7px;background:#f7fafc}.meta small{display:block;color:#6d8295}.meta b{font-size:12px}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px}th,td{border:1px solid #c8d7e5;padding:6px;text-align:center}th{background:#1768c5;color:#fff}.name{text-align:right;font-weight:700}tbody tr:nth-child(even){background:#f5f8fb}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><header><div><small>بوابة أستاذ لحوني التعليمية</small><h1>تقرير الإتقان والمتابعة</h1></div><b>${esc(subject)}</b></header><div class="meta"><div><small>المعلم</small><b>${esc(teacherName)}</b></div><div><small>الصف</small><b>${esc(activeGrade)}</b></div><div><small>الفصل</small><b>${esc(selectedClass||"جميع الفصول")}</b></div><div><small>الوحدة/الفترة</small><b>${esc(activePlan?.sections.find(s=>s.id===selectedSection)?.label)}</b></div><div><small>معيار الإتقان</small><b>${threshold}%</b></div></div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>الوحدة/الفترة</th><th>الدرجة</th><th>النسبة</th><th>الحالة</th><th>ملاحظة المعلم</th></tr></thead><tbody>${body||'<tr><td colspan="8">لا توجد بيانات في العرض المحدد.</td></tr>'}</tbody></table><script>window.onload=()=>setTimeout(()=>window.print(),200)<\/script></body></html>`);win.document.close();
-  }
-
+  async function sendReferral(){if(!selectedSupport.length)return setMessage("حدد طالبًا غير متقن واحدًا على الأقل.");if(!reason.trim())return setMessage("اكتب سبب الإحالة.");const now=new Date().toISOString();await Promise.all(selectedSupport.map(row=>setDoc(doc(db,referralsPath,crypto.randomUUID()),{studentId:row.id,studentName:row.name||"",className:row.class||"",grade:activeGrade,percentage:row.percentage??0,earned:row.earned,maximum:row.maximum,masterySectionId:selectedSection,masterySectionLabel:row.sectionLabel,masteryThreshold:threshold,reason:reason.trim(),referralType:"mastery",referralTypeLabel:"إحالة إتقان وتحصيل",status:"جديدة",teacherId,teacherName,subjectId:subjectKey,subject,explicitTeacherAction:true,createdAt:now})));setMessage(`تمت إحالة ${selectedSupport.length} طالب للمرشد.`);setReferralOpen(false);setSelectedIds([]);}
+  function printReport(){const target=shownRows;const win=window.open("","_blank","width=1100,height=900");if(!win)return setMessage("اسمح بالنوافذ المنبثقة للطباعة.");const esc=(v:unknown)=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]||c));const body=target.map((r,i)=>`<tr><td>${i+1}</td><td class="name">${esc(r.name)}</td><td>${esc(r.class)}</td><td>${esc(r.sectionLabel)}</td><td>${r.percentage===null?"—":`${r.earned} / ${r.maximum}`}</td><td>${r.percentage===null?"—":`${r.percentage}%`}</td><td>${r.status==="mastered"?"متقن":r.status==="support"?"غير متقن":"غير مكتمل الرصد"}</td><td>${esc(r.teacherNote||"—")}</td></tr>`).join("");win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الإتقان</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Tahoma,Arial;margin:0;color:#17384a}header{border:1px solid #d8e5ed;border-top:5px solid #1768c5;padding:12px 16px;display:flex;justify-content:space-between}h1{margin:0}.meta{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}.meta div{border:1px solid #d8e5ed;padding:7px;background:#f7fafc}.meta small{display:block;color:#62798a}.meta b{font-size:12px}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px}th,td{border:1px solid #d8e5ed;padding:6px;text-align:center}th{background:#eef5f9;color:#17384a}.name{text-align:right;font-weight:700}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><header><div><small>بوابة أستاذ لحوني التعليمية</small><h1>تقرير الإتقان والمتابعة</h1></div><b>${esc(subject)}</b></header><div class="meta"><div><small>المعلم</small><b>${esc(teacherName)}</b></div><div><small>الصف</small><b>${esc(activeGrade)}</b></div><div><small>الفصل</small><b>${esc(selectedClass||"جميع الفصول")}</b></div><div><small>الوحدة/الفترة</small><b>${esc(activePlan?.sections.find(s=>s.id===selectedSection)?.label)}</b></div><div><small>معيار الإتقان</small><b>${threshold}%</b></div></div><table><thead><tr><th>م</th><th>الطالب</th><th>الفصل</th><th>الوحدة/الفترة</th><th>الدرجة</th><th>النسبة</th><th>الحالة</th><th>ملاحظة المعلم</th></tr></thead><tbody>${body||'<tr><td colspan="8">لا توجد بيانات في العرض المحدد.</td></tr>'}</tbody></table><script>window.onload=()=>setTimeout(()=>window.print(),200)<\/script></body></html>`);win.document.close();}
   if(!teacherId)return <main className="mastery-dashboard" dir="rtl"><p>جارٍ تجهيز الإتقان…</p></main>;
-
   return <main className="mastery-dashboard" dir="rtl">
-    <section className="mastery-head"><div><small>متابعة التحصيل وفق خطة المعلم</small><h1>الإتقان والمتابعة</h1><p>{subject} • الصف {activeGrade||"—"}</p></div><div className="mastery-filters">
+    <section className="mastery-head"><div className="mastery-filters">
       <label>الوحدة / الفترة<select value={selectedSection} onChange={e=>{setSelectedSection(e.target.value);setSelectedIds([]);}}>{activePlan?.sections.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
       <label>الفصل<select value={selectedClass} onChange={e=>{setSelectedClass(e.target.value);setSelectedIds([]);}}><option value="">جميع الفصول</option>{classes.map(c=><option key={c}>{c}</option>)}</select></label>
-      <label>معيار الإتقان<select value={threshold} onChange={e=>setThreshold(Number(e.target.value))}><option value={90}>90%</option><option value={85}>85%</option><option value={80}>80%</option><option value={75}>75%</option><option value={70}>70%</option></select></label>
-      <label>الحالة<select value={statusFilter} onChange={e=>setStatusFilter(e.target.value as StatusFilter)}><option value="all">جميع الطلاب</option><option value="mastered">المتقنون</option><option value="support">غير المتقنين</option><option value="incomplete">غير مكتمل الرصد</option></select></label>
+      <label>معيار الإتقان<select value={threshold} onChange={e=>{setThreshold(Number(e.target.value));setStatusFilter("support");setSelectedIds([]);}}><option value={90}>أقل من 90%</option><option value={85}>أقل من 85%</option><option value={80}>أقل من 80%</option><option value={75}>أقل من 75%</option><option value={70}>أقل من 70%</option></select></label>
+      <label>عرض الطلاب<select value={statusFilter} onChange={e=>setStatusFilter(e.target.value as StatusFilter)}><option value="support">غير المتقنين حسب النسبة المختارة</option><option value="mastered">المتقنون</option><option value="incomplete">غير مكتمل الرصد</option><option value="all">جميع الطلاب</option></select></label>
     </div></section>
-
-    {!activePlan&&<div className="mastery-alert">لم تُعتمد خطة توزيع الدرجات بعد.</div>}
-    {loading&&<div className="mastery-alert">جارٍ تحميل بيانات الطلاب…</div>}
-
-    <section className="mastery-stats">
-      <button onClick={()=>setStatusFilter("all")}><span>إجمالي الطلاب</span><strong>{rows.length}</strong><small>{classes.length} فصول</small></button>
-      <button onClick={()=>setStatusFilter("mastered")}><span>متقن</span><strong>{mastered.length}</strong><small>{rows.length?Math.round(mastered.length/rows.length*100):0}% من الطلاب</small></button>
-      <button onClick={()=>setStatusFilter("support")}><span>غير متقن</span><strong>{support.length}</strong><small>يحتاج متابعة أو إحالة</small></button>
-      <button onClick={()=>setStatusFilter("incomplete")}><span>غير مكتمل الرصد</span><strong>{incomplete.length}</strong><small>لا يصنف قبل الرصد</small></button>
-      <div><span>متوسط الوحدة</span><strong>{average}%</strong><small>{activePlan?.sections.find(s=>s.id===selectedSection)?.label||"—"}</small></div>
-    </section>
-
-    <section className="mastery-panel"><header><div><h2>جدول متابعة الإتقان</h2><p>الدرجة والنسبة محسوبتان للوحدة/الفترة المختارة فقط.</p></div><div className="mastery-actions"><button onClick={selectAllSupport}>تحديد غير المتقنين</button><button className="referral" onClick={()=>{if(!selectedSupport.length)selectAllSupport();setReferralOpen(true);}}>إحالة المحددين للمرشد</button><button className="print" onClick={printReport}>طباعة القائمة</button></div></header>
-      <div className="mastery-table-wrap"><table><thead><tr><th>تحديد</th><th>اسم الطالب</th><th>الصف</th><th>الفصل</th><th>الوحدة / الفترة</th><th>الدرجة</th><th>نسبة التحصيل</th><th>الحالة</th><th>ملاحظة المعلم</th></tr></thead><tbody>{shownRows.map(row=><tr key={row.id}><td><input type="checkbox" disabled={row.status!=="support"} checked={selectedIds.includes(row.id)} onChange={e=>toggle(row.id,e.target.checked)}/></td><td className="student"><b>{row.name||"—"}</b><small>{row.code||row.accessCode||""}</small></td><td>{activeGrade||"—"}</td><td>{row.class||"—"}</td><td>{row.sectionLabel}</td><td><b>{row.percentage===null?"—":`${row.earned} / ${row.maximum}`}</b></td><td><strong className={row.status}>{row.percentage===null?"—":`${row.percentage}%`}</strong></td><td><span className={`status ${row.status}`}>{row.status==="mastered"?"متقن":row.status==="support"?"غير متقن":"غير مكتمل الرصد"}</span></td><td className="note">{row.teacherNote||"—"}</td></tr>)}</tbody></table>{!shownRows.length&&<p className="empty">لا توجد بيانات مطابقة للاختيار الحالي.</p>}</div>
-    </section>
-
-    {referralOpen&&<div className="mastery-modal" onClick={()=>setReferralOpen(false)}><section onClick={e=>e.stopPropagation()}><header><div><h3>إحالة غير المتقنين للمرشد</h3><p>{selectedSupport.length} طالب • {activePlan?.sections.find(s=>s.id===selectedSection)?.label}</p></div><button onClick={()=>setReferralOpen(false)}>×</button></header><div className="referral-list">{selectedSupport.map(r=><div key={r.id}><b>{r.name}</b><span>{r.class} • {r.earned}/{r.maximum} • {r.percentage}%</span></div>)}</div><label>سبب الإحالة<textarea value={reason} onChange={e=>setReason(e.target.value)}/></label><footer><button onClick={()=>setReferralOpen(false)}>إلغاء</button><button className="confirm" onClick={()=>void sendReferral()}>تسجيل الإحالة</button></footer></section></div>}
-    {message&&<div className="mastery-toast">{message}</div>}
+    {!activePlan&&<div className="mastery-alert">لم تُعتمد خطة توزيع الدرجات بعد.</div>}{loading&&<div className="mastery-alert">جارٍ تحميل بيانات الطلاب…</div>}
+    <section className="mastery-stats"><button onClick={()=>setStatusFilter("all")}><span>إجمالي الطلاب</span><strong>{rows.length}</strong><small>{classes.length} فصول</small></button><button onClick={()=>setStatusFilter("mastered")}><span>متقن</span><strong>{mastered.length}</strong><small>من {threshold}% فأعلى</small></button><button onClick={()=>setStatusFilter("support")}><span>غير متقن</span><strong>{support.length}</strong><small>أقل من {threshold}%</small></button><button onClick={()=>setStatusFilter("incomplete")}><span>غير مكتمل الرصد</span><strong>{incomplete.length}</strong><small>لا يصنف قبل الرصد</small></button><div><span>متوسط الوحدة</span><strong>{average}%</strong><small>{activePlan?.sections.find(s=>s.id===selectedSection)?.label||"—"}</small></div></section>
+    <section className="mastery-panel"><header><div><h2>جدول متابعة الإتقان</h2><p>{statusFilter==="support"?`يعرض الآن الطلاب الأقل من ${threshold}% فقط.`:"الدرجة والنسبة للوحدة/الفترة المختارة فقط."}</p></div><div className="mastery-actions"><button onClick={selectAllSupport}>تحديد غير المتقنين</button><button className="referral" onClick={()=>{if(!selectedSupport.length)selectAllSupport();setReferralOpen(true);}}>إحالة المحددين للمرشد</button><button className="print" onClick={printReport}>طباعة القائمة</button></div></header><div className="mastery-table-wrap"><table><thead><tr><th>تحديد</th><th>اسم الطالب</th><th>الصف</th><th>الفصل</th><th>الوحدة / الفترة</th><th>الدرجة</th><th>نسبة التحصيل</th><th>الحالة</th><th>ملاحظة المعلم</th></tr></thead><tbody>{shownRows.map(row=><tr key={row.id}><td><input type="checkbox" disabled={row.status!=="support"} checked={selectedIds.includes(row.id)} onChange={e=>toggle(row.id,e.target.checked)}/></td><td className="student"><b>{row.name||"—"}</b><small>{row.code||row.accessCode||""}</small></td><td>{activeGrade||"—"}</td><td>{row.class||"—"}</td><td>{row.sectionLabel}</td><td><b>{row.percentage===null?"—":`${row.earned} / ${row.maximum}`}</b></td><td><strong className={row.status}>{row.percentage===null?"—":`${row.percentage}%`}</strong></td><td><span className={`status ${row.status}`}>{row.status==="mastered"?"متقن":row.status==="support"?"غير متقن":"غير مكتمل الرصد"}</span></td><td className="note">{row.teacherNote||"—"}</td></tr>)}</tbody></table>{!shownRows.length&&<p className="empty">لا توجد بيانات مطابقة للاختيار الحالي.</p>}</div></section>
+    {referralOpen&&<div className="mastery-modal" onClick={()=>setReferralOpen(false)}><section onClick={e=>e.stopPropagation()}><header><div><h3>إحالة غير المتقنين للمرشد</h3><p>{selectedSupport.length} طالب • {activePlan?.sections.find(s=>s.id===selectedSection)?.label}</p></div><button onClick={()=>setReferralOpen(false)}>×</button></header><div className="referral-list">{selectedSupport.map(r=><div key={r.id}><b>{r.name}</b><span>{r.class} • {r.earned}/{r.maximum} • {r.percentage}%</span></div>)}</div><label>سبب الإحالة<textarea value={reason} onChange={e=>setReason(e.target.value)}/></label><footer><button onClick={()=>setReferralOpen(false)}>إلغاء</button><button className="confirm" onClick={()=>void sendReferral()}>تسجيل الإحالة</button></footer></section></div>}{message&&<div className="mastery-toast">{message}</div>}
   </main>;
 }
