@@ -15,13 +15,10 @@ type NormalizedRosterRow=RosterRow&{normalized:string;compact:string;parts:strin
 
 function studentAppears(student:NormalizedRosterRow,text:string,compactText:string,textWords:Set<string>){
   if(student.normalized.length>=5&&text.includes(` ${student.normalized} `))return true;
-  // PDF Arabic extraction often inserts/removes spaces inside a name. Compact comparison handles that.
   if(student.compact.length>=6&&compactText.includes(student.compact))return true;
   const parts=student.parts;
   if(parts.length<2)return false;
-  const foundParts=parts.filter(part=>textWords.has(part));
-  const found=foundParts.length;
-  // Keep matching conservative but tolerate one broken/missing name token in PDF extraction.
+  const found=parts.filter(part=>textWords.has(part)).length;
   const required=parts.length>=3?parts.length-1:parts.length;
   if(found<required)return false;
   return textWords.has(parts[0])||textWords.has(parts[parts.length-1]);
@@ -53,7 +50,7 @@ export async function POST(request:Request){
       if(file.type.includes("pdf")||file.name.toLowerCase().endsWith(".pdf")){
         const parsed=await pdfParse(buffer);
         text=String(parsed.text||"");
-        pages=Math.max(1,Number(parsed.numpages||parsed.numrender||1));
+        pages=Math.max(1,Number(parsed.numpages||1));
       }else{text=buffer.toString("utf8")}
       const normalized=normalizeArabic(text);
       const normalizedText=` ${normalized} `;
