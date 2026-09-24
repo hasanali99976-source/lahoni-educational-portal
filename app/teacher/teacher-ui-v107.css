@@ -36,189 +36,22 @@
 @media (max-width:900px){.teacher-page-content{padding:10px}.teacher-page-content :is(.toolbar,.filters,.actions,.controls){width:100%}.teacher-page-content :is(.toolbar,.filters,.actions,.controls)>*{min-width:0}.teacher-page-content :is(input,select,textarea){width:100%;font-size:16px}.teacher-page-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card){border-radius:14px}.teacher-page-content table{font-size:13px}}
 @media (max-width:520px){.teacher-page-content{padding:7px}.teacher-page-content :is(.toolbar,.filters,.actions,.controls){display:grid;grid-template-columns:1fr}.teacher-page-content :is(.toolbar,.filters,.actions,.controls)>*{width:100%;max-width:100%}.teacher-page-content :is(button,.button,.btn){min-height:44px}.teacher-page-content h1{font-size:22px!important}.teacher-page-content h2{font-size:18px!important}}
 
+/* Legacy command panel rules remain for mobile fallback only. */
+@media(max-width:980px){.teacher-command-panel{display:flex!important;flex-direction:column!important;max-height:calc(100dvh - 18px)!important;overflow:hidden!important}.teacher-command-links{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}.teacher-command-foot{flex:0 0 auto!important;position:sticky!important;bottom:0!important;background:#fff!important;z-index:3!important}}
 
-/* v124 — permanent teacher side navigation on desktop; one clean drawer trigger on mobile. */
-@media (min-width:901px){
- .teacher-app-shell{display:grid!important;grid-template-columns:250px minmax(0,1fr)!important;align-items:start}
- .teacher-pro-header{grid-column:2;grid-row:1;grid-template-columns:minmax(180px,260px) 1fr auto!important;position:sticky!important;top:0}
- .teacher-pro-brand{display:none!important}.teacher-pro-tabs{display:none!important}
- .teacher-pro-main{grid-column:2;grid-row:2;max-width:none!important;width:100%;margin:0!important}
- .teacher-command-backdrop{display:none!important}
- .teacher-command-panel{display:flex!important;flex-direction:column;position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;width:250px!important;max-height:none!important;height:100dvh!important;padding:16px 12px!important;border:0!important;border-left:1px solid #d3e3e7!important;border-radius:0!important;background:#fff!important;box-shadow:-10px 0 30px rgba(6,29,43,.07)!important;transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;overflow:auto!important;z-index:180!important}
- .teacher-command-head{padding:2px 4px 12px}.teacher-command-head button{display:none!important}.teacher-command-head small{font-size:10px}.teacher-command-head strong{font-size:16px}
- .teacher-command-subject{margin:10px 0}.teacher-command-links{grid-template-columns:1fr!important;gap:3px!important;flex:1}.teacher-command-links a{min-height:48px!important;padding:7px 9px!important;border-radius:11px!important;grid-template-columns:25px minmax(0,1fr)!important;gap:8px!important}.teacher-command-links svg{width:19px!important;height:19px!important}.teacher-command-link-copy b{font-size:11.5px!important}.teacher-command-link-copy small{font-size:8.5px!important}.teacher-command-foot{margin-top:10px}
-}
-@media (max-width:900px){
- .teacher-pro-tabs a{display:none!important}.teacher-pro-tabs{right:10px!important;left:auto!important;bottom:10px!important;width:auto!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}.teacher-pro-more{display:flex!important;flex-direction:row!important;min-width:92px!important;height:48px!important;min-height:48px!important;padding:7px 12px!important;border:1px solid #c8dedb!important;border-radius:14px!important;background:#0b716d!important;color:#fff!important;box-shadow:0 9px 24px rgba(6,63,60,.2)!important}.teacher-pro-more span{font-size:11px!important}.teacher-pro-main{padding-bottom:74px!important}
-}
-
-/* v125 — compact blue/white teacher workspace and fully visible side navigation. */
-.teacher-app-shell{--teacher-accent:#1768c5;--teacher-accent-strong:#0d4f9d;--teacher-soft:#eef6ff;--teacher-line:#d6e6f6}
-.teacher-pro-header,.teacher-pro-context{background:#fff!important;border-color:var(--teacher-line)!important}
-.teacher-pro-context small,.teacher-pro-context span{color:#6c8299!important}.teacher-pro-context strong{color:#123f70!important}
-.teacher-pro-ready{background:#eaf4ff!important;color:#155da8!important}
-.teacher-page-content{color:#173c63!important}
-.teacher-page-content :is(h1,h2,h3){color:#123f70!important}
-.teacher-page-content :is(.diagnostics-page,.follow-page,.discipline-page,.notes-page,.reports-page,.report-page,.portfolio-page,.teacher-ai-page,.grade-plan-page){background:linear-gradient(180deg,#f3f8fe 0%,#fff 46%)!important}
-.teacher-page-content :is(.diagnostic-builder,.diagnostic-list,.follow-card,.discipline-card,.notes-card,.report-card,.reports-card,.portfolio-fields,.ai-card,.plan-card,.evidence-section){border-color:var(--teacher-line)!important}
-.teacher-page-content th{background:#edf5fd!important;color:#174d82!important}
-@media (min-width:901px){
- .teacher-app-shell{grid-template-columns:205px minmax(0,1fr)!important}
- .teacher-command-panel{width:205px!important;padding:9px 8px!important;border-left-color:var(--teacher-line)!important;background:#f8fbff!important;overflow:hidden!important}
- .teacher-command-head{padding:0 4px 5px!important}.teacher-command-head small{font-size:8px!important}.teacher-command-head strong{font-size:13px!important;color:#123f70!important}
- .teacher-command-subject{margin:4px 0 6px!important;padding:6px!important;min-height:0!important;background:#eaf4ff!important;border-color:#d5e7fa!important}.teacher-command-subject span{width:26px!important;height:26px!important;font-size:10px!important}.teacher-command-subject small{font-size:7.5px!important}.teacher-command-subject b{font-size:9.5px!important;color:#164f87!important}
- .teacher-command-links{gap:1px!important;min-height:0!important}.teacher-command-links a{min-height:34px!important;height:34px!important;padding:3px 6px!important;border-radius:8px!important;grid-template-columns:20px minmax(0,1fr)!important;gap:5px!important;border-color:transparent!important}.teacher-command-links svg{width:15px!important;height:15px!important}.teacher-command-link-copy{gap:0!important}.teacher-command-link-copy b{font-size:9.5px!important;line-height:1.1!important}.teacher-command-link-copy small{font-size:7px!important;line-height:1.05!important}.teacher-command-links a.active{background:#1768c5!important;color:#fff!important}
- .teacher-command-foot{margin-top:4px!important;padding-top:5px!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important}.teacher-command-foot a,.teacher-command-foot button{min-height:30px!important;padding:4px!important;font-size:8.5px!important;border-radius:7px!important}.teacher-command-foot button{background:#1768c5!important;color:#fff!important;border-color:#1768c5!important}
-}
-@media(max-width:900px){.teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important}.teacher-command-links a.active{background:#1768c5!important;color:#fff!important}}
-
-/* v126 — final sizing and hierarchy: blue + white + neutral ink only. */
-.teacher-app-shell{font-size:14px!important;color:#172b3f!important}
-.teacher-pro-header{min-height:68px!important;padding-block:7px!important}
-.teacher-pro-subject{background:#f6f9fc!important;border-color:#d7e4f1!important}.teacher-pro-subject-mark{background:#1768c5!important}.teacher-pro-subject-copy strong,.teacher-pro-subject select{color:#173c63!important}
-.teacher-pro-home,.teacher-pro-logout{border-color:#d5e2ef!important;background:#fff!important;color:#23496f!important}.teacher-pro-logout{color:#172b3f!important}
-.teacher-page-content{font-size:13px!important;color:#172b3f!important;padding:clamp(8px,1.25vw,16px)!important}
-.teacher-page-content h1{font-size:clamp(21px,1.9vw,28px)!important}.teacher-page-content h2{font-size:clamp(17px,1.4vw,21px)!important}.teacher-page-content h3{font-size:clamp(15px,1.15vw,18px)!important}
-.teacher-page-content :is(input,select,textarea){border-color:#ccdceb!important;color:#172b3f!important;background:#fff!important}
-.teacher-page-content :is(button,.button,.btn){font-size:12px!important;border-color:#d2dfec}
-.teacher-page-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card){border-color:#d7e4f1!important;box-shadow:0 5px 16px rgba(23,63,112,.045)!important}
-.teacher-page-content table{color:#172b3f!important}.teacher-page-content th{background:#eaf3fc!important;color:#123f70!important;border-color:#d5e3f0!important}.teacher-page-content td{border-color:#e4ecf4!important}.teacher-page-content tbody tr:hover{background:#f7faff!important}
-.teacher-page-content :is(.active,[aria-selected="true"]):not(.level):not(.status){--local-active:#1768c5}
-@media(min-width:901px){
- .teacher-app-shell{grid-template-columns:196px minmax(0,1fr)!important}
- .teacher-command-panel{width:196px!important;padding:7px!important;background:#fff!important;border-left:1px solid #d7e4f1!important;box-shadow:-5px 0 18px rgba(23,63,112,.045)!important;overflow:hidden!important}
- .teacher-command-head{padding:0 4px 4px!important}.teacher-command-head strong{font-size:12px!important}.teacher-command-head small{font-size:7.5px!important}
- .teacher-command-subject{margin:3px 0 5px!important;padding:5px 6px!important;background:#edf5fd!important;border:1px solid #d8e7f5!important;border-radius:8px!important}.teacher-command-subject>span{background:#1768c5!important;width:24px!important;height:24px!important}.teacher-command-subject b{font-size:9px!important}.teacher-command-subject small{font-size:7px!important}
- .teacher-command-links{gap:1px!important}.teacher-command-links a{height:32px!important;min-height:32px!important;padding:2px 5px!important;border-radius:7px!important;grid-template-columns:18px minmax(0,1fr)!important;gap:5px!important;color:#294b6c!important}.teacher-command-links svg{width:14px!important;height:14px!important}.teacher-command-link-copy b{font-size:9px!important;line-height:1.05!important}.teacher-command-link-copy small{font-size:6.7px!important;line-height:1!important;color:#73869a!important}.teacher-command-links a:hover{background:#f2f7fc!important;border-color:#dce8f3!important}.teacher-command-links a.active{background:#1768c5!important;border-color:#1768c5!important;color:#fff!important}.teacher-command-links a.active small{color:#eaf4ff!important}
- .teacher-command-foot{margin-top:3px!important;padding-top:4px!important;border-color:#e1eaf3!important}.teacher-command-foot a,.teacher-command-foot button{min-height:28px!important;font-size:8px!important;background:#fff!important;color:#263c52!important;border-color:#d5e2ef!important}.teacher-command-foot button{background:#1768c5!important;color:#fff!important;border-color:#1768c5!important}
-}
-@media(max-width:900px){.teacher-page-content{font-size:13px!important}.teacher-command-panel{background:#fff!important}.teacher-command-links a.active{background:#1768c5!important;color:#fff!important}.teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important}}
-
-
-/* v127 — balanced sidebar, always-visible footer, neutral black typography. */
-.teacher-app-shell,.teacher-page-content{color:#171717!important}
-.teacher-page-content :is(h1,h2,h3,h4,p,label,td,th,b,strong,small,span){color:#171717}
-.teacher-page-content th{color:#171717!important}
-.teacher-pro-context strong,.teacher-pro-subject-copy strong,.teacher-pro-subject select{color:#171717!important}
-@media(min-width:901px){
- .teacher-app-shell{grid-template-columns:220px minmax(0,1fr)!important}
- .teacher-command-panel{width:220px!important;padding:8px!important;overflow:hidden!important}
- .teacher-command-head{flex:0 0 auto!important}
- .teacher-command-subject{flex:0 0 auto!important;margin:4px 0 6px!important}
- .teacher-command-links{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:thin;padding-inline:1px!important;align-content:start!important}
- .teacher-command-links a{height:38px!important;min-height:38px!important;padding:4px 6px!important;grid-template-columns:20px minmax(0,1fr)!important;gap:6px!important}
- .teacher-command-links svg{width:15px!important;height:15px!important}
- .teacher-command-link-copy b{font-size:10.5px!important;line-height:1.15!important;color:#171717!important}
- .teacher-command-link-copy small{font-size:8px!important;line-height:1.1!important;color:#707070!important}
- .teacher-command-links a.active b,.teacher-command-links a.active small{color:#fff!important}
- .teacher-command-foot{flex:0 0 auto!important;position:sticky!important;bottom:0!important;z-index:3!important;background:#fff!important;margin-top:5px!important;padding-top:6px!important}
- .teacher-command-foot a,.teacher-command-foot button{min-height:34px!important;font-size:9.5px!important}
-}
-@media(max-width:900px){
- .teacher-command-panel{display:flex!important;flex-direction:column!important;max-height:calc(100dvh - 18px)!important;overflow:hidden!important}
- .teacher-command-links{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
- .teacher-command-foot{flex:0 0 auto!important;position:sticky!important;bottom:0!important;background:#fff!important;z-index:3!important}
- .teacher-command-link-copy b{color:#171717!important}.teacher-command-link-copy small{color:#707070!important}
- .teacher-command-links a.active b,.teacher-command-links a.active small{color:#fff!important}
-}
-
-
-/* v128 — calmer sidebar and readable tab states. */
-.teacher-page-content{color:#171717!important}
-.teacher-page-content :is(p,label,td){color:#171717}
-.teacher-page-content :is(button,.button,.btn,[role="tab"],.active,[aria-selected="true"]){text-shadow:none!important}
-.teacher-page-content :is(button,.button,.btn,[role="tab"]):not(.active):not([aria-selected="true"]){color:#171717}
-.teacher-page-content :is(button,.button,.btn,[role="tab"]).active,
-.teacher-page-content :is(button,.button,.btn,[role="tab"])[aria-selected="true"]{color:#fff!important}
-.teacher-page-content :is(button,.button,.btn,[role="tab"]).active :is(span,b,strong,small),
-.teacher-page-content :is(button,.button,.btn,[role="tab"])[aria-selected="true"] :is(span,b,strong,small){color:inherit!important}
-@media(min-width:901px){
- .teacher-app-shell{grid-template-columns:228px minmax(0,1fr)!important}
- .teacher-command-panel{width:228px!important;padding:10px 9px!important}
- .teacher-command-head{padding:2px 5px 7px!important;border-bottom:1px solid #e5edf5!important}
- .teacher-command-head strong{font-size:13px!important}.teacher-command-head small{font-size:8px!important}
- .teacher-command-subject{margin:7px 0!important;padding:7px!important}
- .teacher-command-links{gap:3px!important;padding:2px 1px 5px!important}
- .teacher-command-links a{height:39px!important;min-height:39px!important;padding:5px 7px!important;border-radius:9px!important}
- .teacher-command-link-copy b{font-size:10.5px!important}.teacher-command-link-copy small{font-size:7.8px!important}
- .teacher-command-foot{padding-top:7px!important}
-}
-
-
-/* v129 — keep the teacher workspace fully inside the viewport beside the fixed RTL sidebar. */
-@media(min-width:901px){
- .teacher-app-shell{display:block!important;padding-right:228px!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;box-sizing:border-box!important}
- .teacher-pro-header,.teacher-pro-main{width:100%!important;max-width:100%!important;margin:0!important;box-sizing:border-box!important}
- .teacher-pro-header{grid-column:auto!important;grid-row:auto!important}
- .teacher-pro-main{grid-column:auto!important;grid-row:auto!important;min-width:0!important;overflow-x:hidden!important}
- .teacher-page-content{width:100%!important;max-width:100%!important;margin:0!important;min-width:0!important;overflow-x:hidden!important}
-}
-
-
-/* v131 — cleaner teacher navigation and calmer blue/white workspace. */
-.teacher-app-shell{background:#f4f8fc!important}
-.teacher-pro-header{box-shadow:0 1px 0 #dbe7f3,0 8px 28px rgba(20,71,122,.045)!important}
-.teacher-pro-context{margin:10px 14px 0!important;border:1px solid #dbe8f5!important;border-radius:16px!important;box-shadow:0 6px 22px rgba(18,78,139,.04)!important}
-.teacher-page-content{padding-top:14px!important}
-@media(min-width:901px){
- .teacher-app-shell{padding-right:218px!important}
- .teacher-command-panel{width:218px!important;padding:12px 10px!important;background:linear-gradient(180deg,#fff 0%,#f7fbff 100%)!important}
- .teacher-command-head{padding:2px 6px 8px!important}.teacher-command-head strong{font-size:14px!important}.teacher-command-head small{font-size:9px!important}
- .teacher-command-subject{margin:6px 0 9px!important;padding:8px!important;border-radius:12px!important;background:#edf5ff!important}
- .teacher-command-links{gap:2px!important;padding:2px!important}
- .teacher-command-links a{min-height:36px!important;padding:5px 7px!important;border-radius:9px!important;grid-template-columns:22px minmax(0,1fr)!important;gap:7px!important;border:1px solid transparent!important}
- .teacher-command-links a:hover{background:#edf5ff!important;border-color:#d8e8f8!important}
- .teacher-command-links a.active{background:#1768c5!important;color:#fff!important;box-shadow:0 5px 14px rgba(23,104,197,.16)!important}
- .teacher-command-links svg{width:16px!important;height:16px!important}.teacher-command-link-copy b{font-size:10.5px!important}.teacher-command-link-copy small{font-size:7.5px!important;line-height:1.25!important}
- .teacher-command-foot{padding-top:8px!important;margin-top:7px!important;border-top:1px solid #dce8f3!important}
-}
-@media(max-width:900px){
- .teacher-pro-header{min-height:60px!important}
- .teacher-command-panel{background:#fff!important}
- .teacher-command-links a{border:1px solid #dce8f3!important;background:#fbfdff!important}
- .teacher-command-links a.active{background:#1768c5!important;color:#fff!important;border-color:#1768c5!important}
- .teacher-pro-more{background:#1768c5!important;border-color:#1768c5!important;box-shadow:0 8px 20px rgba(23,104,197,.22)!important}
- .teacher-pro-context{margin:8px 8px 0!important;border-radius:13px!important}
-}
-
-
-/* v133 — clearer Arabic typography across the teacher portal */
-.teacher-app-shell,.teacher-app-shell button,.teacher-app-shell input,.teacher-app-shell select,.teacher-app-shell textarea{
-  font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
-}
-.teacher-page-content{font-size:15px;line-height:1.65;letter-spacing:0}
-.teacher-page-content h1{font-size:clamp(25px,2.2vw,34px);font-weight:700;line-height:1.35}
-.teacher-page-content h2{font-weight:700;line-height:1.4}
-.teacher-page-content h3,.teacher-page-content b,.teacher-page-content strong{font-weight:700}
-.teacher-command-link-copy b,.teacher-pro-brand-copy strong{font-weight:700}
-
-/* v134 — calm, readable teacher typography */
-.teacher-app-shell{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;font-weight:400!important}
-.teacher-page-content{font-size:14px!important;line-height:1.7!important}
-.teacher-page-content :is(p,span,label,td,th,small){font-weight:400}
+.teacher-app-shell{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;font-weight:400!important;background:#f4f8fc!important;color:#171717!important}
+.teacher-page-content{font-size:14px!important;line-height:1.7!important;color:#171717!important;padding-top:14px!important}
 .teacher-page-content :is(h1,h2,h3,strong,b){font-weight:650!important}
-.teacher-command-link-copy b{font-weight:600!important}.teacher-command-link-copy small{font-weight:400!important}
+.teacher-page-content :is(p,span,label,td,th,small){font-weight:400}
 .teacher-pro-tools .teacher-sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:6px 10px;border:1px solid #d5e2ef;border-radius:9px;background:#fff;color:#23496f;font:inherit;font-size:12px;cursor:pointer}
 
-/* v144 — persistent dark sidebar matching the approved reference */
-.teacher-reference-sidebar{position:fixed;right:0;top:0;bottom:0;width:178px;z-index:44;display:flex;flex-direction:column;padding:18px 10px;background:linear-gradient(180deg,#0c4269,#083757 72%,#082e49);box-shadow:-8px 0 24px rgba(8,46,73,.12);color:#fff}
-.teacher-reference-side-title{padding:8px 12px 18px;font-size:12px;font-weight:800;color:#d9ebf8}
-.teacher-reference-sidebar nav{display:grid;gap:5px}.teacher-reference-sidebar nav a{display:flex;align-items:center;gap:10px;min-height:43px;padding:0 11px;border-radius:9px;color:#d8e8f4!important;text-decoration:none;font-size:11px;font-weight:650}.teacher-reference-sidebar nav a svg{width:17px;height:17px;opacity:.86}.teacher-reference-sidebar nav a:hover{background:rgba(255,255,255,.08)}.teacher-reference-sidebar nav a.active{background:#0c83e7;color:#fff!important;box-shadow:0 7px 18px rgba(12,131,231,.28)}
-.teacher-reference-side-foot{margin-top:auto;padding:16px 8px 6px;border-top:1px solid rgba(255,255,255,.12);text-align:center;font-size:9px;color:#bed5e5}
-.teacher-pro-header{display:none!important}.teacher-pro-main{margin-right:178px!important;width:calc(100% - 178px)!important;max-width:none!important;padding:0!important}.teacher-page-content{width:100%!important;max-width:none!important;margin:0!important;padding:14px 18px 28px!important;box-sizing:border-box}.teacher-pro-context{display:none!important}.teacher-reference-topbar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #d9e5ef;background:#fff;box-sizing:border-box}.teacher-reference-topbar>div{display:flex;align-items:center;gap:10px}.teacher-reference-topbar b{color:#173d63;font-size:13px}.teacher-reference-topbar span,.teacher-reference-topbar small{color:#8294a7;font-size:10px}.teacher-reference-topbar strong{font-size:11px;color:#173d63}
+/* v149 — single authoritative desktop teacher sidebar. UI only; no data reads. */
+.teacher-reference-sidebar{box-sizing:border-box;position:fixed;right:0;top:0;bottom:0;width:218px;z-index:220;display:flex;flex-direction:column;padding:14px 12px 12px;background:linear-gradient(180deg,#0b4268 0%,#083958 58%,#062f4b 100%);box-shadow:-8px 0 28px rgba(6,39,61,.16);color:#fff;overflow:hidden}
+.teacher-reference-side-brand{display:flex;align-items:center;gap:10px;flex:0 0 auto;padding:3px 5px 13px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.14);min-width:0}.teacher-reference-side-brand img{flex:0 0 auto;width:34px;height:34px;object-fit:contain;border-radius:8px}.teacher-reference-side-brand div{display:grid;gap:2px;min-width:0}.teacher-reference-side-brand b{font-size:11.5px;line-height:1.35;color:#fff;white-space:normal}.teacher-reference-side-brand small{font-size:8.5px;line-height:1.35;color:#bfd7e7;white-space:normal;overflow-wrap:normal;word-break:normal}
+.teacher-reference-side-title{flex:0 0 auto;padding:5px 9px 8px;font-size:10px;line-height:1.3;font-weight:750;color:#a9c9dd}
+.teacher-reference-sidebar nav{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}.teacher-reference-sidebar nav::-webkit-scrollbar{width:4px}.teacher-reference-sidebar nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.24);border-radius:999px}
+.teacher-reference-sidebar nav a{box-sizing:border-box;display:grid;grid-template-columns:20px minmax(0,1fr);align-items:center;gap:9px;width:100%;min-width:0;min-height:42px;padding:7px 10px;border:1px solid transparent;border-radius:10px;color:#dbeaf4!important;text-decoration:none;font-size:11px;font-weight:650;line-height:1.3}.teacher-reference-sidebar nav a svg{width:17px;height:17px;min-width:17px;opacity:.9}.teacher-reference-sidebar nav a span{display:block;min-width:0;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:normal;word-break:normal}.teacher-reference-sidebar nav a:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.08)}.teacher-reference-sidebar nav a.active{background:#1184df;color:#fff!important;border-color:rgba(255,255,255,.12);box-shadow:0 6px 16px rgba(5,103,181,.25)}
+.teacher-reference-side-foot{flex:0 0 auto;display:grid!important;gap:8px!important;margin-top:6px;padding:10px 3px 2px;border-top:1px solid rgba(255,255,255,.14);text-align:center;font-size:8.5px;line-height:1.4;color:#bcd4e4;background:transparent}.teacher-reference-side-foot>span{display:block;white-space:normal}.teacher-reference-logout{box-sizing:border-box;width:100%;min-height:38px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.teacher-reference-logout:hover{background:#fff;color:#0b4167}.teacher-reference-logout>span{font-size:16px;color:inherit!important}
+.teacher-pro-header{display:none!important}.teacher-pro-context{display:none!important}.teacher-pro-main{margin-right:218px!important;width:calc(100% - 218px)!important;max-width:none!important;padding:0!important;box-sizing:border-box}.teacher-page-content{width:100%!important;max-width:none!important;margin:0!important;padding:14px 18px 28px!important;box-sizing:border-box;overflow:visible!important}.teacher-reference-topbar{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #d9e5ef;background:#f7fbff;box-sizing:border-box}.teacher-reference-topbar>div{display:flex;align-items:center;gap:10px}.teacher-reference-topbar>div:first-child{display:grid;gap:0}.teacher-reference-topbar>div:first-child b{font-size:13px;color:#173d63}.teacher-reference-topbar>div:first-child span{font-size:8px;color:#8294a7}.teacher-reference-topbar strong{font-size:11px;color:#173d63}.teacher-reference-subjects{display:flex!important;align-items:center;gap:7px!important}.teacher-reference-subjects select{min-width:210px;max-width:360px;height:34px;border:1px solid #d5e3ef;border-radius:8px;background:#fff;color:#173d63;padding:0 10px;font:inherit;font-size:10px}
+@media(min-width:981px){.teacher-command-panel,.teacher-command-backdrop{display:none!important}.teacher-app-shell{display:block!important;padding-right:0!important;grid-template-columns:none!important}.teacher-reference-sidebar{display:flex!important}.teacher-pro-main{margin-right:218px!important;width:calc(100% - 218px)!important}}
 @media(max-width:980px){.teacher-reference-sidebar{display:none!important}.teacher-pro-header{display:flex!important;right:0!important}.teacher-pro-main{margin-right:0!important;width:100%!important}.teacher-reference-topbar{display:none!important}}
-
-/* v146 — exact teacher reference shell */
-.teacher-reference-side-brand{display:flex;align-items:center;gap:9px;padding:4px 8px 17px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:9px}.teacher-reference-side-brand img{border-radius:9px}.teacher-reference-side-brand div{display:grid;gap:1px}.teacher-reference-side-brand b{font-size:11px;color:#fff}.teacher-reference-side-brand small{font-size:8px;color:#bcd4e6;max-width:105px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.teacher-reference-sidebar{width:184px!important}.teacher-pro-main{margin-right:184px!important;width:calc(100% - 184px)!important}.teacher-reference-topbar{height:58px!important;background:#f7fbff!important;padding:0 18px!important}.teacher-reference-topbar>div:first-child{display:grid!important;gap:0!important}.teacher-reference-topbar>div:first-child b{font-size:13px!important}.teacher-reference-topbar>div:first-child span{font-size:8px!important}.teacher-reference-subjects select{min-width:210px;max-width:360px;height:34px;border:1px solid #d5e3ef;border-radius:8px;background:#fff;color:#173d63;padding:0 10px;font:inherit;font-size:10px}.teacher-reference-subjects{display:flex!important;align-items:center;gap:7px!important}.teacher-reference-sidebar nav a span{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}.teacher-reference-sidebar nav a{font-size:10.5px!important}
-@media(max-width:980px){.teacher-pro-main{margin-right:0!important;width:100%!important}}
-
-/* v147 — keep only the approved desktop sidebar; no extra data reads */
-@media(min-width:981px){.teacher-command-panel,.teacher-command-backdrop{display:none!important}.teacher-app-shell{display:block!important;padding-right:0!important;grid-template-columns:none!important}.teacher-reference-sidebar{display:flex!important;z-index:220!important}.teacher-pro-main{margin-right:184px!important;width:calc(100% - 184px)!important}.teacher-page-content{overflow:visible!important}}
-
-
-/* v148 — persistent sidebar logout; UI only, zero data reads */
-.teacher-reference-side-foot{display:grid!important;gap:10px!important}
-.teacher-reference-side-foot>span{display:block}
-.teacher-reference-logout{width:100%;min-height:38px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:10px;font-weight:700;cursor:pointer}
-.teacher-reference-logout:hover{background:#fff;color:#0b4167}
-.teacher-reference-logout>span{font-size:16px;color:inherit!important}
