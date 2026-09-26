@@ -18,10 +18,12 @@ function studentAppears(student:NormalizedRosterRow,text:string,compactText:stri
   if(student.compact.length>=6&&compactText.includes(student.compact))return true;
   const parts=student.parts;
   if(parts.length<2)return false;
-  const found=parts.filter(part=>textWords.has(part)).length;
-  const required=parts.length>=3?parts.length-1:parts.length;
+  const unique=[...new Set(parts)];
+  const found=unique.filter(part=>textWords.has(part)).length;
+  if(unique.length===2)return found===2;
+  const required=Math.max(2,unique.length-1);
   if(found<required)return false;
-  return textWords.has(parts[0])||textWords.has(parts[parts.length-1]);
+  return textWords.has(unique[0])&&textWords.has(unique[unique.length-1]);
 }
 
 export async function POST(request:Request){
