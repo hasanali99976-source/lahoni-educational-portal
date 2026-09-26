@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import TeacherV24RuntimeFixes from "./v24-runtime-fixes";
 import TeacherUiStability from "./teacher-ui-stability";
+import TeacherLogoutFix from "./teacher-logout-fix";
 import "./teacher-typography-current.css";
 import "./teacher-current-experience.css";
 import "./teacher-avatar-current.css";
@@ -22,6 +23,7 @@ export default function TeacherTemplate({ children }: { children: ReactNode }) {
     }catch{}
   }
   return <>
+    <TeacherLogoutFix />
     <TeacherUiStability />
     <TeacherV24RuntimeFixes />
     {children}
