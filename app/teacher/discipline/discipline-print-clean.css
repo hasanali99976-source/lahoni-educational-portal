@@ -1,0 +1,50 @@
+/* Clean A4 landscape discipline report — print only */
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  html,body{width:auto!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+  body *{visibility:hidden!important}
+  .discipline-safe .discipline-print,.discipline-safe .discipline-print *{visibility:visible!important}
+  .tss-sidebar,.tss-backdrop,.tss-head,.discipline-safe .screen{display:none!important}
+  .teacher-student-shell,.tss-main,.tss-content,.discipline-safe{position:static!important;width:auto!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+  .discipline-safe .discipline-print{direction:rtl!important;position:absolute!important;inset:0 auto auto 0!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;box-sizing:border-box!important;overflow:visible!important;background:#fff!important;color:#172f36!important;font-family:Tahoma,Arial,sans-serif!important;display:block!important}
+  .discipline-safe .discipline-print:before,.discipline-safe .discipline-print:after,.discipline-safe .report-watermark{display:none!important}
+
+  .discipline-safe .report-cert-head{display:grid!important;grid-template-columns:18mm 1fr 18mm!important;align-items:center!important;gap:4mm!important;margin:0 0 4mm!important;padding:0 0 3mm!important;border-bottom:2px solid #176a70!important;break-inside:avoid!important}
+  .discipline-safe .report-cert-head img{width:16mm!important;height:16mm!important;object-fit:contain!important}
+  .discipline-safe .report-cert-head>div{text-align:center!important}
+  .discipline-safe .report-cert-head small{display:block!important;font-size:8pt!important;font-weight:700!important;color:#8a6a2b!important}
+  .discipline-safe .report-cert-head h1{margin:1mm 0!important;font-size:17pt!important;line-height:1.15!important;color:#123e47!important}
+  .discipline-safe .report-cert-head span{display:block!important;font-size:8pt!important;font-weight:700!important;color:#526d73!important}
+  .discipline-safe .report-cert-head>b{display:grid!important;place-items:center!important;justify-self:end!important;width:11mm!important;height:11mm!important;border:1.5px solid #bd9346!important;border-radius:50%!important;color:#8f6824!important;font-size:8pt!important}
+
+  .discipline-safe .report-identity{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:2mm!important;margin:0 0 3mm!important;break-inside:avoid!important}
+  .discipline-safe .report-identity>div{display:flex!important;flex-direction:column!important;justify-content:center!important;min-width:0!important;min-height:13mm!important;padding:2mm 3mm!important;border:1px solid #d8ccb2!important;border-radius:2mm!important;background:#faf7ef!important;box-sizing:border-box!important}
+  .discipline-safe .report-identity small{font-size:7pt!important;font-weight:700!important;color:#806e51!important}
+  .discipline-safe .report-identity b{margin-top:1mm!important;font-size:9pt!important;font-weight:900!important;color:#143e47!important;white-space:normal!important;overflow:visible!important}
+
+  .discipline-safe .report-hero{display:grid!important;grid-template-columns:1.4fr repeat(4,.65fr)!important;gap:2mm!important;margin:0 0 3mm!important;break-inside:avoid!important}
+  .discipline-safe .report-hero>*{min-width:0!important;padding:2mm!important;border:1px solid #d9e4e4!important;border-radius:2mm!important;background:#f4f8f8!important;text-align:center!important;box-sizing:border-box!important}
+  .discipline-safe .report-hero b{font-size:10pt!important;color:#174b54!important}.discipline-safe .report-hero small{font-size:6.8pt!important;color:#61777c!important}
+
+  .discipline-safe .report-section-title{margin:2mm 0!important;padding:2mm 3mm!important;border-right:3px solid #176a70!important;background:#eef5f5!important;color:#173e47!important;font-size:10pt!important;font-weight:900!important;break-after:avoid!important}
+  .discipline-safe .report-table-wrap{width:100%!important;overflow:visible!important;margin:0!important;padding:0!important}
+  .discipline-safe .discipline-report-table{width:100%!important;min-width:0!important;max-width:100%!important;border-collapse:collapse!important;table-layout:fixed!important;background:#fff!important;page-break-inside:auto!important}
+  .discipline-safe .discipline-report-table thead{display:table-header-group!important}
+  .discipline-safe .discipline-report-table tr{page-break-inside:avoid!important;break-inside:avoid!important}
+  .discipline-safe .discipline-report-table th,.discipline-safe .discipline-report-table td{position:static!important;padding:1.6mm 1mm!important;border:1px solid #cfdadb!important;background:#fff!important;color:#173743!important;text-align:center!important;font-size:7.2pt!important;line-height:1.25!important;vertical-align:middle!important;white-space:normal!important;overflow-wrap:anywhere!important;box-sizing:border-box!important}
+  .discipline-safe .discipline-report-table th{background:#17636a!important;color:#fff!important;font-size:7pt!important;font-weight:900!important}
+  .discipline-safe .discipline-report-table th:nth-child(1),.discipline-safe .discipline-report-table td:nth-child(1){width:5%!important}
+  .discipline-safe .discipline-report-table th:nth-child(2),.discipline-safe .discipline-report-table td:nth-child(2){width:24%!important;text-align:right!important}
+  .discipline-safe .discipline-report-table th:nth-child(3),.discipline-safe .discipline-report-table td:nth-child(3){width:11%!important}
+  .discipline-safe .discipline-report-table th:nth-child(4),.discipline-safe .discipline-report-table td:nth-child(4){width:8%!important}
+  .discipline-safe .discipline-report-table th:nth-child(n+5):nth-child(-n+8),.discipline-safe .discipline-report-table td:nth-child(n+5):nth-child(-n+8){width:7%!important}
+  .discipline-safe .discipline-report-table th:nth-child(9),.discipline-safe .discipline-report-table td:nth-child(9){width:10%!important}
+  .discipline-safe .discipline-report-table th:nth-child(10),.discipline-safe .discipline-report-table td:nth-child(10){width:14%!important}
+  .discipline-safe .discipline-report-table td:nth-child(2) b{display:block!important;font-size:7.6pt!important;line-height:1.25!important;color:#173743!important}
+  .discipline-safe .discipline-report-table td:nth-child(2) small{display:block!important;margin-top:.5mm!important;font-size:5.8pt!important;color:#71858c!important}
+  .discipline-safe .discipline-report-table td.abs{background:#fff1f2!important;color:#8f2937!important}.discipline-safe .discipline-report-table td.late{background:#fff7e8!important;color:#8b620f!important}.discipline-safe .discipline-report-table td.esc{background:#f4efff!important;color:#69418e!important}.discipline-safe .discipline-report-table td.exc{background:#edf6ff!important;color:#28698d!important}.discipline-safe .discipline-report-table td.nonatt-high{background:#ffe4e7!important;color:#9c2636!important;font-weight:900!important}.discipline-safe .discipline-report-table td.nonatt{background:#eaf7f4!important;color:#176b60!important;font-weight:900!important}
+  .discipline-safe .discipline-report-table .risk,.discipline-safe .discipline-report-table .watch,.discipline-safe .discipline-report-table .clear{display:inline-block!important;padding:1mm 1.5mm!important;border-radius:99px!important;font-size:6pt!important;font-weight:900!important;white-space:nowrap!important}.discipline-safe .discipline-report-table .risk{background:#ffe8ec!important;color:#a52f40!important}.discipline-safe .discipline-report-table .watch{background:#fff3d8!important;color:#8a600d!important}.discipline-safe .discipline-report-table .clear{background:#e7f6ee!important;color:#216a50!important}
+
+  .discipline-safe .report-footer{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:5mm!important;margin-top:5mm!important;padding-top:3mm!important;border-top:1px solid #cbd7d7!important;break-inside:avoid!important;color:#4d6469!important;font-size:7pt!important;text-align:center!important}
+  .discipline-safe .report-footer b{display:block!important;margin-top:2mm!important;color:#173e47!important;font-size:8pt!important}
+}
