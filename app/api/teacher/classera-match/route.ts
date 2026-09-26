@@ -7,25 +7,16 @@ export const runtime="nodejs";
 function clean(value:unknown,limit=160){return String(value??"").replace(/\s+/g," ").trim().slice(0,limit)}
 function normalizeArabic(value:unknown){return String(value??"").normalize("NFKC").replace(/[أإآٱ]/g,"ا").replace(/[ىی]/g,"ي").replace(/ة/g,"ه").replace(/[ؤ]/g,"و").replace(/[ئ]/g,"ي").replace(/(?:عبد\s*ا?الله|عبداالله|عبدالله)/g,"عبدالله").replace(/[ًٌٍَُِّْـ]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim().toLowerCase()}
 function compactArabic(value:unknown){return normalizeArabic(value).replace(/\s+/g,"")}
-function tokens(value:unknown){return normalizeArabic(value).split(" ").filter(token=>token.length>=2)}
 function assigned(session:NonNullable<Awaited<ReturnType<typeof requireSession>>>,subjectId:string){return Boolean(session.user&&/^[a-z0-9_-]+$/i.test(subjectId)&&normalizeAssignments(session.user.assignments,session.user.subjectIds).some(item=>item.subjectId===subjectId))}
 
 type RosterRow={code:string;name:string;className:string};
-type NormalizedRosterRow=RosterRow&{normalized:string;compact:string;parts:string[]};
+type NormalizedRosterRow=RosterRow&{normalized:string;compact:string};
 
-function orderedSubsequence(parts:string[],words:string[]){let cursor=0;for(const part of parts){const found=words.indexOf(part,cursor);if(found<0)return false;cursor=found+1}return true}
-function studentAppears(student:NormalizedRosterRow,text:string,compactText:string,textWords:Set<string>,words:string[]){
+// المطابقة متعمدة على الاسم الكامل فقط بعد توحيد اختلافات الحروف العربية والمسافات.
+// لا نستخدم الاسم الأول أو تشابه أجزاء الاسم حتى لا تُنسب تسليمة لطالب آخر.
+function studentAppears(student:NormalizedRosterRow,text:string,compactText:string){
   if(student.normalized.length>=5&&text.includes(` ${student.normalized} `))return true;
-  if(student.compact.length>=6&&compactText.includes(student.compact))return true;
-  const parts=student.parts;
-  if(parts.length<2)return false;
-  if(orderedSubsequence(parts,words))return true;
-  const unique=[...new Set(parts)];
-  const found=unique.filter(part=>textWords.has(part)).length;
-  if(unique.length===2)return found===2;
-  const required=Math.max(3,unique.length-1);
-  if(found<required)return false;
-  return textWords.has(unique[0])&&textWords.has(unique[unique.length-1]);
+  return student.compact.length>=6&&compactText.includes(student.compact);
 }
 
 export async function POST(request:Request){
@@ -44,7 +35,7 @@ export async function POST(request:Request){
     if(!files.length)return NextResponse.json({ok:false,message:"اختر ملفات تقارير كلاسيرا أولًا."},{status:400});
     if(files.length>30)return NextResponse.json({ok:false,message:"يمكن رفع 30 تقريرًا كحد أقصى في العملية الواحدة."},{status:400});
     const pdfParse=(await import("pdf-parse")).default;
-    const normalizedRoster:NormalizedRosterRow[]=roster.map(item=>({...item,normalized:normalizeArabic(item.name),compact:compactArabic(item.name),parts:tokens(item.name)}));
+    const normalizedRoster:NormalizedRosterRow[]=roster.map(item=>({...item,normalized:normalizeArabic(item.name),compact:compactArabic(item.name)}));
     const counts:Record<string,number>={};
     const perFile:Array<{name:string;matched:number;textWords:number,pages:number,textLength:number}>=[];
     for(const file of files){
@@ -59,11 +50,10 @@ export async function POST(request:Request){
       const normalized=normalizeArabic(text);
       const normalizedText=` ${normalized} `;
       const compactText=normalized.replace(/\s+/g,"");
-      const words=normalized.split(" ").filter(Boolean);
-      const textWords=new Set(words);
+      const textWords=new Set(normalized.split(" ").filter(Boolean));
       let matched=0;
       for(const student of normalizedRoster){
-        if(studentAppears(student,normalizedText,compactText,textWords,words)){
+        if(studentAppears(student,normalizedText,compactText)){
           counts[student.code]=(counts[student.code]||0)+1;
           matched++;
         }
