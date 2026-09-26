@@ -5,7 +5,7 @@ import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 export const runtime="nodejs";
 
 function clean(value:unknown,limit=160){return String(value??"").replace(/\s+/g," ").trim().slice(0,limit)}
-function normalizeArabic(value:unknown){return String(value??"").normalize("NFKC").replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/[ؤ]/g,"و").replace(/[ئ]/g,"ي").replace(/[ًٌٍَُِّْـ]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim().toLowerCase()}
+function normalizeArabic(value:unknown){return String(value??"").normalize("NFKC").replace(/[أإآٱ]/g,"ا").replace(/[ىی]/g,"ي").replace(/ة/g,"ه").replace(/[ؤ]/g,"و").replace(/[ئ]/g,"ي").replace(/(?:عبد\s*ا?الله|عبداالله|عبدالله)/g,"عبدالله").replace(/[ًٌٍَُِّْـ]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim().toLowerCase()}
 function compactArabic(value:unknown){return normalizeArabic(value).replace(/\s+/g,"")}
 function tokens(value:unknown){return normalizeArabic(value).split(" ").filter(token=>token.length>=2)}
 function assigned(session:NonNullable<Awaited<ReturnType<typeof requireSession>>>,subjectId:string){return Boolean(session.user&&/^[a-z0-9_-]+$/i.test(subjectId)&&normalizeAssignments(session.user.assignments,session.user.subjectIds).some(item=>item.subjectId===subjectId))}
@@ -13,15 +13,17 @@ function assigned(session:NonNullable<Awaited<ReturnType<typeof requireSession>>
 type RosterRow={code:string;name:string;className:string};
 type NormalizedRosterRow=RosterRow&{normalized:string;compact:string;parts:string[]};
 
-function studentAppears(student:NormalizedRosterRow,text:string,compactText:string,textWords:Set<string>){
+function orderedSubsequence(parts:string[],words:string[]){let cursor=0;for(const part of parts){const found=words.indexOf(part,cursor);if(found<0)return false;cursor=found+1}return true}
+function studentAppears(student:NormalizedRosterRow,text:string,compactText:string,textWords:Set<string>,words:string[]){
   if(student.normalized.length>=5&&text.includes(` ${student.normalized} `))return true;
   if(student.compact.length>=6&&compactText.includes(student.compact))return true;
   const parts=student.parts;
   if(parts.length<2)return false;
+  if(orderedSubsequence(parts,words))return true;
   const unique=[...new Set(parts)];
   const found=unique.filter(part=>textWords.has(part)).length;
   if(unique.length===2)return found===2;
-  const required=Math.max(2,unique.length-1);
+  const required=Math.max(3,unique.length-1);
   if(found<required)return false;
   return textWords.has(unique[0])&&textWords.has(unique[unique.length-1]);
 }
@@ -57,10 +59,11 @@ export async function POST(request:Request){
       const normalized=normalizeArabic(text);
       const normalizedText=` ${normalized} `;
       const compactText=normalized.replace(/\s+/g,"");
-      const textWords=new Set(normalized.split(" ").filter(Boolean));
+      const words=normalized.split(" ").filter(Boolean);
+      const textWords=new Set(words);
       let matched=0;
       for(const student of normalizedRoster){
-        if(studentAppears(student,normalizedText,compactText,textWords)){
+        if(studentAppears(student,normalizedText,compactText,textWords,words)){
           counts[student.code]=(counts[student.code]||0)+1;
           matched++;
         }
