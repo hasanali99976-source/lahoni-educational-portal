@@ -5,31 +5,28 @@ import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 export const runtime="nodejs";
 
 function clean(value:unknown,limit=160){return String(value??"").replace(/\s+/g," ").trim().slice(0,limit)}
-function normalizeArabic(value:unknown){return String(value??"").normalize("NFKC").replace(/[أإآٱ]/g,"ا").replace(/[ىی]/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/(?:عبد\s*ا?الله|عبداالله|عبدالله)/g,"عبدالله").replace(/[ًٌٍَُِّْـ]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim().toLowerCase()}
-function nameParts(value:unknown){return normalizeArabic(value).split(" ").filter(part=>part.length>=2)}
+function normalizeArabic(value:unknown){
+  return String(value??"")
+    .normalize("NFKC")
+    .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,"")
+    .replace(/[أإآٱ]/g,"ا")
+    .replace(/[ىی]/g,"ي")
+    .replace(/ة/g,"ه")
+    .replace(/ؤ/g,"و")
+    .replace(/ئ/g,"ي")
+    .replace(/[ًٌٍَُِّْـ]/g,"")
+    .replace(/[^\p{L}\p{N}]+/gu," ")
+    .replace(/\s+/g," ")
+    .trim().toLowerCase();
+}
+function compactArabic(value:unknown){return normalizeArabic(value).replace(/\s+/g,"")}
 function assigned(session:NonNullable<Awaited<ReturnType<typeof requireSession>>>,subjectId:string){return Boolean(session.user&&/^[a-z0-9_-]+$/i.test(subjectId)&&normalizeAssignments(session.user.assignments,session.user.subjectIds).some(item=>item.subjectId===subjectId))}
 
 type RosterRow={code:string;name:string;className:string};
-type NormalizedRosterRow=RosterRow&{parts:string[]};
+type NormalizedRosterRow=RosterRow&{compact:string};
 
-// نثبت هوية الطالب بجميع أجزاء اسمه وبالترتيب، لكن نسمح للنص المستخرج من PDF
-// أن يضع كلمات/عناوين قليلة بين أجزاء الاسم أو يكسر الاسم بين الأسطر.
-function fullNameAppears(parts:string[],words:string[]){
-  if(parts.length<2)return false;
-  for(let start=0;start<words.length;start++){
-    if(words[start]!==parts[0])continue;
-    let cursor=start+1;
-    let ok=true;
-    for(let p=1;p<parts.length;p++){
-      let found=-1;
-      const max=Math.min(words.length,cursor+4);
-      for(let i=cursor;i<max;i++){if(words[i]===parts[p]){found=i;break}}
-      if(found<0){ok=false;break}
-      cursor=found+1;
-    }
-    if(ok)return true;
-  }
-  return false;
+function studentAppears(student:NormalizedRosterRow,compactText:string){
+  return student.compact.length>=5&&compactText.includes(student.compact);
 }
 
 export async function POST(request:Request){
@@ -48,7 +45,7 @@ export async function POST(request:Request){
     if(!files.length)return NextResponse.json({ok:false,message:"اختر ملفات تقارير كلاسيرا أولًا."},{status:400});
     if(files.length>30)return NextResponse.json({ok:false,message:"يمكن رفع 30 تقريرًا كحد أقصى في العملية الواحدة."},{status:400});
     const pdfParse=(await import("pdf-parse")).default;
-    const normalizedRoster:NormalizedRosterRow[]=roster.map(item=>({...item,parts:nameParts(item.name)}));
+    const normalizedRoster:NormalizedRosterRow[]=roster.map(item=>({...item,compact:compactArabic(item.name)}));
     const counts:Record<string,number>={};
     const perFile:Array<{name:string;matched:number;textWords:number,pages:number,textLength:number}>=[];
     for(const file of files){
@@ -61,16 +58,15 @@ export async function POST(request:Request){
         pages=Math.max(1,Number(parsed.numpages||1));
       }else{text=buffer.toString("utf8")}
       const normalized=normalizeArabic(text);
-      const words=normalized.split(" ").filter(Boolean);
-      const textWords=new Set(words);
+      const compactText=normalized.replace(/\s+/g,"");
       let matched=0;
       for(const student of normalizedRoster){
-        if(fullNameAppears(student.parts,words)){
+        if(studentAppears(student,compactText)){
           counts[student.code]=(counts[student.code]||0)+1;
           matched++;
         }
       }
-      perFile.push({name:clean(file.name,120),matched,textWords:textWords.size,pages,textLength:text.length});
+      perFile.push({name:clean(file.name,120),matched,textWords:normalized.split(" ").filter(Boolean).length,pages,textLength:text.length});
     }
     const rows=roster.map(student=>({code:student.code,name:student.name,className:student.className,count:counts[student.code]||0}));
     const totalMatched=rows.filter(row=>row.count>0).length;
