@@ -64,7 +64,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   function clearSessionState(){setTeacherId(undefined);setTeacherName("المعلم");setSubjectKey("history");setWorkspaceKey("history");setActiveGrade(null);setActiveGradeLabel("");setSubjectName("التاريخ");setSubjects([]);setAssignments([]);setMenuOpen(false);}
   async function logout(){try{await Promise.all([fetch("/api/teacher-logout",{method:"POST",cache:"no-store"}),signOut(auth)]);}finally{window.location.replace("/teacher");}}
   useEffect(()=>{setMenuOpen(false);},[pathname]);
-  useEffect(()=>{if(!isLoginPage)[...primaryTabs,...moreTabs].forEach(tab=>router.prefetch(tab.href));},[isLoginPage,router]);
   useEffect(()=>{setTodayLabel(new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",weekday:"long",day:"numeric",month:"long"}).format(new Date()));},[]);
   useEffect(()=>{if(!isLoginPage){setEntryChecking(false);return;}setEntryChecking(true);let shouldRedirect=false;try{shouldRedirect=sessionStorage.getItem(entryRedirectKey)==="1";}catch{}if(shouldRedirect){window.location.replace("/teacher/dashboard");return;}setEntryChecking(false);},[isLoginPage]);
   useEffect(()=>{if(isLoginPage){setReady(false);clearSessionState();return;}setReady(false);let active=true;fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"}).then(r=>r.ok?r.json():Promise.reject()).then((s:TeacherSession)=>{if(!active)return;if(!s.teacherId)throw new Error();applySession(s);setReady(true);}).catch(()=>{if(active)window.location.replace("/teacher");});return()=>{active=false;};},[isLoginPage]);
@@ -93,7 +92,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={68} height={68} priority unoptimized/>
           <span><b>بوابة المعلم</b><small>بوابة أستاذ لحوني التعليمية</small></span>
         </Link>
-        <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={true} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
+        <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
         <footer className="tss-footer"><span className="tss-motto">بالعِلم نصنع المستقبل</span><button type="button" className="tss-logout" onClick={logout}><span>↪</span><b>تسجيل الخروج</b></button></footer>
       </aside>
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
