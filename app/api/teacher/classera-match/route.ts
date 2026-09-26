@@ -9,7 +9,7 @@ function normalizeArabic(value:unknown){
   return String(value??"").normalize("NFKC")
     .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,"")
     .replace(/[أإآٱ]/g,"ا").replace(/[ىی]/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي")
-    .replace(/عبدا+لله/g,"عبدالله").replace(/عبد\s+الله/g,"عبدالله")
+    .replace(/ﷲ/g,"الله").replace(/عبدا+لله/g,"عبدالله").replace(/عبد\s+الله/g,"عبدالله")
     .replace(/[ًٌٍَُِّْـ]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim().toLowerCase();
 }
 function identityParts(value:unknown){return normalizeArabic(value).split(" ").filter(Boolean).filter(part=>part!=="بن"&&part!=="ابن")}
@@ -18,21 +18,18 @@ function assigned(session:NonNullable<Awaited<ReturnType<typeof requireSession>>
 type RosterRow={code:string;name:string;className:string};
 type NormalizedRosterRow=RosterRow&{parts:string[]};
 
-// يطابق هوية الاسم كاملة بترتيبها، مع السماح لكلاسيرا بإضافة "بن/ابن" أو بكسر الاسم بين سطرين.
-// لا توجد مطابقة بالاسم الأول وحده.
+// تقارير كلاسيرا العربية تُستخرج من PDF بترتيب RTL معكوس داخل سطر الاسم.
+// لذلك نثبت الاسم الكامل بجميع أجزائه داخل نافذة الاسم نفسها، بدون الاعتماد على ترتيب الكلمات
+// وبدون الاكتفاء بالاسم الأول. هذا يعالج الانعكاس وتقطيع الاسم بين سطرين من المصدر.
 function studentAppears(student:NormalizedRosterRow,words:string[]){
-  const parts=student.parts;
-  if(parts.length<2)return false;
+  const required=[...new Set(student.parts)];
+  if(required.length<2)return false;
+  const anchors=new Set(required);
   for(let start=0;start<words.length;start++){
-    if(words[start]!==parts[0])continue;
-    let wi=start+1,pi=1;
-    while(wi<words.length&&pi<parts.length&&wi-start<=parts.length*3+6){
-      if(words[wi]==="بن"||words[wi]==="ابن"){wi++;continue}
-      if(words[wi]===parts[pi]){pi++;wi++;continue}
-      // يسمح بكلمة إضافية محدودة من صيغة كلاسيرا، لكن لا يسقط أي جزء من اسم البوابة.
-      wi++;
-    }
-    if(pi===parts.length)return true;
+    if(!anchors.has(words[start]))continue;
+    const end=Math.min(words.length,start+Math.max(12,required.length*3));
+    const window=new Set(words.slice(start,end).filter(word=>word!=="بن"&&word!=="ابن"));
+    if(required.every(part=>window.has(part)))return true;
   }
   return false;
 }
