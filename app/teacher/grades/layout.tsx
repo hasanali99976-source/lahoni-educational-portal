@@ -3,9 +3,10 @@ import CentralRosterSync from "../central-roster-sync";
 import GradesPrintEnhancer from "./grades-print-enhancer";
 import GradeHistoryRecorder from "./grade-history-recorder";
 import QuickHomework from "./QuickHomework";
+import GradeApproval from "./GradeApproval";
 import "../teacher-batch-v22.css";
 import "./grades-usability-v20.css";
 
 export default function GradesLayout({ children }: { children: ReactNode }) {
-  return <><CentralRosterSync /><GradesPrintEnhancer /><GradeHistoryRecorder /><QuickHomework />{children}</>;
+  return <><CentralRosterSync /><GradesPrintEnhancer /><GradeHistoryRecorder /><QuickHomework /><GradeApproval />{children}</>;
 }
