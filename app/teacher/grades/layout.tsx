@@ -8,5 +8,5 @@ import "../teacher-batch-v22.css";
 import "./grades-usability-v20.css";
 
 export default function GradesLayout({ children }: { children: ReactNode }) {
-  return <><CentralRosterSync /><GradesPrintEnhancer /><GradeHistoryRecorder /><QuickHomework /><GradeApproval />{children}</>;
+  return <><CentralRosterSync /><GradesPrintEnhancer /><GradeHistoryRecorder /><QuickHomework />{children}<GradeApproval /></>;
 }
