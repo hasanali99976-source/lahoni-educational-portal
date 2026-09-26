@@ -18,20 +18,35 @@ function assigned(session:NonNullable<Awaited<ReturnType<typeof requireSession>>
 type RosterRow={code:string;name:string;className:string};
 type NormalizedRosterRow=RosterRow&{parts:string[]};
 
-// تقارير كلاسيرا العربية تُستخرج من PDF بترتيب RTL معكوس داخل سطر الاسم.
-// لذلك نثبت الاسم الكامل بجميع أجزائه داخل نافذة الاسم نفسها، بدون الاعتماد على ترتيب الكلمات
-// وبدون الاكتفاء بالاسم الأول. هذا يعالج الانعكاس وتقطيع الاسم بين سطرين من المصدر.
-function studentAppears(student:NormalizedRosterRow,words:string[]){
-  const required=[...new Set(student.parts)];
-  if(required.length<2)return false;
-  const anchors=new Set(required);
-  for(let start=0;start<words.length;start++){
-    if(!anchors.has(words[start]))continue;
-    const end=Math.min(words.length,start+Math.max(12,required.length*3));
-    const window=new Set(words.slice(start,end).filter(word=>word!=="بن"&&word!=="ابن"));
-    if(required.every(part=>window.has(part)))return true;
+// التقرير نفسه يضع اسم الطالب مباشرة قبل اسم المعلم. نستخرج أسماء سجلات كلاسيرا أولاً
+// بدل البحث في كامل نص PDF، وندمج السطر السابق عندما يكون الاسم الطويل مكسوراً على سطرين.
+function extractClasseraStudentNames(text:string){
+  const teacher=normalizeArabic("حسن علي باقر الطويل");
+  const lines=String(text||"").split(/\r?\n/).map(line=>normalizeArabic(line)).filter(Boolean);
+  const names:string[]=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const at=line.indexOf(teacher);
+    if(at<0)continue;
+    let name=line.slice(0,at).trim();
+    if(!name)continue;
+    const currentParts=name.split(" ").filter(Boolean);
+    if(i>0&&currentParts.length<=3){
+      const prev=lines[i-1];
+      const prevParts=prev.split(" ").filter(Boolean);
+      const excluded=/\d|عنوان التقرير|اسم الطالب|اسم المعلم|اسم الدوره|ثانويه التهذيب|التدوين|التفكير|page/i.test(prev);
+      if(!excluded&&prevParts.length>=2&&prevParts.length<=8)name=`${prev} ${name}`.trim();
+    }
+    if(identityParts(name).length>=2)names.push(name);
   }
-  return false;
+  return names;
+}
+
+function sameFullName(student:NormalizedRosterRow,extracted:string){
+  const required=[...new Set(student.parts)];
+  const actual=[...new Set(identityParts(extracted))];
+  if(required.length<2||actual.length<2)return false;
+  return required.every(part=>actual.includes(part));
 }
 
 export async function POST(request:Request){
@@ -52,7 +67,7 @@ export async function POST(request:Request){
     const pdfParse=(await import("pdf-parse")).default;
     const normalizedRoster:NormalizedRosterRow[]=roster.map(item=>({...item,parts:identityParts(item.name)}));
     const counts:Record<string,number>={};
-    const perFile:Array<{name:string;matched:number;textWords:number,pages:number,textLength:number}>=[];
+    const perFile:Array<{name:string;matched:number;extractedNames:number;pages:number;textLength:number}>=[];
     for(const file of files){
       if(file.size>12*1024*1024)return NextResponse.json({ok:false,message:`الملف ${file.name} أكبر من 12MB.`},{status:400});
       const buffer=Buffer.from(await file.arrayBuffer());
@@ -60,11 +75,12 @@ export async function POST(request:Request){
       if(file.type.includes("pdf")||file.name.toLowerCase().endsWith(".pdf")){
         const parsed=await pdfParse(buffer);text=String(parsed.text||"");pages=Math.max(1,Number(parsed.numpages||1));
       }else{text=buffer.toString("utf8")}
-      const normalized=normalizeArabic(text);
-      const words=normalized.split(" ").filter(Boolean);
+      const extractedNames=extractClasseraStudentNames(text);
       let matched=0;
-      for(const student of normalizedRoster){if(studentAppears(student,words)){counts[student.code]=(counts[student.code]||0)+1;matched++}}
-      perFile.push({name:clean(file.name,120),matched,textWords:words.length,pages,textLength:text.length});
+      for(const student of normalizedRoster){
+        if(extractedNames.some(name=>sameFullName(student,name))){counts[student.code]=(counts[student.code]||0)+1;matched++}
+      }
+      perFile.push({name:clean(file.name,120),matched,extractedNames:extractedNames.length,pages,textLength:text.length});
     }
     const rows=roster.map(student=>({code:student.code,name:student.name,className:student.className,count:counts[student.code]||0}));
     return NextResponse.json({ok:true,totalFiles:files.length,totalMatched:rows.filter(row=>row.count>0).length,rows,files:perFile},{headers:{"Cache-Control":"no-store"}});
