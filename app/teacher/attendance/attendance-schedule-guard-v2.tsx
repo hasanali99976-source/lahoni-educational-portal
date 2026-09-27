@@ -21,14 +21,6 @@ function controls() {
     dateInput: page?.querySelector<HTMLInputElement>('[data-attendance-date-input="true"]') || null,
   };
 }
-function selectClass(select: HTMLSelectElement, className: string) {
-  const option = [...select.options].find(item => normalizeClass(item.value) === className);
-  if (!option || select.value === option.value) return;
-  const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")?.set;
-  if (setter) setter.call(select, option.value); else select.value = option.value;
-  select.dispatchEvent(new Event("input", { bubbles: true }));
-  select.dispatchEvent(new Event("change", { bubbles: true }));
-}
 
 export default function AttendanceScheduleGuardV2() {
   const session = useTeacherClient();
@@ -70,17 +62,11 @@ export default function AttendanceScheduleGuardV2() {
       const { classSelect, dateInput } = controls();
       if (dateInput?.value && dateInput.value !== selectedDate) setSelectedDate(dateInput.value);
       if (!classSelect || !loaded) return;
-      const today = riyadhToday();
-      if ((dateInput?.value || selectedDate) !== today) {
-        [...classSelect.options].forEach(option => { option.disabled = false; });
-        return;
-      }
-      const allowed = new Set(scheduledClasses.map(item => item.className));
-      [...classSelect.options].forEach(option => {
-        if (!option.value) { option.disabled = false; return; }
-        option.disabled = !allowed.has(normalizeClass(option.value));
-      });
-      if (!allowed.has(normalizeClass(classSelect.value)) && scheduledClasses.length) selectClass(classSelect, scheduledClasses[0].className);
+
+      // The timetable is guidance only. Attendance must allow every class already
+      // assigned to the teacher; otherwise classes outside today's timetable become
+      // visible but disabled and cannot be opened for attendance/follow-up.
+      [...classSelect.options].forEach(option => { option.disabled = false; });
     };
     sync();
     const observer = new MutationObserver(sync);
@@ -92,12 +78,12 @@ export default function AttendanceScheduleGuardV2() {
       document.removeEventListener("change", sync, true);
       window.removeEventListener("lahooni:timetable-synced", sync as EventListener);
     };
-  }, [loaded, scheduledClasses, selectedDate]);
+  }, [loaded, selectedDate]);
 
   if (!loaded || selectedDate !== riyadhToday()) return null;
   return <aside dir="rtl" style={{margin:"0 0 14px",padding:"12px 14px",borderRadius:14,background:"#eef8f7",border:"1px solid #cde8e4",color:"#174c4a",fontWeight:700}}>
     {scheduledClasses.length
-      ? `الحضور مرتبط بجدول اليوم: ${scheduledClasses.map(item => `${item.className} (الحصة ${item.period})`).join(" • ")}`
-      : "لا توجد حصة مسجلة لك اليوم في الجدول؛ أضف حصصك من الجدول الدراسي أولًا."}
+      ? `حصصك المجدولة اليوم: ${scheduledClasses.map(item => `${item.className} (الحصة ${item.period})`).join(" • ")} — ويمكنك اختيار أي فصل مسند لك من قائمة الفصول.`
+      : "يمكنك اختيار أي فصل مسند لك من قائمة الفصول وتسجيل المتابعة."}
   </aside>;
 }
