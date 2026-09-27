@@ -23,7 +23,10 @@ function controls() {
 }
 function selectClass(select: HTMLSelectElement, className: string) {
   const option = [...select.options].find(item => normalizeClass(item.value) === className);
-  if (!option || select.value === option.value) return;
+  if (!option) return;
+  option.disabled = false;
+  option.hidden = false;
+  if (select.value === option.value) return;
   const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")?.set;
   if (setter) setter.call(select, option.value); else select.value = option.value;
   select.dispatchEvent(new Event("input", { bubbles: true }));
@@ -71,16 +74,21 @@ export default function AttendanceScheduleGuardV2() {
       if (dateInput?.value && dateInput.value !== selectedDate) setSelectedDate(dateInput.value);
       if (!classSelect || !loaded) return;
       const today = riyadhToday();
-      if ((dateInput?.value || selectedDate) !== today) {
-        [...classSelect.options].forEach(option => { option.disabled = false; });
+      const isToday = (dateInput?.value || selectedDate) === today;
+      if (!isToday) {
+        [...classSelect.options].forEach(option => { option.disabled = false; option.hidden = false; });
         return;
       }
       const allowed = new Set(scheduledClasses.map(item => item.className));
       [...classSelect.options].forEach(option => {
-        if (!option.value) { option.disabled = false; return; }
-        option.disabled = !allowed.has(normalizeClass(option.value));
+        if (!option.value) { option.disabled = false; option.hidden = false; return; }
+        const isAllowed = allowed.has(normalizeClass(option.value));
+        option.disabled = !isAllowed;
+        option.hidden = !isAllowed;
       });
-      if (!allowed.has(normalizeClass(classSelect.value)) && scheduledClasses.length) selectClass(classSelect, scheduledClasses[0].className);
+      classSelect.disabled = false;
+      const current = normalizeClass(classSelect.value);
+      if ((!current || !allowed.has(current)) && scheduledClasses.length) selectClass(classSelect, scheduledClasses[0].className);
     };
     sync();
     const observer = new MutationObserver(sync);
@@ -97,7 +105,7 @@ export default function AttendanceScheduleGuardV2() {
   if (!loaded || selectedDate !== riyadhToday()) return null;
   return <aside dir="rtl" style={{margin:"0 0 14px",padding:"12px 14px",borderRadius:14,background:"#eef8f7",border:"1px solid #cde8e4",color:"#174c4a",fontWeight:700}}>
     {scheduledClasses.length
-      ? `الحضور مرتبط بجدول اليوم: ${scheduledClasses.map(item => `${item.className} (الحصة ${item.period})`).join(" • ")}`
-      : "لا توجد حصة مسجلة لك اليوم في الجدول؛ أضف حصصك من الجدول الدراسي أولًا."}
+      ? `حصص اليوم: ${scheduledClasses.map(item => `${item.className} — الحصة ${item.period}`).join(" • ")}`
+      : "لا توجد حصة مسجلة لك اليوم في الجدول."}
   </aside>;
 }
