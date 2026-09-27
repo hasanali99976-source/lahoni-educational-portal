@@ -14,9 +14,14 @@ function isStaleDeploymentApiRequest(request: NextRequest, pathname: string) {
   if (!pathname.startsWith("/api/")) return false;
   const host = requestHost(request);
   if (!host || host === "localhost" || host === "127.0.0.1") return false;
-  // Direct *.vercel.app deployment/branch URLs must never touch Firestore.
-  // Only the stable public production hostname is allowed to execute APIs.
   return host.endsWith(".vercel.app") && !OFFICIAL_HOSTS.has(host);
+}
+
+function isTeacherPrefetch(request: NextRequest, pathname: string) {
+  if (request.method !== "GET" || !pathname.startsWith("/teacher/")) return false;
+  const purpose = request.headers.get("purpose")?.toLowerCase();
+  const secPurpose = request.headers.get("sec-purpose")?.toLowerCase();
+  return purpose === "prefetch" || secPurpose?.includes("prefetch") === true || request.headers.get("next-router-prefetch") === "1" || request.headers.get("x-middleware-prefetch") === "1";
 }
 
 function setStudentLock(response: NextResponse) {
@@ -34,13 +39,13 @@ function clearStudentLock(response: NextResponse) {
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Drain guard: old/temporary Vercel deployments were still receiving API probes.
-  // Reject them before any route handler can initialize Firebase or read Firestore.
+  // Next.js 16 uses proxy.ts. Keep the teacher drain guard here instead of a second middleware file.
+  if (isTeacherPrefetch(request, pathname)) {
+    return new NextResponse(null, { status: 204, headers: { "Cache-Control": "private, max-age=60", "X-Lahooni-Drain-Guard": "teacher-prefetch-blocked" } });
+  }
+
   if (isStaleDeploymentApiRequest(request, pathname)) {
-    return NextResponse.json(
-      { ok: false, message: "استخدم الرابط الرسمي للبوابة." },
-      { status: 421, headers: { "Cache-Control": "no-store" } },
-    );
+    return NextResponse.json({ ok: false, message: "استخدم الرابط الرسمي للبوابة." }, { status: 421, headers: { "Cache-Control": "no-store" } });
   }
 
   const queryCode = String(request.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
