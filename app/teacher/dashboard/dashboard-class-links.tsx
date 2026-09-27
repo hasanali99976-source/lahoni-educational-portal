@@ -23,11 +23,21 @@ export default function DashboardClassLinks() {
   useEffect(() => {
     function openExactClass(event: MouseEvent) {
       const target = event.target as HTMLElement | null;
-      const anchor = target?.closest<HTMLAnchorElement>("a[href='/teacher/attendance']");
+      const anchor = target?.closest<HTMLAnchorElement>("a[href]");
       if (!anchor) return;
-      const className = selectedClassFromLink(anchor);
+
+      let url: URL;
+      try { url = new URL(anchor.href, window.location.origin); } catch { return; }
+      if (url.origin !== window.location.origin || url.pathname !== "/teacher/attendance") return;
+
+      // New timetable links already carry the exact class in ?class=...
+      // Preserve it instead of trying to re-read the class name from the card text.
+      const requested = url.searchParams.get("class")?.trim();
+      const className = requested || selectedClassFromLink(anchor);
       if (!className) return;
+
       event.preventDefault();
+      event.stopPropagation();
       window.location.assign(`/teacher/attendance?class=${encodeURIComponent(className)}`);
     }
 
