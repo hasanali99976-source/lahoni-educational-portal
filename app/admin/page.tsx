@@ -14,6 +14,17 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   finally { window.clearTimeout(timer); }
 }
 
+const adminQuickTasks = [
+  ["الطلاب", "إضافة · نقل · تقارير"],
+  ["الفصول والمواد", "تنظيم · إسناد"],
+  ["المعلمون", "إسناد · صلاحيات"],
+  ["الجدول الدراسي", "الحصص والفصول"],
+  ["الاختبارات والواجبات", "إعداد ومتابعة"],
+  ["التقارير", "حضور · تحصيل · إتقان"],
+  ["المرشد الطلابي", "الإحالات والتواصل"],
+  ["إعدادات النظام", "البيانات والصلاحيات"],
+] as const;
+
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [username, setUsername] = useState("");
@@ -42,8 +53,11 @@ export default function AdminPage() {
 
   if (!authenticated) return <main className="admin-current-login" dir="rtl"><div className="acl-scene"/><section className="acl-frame">
     <header className="acl-top"><Link href="/" className="acl-brand"><Image src="/icons/lahooni-identity-320.jpg" alt="بوابة أستاذ لحوني التعليمية" width={52} height={52} priority/><span><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></span></Link><Link className="acl-back" href="/">العودة للرئيسية</Link></header>
-    <section className="acl-zone"><section className="acl-showcase"><span className="acl-kicker">إدارة المنصة</span><h1>بوابة الإدارة</h1><p>إدارة الطلاب والفصول والمعلمين والإسناد والتقارير.</p><div className="acl-tools"><article><b>الطلاب والفصول</b><small>السجلات والترحيل</small></article><article><b>المعلمون والإسناد</b><small>المواد والصلاحيات</small></article><article><b>التقارير</b><small>المتابعة المدرسية</small></article></div></section><section className="acl-card"><Image src="/icons/lahooni-identity-320.jpg" alt="هوية البوابة" width={72} height={72} priority/><small>دخول الإدارة</small><h2>مرحبًا بك</h2><p>أدخل اسم المدير للمتابعة.</p><form onSubmit={login}><label>اسم المدير<input value={username} onChange={event => setUsername(event.target.value)} placeholder="اسم المدير" autoComplete="username" autoFocus required /></label>{message && <p className="acl-message">{message}</p>}<button disabled={busy}>{busy ? "جارٍ الدخول…" : "دخول الإدارة"}</button></form></section></section>
-    <footer className="acl-footer"><b>بوابة أستاذ لحوني التعليمية</b><span>إدارة · معلم · طالب وولي أمر</span></footer>
+    <section className="acl-zone">
+      <aside className="acl-showcase"><span className="acl-kicker">مهام الإدارة السريعة</span><h1>بوابة الإدارة</h1><p>دخول موحد لإدارة بيانات المدرسة ومتابعة العمل من واجهة واحدة.</p><div className="acl-tools">{adminQuickTasks.map(([title,detail])=><article key={title}><b>{title}</b><small>{detail}</small></article>)}</div></aside>
+      <section className="acl-card"><Image src="/icons/lahooni-identity-320.jpg" alt="هوية البوابة" width={72} height={72} priority/><small>بوابة الإدارة</small><h2>مرحبًا بك</h2><p>سجّل دخولك للوصول إلى لوحة الإدارة.</p><form onSubmit={login}><label>اسم المدير<input value={username} onChange={event => setUsername(event.target.value)} placeholder="اسم المدير" autoComplete="username" autoFocus required /></label>{message && <p className="acl-message">{message}</p>}<button disabled={busy}>{busy ? "جارٍ الدخول…" : "دخول الإدارة"}</button></form></section>
+    </section>
+    <footer className="acl-footer"><b>بوابة أستاذ لحوني التعليمية</b><span>إدارة موحدة · متابعة أسرع · صلاحيات منظمة</span></footer>
   </section></main>;
 
   return <AdminOverview/>;
