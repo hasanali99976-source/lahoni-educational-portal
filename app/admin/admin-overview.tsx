@@ -8,6 +8,7 @@ type Teacher={id:string;active:boolean;assignments?:Assignment[]};
 type Student={id:string;active:boolean};
 type SchoolClass={id:string;active:boolean};
 const ar=(n:number)=>new Intl.NumberFormat("ar-SA-u-nu-arab").format(n||0);
+// Keep the overview deliberately limited to the two active administration areas.
 const tasks=[
  ["الطلاب والفصول","إضافة الطلاب ونقلهم وإدارة الفصول","/admin/students"],
  ["المعلمون والإسناد","الحسابات والمواد والصلاحيات","/admin/teachers"],
