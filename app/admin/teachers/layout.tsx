@@ -1,5 +1,6 @@
 import "../admin-experience-v16.css";
 import "../admin-experience-v17.css";
+import "./teachers-integrated.css";
 
 export default function AdminTeachersLayout({ children }: { children: React.ReactNode }) {
   return children;
