@@ -6,5 +6,5 @@ import "./students-luxe-v12.css";
 export default async function AdminStudentsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession("admin");
   if (!session) redirect("/admin");
-  return <>{children}</>;
+  return <><script src="/admin-roster-print-v2.js" defer />{children}</>;
 }
