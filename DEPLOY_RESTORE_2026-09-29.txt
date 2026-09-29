@@ -1,0 +1,4 @@
+Production restore trigger — 2026-09-29
+
+This commit intentionally contains no application logic changes.
+Its only purpose is to trigger a fresh Vercel deployment after restoring the functional admin/student/teacher code baseline.
