@@ -16,7 +16,10 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 
-const ADMIN_ROSTER_CACHE_TTL_MS = 15 * 1000;
+// Roster reads are expensive because each refresh reads the complete students/classes
+// collections. Keep a warm server-side copy and dedupe concurrent refreshes. All roster
+// mutations below still invalidate immediately, so this never delays an admin change.
+const ADMIN_ROSTER_CACHE_TTL_MS = 5 * 60 * 1000;
 type AdminRosterCache = { students: SchoolStudent[]; classes: SchoolClass[]; expiresAt: number };
 const rosterCache = new Map<string, AdminRosterCache>();
 const rosterInflight = new Map<string, Promise<AdminRosterCache>>();
