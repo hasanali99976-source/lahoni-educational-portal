@@ -16,10 +16,9 @@ import {
   type SchoolStudent,
 } from "../../../../lib/school-roster";
 
-// Roster reads are expensive because each refresh reads the complete students/classes
-// collections. Keep a warm server-side copy and dedupe concurrent refreshes. All roster
-// mutations below still invalidate immediately, so this never delays an admin change.
-const ADMIN_ROSTER_CACHE_TTL_MS = 5 * 60 * 1000;
+// Full roster reads are expensive (hundreds of Firestore document reads per refresh).
+// Keep a warm copy for 30 minutes and invalidate immediately after roster mutations.
+const ADMIN_ROSTER_CACHE_TTL_MS = 30 * 60 * 1000;
 type AdminRosterCache = { students: SchoolStudent[]; classes: SchoolClass[]; expiresAt: number };
 const rosterCache = new Map<string, AdminRosterCache>();
 const rosterInflight = new Map<string, Promise<AdminRosterCache>>();
