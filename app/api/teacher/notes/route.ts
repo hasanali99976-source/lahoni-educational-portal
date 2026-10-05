@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { recordTeacherWork } from "../../../../lib/server/teacher-work-activity";
+import { SCHOOL_STUDENTS_COLLECTION } from "../../../../lib/school-roster";
 
 type NoteEntry = {
   id: string;
@@ -17,6 +18,19 @@ function clean(value: unknown, limit = 500) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, limit);
 }
 
+function normalizedCode(value: unknown) { return clean(value, 40).toUpperCase(); }
+
+async function findOfficialStudent(code: string) {
+  const students = adminDb().collection(SCHOOL_STUDENTS_COLLECTION);
+  const direct = await students.doc(code).get();
+  if (direct.exists) return direct;
+  for (const field of ["code", "accessCode", "studentCode"] as const) {
+    const snapshot = await students.where(field, "==", code).limit(1).get();
+    if (!snapshot.empty) return snapshot.docs[0]!;
+  }
+  return null;
+}
+
 async function findStudentDoc(teacherId: string, subjectId: string, code: string) {
   const students = adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/students`);
   const directRef = students.doc(code);
@@ -29,7 +43,32 @@ async function findStudentDoc(teacherId: string, subjectId: string, code: string
       return { snapshot: found, reference: students.doc(found.id) };
     }
   }
-  return null;
+
+  // The teacher roster is now sourced from the official central roster. A student can
+  // therefore be visible before a subject-local historical record exists. Resolve the
+  // official student once and lazily create the local record only when a note is saved.
+  // This avoids scans, polling and repeated background writes.
+  const official = await findOfficialStudent(code);
+  if (!official) return null;
+  const data = official.data() as Record<string, unknown>;
+  const officialCode = normalizedCode(data.code || data.accessCode || data.studentCode || official.id);
+  if (!officialCode || officialCode !== normalizedCode(code)) return null;
+  const reference = students.doc(officialCode);
+  const seed = {
+    code: officialCode,
+    accessCode: clean(data.accessCode || officialCode, 40),
+    studentCode: clean(data.studentCode || officialCode, 40),
+    name: clean(data.name, 120),
+    className: clean(data.className || data.class, 80),
+    grade: data.grade ?? null,
+    section: data.section ?? null,
+    rosterActive: true,
+    officialRoster: true,
+    updatedAt: new Date().toISOString(),
+  };
+  await reference.set(seed, { merge: true });
+  const snapshot = await reference.get();
+  return { snapshot, reference };
 }
 
 export async function GET(request: Request) {
@@ -65,7 +104,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const subjectId = clean(body.subjectId, 80);
-    const studentCode = clean(body.studentCode, 40).toUpperCase();
+    const studentCode = normalizedCode(body.studentCode);
     const type = clean(body.type || "academic", 40);
     const label = clean(body.label || "ملاحظة المعلم", 120);
     const message = clean(body.message, 600);
@@ -120,7 +159,7 @@ export async function DELETE(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const subjectId = clean(body.subjectId, 80);
-    const studentCode = clean(body.studentCode, 40).toUpperCase();
+    const studentCode = normalizedCode(body.studentCode);
     const noteId = clean(body.noteId, 80);
     const student = await findStudentDoc(session.userId, subjectId, studentCode);
     if (!student) return NextResponse.json({ ok: false, message: "تعذر العثور على الطالب." }, { status: 404 });
