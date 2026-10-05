@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { SCHOOL_CLASSES_COLLECTION,SCHOOL_STUDENTS_COLLECTION,canonicalClassName,classId,gradeNumber,nextStudentCode,normalizeClassRecord,normalizeStudentRecord,schoolStage,sectionNumber,type SchoolClass,type SchoolStudent } from "../../../../lib/school-roster";
-const ADMIN_ROSTER_CACHE_TTL_MS=30*60*1000;
+const ADMIN_ROSTER_CACHE_TTL_MS=60*60*1000;
 type AdminRosterCache={students:SchoolStudent[];classes:SchoolClass[];expiresAt:number};
 const rosterCache=new Map<string,AdminRosterCache>();const rosterInflight=new Map<string,Promise<AdminRosterCache>>();
 async function loadStudents(includeArchived=false){const snapshot=await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).get();return snapshot.docs.map(item=>normalizeStudentRecord(item.data() as Record<string,unknown>,item.id)).filter((item):item is SchoolStudent=>!!item&&(includeArchived||item.active!==false)).sort((a,b)=>a.stage.localeCompare(b.stage)||a.className.localeCompare(b.className,"ar",{numeric:true})||a.name.localeCompare(b.name,"ar"))}
