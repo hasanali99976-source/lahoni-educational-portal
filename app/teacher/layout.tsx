@@ -18,6 +18,7 @@ import "./teacher-professional-v71.css";
 import "./attendance-professional-v71.css";
 import "./teacher-ui-v107.css";
 import "./teacher-student-shell.css";
+import "./teacher-sidebar-v109.css";
 
 type TeacherTab = { href: string; key: string; label: string; note: string; badge?: string };
 type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; workspaceKey?: string; activeGrade?: number | null; activeGradeLabel?: string; subject?: string; subjects?: TeacherClientSubject[]; assignments?: TeacherClientAssignment[]; };
@@ -33,12 +34,20 @@ const primaryTabs: TeacherTab[] = [
 const moreTabs: TeacherTab[] = [
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
-  { href: "/teacher/discipline", key: "evaluation", label: "الانضباط", note: "التأخر والاستئذان" },
-  { href: "/teacher/notes", key: "evaluation", label: "الملاحظات", note: "الملاحظات التربوية" },
-  { href: "/teacher/reports", key: "evaluation", label: "مركز التقارير", note: "التقارير والطباعة" },
+  { href: "/teacher/discipline", key: "discipline", label: "الانضباط", note: "التأخر والاستئذان" },
+  { href: "/teacher/notes", key: "notes", label: "الملاحظات", note: "الملاحظات التربوية" },
+  { href: "/teacher/reports", key: "reports", label: "مركز التقارير", note: "التقارير والطباعة" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
   { href: "/teacher/grade-plan", key: "gradeplan", label: "خطة رصد المعلم", note: "توزيع الدرجات والرصد" },
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
+];
+const allTabs=[...primaryTabs,...moreTabs];
+const tabByHref=(href:string)=>allTabs.find(tab=>tab.href===href)!;
+const navGroups=[
+  { title:"مساحة العمل", tabs:[tabByHref("/teacher/dashboard"),tabByHref("/teacher/timetable")] },
+  { title:"التدريس والمتابعة", tabs:[tabByHref("/teacher/attendance"),tabByHref("/teacher/grades"),tabByHref("/teacher/follow-up"),tabByHref("/teacher/diagnostics"),tabByHref("/teacher/grade-plan")] },
+  { title:"الطلاب والتواصل", tabs:[tabByHref("/teacher/students"),tabByHref("/teacher/discipline"),tabByHref("/teacher/notes")] },
+  { title:"التقارير والإنجاز", tabs:[tabByHref("/teacher/certificates"),tabByHref("/teacher/reports"),tabByHref("/teacher/portfolio"),tabByHref("/teacher/ai")] },
 ];
 
 function TabIcon({ type }: { type: string }) {
@@ -49,8 +58,11 @@ function TabIcon({ type }: { type: string }) {
   if (type === "attendance") return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>;
   if (type === "timetable") return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 9.5h17M8 13h2M14 13h2M8 17h2M14 17h2"/></svg>;
   if (type === "diagnostics") return <svg {...common}><path d="M9 3h6l1 2h3v16H5V5h3z"/><path d="m8 11 2 2 4-4M8 17h8"/></svg>;
-  if (type === "evaluation") return <svg {...common}><rect x="4" y="4.5" width="16" height="16" rx="2"/><path d="M8 2.8v3.4M16 2.8v3.4M7.5 10h9M8 14h3M14 14h2M8 17h3"/></svg>;
+  if (type === "discipline") return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="M9 12h6"/></svg>;
+  if (type === "notes") return <svg {...common}><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>;
+  if (type === "reports") return <svg {...common}><path d="M5 20V10M10 20V5M15 20v-7M20 20V8"/><path d="M3 20h19"/></svg>;
   if (type === "portfolio") return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;
+  if (type === "gradeplan") return <svg {...common}><rect x="4" y="4.5" width="16" height="16" rx="2"/><path d="M8 2.8v3.4M16 2.8v3.4M7.5 10h9M8 14h3M14 14h2M8 17h3"/></svg>;
   if (type === "follow") return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;
   if (type === "ai") return <svg {...common}><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>;
   return <svg {...common}><path d="M16 20v-1.8a4.2 4.2 0 0 0-4.2-4.2H7.2A4.2 4.2 0 0 0 3 18.2V20"/><circle cx="9.5" cy="7" r="3.5"/><path d="M17 10.5a3.3 3.3 0 0 0 0-6.4M20.5 20v-1.8a4.2 4.2 0 0 0-3.1-4"/></svg>;
@@ -70,37 +82,27 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   async function changeSubject(next:string){if(next===workspaceKey||switchingSubject)return;try{setSwitchingSubject(true);const response=await fetch("/api/teacher-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceKey:next}),cache:"no-store",credentials:"same-origin"});if(!response.ok)throw new Error();const switched=await response.json();setSubjectKey(switched.subjectId as SubjectKey);setWorkspaceKey(switched.workspaceKey||next);setActiveGrade(switched.activeGrade||null);setActiveGradeLabel(switched.activeGradeLabel||"");setSubjectName(getSubjectConfig(switched.subjectId).label);window.location.replace(pathname);}finally{setSwitchingSubject(false);}}
   if(isLoginPage){if(entryChecking)return <main className="teacher-shell-loading">جارٍ فتح بوابة المعلم…</main>;return <>{children}</>;} if(!ready)return <main className="teacher-shell-loading">جارٍ تجهيز بوابة المعلم…</main>;
   const contextValue={authenticated:true,teacherId,teacherName,subjectKey,workspaceKey,activeGrade,activeGradeLabel,subject:subjectName,subjects,assignments,setSubject:changeSubject,refresh:async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"});if(response.ok)applySession(await response.json());}};
-  const shellTabs=[...primaryTabs,...moreTabs.filter(tab=>!primaryTabs.some(primary=>primary.href===tab.href))];
+  const cleanTeacherName=teacherName.replace(/^أ\.?\s*/,"");
   return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
     <div className="teacher-student-shell" dir="rtl" data-subject={subjectKey}>
-      <style jsx global>{`
-        .tss-sidebar{overflow-x:hidden!important;padding:12px 12px 10px!important}
-        .tss-brand-stacked{flex:0 0 auto!important;min-height:116px!important;padding:6px 4px 12px!important;gap:5px!important;overflow:visible!important}
-        .tss-brand-stacked img{display:block!important;width:68px!important;height:68px!important;min-width:68px!important;min-height:68px!important;object-fit:contain!important;opacity:1!important;visibility:visible!important;margin:0 auto!important}
-        .tss-brand-stacked span{width:100%!important;text-align:center!important;overflow:visible!important}
-        .tss-brand-stacked b{display:block!important;font-size:14px!important;line-height:1.35!important;white-space:nowrap!important}
-        .tss-brand-stacked small{display:block!important;font-size:7.5px!important;line-height:1.45!important;white-space:normal!important}
-        .tss-nav{flex:1 1 auto!important;align-content:start!important;gap:2px!important;margin-top:6px!important;overflow:visible!important}
-        .tss-nav a{grid-template-columns:26px minmax(0,1fr)!important;gap:8px!important;min-height:38px!important;padding:5px 7px!important;overflow:visible!important}
-        .tss-nav a b{font-size:9.7px!important;line-height:1.25!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
-        .tss-footer{flex:0 0 auto!important;margin-top:8px!important;padding-top:8px!important}
-        .tss-motto{display:block!important;text-align:center!important;color:#efcb73!important;font-size:9px!important;font-weight:900!important;line-height:1.5!important;margin:0 0 7px!important;letter-spacing:.1px!important}
-        @media(max-height:760px) and (min-width:981px){.tss-brand-stacked{min-height:96px!important}.tss-brand-stacked img{width:54px!important;height:54px!important;min-width:54px!important;min-height:54px!important}.tss-nav a{min-height:34px!important;padding-block:3px!important}.tss-nav a b{font-size:9px!important}.tss-motto{font-size:8px!important;margin-bottom:4px!important}}
-      `}</style>
       <aside className={`tss-sidebar ${menuOpen?"open":""}`} aria-label="خدمات المعلم">
         <Link prefetch={false} href="/" className="tss-brand tss-brand-stacked">
           <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={68} height={68} priority unoptimized/>
           <span><b>بوابة المعلم</b><small>بوابة أستاذ لحوني التعليمية</small></span>
         </Link>
-        <nav className="tss-nav">{shellTabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span></Link>})}</nav>
+        <div className="tss-side-profile" aria-label="هوية المعلم والمادة">
+          <div className="tss-side-profile-mark" aria-hidden="true">أ</div>
+          <div className="tss-side-profile-copy"><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"مساحة المعلم التعليمية"}</small></div>
+        </div>
+        <nav className="tss-nav">{navGroups.map(group=><section className="tss-nav-group" key={group.title} aria-label={group.title}><div className="tss-nav-group-title">{group.title}</div>{group.tabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} aria-current={active?"page":undefined} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span>{tab.badge?<em className="tss-nav-badge">{tab.badge}</em>:null}</Link>})}</section>)}</nav>
         <footer className="tss-footer"><span className="tss-motto">بالعِلم نصنع المستقبل</span><button type="button" className="tss-logout" onClick={logout}><span>↪</span><b>تسجيل الخروج</b></button></footer>
       </aside>
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
         <header className="tss-head tss-head-reference">
-          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><span className="tss-ref-head"><i className="tss-ref-shemagh"/><i className="tss-ref-face"/><i className="tss-ref-agal"/></span><span className="tss-ref-body"/></div><div><h1>أ. {teacherName.replace(/^أ\.?\s*/,"")}</h1><p>معلم {subjectName}</p></div></div>
+          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><span className="tss-ref-head"><i className="tss-ref-shemagh"/><i className="tss-ref-face"/><i className="tss-ref-agal"/></span><span className="tss-ref-body"/></div><div><h1>أ. {cleanTeacherName}</h1><p>معلم {subjectName}</p></div></div>
           <div className="tss-reference-date"><span className="tss-date-icon">▣</span><div><strong>{todayLabel}</strong><small>بوابة المعلم التعليمية</small></div></div>
-          <div className="tss-reference-actions"><button type="button" className="tss-reference-bell" aria-label="التنبيهات">♧<i/></button><div className="tss-reference-welcome"><span>❧</span><div><strong>مرحبًا أ. {teacherName.replace(/^أ\.?\s*/,"")}</strong><small>دائمًا نصنع الأثر</small></div></div><button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button></div>
+          <div className="tss-reference-actions"><button type="button" className="tss-reference-bell" aria-label="التنبيهات">♧<i/></button><div className="tss-reference-welcome"><span>❧</span><div><strong>مرحبًا أ. {cleanTeacherName}</strong><small>دائمًا نصنع الأثر</small></div></div><button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button></div>
         </header>
         <div className="tss-content">{children}</div>
       </main>
