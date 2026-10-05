@@ -1,0 +1,82 @@
+/* Professional teacher sidebar v108 — visual only; no data/API changes */
+@media (min-width:981px){
+  .teacher-student-shell{--rail:238px!important;padding-right:256px!important}
+}
+.tss-sidebar{
+  width:var(--rail)!important;
+  padding:14px 12px 12px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:22px!important;
+  background:linear-gradient(180deg,rgba(4,31,43,.94),rgba(4,42,53,.88))!important;
+  box-shadow:0 20px 55px rgba(0,0,0,.24)!important;
+  backdrop-filter:blur(18px)!important;
+  scrollbar-width:thin;
+}
+.tss-brand-stacked{min-height:96px!important;padding:2px 4px 11px!important;border-bottom:1px solid rgba(239,203,115,.16)!important;gap:3px!important}
+.tss-brand-stacked img{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;border-radius:17px!important;box-shadow:0 8px 24px rgba(0,0,0,.22)!important}
+.tss-brand-stacked b{font-size:14px!important;font-weight:900!important;letter-spacing:.1px!important;color:#fff8e8!important}
+.tss-brand-stacked small{font-size:8px!important;font-weight:700!important;color:#a9c7ce!important}
+.tss-nav{display:grid!important;gap:4px!important;margin-top:10px!important;padding:0 1px!important}
+.tss-nav a{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:9px!important;
+  min-height:43px!important;
+  padding:6px 9px!important;
+  border:1px solid transparent!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#dcebed!important;
+  transform:none!important;
+  transition:background .16s ease,border-color .16s ease,color .16s ease!important;
+}
+.tss-nav a:before{content:none!important}
+.tss-nav a svg{
+  width:18px!important;height:18px!important;
+  padding:6px!important;box-sizing:content-box!important;
+  border-radius:10px!important;
+  background:rgba(255,255,255,.055)!important;
+  color:#bcd5da!important;
+}
+.tss-nav a span{display:block!important;min-width:0!important}
+.tss-nav a b{
+  display:block!important;
+  font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important;
+  font-size:11.5px!important;
+  line-height:1.25!important;
+  font-weight:800!important;
+  color:#edf6f7!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-shadow:none!important;
+}
+.tss-nav a small{display:none!important}
+.tss-nav a:hover{background:rgba(255,255,255,.055)!important;border-color:rgba(255,255,255,.08)!important}
+.tss-nav a:hover svg{background:rgba(239,203,115,.10)!important;color:#f5d78c!important}
+.tss-nav a.active{
+  background:linear-gradient(90deg,rgba(239,203,115,.17),rgba(255,255,255,.045))!important;
+  border-color:rgba(239,203,115,.28)!important;
+  box-shadow:inset -3px 0 0 #efcb73!important;
+}
+.tss-nav a.active b{color:#fff8e8!important;font-weight:900!important}
+.tss-nav a.active svg{background:rgba(239,203,115,.15)!important;color:#ffe39a!important}
+.tss-footer{margin-top:12px!important;padding-top:10px!important;border-top:1px solid rgba(255,255,255,.08)!important;gap:6px!important}
+.tss-motto{font-size:8px!important;line-height:1.45!important;color:#d7bd7c!important;opacity:.9!important}
+.tss-footer button,.tss-footer a{min-height:32px!important;border-radius:9px!important;background:rgba(255,255,255,.035)!important;font-size:8px!important}
+@media(max-height:820px) and (min-width:981px){
+ .tss-sidebar{padding-top:10px!important;padding-bottom:9px!important}
+ .tss-brand-stacked{min-height:78px!important;padding-bottom:7px!important}
+ .tss-brand-stacked img{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important}
+ .tss-brand-stacked b{font-size:12.5px!important}.tss-brand-stacked small{font-size:7px!important}
+ .tss-nav{gap:2px!important;margin-top:6px!important}.tss-nav a{min-height:35px!important;padding:3px 8px!important}
+ .tss-nav a svg{width:16px!important;height:16px!important;padding:5px!important}.tss-nav a b{font-size:10.5px!important}
+ .tss-footer{margin-top:6px!important;padding-top:6px!important}.tss-motto{display:none!important}
+}
+@media(max-width:980px){
+ .tss-sidebar.open{width:min(270px,calc(100vw - 18px))!important;padding:14px 12px!important}
+ .tss-nav a{min-height:46px!important}.tss-nav a b{font-size:12px!important}
+}
