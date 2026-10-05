@@ -4,6 +4,8 @@ import { findUserById, requireSession } from "../../../lib/server/portal-auth";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { normalizeAssignments } from "../../../lib/teacher-assignments";
 import { gradeLabel, gradeNumber } from "../../../lib/school-roster";
+import { adminDb } from "../../../lib/server/firebase-admin";
+import { TEACHER_CLASS_SCOPES_COLLECTION, normalizeClassIds, teacherClassScopeId } from "../../../lib/teacher-class-scope";
 
 const SUBJECT_COOKIE = "lahooni_active_subject";
 
@@ -17,43 +19,31 @@ type Workspace = {
 };
 
 function databaseUnavailable() {
-  return NextResponse.json({
-    authenticated: false,
-    databaseUnavailable: true,
-    message: "قاعدة البيانات مشغولة الآن. أعد المحاولة بعد قليل.",
-  }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ authenticated: false, databaseUnavailable: true, message: "قاعدة البيانات مشغولة الآن. أعد المحاولة بعد قليل." }, { status: 503, headers: { "Cache-Control": "no-store" } });
 }
 
 function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof normalizeAssignments>) {
   const workspaces: Workspace[] = [];
   subjectIds.forEach(subjectId => {
     const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
-    const grades = [...new Set(subjectAssignments.map(item => gradeNumber(item.grade)).filter((item): item is 1 | 2 | 3 => !!item))]
-      .sort((a, b) => a - b);
+    const grades = [...new Set(subjectAssignments.map(item => gradeNumber(item.grade)).filter((item): item is 1 | 2 | 3 => !!item))].sort((a, b) => a - b);
     if (!grades.length) {
-      workspaces.push({
-        workspaceKey: subjectId,
-        subjectId,
-        subjectName: getSubjectConfig(subjectId).label,
-        grade: null,
-        grades: [],
-        gradeLabel: "جميع الصفوف المسندة",
-      });
+      workspaces.push({ workspaceKey: subjectId, subjectId, subjectName: getSubjectConfig(subjectId).label, grade: null, grades: [], gradeLabel: "جميع الصفوف المسندة" });
       return;
     }
     grades.forEach(grade => {
       const label = gradeLabel(grade);
-      workspaces.push({
-        workspaceKey: `${subjectId}--${grade}`,
-        subjectId,
-        subjectName: getSubjectConfig(subjectId).label,
-        grade,
-        grades: [label],
-        gradeLabel: label,
-      });
+      workspaces.push({ workspaceKey: `${subjectId}--${grade}`, subjectId, subjectName: getSubjectConfig(subjectId).label, grade, grades: [label], gradeLabel: label });
     });
   });
   return workspaces;
+}
+
+async function loadSelectedClassIds(teacherId: string, workspace: Workspace | null) {
+  if (!workspace || !workspace.grade) return [] as string[];
+  const snapshot = await adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(teacherId, workspace.subjectId, workspace.grade)).get();
+  if (!snapshot.exists || snapshot.data()?.customized !== true) return [] as string[];
+  return normalizeClassIds(snapshot.data()?.selectedClassIds);
 }
 
 export async function GET() {
@@ -65,10 +55,8 @@ export async function GET() {
     const subjects = buildWorkspaces(user.subjectIds, assignments);
     const store = await cookies();
     const savedWorkspace = store.get(SUBJECT_COOKIE)?.value || "";
-    const currentWorkspace = subjects.find(item => item.workspaceKey === savedWorkspace)
-      || subjects.find(item => item.subjectId === savedWorkspace)
-      || subjects[0]
-      || null;
+    const currentWorkspace = subjects.find(item => item.workspaceKey === savedWorkspace) || subjects.find(item => item.subjectId === savedWorkspace) || subjects[0] || null;
+    const selectedClassIds = await loadSelectedClassIds(user.id, currentWorkspace);
 
     const response = NextResponse.json({
       authenticated: true,
@@ -81,6 +69,8 @@ export async function GET() {
       subject: currentWorkspace?.subjectName || null,
       subjects,
       assignments,
+      selectedClassIds,
+      classScopeCustomized: selectedClassIds.length > 0,
       resetClassScopes: [],
       legacyRestore: { restored: 0, alreadyChecked: true, skipped: "session_read_safety" },
     }, { headers: { "Cache-Control": "no-store" } });
@@ -101,24 +91,13 @@ export async function POST(request: Request) {
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const workspaces = buildWorkspaces(user.subjectIds, assignments);
     const requested = String(body?.workspaceKey || body?.subjectId || "").trim();
-    const workspace = workspaces.find(item => item.workspaceKey === requested)
-      || workspaces.find(item => item.subjectId === requested);
+    const workspace = workspaces.find(item => item.workspaceKey === requested) || workspaces.find(item => item.subjectId === requested);
     if (!workspace) return NextResponse.json({ ok: false, error: "subject_not_assigned" }, { status: 403 });
-    const response = NextResponse.json({
-      ok: true,
-      subjectId: workspace.subjectId,
-      workspaceKey: workspace.workspaceKey,
-      activeGrade: workspace.grade,
-      activeGradeLabel: workspace.gradeLabel,
-    }, { headers: { "Cache-Control": "no-store" } });
+    const response = NextResponse.json({ ok: true, subjectId: workspace.subjectId, workspaceKey: workspace.workspaceKey, activeGrade: workspace.grade, activeGradeLabel: workspace.gradeLabel }, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set(SUBJECT_COOKIE, workspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     return response;
   } catch (error) {
     console.warn("teacher subject switch temporarily unavailable", error);
-    return NextResponse.json({
-      ok: false,
-      databaseUnavailable: true,
-      message: "قاعدة البيانات مشغولة الآن. أعد المحاولة بعد قليل.",
-    }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ ok: false, databaseUnavailable: true, message: "قاعدة البيانات مشغولة الآن. أعد المحاولة بعد قليل." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
 }
