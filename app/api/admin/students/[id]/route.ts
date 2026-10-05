@@ -55,7 +55,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             rosterActive:false,
             transferred:true,
             transferredAt:now,
-            transferredFrom:canonicalClassName(oldGrade,oldSection),
+            transferredFrom:oldGrade&&oldSection?canonicalClassName(oldGrade,oldSection):String(current.className||""),
             transferredTo:className,
             updatedAt:now
           },{merge:true}));
