@@ -6,6 +6,21 @@ import { SCHOOL_CLASSES_COLLECTION, SCHOOL_STUDENTS_COLLECTION, canonicalClassNa
 
 function refreshOfficialRoster(){revalidateTag("teacher-central-roster",{expire:0});}
 
+function normalizedCode(value: unknown){return String(value||"").trim().toUpperCase();}
+
+async function findTeacherStudentCopies(studentId:string,studentData:Record<string,unknown>){
+  const db=adminDb();
+  const paths=new Map<string,FirebaseFirestore.QueryDocumentSnapshot>();
+  const codes=new Set([studentId,studentData.code,studentData.accessCode,studentData.studentCode].map(normalizedCode).filter(Boolean));
+  for(const field of ["code","accessCode","studentCode"] as const){
+    for(const code of codes){
+      const snapshot=await db.collectionGroup("students").where(field,"==",code).get();
+      snapshot.docs.forEach(document=>{const path=String(document.ref.path||"");if(path.startsWith("portalV2Data/"))paths.set(path,document);});
+    }
+  }
+  return [...paths.values()];
+}
+
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!await requireSession("admin")) return NextResponse.json({ ok: false }, { status: 401 });
   try {
@@ -19,8 +34,41 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const now = new Date().toISOString(); const className = canonicalClassName(grade, section);
     await reference.set({name,grade,section,className,active:body?.active===false?false:true,updatedAt:now,transferredAt:moved?now:current.transferredAt||null},{merge:true});
     await adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(classId(grade,section)).set({grade,section,name:className,active:true,updatedAt:now,createdAt:now},{merge:true});
+
+    // Teacher class copies are historical snapshots. On a transfer, never let a stale copy
+    // keep the student inside the old class report. We keep all recorded fields intact and
+    // only detach that snapshot from roster/report membership. The new class is supplied by
+    // the central official roster, so there is no duplicate write and no polling/read loop.
+    let detachedTeacherCopies=0;
+    if(moved){
+      try{
+        const copies=await findTeacherStudentCopies(id,current);
+        const stale=copies.filter(document=>{
+          const data=document.data() as Record<string,unknown>;
+          const copyGrade=gradeNumber(data.grade??data.className);
+          const copySection=sectionNumber(data.section,data.className);
+          return (copyGrade===oldGrade&&copySection===oldSection)||(copyGrade!==grade||copySection!==section);
+        });
+        for(let index=0;index<stale.length;index+=400){
+          const batch=adminDb().batch();
+          stale.slice(index,index+400).forEach(document=>batch.set(document.ref,{
+            rosterActive:false,
+            transferred:true,
+            transferredAt:now,
+            transferredFrom:canonicalClassName(oldGrade,oldSection),
+            transferredTo:className,
+            updatedAt:now
+          },{merge:true}));
+          await batch.commit();
+        }
+        detachedTeacherCopies=stale.length;
+      }catch(cascadeError){
+        console.error("teacher student transfer sync failed",cascadeError);
+        return NextResponse.json({ok:false,message:"تم تحديد الفصل الجديد، لكن تعذر تحديث ارتباط سجلات الطالب. لم يتم حذف أي بيانات؛ أعد المحاولة."},{status:500});
+      }
+    }
     refreshOfficialRoster();
-    return NextResponse.json({ ok: true, moved, className });
+    return NextResponse.json({ ok: true, moved, className, detachedTeacherCopies });
   } catch (error) { console.error("update student failed", error); return NextResponse.json({ ok: false, message: "تعذر حفظ تعديل الطالب" }, { status: 500 }); }
 }
 
