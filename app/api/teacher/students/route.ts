@@ -4,252 +4,36 @@ import { NextResponse } from "next/server";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../lib/server/portal-auth";
 import { normalizeAssignments } from "../../../../lib/teacher-assignments";
-import {
-  SCHOOL_CLASSES_COLLECTION,
-  SCHOOL_STUDENTS_COLLECTION,
-  canonicalClassName,
-  classId,
-  gradeNumber,
-  normalizeClassRecord,
-  normalizeStudentRecord,
-  type SchoolClass,
-  type SchoolStudent,
-} from "../../../../lib/school-roster";
-import { assignmentScopeSignature } from "../../../../lib/teacher-class-scope";
+import { SCHOOL_CLASSES_COLLECTION, SCHOOL_STUDENTS_COLLECTION, canonicalClassName, classId, gradeNumber, normalizeClassRecord, normalizeStudentRecord, type SchoolClass, type SchoolStudent } from "../../../../lib/school-roster";
+import { assignmentScopeSignature, TEACHER_CLASS_SCOPES_COLLECTION, normalizeClassIds, teacherClassScopeId } from "../../../../lib/teacher-class-scope";
 import { normalizeClass } from "../../../../lib/unified-roster";
 
 type Grade = 1 | 2 | 3;
 type CachedDocument = { id: string; data: Record<string, unknown> };
 type RosterResponse = Record<string, unknown>;
-
-function cacheSafeData(v: FirebaseFirestore.DocumentData) {
-  return JSON.parse(JSON.stringify(v)) as Record<string, unknown>;
-}
-
-function westernDigits(v: unknown) {
-  return String(v ?? "")
-    .replace(/[٠-٩]/g, d => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
-    .replace(/[۰-۹]/g, d => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
-}
-
-function gradeQueryValues(grades: number[]) {
-  const values: Array<number | string> = [];
-  for (const grade of grades) {
-    values.push(grade, String(grade));
-  }
-  return [...new Set(values)];
-}
-
+function cacheSafeData(v: FirebaseFirestore.DocumentData) { return JSON.parse(JSON.stringify(v)) as Record<string, unknown>; }
+function westernDigits(v: unknown) { return String(v ?? "").replace(/[٠-٩]/g, d => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[۰-۹]/g, d => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))); }
+function gradeQueryValues(grades: number[]) { const values: Array<number | string> = []; for (const grade of grades) values.push(grade, String(grade)); return [...new Set(values)]; }
 const responseInflight = new Map<string, Promise<RosterResponse>>();
+const readCentralStudents = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => { const grades=gradeKey.split(",").map(Number).filter(g=>g>=1&&g<=3); if(!grades.length)return[]; const snap=await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).where("grade","in",gradeQueryValues(grades)).get(); return snap.docs.map(d=>({id:d.id,data:cacheSafeData(d.data())})); },["teacher-central-roster-v10"],{revalidate:3600,tags:["teacher-central-roster"]});
+const readCentralClasses = unstable_cache(async (gradeKey: string): Promise<CachedDocument[]> => { const grades=gradeKey.split(",").map(Number).filter(g=>g>=1&&g<=3); if(!grades.length)return[]; const snap=await adminDb().collection(SCHOOL_CLASSES_COLLECTION).where("grade","in",gradeQueryValues(grades)).get(); return snap.docs.map(d=>({id:d.id,data:cacheSafeData(d.data())})); },["teacher-central-classes-v10"],{revalidate:3600,tags:["teacher-central-roster"]});
+function readScheduledClasses(teacherId:string,subjectId:string){return unstable_cache(async():Promise<string[]>=>{const snap=await adminDb().collection(`portalV2Data/${teacherId}/subjects/${subjectId}/timetable`).doc("weekly").get();const lessons=snap.data()?.lessons;if(!lessons||typeof lessons!=="object")return[];return[...new Set(Object.values(lessons as Record<string,unknown>).map(raw=>raw&&typeof raw==="object"?normalizeClass((raw as {className?:unknown}).className):"").filter(Boolean))];},["teacher-roster-timetable-classes-v3",teacherId,subjectId],{revalidate:3600,tags:[`teacher-timetable:${teacherId}:${subjectId}`]});}
+function gradeFromWorkspace(v:string,subjectId:string):Grade|null{const m=String(v||"").trim().lastIndexOf("--");if(m<0)return null;const w=String(v||"").trim();if(w.slice(0,m)!==subjectId)return null;const g=Number(w.slice(m+2)||0);return g===1||g===2||g===3?g as Grade:null;}
+function normalizeOfficial(doc:CachedDocument):SchoolStudent|null{const s=normalizeStudentRecord(doc.data,doc.id);if(!s||s.active===false)return null;const grade=gradeNumber(s.grade);const section=westernDigits(s.section).replace(/[^0-9]/g,"");if(!grade||!section)return null;return{...s,id:s.code,code:s.code,grade,section,className:canonicalClassName(grade,section),active:true,officialRoster:true} as SchoolStudent;}
 
-const readCentralStudents = unstable_cache(
-  async (gradeKey: string): Promise<CachedDocument[]> => {
-    const grades = gradeKey.split(",").map(Number).filter(g => g >= 1 && g <= 3);
-    if (!grades.length) return [];
-    // Some older imports stored grade as "2" while newer imports use 2.
-    // Query both representations in one cached Firestore request so a single
-    // class cannot disappear merely because its import used the older type.
-    const snap = await adminDb()
-      .collection(SCHOOL_STUDENTS_COLLECTION)
-      .where("grade", "in", gradeQueryValues(grades))
-      .get();
-    return snap.docs.map(d => ({ id: d.id, data: cacheSafeData(d.data()) }));
-  },
-  ["teacher-central-roster-v10"],
-  { revalidate: 3600, tags: ["teacher-central-roster"] },
-);
-
-const readCentralClasses = unstable_cache(
-  async (gradeKey: string): Promise<CachedDocument[]> => {
-    const grades = gradeKey.split(",").map(Number).filter(g => g >= 1 && g <= 3);
-    if (!grades.length) return [];
-    const snap = await adminDb()
-      .collection(SCHOOL_CLASSES_COLLECTION)
-      .where("grade", "in", gradeQueryValues(grades))
-      .get();
-    return snap.docs.map(d => ({ id: d.id, data: cacheSafeData(d.data()) }));
-  },
-  ["teacher-central-classes-v10"],
-  { revalidate: 3600, tags: ["teacher-central-roster"] },
-);
-
-function readScheduledClasses(teacherId: string, subjectId: string) {
-  return unstable_cache(
-    async (): Promise<string[]> => {
-      const snap = await adminDb()
-        .collection(`portalV2Data/${teacherId}/subjects/${subjectId}/timetable`)
-        .doc("weekly")
-        .get();
-      const lessons = snap.data()?.lessons;
-      if (!lessons || typeof lessons !== "object") return [];
-      return [
-        ...new Set(
-          Object.values(lessons as Record<string, unknown>)
-            .map(raw => raw && typeof raw === "object" ? normalizeClass((raw as { className?: unknown }).className) : "")
-            .filter(Boolean),
-        ),
-      ];
-    },
-    ["teacher-roster-timetable-classes-v3", teacherId, subjectId],
-    { revalidate: 3600, tags: [`teacher-timetable:${teacherId}:${subjectId}`] },
-  );
+async function buildRoster(session:NonNullable<Awaited<ReturnType<typeof requireSession>>>,subjectId:string,requestedGrade:Grade|null):Promise<RosterResponse>{
+ const assignments=normalizeAssignments(session.user!.assignments,session.user!.subjectIds);const relevantAll=assignments.filter(a=>a.subjectId===subjectId);const relevant=requestedGrade?relevantAll.filter(a=>gradeNumber(a.grade)===requestedGrade):relevantAll;const grades=new Set<Grade>(relevantAll.map(a=>gradeNumber(a.grade)).filter((g):g is Grade=>!!g));
+ if(requestedGrade&&!grades.has(requestedGrade))return{ok:true,students:[],classes:[],availableClasses:[],selectedClassIds:[],assignments:[]};if(requestedGrade){grades.clear();grades.add(requestedGrade);}if(!subjectId||!relevant.length||!grades.size)return{ok:true,students:[],classes:[],availableClasses:[],selectedClassIds:[],assignments:relevant};
+ const gradeKey=[...grades].sort().join(",");const [studentDocs,classDocs,scheduledClasses]=await Promise.all([readCentralStudents(gradeKey),readCentralClasses(gradeKey),readScheduledClasses(session.userId,subjectId)()]);
+ const official=studentDocs.map(normalizeOfficial).filter((s):s is SchoolStudent=>!!s&&grades.has(s.grade as Grade)&&Number(s.section)>0);const availableMap=new Map<string,SchoolClass>();
+ classDocs.forEach(d=>{const c=normalizeClassRecord({id:d.id,...d.data} as Partial<SchoolClass>);if(c&&c.active!==false&&grades.has(c.grade as Grade))availableMap.set(c.id,c);});official.forEach(s=>{const id=classId(s.grade,s.section);if(!availableMap.has(id))availableMap.set(id,{id,grade:s.grade,section:s.section,name:canonicalClassName(s.grade,s.section),active:true});});scheduledClasses.forEach(name=>{const grade=gradeNumber(name);const section=westernDigits(name).match(/(\d+)\s*$/)?.[1]||"";if(!grade||!section||!grades.has(grade as Grade))return;const id=classId(grade,section);if(!availableMap.has(id))availableMap.set(id,{id,grade,section,name:canonicalClassName(grade,section),active:true});});
+ const allClasses=[...availableMap.values()].filter(c=>/^\d+-\d+$/.test(c.id)).sort((a,b)=>a.grade-b.grade||Number(a.section)-Number(b.section));
+ // My Classes is authoritative. Read only the small per-teacher scope document; never scan scopes.
+ let selectedClassIds:string[]=[];let scopeCustomized=false;
+ if(requestedGrade){const scope=await adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(session.userId,subjectId,requestedGrade)).get();scopeCustomized=scope.exists&&scope.data()?.customized===true;if(scopeCustomized)selectedClassIds=normalizeClassIds(scope.data()?.selectedClassIds);}
+ const allowed=new Set(selectedClassIds);const scopedClasses=scopeCustomized?allClasses.filter(c=>allowed.has(c.id)):allClasses;
+ const byCode=new Map<string,SchoolStudent>();official.forEach(s=>{if(!scopeCustomized||allowed.has(classId(s.grade,s.section))){if(s.code)byCode.set(String(s.code).trim(),s);}});const students=[...byCode.values()].sort((a,b)=>a.grade-b.grade||Number(a.section)-Number(b.section)||a.name.localeCompare(b.name,"ar"));const sig=assignmentScopeSignature(assignments,subjectId,requestedGrade);
+ return{ok:true,students,classes:scopedClasses,availableClasses:scopedClasses,selectedClassIds:scopeCustomized?selectedClassIds:scopedClasses.map(c=>c.id),scopeCustomized,assignmentSignature:sig,assignments:relevant,assignedGrades:[...grades],activeGrade:requestedGrade,officialAdminRoster:true,preservedTeacherData:true,deduplicatedStudentCodes:students.length,centralReadCount:studentDocs.length,classReadCount:classDocs.length,scheduledClassCount:scheduledClasses.length};
 }
 
-function gradeFromWorkspace(v: string, subjectId: string): Grade | null {
-  const m = String(v || "").trim().lastIndexOf("--");
-  if (m < 0) return null;
-  const w = String(v || "").trim();
-  if (w.slice(0, m) !== subjectId) return null;
-  const g = Number(w.slice(m + 2) || 0);
-  return g === 1 || g === 2 || g === 3 ? g as Grade : null;
-}
-
-function normalizeOfficial(doc: CachedDocument): SchoolStudent | null {
-  const s = normalizeStudentRecord(doc.data, doc.id);
-  if (!s || s.active === false) return null;
-  const grade = gradeNumber(s.grade);
-  const section = westernDigits(s.section).replace(/[^0-9]/g, "");
-  if (!grade || !section) return null;
-  return {
-    ...s,
-    id: s.code,
-    code: s.code,
-    grade,
-    section,
-    className: canonicalClassName(grade, section),
-    active: true,
-    officialRoster: true,
-  } as SchoolStudent;
-}
-
-async function buildRoster(
-  session: NonNullable<Awaited<ReturnType<typeof requireSession>>>,
-  subjectId: string,
-  requestedGrade: Grade | null,
-): Promise<RosterResponse> {
-  const assignments = normalizeAssignments(session.user!.assignments, session.user!.subjectIds);
-  const relevantAll = assignments.filter(a => a.subjectId === subjectId);
-  const relevant = requestedGrade
-    ? relevantAll.filter(a => gradeNumber(a.grade) === requestedGrade)
-    : relevantAll;
-  const grades = new Set<Grade>(
-    relevantAll.map(a => gradeNumber(a.grade)).filter((g): g is Grade => !!g),
-  );
-
-  if (requestedGrade && !grades.has(requestedGrade)) {
-    return { ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: [] };
-  }
-  if (requestedGrade) {
-    grades.clear();
-    grades.add(requestedGrade);
-  }
-  if (!subjectId || !relevant.length || !grades.size) {
-    return { ok: true, students: [], classes: [], availableClasses: [], selectedClassIds: [], assignments: relevant };
-  }
-
-  const gradeKey = [...grades].sort().join(",");
-  const [studentDocs, classDocs, scheduledClasses] = await Promise.all([
-    readCentralStudents(gradeKey),
-    readCentralClasses(gradeKey),
-    readScheduledClasses(session.userId, subjectId)(),
-  ]);
-
-  const official = studentDocs
-    .map(normalizeOfficial)
-    .filter((s): s is SchoolStudent => !!s && grades.has(s.grade as Grade) && Number(s.section) > 0);
-
-  const availableMap = new Map<string, SchoolClass>();
-  classDocs.forEach(d => {
-    const c = normalizeClassRecord({ id: d.id, ...d.data } as Partial<SchoolClass>);
-    if (c && c.active !== false && grades.has(c.grade as Grade)) availableMap.set(c.id, c);
-  });
-  official.forEach(s => {
-    const id = classId(s.grade, s.section);
-    if (!availableMap.has(id)) {
-      availableMap.set(id, {
-        id,
-        grade: s.grade,
-        section: s.section,
-        name: canonicalClassName(s.grade, s.section),
-        active: true,
-      });
-    }
-  });
-  scheduledClasses.forEach(name => {
-    const grade = gradeNumber(name);
-    const section = westernDigits(name).match(/(\d+)\s*$/)?.[1] || "";
-    if (!grade || !section || !grades.has(grade as Grade)) return;
-    const id = classId(grade, section);
-    if (!availableMap.has(id)) {
-      availableMap.set(id, {
-        id,
-        grade,
-        section,
-        name: canonicalClassName(grade, section),
-        active: true,
-      });
-    }
-  });
-
-  const allClasses = [...availableMap.values()]
-    .filter(c => /^\d+-\d+$/.test(c.id))
-    .sort((a, b) => a.grade - b.grade || Number(a.section) - Number(b.section));
-  const selectedClassIds = allClasses.map(c => c.id);
-  const byCode = new Map<string, SchoolStudent>();
-  official.forEach(s => {
-    if (s.code) byCode.set(String(s.code).trim(), s);
-  });
-  const students = [...byCode.values()].sort(
-    (a, b) => a.grade - b.grade || Number(a.section) - Number(b.section) || a.name.localeCompare(b.name, "ar"),
-  );
-  const sig = assignmentScopeSignature(assignments, subjectId, requestedGrade);
-
-  return {
-    ok: true,
-    students,
-    classes: allClasses,
-    availableClasses: allClasses,
-    selectedClassIds,
-    scopeCustomized: false,
-    assignmentSignature: sig,
-    assignments: relevant,
-    assignedGrades: [...grades],
-    activeGrade: requestedGrade,
-    officialAdminRoster: true,
-    preservedTeacherData: true,
-    deduplicatedStudentCodes: students.length,
-    centralReadCount: studentDocs.length,
-    classReadCount: classDocs.length,
-    scheduledClassCount: scheduledClasses.length,
-  };
-}
-
-export async function GET(request: Request) {
-  const session = await requireSession("teacher");
-  if (!session || !session.user) return NextResponse.json({ ok: false }, { status: 401 });
-  try {
-    const url = new URL(request.url);
-    const subjectId = String(url.searchParams.get("subjectId") || "").trim();
-    const cookieStore = await cookies();
-    const wg = gradeFromWorkspace(cookieStore.get("lahooni_active_subject")?.value || "", subjectId);
-    const gv = Number(url.searchParams.get("grade") || wg || 0);
-    const requested: Grade | null = gv === 1 || gv === 2 || gv === 3 ? gv as Grade : null;
-    const key = `${session.userId}:${subjectId}:${requested || "all"}`;
-    let pending = responseInflight.get(key);
-    if (!pending) {
-      pending = buildRoster(session, subjectId, requested);
-      responseInflight.set(key, pending);
-    }
-    try {
-      const value = await pending;
-      return NextResponse.json(value, {
-        headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=120" },
-      });
-    } finally {
-      responseInflight.delete(key);
-    }
-  } catch (error) {
-    console.error("teacher central roster failed", error);
-    return NextResponse.json({ ok: false, message: "تعذر تحميل قائمة الطلاب" }, { status: 500 });
-  }
-}
+export async function GET(request:Request){const session=await requireSession("teacher");if(!session||!session.user)return NextResponse.json({ok:false},{status:401});try{const url=new URL(request.url);const subjectId=String(url.searchParams.get("subjectId")||"").trim();const cookieStore=await cookies();const wg=gradeFromWorkspace(cookieStore.get("lahooni_active_subject")?.value||"",subjectId);const gv=Number(url.searchParams.get("grade")||wg||0);const requested:Grade|null=gv===1||gv===2||gv===3?gv as Grade:null;const key=`${session.userId}:${subjectId}:${requested||"all"}`;let pending=responseInflight.get(key);if(!pending){pending=buildRoster(session,subjectId,requested);responseInflight.set(key,pending);}try{const value=await pending;return NextResponse.json(value,{headers:{"Cache-Control":"private, max-age=60, stale-while-revalidate=120"}});}finally{responseInflight.delete(key);}}catch(error){console.error("teacher central roster failed",error);return NextResponse.json({ok:false,message:"تعذر تحميل قائمة الطلاب"},{status:500});}}
