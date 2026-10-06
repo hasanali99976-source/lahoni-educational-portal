@@ -30,6 +30,7 @@ function AssignmentEditor({rows,setRows,stage}:{rows:Assignment[];setRows:(rows:
 }
 
 export default function AdminTeachersPage(){
+  const [stage,setStage]=useState<Stage>("secondary");
   const [teachers,setTeachers]=useState<Teacher[]>([]),[name,setName]=useState(""),[teacherPassword,setTeacherPassword]=useState(""),[assignments,setAssignments]=useState<Assignment[]>([emptyAssignment()]),[editing,setEditing]=useState<Teacher|null>(null),[resetPassword,setResetPassword]=useState(""),[deleting,setDeleting]=useState<Teacher|null>(null),[deleteSubjectData,setDeleteSubjectData]=useState(false),[message,setMessage]=useState(""),[busy,setBusy]=useState(false),[showCreate,setShowCreate]=useState(false),[search,setSearch]=useState("");
   const load=useCallback(async()=>{try{const response=await fetch("/api/admin/teachers",{cache:"no-store"});if(response.status===401||response.status===403){window.location.assign("/admin");return;}const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر التحميل");setTeachers(Array.isArray(data.teachers)?data.teachers:[]);}catch{setMessage("تعذر تحميل بيانات المعلمين الآن.");}},[]);
   useEffect(()=>{void load();},[load]);
