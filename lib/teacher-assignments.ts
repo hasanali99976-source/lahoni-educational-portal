@@ -3,6 +3,7 @@ import { arabicNumber, gradeLabel, gradeNumber, normalizeArabic, sectionNumber }
 
 export type TeacherAssignment = {
   id: string;
+  stage: "middle" | "secondary";
   subjectId: string;
   subjectLabel?: string;
   grade: string;
@@ -12,8 +13,9 @@ export type TeacherAssignment = {
 
 const SEPARATOR = "--";
 
-export function assignmentId(subjectId: string, grade: string, section: string) {
-  return [subjectId, grade.trim(), section.trim()].map(encodeURIComponent).join(SEPARATOR);
+export function assignmentId(subjectId: string, grade: string, section: string, stage: "middle" | "secondary" = "secondary") {
+  const base = [subjectId, grade.trim(), section.trim()].map(encodeURIComponent).join(SEPARATOR);
+  return stage === "middle" ? `${base}${SEPARATOR}middle` : base;
 }
 
 export function assignmentFromId(id: string, preferredSubjectLabel = ""): TeacherAssignment {
