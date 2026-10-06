@@ -20,7 +20,8 @@ export function assignmentFromId(id: string, preferredSubjectLabel = ""): Teache
   const [encodedSubject = id, encodedGrade = "", encodedSection = "", encodedStage = ""] = id.split(SEPARATOR);
   const subjectId = decodeURIComponent(encodedSubject);
   const grade = decodeURIComponent(encodedGrade);
-  const section = decodeURIComponent(encodedSection);\n  const stage = encodedStage==="middle"?"middle":"secondary";
+  const section = decodeURIComponent(encodedSection);
+  const stage = encodedStage==="middle"?"middle":"secondary";
   const subjectLabel = preferredSubjectLabel.trim() || getSubjectConfig(subjectId).label;
   const sectionLabel = section === "الكل" ? "جميع الفصول" : section ? `فصل ${section}` : "";
   const details = [grade, sectionLabel].filter(Boolean).join(" — ");
@@ -49,7 +50,8 @@ export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown
     const subjectId = String(row.subjectId || row.subjectKey || fromId?.subjectId || row.workspaceKey || "")
       .trim()
       .split("--")[0];
-    const subjectLabel = String(row.subjectLabel || fromId?.subjectLabel || "").trim();\n    const stage = row.stage==="middle"||fromId?.stage==="middle"?"middle":"secondary";
+    const subjectLabel = String(row.subjectLabel || fromId?.subjectLabel || "").trim();
+    const stage = row.stage==="middle"||fromId?.stage==="middle"?"middle":"secondary";
     const className = String(row.className || row.class || "").trim();
     const rawGrade = String(row.grade || fromId?.grade || className || "").trim();
     const parsedGrade = gradeNumber(rawGrade || className);
