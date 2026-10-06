@@ -7,7 +7,7 @@ import {usePathname} from "next/navigation";
 type IconName="home"|"students"|"teachers";
 const nav:[{href:string;label:string;note:string;icon:IconName},...{href:string;label:string;note:string;icon:IconName}[]]=[
  {href:"/admin",label:"نظرة عامة",note:"مؤشرات المدرسة",icon:"home"},
- {href:"/admin/students",label:"الطلاب والفصول",note:"السجلات والترحيل",icon:"students"},
+ {href:"/admin/school-stages",label:"الطلاب والفصول",note:"اختيار المرحلة ثم إدارة الطلاب والفصول",icon:"students"},
  {href:"/admin/teachers",label:"المعلمون والإسناد",note:"المواد والصلاحيات",icon:"teachers"}
 ];
 function NavIcon({name}:{name:IconName}){const p={width:21,height:21,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};if(name==="home")return <svg {...p}><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg>;if(name==="students")return <svg {...p}><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h3a4.5 4.5 0 0 1 4.5 4.5V20"/><circle cx="10" cy="7.5" r="3.5"/><path d="M16 5.2a3.4 3.4 0 0 1 0 6.6M18 14.7a4.5 4.5 0 0 1 2 3.8V20"/></svg>;return <svg {...p}><path d="M3.5 5.5h17v11h-17zM8 20h8M12 16.5V20"/><path d="m8 10 2.2 2.2L16 7.5"/></svg>}
