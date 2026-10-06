@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     await withTimeout(reference.set({ username, normalizedUsername, name, role: "teacher", passwordHash: hashPassword(password), active: true, subjectIds, assignments, createdAt: now, updatedAt: now }));
     const batch = adminDb().batch();
     for (const assignment of assignments) {
-      batch.set(adminDb().collection("portalV2Assignments").doc(`${reference.id}__${assignment.id}`), { teacherId: reference.id, subjectId: assignment.subjectId, assignmentId: assignment.id, grade: assignment.grade, section: assignment.section, active: true, createdAt: now, updatedAt: now });
+      batch.set(adminDb().collection("portalV2Assignments").doc(`${reference.id}__${assignment.id}`), { teacherId: reference.id, subjectId: assignment.subjectId, assignmentId: assignment.id, stage: assignment.stage, grade: assignment.grade, section: assignment.section, active: true, createdAt: now, updatedAt: now });
     }
     await withTimeout(batch.commit());
     teacherListCache = null;
