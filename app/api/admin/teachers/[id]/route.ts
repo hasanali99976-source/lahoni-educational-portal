@@ -98,6 +98,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         teacherId: id,
         subjectId: assignment.subjectId,
         assignmentId: assignment.id,
+        stage: assignment.stage,
         grade: assignment.grade,
         section: assignment.section,
         active: true,
