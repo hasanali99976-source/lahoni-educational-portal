@@ -1,13 +1,16 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";\nimport { useSearchParams } from "next/navigation";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import "./students-admin.css";
 import "./students-command-v3.css";
 
-type Stage="middle"|"secondary";\ntype Student={id:string;code:string;name:string;stage?:Stage;grade:number;section:string;className:string;active:boolean};
+type Stage="middle"|"secondary";
+type Student={id:string;code:string;name:string;stage?:Stage;grade:number;section:string;className:string;active:boolean};
 type SchoolClass={id:string;stage?:Stage;grade:number;section:string;name:string;active:boolean};
 type ImportRow={name:string;grade?:number|null;section?:string;code?:string;source?:string};
-const SECONDARY_GRADES=[{value:1,label:"الأول الثانوي"},{value:2,label:"الثاني الثانوي"},{value:3,label:"الثالث الثانوي"}];\nconst MIDDLE_GRADES=[{value:1,label:"الأول المتوسط"},{value:2,label:"الثاني المتوسط"},{value:3,label:"الثالث المتوسط"}];
+const SECONDARY_GRADES=[{value:1,label:"الأول الثانوي"},{value:2,label:"الثاني الثانوي"},{value:3,label:"الثالث الثانوي"}];
+const MIDDLE_GRADES=[{value:1,label:"الأول المتوسط"},{value:2,label:"الثاني المتوسط"},{value:3,label:"الثالث المتوسط"}];
 const ar=(v:string|number)=>String(v).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[Number(d)]||d);
 const normalizeDigits=(v:string)=>v.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
 const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]||c));
