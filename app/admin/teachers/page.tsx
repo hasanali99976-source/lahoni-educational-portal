@@ -4,11 +4,13 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { SUBJECT_CONFIG } from "../../../lib/subject-config";
 import "../admin-rebuild.css";
 
-type Stage = "middle"|"secondary";\ntype Assignment = { id?: string; stage?:Stage; subjectId: string; subjectLabel?: string; grade: string; section: string; label?: string };
+type Stage = "middle"|"secondary";
+type Assignment = { id?: string; stage?:Stage; subjectId: string; subjectLabel?: string; grade: string; section: string; label?: string };
 type Teacher = { id: string; name: string; active: boolean; subjectIds: string[]; assignments: Assignment[] };
 
 const SUBJECTS = Object.values(SUBJECT_CONFIG).map(item => [item.key, item.label] as const).sort((a,b)=>a[1].localeCompare(b[1],"ar"));
-const SECONDARY_GRADES=["الأول الثانوي","الثاني الثانوي","الثالث الثانوي"] as const;\nconst MIDDLE_GRADES=["الأول المتوسط","الثاني المتوسط","الثالث المتوسط"] as const;
+const SECONDARY_GRADES=["الأول الثانوي","الثاني الثانوي","الثالث الثانوي"] as const;
+const MIDDLE_GRADES=["الأول المتوسط","الثاني المتوسط","الثالث المتوسط"] as const;
 const SECTIONS = ["الكل","١","٢","٣","٤","٥","٦","٧"] as const;
 const emptyAssignment = (stage:Stage="secondary"): Assignment => ({ stage,subjectId:"", grade:"", section:"" });
 const MANUAL_SUBJECT_OPTION = "__manual_subject__";
@@ -20,7 +22,8 @@ function transliterateArabic(value:string){const map:Record<string,string>={ا:"
 function customSubjectIdentity(label:string){const normalized=normalizeArabicText(label);const translated=Object.entries(SUBJECT_TRANSLATIONS).find(([name])=>normalizeArabicText(name)===normalized)?.[1];const slug=translated||transliterateArabic(label)||"subject";return `custom-${slug}~${encodeURIComponent(label.trim())}`;}
 function customSubjectLabel(subjectId:string){const marker=subjectId.indexOf("~");if(!subjectId.startsWith("custom-")||marker<0)return "";try{return decodeURIComponent(subjectId.slice(marker+1));}catch{return "";}}
 
-function AssignmentEditor({rows,setRows,stage}:{rows:Assignment[];setRows:(rows:Assignment[])=>void;stage:Stage}){\n  const GRADES=stage==="middle"?MIDDLE_GRADES:SECONDARY_GRADES;
+function AssignmentEditor({rows,setRows,stage}:{rows:Assignment[];setRows:(rows:Assignment[])=>void;stage:Stage}){
+  const GRADES=stage==="middle"?MIDDLE_GRADES:SECONDARY_GRADES;
   const update=(index:number,key:keyof Assignment,value:string)=>setRows(rows.map((row,i)=>i===index?{...row,[key]:value}:row));
   const changeSubject=(index:number,value:string)=>{if(value!==MANUAL_SUBJECT_OPTION){const known=SUBJECTS.find(([id])=>id===value)?.[1]||customSubjectLabel(value);setRows(rows.map((row,i)=>i===index?{...row,subjectId:value,subjectLabel:known||undefined}:row));return;}const label=window.prompt("اكتب اسم المادة كما تريد أن يظهر:","")?.trim();if(!label)return;setRows(rows.map((row,i)=>i===index?{...row,subjectId:customSubjectIdentity(label),subjectLabel:label}:row));};
   return <div className="admin2-assignment-box"><div className="admin2-assignment-title"><span>المواد والحصص المسندة</span><small>اربط المعلم بالمادة والصف والفصل، ويمكن إضافة أكثر من تكليف.</small></div>{rows.map((row,index)=><div className="admin2-assignment-row" key={index}><label>المادة<select required value={row.subjectId} onChange={e=>changeSubject(index,e.target.value)}><option value="">اختر المادة</option>{SUBJECTS.map(([id,label])=><option key={id} value={id}>{label}</option>)}<option value={MANUAL_SUBJECT_OPTION}>＋ إضافة مادة يدويًا…</option></select></label><label>الصف<select required value={row.grade} onChange={e=>update(index,"grade",e.target.value)}><option value="">اختر الصف</option>{GRADES.map(item=><option key={item}>{item}</option>)}</select></label><label>الفصل<select required value={row.section} onChange={e=>update(index,"section",e.target.value)}><option value="">اختر الفصل</option>{SECTIONS.map(item=><option key={item}>{item==="الكل"?"جميع الفصول":item}</option>)}</select></label>{rows.length>1&&<button type="button" className="admin2-btn danger compact" onClick={()=>setRows(rows.filter((_,i)=>i!==index))}>حذف</button>}</div>)}<button type="button" className="admin2-btn soft admin2-add-assignment" onClick={()=>setRows([...rows,emptyAssignment(stage)])}>+ إضافة تكليف آخر</button></div>;
@@ -32,7 +35,8 @@ export default function AdminTeachersPage(){
   useEffect(()=>{void load();},[load]);
   const subjectLabel=(id:string)=>SUBJECTS.find(([key])=>key===id)?.[1]||customSubjectLabel(id)||id;
   const assignmentLabel=(a:Assignment)=>a.label||`${a.subjectLabel||subjectLabel(a.subjectId)} — ${a.grade}${a.section?` — ${a.section==="الكل"?"جميع الفصول":`فصل ${a.section}`}`:""}`;
-  const stageTeachers=useMemo(()=>teachers.filter(t=>(t.assignments||[]).some(a=>(a.stage||"secondary")===stage)),[teachers,stage]);\n  const filtered=useMemo(()=>{const q=search.trim().toLocaleLowerCase("ar");return q?stageTeachers.filter(t=>t.name.toLocaleLowerCase("ar").includes(q)||t.assignments?.some(a=>(a.stage||"secondary")===stage&&assignmentLabel(a).toLocaleLowerCase("ar").includes(q))):stageTeachers;},[stageTeachers,search,stage]);
+  const stageTeachers=useMemo(()=>teachers.filter(t=>(t.assignments||[]).some(a=>(a.stage||"secondary")===stage)),[teachers,stage]);
+  const filtered=useMemo(()=>{const q=search.trim().toLocaleLowerCase("ar");return q?stageTeachers.filter(t=>t.name.toLocaleLowerCase("ar").includes(q)||t.assignments?.some(a=>(a.stage||"secondary")===stage&&assignmentLabel(a).toLocaleLowerCase("ar").includes(q))):stageTeachers;},[stageTeachers,search,stage]);
   const active=teachers.filter(t=>t.active).length,assignmentsCount=teachers.reduce((n,t)=>n+(t.assignments?.length||0),0),subjectsCount=new Set(teachers.flatMap(t=>t.subjectIds||[])).size;
   async function createTeacher(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");try{const response=await fetch("/api/admin/teachers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,password:teacherPassword,assignments:assignments.map(a=>({...a,stage}))}),cache:"no-store"});const data=await response.json().catch(()=>({}));if(!response.ok){setMessage(data.message||"تعذر إضافة المعلم");return;}setName("");setTeacherPassword("");setAssignments([emptyAssignment()]);setShowCreate(false);setMessage("تمت إضافة المعلم وربط تكليفاته.");await load();}finally{setBusy(false);}}
   async function saveTeacher(){if(!editing)return;setBusy(true);try{const response=await fetch(`/api/admin/teachers/${editing.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:editing.name,assignments:editing.assignments,password:resetPassword||undefined}),cache:"no-store"});const data=await response.json().catch(()=>({}));if(!response.ok){setMessage(data.message||"تعذر حفظ التعديل");return;}setEditing(null);setResetPassword("");setMessage("تم حفظ التعديلات.");await load();}finally{setBusy(false);}}
