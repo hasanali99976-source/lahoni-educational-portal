@@ -22,7 +22,8 @@ import {
 type Grade = 1 | 2 | 3;
 
 function classParts(value: string): { grade: Grade | null; section: string } {
-  const [gradeText, section = ""] = value.split("-");
+  const normalized = value.startsWith("middle-") ? value.slice(7) : value;
+  const [gradeText, section = ""] = normalized.split("-");
   const number = Number(gradeText);
   const grade: Grade | null = number === 1 || number === 2 || number === 3 ? number as Grade : null;
   return { grade, section };
