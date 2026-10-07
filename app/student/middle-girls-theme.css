@@ -26,3 +26,18 @@
 .middle-girls-theme .sc-main{
   --accent:#d65d9c;--primary:#b85495;--brand:#c65a99;
 }
+
+/* Full glass-pink student chrome for MT middle school only */
+.middle-girls-theme .sc-sidebar,
+.middle-girls-theme .scg-shell{
+ background:linear-gradient(160deg,rgba(188,76,137,.46),rgba(111,48,105,.40))!important;
+ backdrop-filter:blur(22px) saturate(145%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+ border-color:rgba(255,205,229,.28)!important;
+ box-shadow:0 18px 55px rgba(63,20,55,.25)!important;
+}
+.middle-girls-theme .sc-nav,
+.middle-girls-theme .sc-profile,
+.middle-girls-theme .scg-card{background:rgba(255,190,221,.045)!important}
+.middle-girls-theme .sc-nav button{color:#fff4fa!important}
+.middle-girls-theme .sc-nav button small{color:#efc9dd!important}
