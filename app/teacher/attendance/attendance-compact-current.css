@@ -155,3 +155,11 @@
 @media(min-width:1500px){.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:minmax(270px,1fr) 300px!important;gap:12px!important}.attendance-page .attendance-roster-grid .status-buttons{width:300px!important;grid-template-columns:repeat(5,58px)!important}.attendance-page .attendance-roster-grid .status-buttons button{width:58px!important}}
 @media(max-width:1100px){.attendance-page .attendance-roster-grid{grid-template-columns:1fr!important}.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:minmax(280px,1fr) 300px!important}}
 @media(max-width:720px){.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:1fr!important;gap:4px!important}.attendance-page .attendance-roster-grid .status-buttons{width:100%!important;grid-template-columns:repeat(5,1fr)!important}.attendance-page .attendance-roster-grid .status-buttons button{width:100%!important;min-width:0!important}}
+
+
+/* v21 — Arabic student names: smaller clean type, two-line fallback, no collision */
+.attendance-page .attendance-roster-grid .student-info>div{min-width:0!important;overflow:hidden!important}
+.attendance-page .attendance-roster-grid .student-info strong{font-family:"Tahoma","Arial","Noto Sans Arabic",sans-serif!important;font-size:7.4px!important;font-weight:700!important;line-height:1.28!important;letter-spacing:0!important;white-space:normal!important;overflow:hidden!important;text-overflow:clip!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;max-height:2.56em!important;word-break:normal!important;overflow-wrap:normal!important}
+.attendance-page .attendance-roster-grid .student-info small{font-family:"Tahoma","Arial",sans-serif!important;font-size:5.6px!important;line-height:1.15!important;margin-top:1px!important}
+.attendance-page .attendance-roster-grid .attendance-student-card{min-height:42px!important}
+@media(min-width:1500px){.attendance-page .attendance-roster-grid .student-info strong{font-size:7.2px!important}.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:minmax(300px,1fr) 300px!important}}
