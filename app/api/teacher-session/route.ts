@@ -16,6 +16,7 @@ type Workspace = {
   grade: number | null;
   grades: string[];
   gradeLabel: string;
+  stage: "middle" | "secondary";
 };
 
 function databaseUnavailable() {
@@ -28,13 +29,11 @@ function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof no
     const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
     const grades = [...new Set(subjectAssignments.map(item => gradeNumber(item.grade)).filter((item): item is 1 | 2 | 3 => !!item))].sort((a, b) => a - b);
     if (!grades.length) {
-      workspaces.push({ workspaceKey: subjectId, subjectId, subjectName: getSubjectConfig(subjectId).label, grade: null, grades: [], gradeLabel: "جميع الصفوف المسندة" });
+      const stage = subjectAssignments.some(item => item.stage === "middle") ? "middle" : "secondary";
+      workspaces.push({ workspaceKey: `${subjectId}--${stage}`, subjectId, subjectName: getSubjectConfig(subjectId).label, grade: null, grades: [], gradeLabel: stage === "middle" ? "المرحلة المتوسطة" : "المرحلة الثانوية", stage });
       return;
     }
-    grades.forEach(grade => {
-      const label = gradeLabel(grade);
-      workspaces.push({ workspaceKey: `${subjectId}--${grade}`, subjectId, subjectName: getSubjectConfig(subjectId).label, grade, grades: [label], gradeLabel: label });
-    });
+    grades.forEach(grade => { const stages=[...new Set(subjectAssignments.filter(item=>gradeNumber(item.grade)===grade).map(item=>item.stage||"secondary"))]; stages.forEach(stage=>{const label=gradeLabel(grade,stage);workspaces.push({workspaceKey:`${subjectId}--${stage}--${grade}`,subjectId,subjectName:getSubjectConfig(subjectId).label,grade,grades:[label],gradeLabel:label,stage});}); });
   });
   return workspaces;
 }
@@ -55,7 +54,7 @@ export async function GET() {
     const subjects = buildWorkspaces(user.subjectIds, assignments);
     const store = await cookies();
     const savedWorkspace = store.get(SUBJECT_COOKIE)?.value || "";
-    const currentWorkspace = subjects.find(item => item.workspaceKey === savedWorkspace) || subjects.find(item => item.subjectId === savedWorkspace) || subjects[0] || null;
+    const currentWorkspace = subjects.find(item => item.workspaceKey === savedWorkspace) || subjects[0] || null;
     const selectedClassIds = await loadSelectedClassIds(user.id, currentWorkspace);
 
     const response = NextResponse.json({
