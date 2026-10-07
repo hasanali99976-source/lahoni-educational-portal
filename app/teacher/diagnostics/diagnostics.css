@@ -6,3 +6,18 @@
 
 /* Teacher integrated transparent theme */
 .diagnostics-page{color:#f5fbfc}.diagnostics-hero,.diagnostic-builder,.diagnostic-list{background:rgba(6,42,55,.20)!important;border-color:rgba(255,255,255,.25)!important;box-shadow:none!important}.diagnostics-hero{background:rgba(13,83,97,.34)!important}.diagnostics-page h1,.diagnostics-page h2,.diagnostics-page h3{color:#fff!important}.diagnostics-page p,.diagnostic-list small{color:#dcebed!important}.questions-editor article,.diagnostic-list article{background:rgba(35,118,174,.14)!important;border-color:rgba(255,255,255,.18)!important}.diagnostic-builder label{color:#fff}.diagnostic-builder input,.diagnostic-builder textarea{background:rgba(255,255,255,.95)!important;color:#17384a!important}@media(max-width:700px){.diagnostics-page{gap:10px}.diagnostics-hero,.diagnostic-builder,.diagnostic-list{padding:14px!important}.builder-actions{display:grid;grid-template-columns:1fr}.diagnostic-list article{align-items:stretch;flex-direction:column}}
+
+
+/* compact integrated diagnostics — single visual layer */
+.diagnostics-page{gap:12px!important}
+.diagnostics-hero{padding:18px 22px!important;border-radius:16px!important;background:linear-gradient(135deg,rgba(7,72,83,.88),rgba(12,100,107,.72))!important;border:1px solid rgba(103,224,210,.30)!important;box-shadow:0 12px 28px rgba(0,0,0,.14)!important}
+.diagnostics-hero span{display:inline-flex;padding:5px 10px;border-radius:999px;background:rgba(89,224,201,.14);color:#7de5d2!important;font-size:10px}
+.diagnostics-hero h1{font-size:clamp(22px,2.6vw,32px)!important;margin:6px 0!important}.diagnostics-hero p{margin:0!important;font-size:11px!important;line-height:1.65}
+.diagnostic-builder,.diagnostic-list{padding:16px!important;border-radius:16px!important;background:rgba(7,48,59,.72)!important;border:1px solid rgba(109,202,207,.20)!important}
+.diagnostic-builder h2,.diagnostic-list h2{font-size:18px!important;margin:0 0 8px!important}
+.questions-editor article{padding:12px!important;border-radius:12px!important}
+.diagnostic-builder input,.diagnostic-builder textarea{padding:9px 10px!important;border-radius:9px!important;font-size:11px!important}
+.diagnostic-builder textarea{min-height:64px!important}
+.add-question,.builder-actions button,.diagnostic-list button{padding:8px 11px!important;border-radius:9px!important;font-size:10px!important}
+.plan-editor{gap:8px!important}.diagnostic-list{gap:8px!important}.diagnostic-list article{padding:10px 12px!important;border-radius:11px!important}
+@media(max-width:800px){.diagnostics-hero{padding:15px!important}.diagnostics-hero h1{font-size:22px!important}}
