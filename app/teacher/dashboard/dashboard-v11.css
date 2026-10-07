@@ -43,3 +43,25 @@
 .td11-hero .td11-greeting{background:linear-gradient(135deg,rgba(6,61,76,.50),rgba(13,101,103,.25))!important}.td11-hero .td11-ai{background:linear-gradient(135deg,rgba(25,105,163,.42),rgba(26,137,135,.22))!important}
 .td11-day-grid>article{backdrop-filter:blur(8px)}.td11-classes>article{backdrop-filter:blur(7px)}.td11-workflow{background:linear-gradient(135deg,rgba(6,61,76,.34),rgba(41,91,135,.20))!important;border-color:rgba(255,255,255,.24)!important}
 .td11-workflow a:nth-child(1){border-top:3px solid #69bdf0!important}.td11-workflow a:nth-child(2){border-top:3px solid #62d18b!important}.td11-workflow a:nth-child(3){border-top:3px solid #e9bd61!important}
+
+
+/* v152 — centered shortcuts + vivid compact daily statistics */
+.td11-lifetime{max-width:100%!important;padding:12px 14px!important;background:linear-gradient(125deg,rgba(5,58,72,.62),rgba(13,91,106,.38))!important}
+.td11-lifetime>header{align-items:center!important;margin-bottom:9px!important}.td11-lifetime>header>div{text-align:right}.td11-lifetime h2{font-size:15px!important}.td11-lifetime header a{padding:6px 10px!important}
+.td11-lifetime-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:7px!important}
+.td11-lifetime-grid article{min-height:72px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;padding:8px 5px!important;border-radius:12px!important;box-shadow:inset 0 1px rgba(255,255,255,.14)!important}
+.td11-lifetime-grid article:nth-child(1){background:linear-gradient(145deg,rgba(20,151,98,.48),rgba(18,92,69,.35))!important;border-color:rgba(98,224,151,.58)!important;border-top:3px solid #63e097!important}
+.td11-lifetime-grid article:nth-child(2){background:linear-gradient(145deg,rgba(25,139,164,.48),rgba(21,82,116,.35))!important;border-color:rgba(91,205,231,.56)!important;border-top:3px solid #5bcde7!important}
+.td11-lifetime-grid article:nth-child(3){background:linear-gradient(145deg,rgba(190,64,77,.48),rgba(112,43,55,.35))!important;border-color:rgba(244,111,123,.58)!important;border-top:3px solid #f46f7b!important}
+.td11-lifetime-grid article:nth-child(4){background:linear-gradient(145deg,rgba(202,135,31,.48),rgba(126,83,25,.35))!important;border-color:rgba(246,185,77,.58)!important;border-top:3px solid #f6b94d!important}
+.td11-lifetime-grid article:nth-child(5){background:linear-gradient(145deg,rgba(129,82,184,.48),rgba(76,54,126,.35))!important;border-color:rgba(184,133,235,.58)!important;border-top:3px solid #b885eb!important}
+.td11-lifetime-grid article:nth-child(6){background:linear-gradient(145deg,rgba(46,116,190,.48),rgba(39,70,127,.35))!important;border-color:rgba(104,166,237,.58)!important;border-top:3px solid #68a6ed!important}
+.td11-lifetime-grid b{font-size:19px!important;line-height:1!important}.td11-lifetime-grid span{font-size:8px!important;margin-top:5px!important;font-weight:800!important}
+.td11-bottom{display:flex!important;justify-content:center!important;align-items:center!important}.td11-workflow{width:min(760px,100%)!important;padding:10px!important;margin-inline:auto!important;background:rgba(5,48,61,.30)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:16px!important}
+.td11-workflow>div{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:0!important}
+.td11-workflow a{min-height:62px!important;grid-template-columns:32px 1fr!important;gap:8px!important;padding:8px 10px!important;border-radius:12px!important;background:rgba(255,255,255,.92)!important;color:#234f59!important;box-shadow:0 6px 18px rgba(0,0,0,.08)!important}
+.td11-workflow a:nth-child(1){border-top:3px solid #62bff0!important}.td11-workflow a:nth-child(2){border-top:3px solid #61d293!important}.td11-workflow a:nth-child(3){border-top:3px solid #efbf58!important}
+.td11-workflow a>b{width:29px!important;height:29px!important;border-radius:9px!important;background:rgba(18,91,105,.09)!important;color:#285763!important;font-size:9px!important}
+.td11-workflow strong{font-size:11px!important;color:#28525b!important}.td11-workflow small{font-size:8px!important;color:#7a9095!important}
+@media(max-width:800px){.td11-lifetime-grid{grid-template-columns:repeat(3,1fr)!important}.td11-workflow{width:100%!important}}
+@media(max-width:560px){.td11-lifetime-grid{grid-template-columns:repeat(2,1fr)!important}.td11-workflow>div{grid-template-columns:1fr!important}}
