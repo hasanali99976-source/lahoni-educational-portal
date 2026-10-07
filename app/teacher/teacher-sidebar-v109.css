@@ -36,3 +36,31 @@
 
 @media(max-width:980px){.teacher-student-shell{--rail:100vw!important}.tss-sidebar.open{display:flex!important;right:0!important;top:0!important;bottom:0!important;width:100vw!important;max-width:none!important;padding:10px 8px!important;border-radius:0!important;overflow-x:hidden!important}.tss-brand-stacked{grid-template-columns:46px minmax(0,1fr)!important;gap:9px!important;min-height:62px!important;padding:2px 5px 9px!important}.tss-brand-stacked img{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}.tss-brand-stacked b{font-size:11.5px!important}.tss-brand-stacked small{font-size:7px!important}.tss-side-profile{grid-template-columns:36px minmax(0,1fr)!important;padding:7px!important;margin:7px 0 8px!important}.tss-side-profile-mark{width:36px!important;height:36px!important}.tss-nav a{height:40px!important;min-height:40px!important;padding-right:31px!important;padding-left:3px!important}.tss-nav a svg{right:2px!important;width:14px!important;height:14px!important;padding:3px!important}.tss-nav a b{font-size:clamp(8.2px,2.9vw,9.4px)!important;letter-spacing:-.25px!important}.tss-nav-group-title{font-size:6.9px!important}}
 @media(max-width:290px){.tss-nav a{padding-right:28px!important}.tss-nav a svg{width:13px!important;height:13px!important;padding:3px!important}.tss-nav a b{font-size:8px!important}.tss-brand-stacked small{font-size:6.2px!important}}
+
+
+/* v118 — compact, readable teacher navigation across desktop/mobile. */
+.teacher-student-shell{--rail:228px!important}
+.tss-sidebar{width:var(--rail)!important;padding:10px 9px 9px!important}
+.tss-brand-stacked{grid-template-columns:42px minmax(0,1fr)!important;gap:9px!important;min-height:58px!important;padding:2px 4px 9px!important}
+.tss-brand-stacked img{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;border-radius:11px!important}
+.tss-brand-stacked b{font-size:12px!important;line-height:1.25!important;white-space:normal!important}
+.tss-brand-stacked small{font-size:8.2px!important;line-height:1.3!important;white-space:normal!important;overflow:visible!important}
+.tss-side-profile{grid-template-columns:36px minmax(0,1fr)!important;gap:8px!important;margin:7px 0 8px!important;padding:7px 8px!important}
+.tss-side-profile-mark{width:36px!important;height:36px!important;font-size:14px!important}
+.tss-side-profile-copy strong{font-size:10px!important}.tss-side-profile-copy span{font-size:8px!important}.tss-side-profile-copy small{font-size:7px!important}
+.tss-nav-group{gap:1px!important;margin-bottom:5px!important}.tss-nav-group+.tss-nav-group{padding-top:4px!important}
+.tss-nav-group-title{padding:0 4px 2px!important;font-size:7px!important}
+.tss-nav a{height:37px!important;min-height:37px!important;padding:2px 30px 2px 4px!important;border-radius:10px!important}
+.tss-nav a svg{right:3px!important;width:13px!important;height:13px!important;padding:3px!important;border-radius:7px!important}
+.tss-nav a b{font-size:9px!important;line-height:1.1!important;letter-spacing:-.15px!important}
+.tss-nav a.active{box-shadow:inset 3px 0 0 #ffe083,inset -3px 0 0 #ffe083,0 0 10px rgba(226,181,69,.22)!important}
+.tss-footer{padding-top:5px!important}.tss-motto{font-size:7px!important;margin-bottom:3px!important}.tss-logout{min-height:32px!important;font-size:8px!important}
+
+@media(max-width:980px){
+ .teacher-student-shell{--rail:min(84vw,286px)!important;padding:7px!important}
+ .tss-sidebar.open{width:min(84vw,286px)!important;max-width:286px!important;right:0!important;padding:9px 8px!important;box-shadow:-18px 0 45px rgba(0,0,0,.38)!important}
+ .tss-brand-stacked{grid-template-columns:40px minmax(0,1fr)!important;min-height:55px!important}
+ .tss-brand-stacked img{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
+ .tss-brand-stacked b{font-size:11px!important}.tss-brand-stacked small{font-size:7.8px!important}
+ .tss-nav a{height:36px!important;min-height:36px!important}.tss-nav a b{font-size:8.8px!important}
+}
