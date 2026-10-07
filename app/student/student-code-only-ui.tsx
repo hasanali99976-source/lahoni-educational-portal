@@ -38,7 +38,7 @@ export default function StudentCodeOnlyUI() {
         : "أدخل كود الطالب فقط للدخول إلى جميع المواد المرتبطة به.";
 
       if (codeInput) {
-        codeInput.placeholder = "مثال: TH1001";
+        codeInput.placeholder = "مثال: TH1001 أو MT1001";
         codeInput.maxLength = 6;
         codeInput.autocomplete = "username";
         codeInput.inputMode = "text";
@@ -91,7 +91,7 @@ export default function StudentCodeOnlyUI() {
             event.preventDefault();
             event.stopImmediatePropagation();
             const existing = form.querySelector<HTMLElement>(".portal-error");
-            if (existing) existing.textContent = "أدخل كودًا صحيحًا مثل TH1001 أو TH2001 أو TH3001.";
+            if (existing) existing.textContent = "أدخل كودًا صحيحًا مثل TH1001 للثانوي أو MT1001 للمتوسط.";
             else {
               const error = document.createElement("p");
               error.className = "portal-error";
