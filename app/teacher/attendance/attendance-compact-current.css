@@ -197,3 +197,60 @@
   transform:none!important;
   letter-spacing:0!important;
 }
+
+
+/* v24 — final readable roster geometry: full one-line names + full controls */
+.attendance-page .attendance-roster-grid{grid-template-columns:1fr!important;max-width:1180px!important;margin-inline:auto!important;width:100%!important}
+.attendance-page .attendance-roster-grid .attendance-student-card,
+.attendance-page .attendance-roster-grid .attendance-student-card:nth-child(odd),
+.attendance-page .attendance-roster-grid .attendance-student-card:nth-child(even){
+  grid-column:auto!important;
+  grid-template-columns:minmax(420px,1fr) 360px!important;
+  gap:12px!important;
+  min-height:40px!important;
+}
+.attendance-page .attendance-roster-grid .student-info{
+  grid-template-columns:22px 48px minmax(0,1fr)!important;
+  grid-template-areas:"num state identity"!important;
+  gap:6px!important;
+}
+.attendance-page .attendance-roster-grid .student-info>div{min-width:0!important;overflow:visible!important}
+.attendance-page .attendance-roster-grid .student-info strong{
+  font-family:inherit!important;
+  font-size:8.2px!important;
+  font-weight:800!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  display:block!important;
+  max-width:none!important;
+}
+.attendance-page .attendance-roster-grid .student-info small{font-family:inherit!important;font-size:5.8px!important;white-space:nowrap!important}
+.attendance-page .attendance-roster-grid .student-info>em{width:48px!important;min-width:48px!important;font-family:inherit!important}
+.attendance-page .attendance-roster-grid .status-buttons{
+  width:360px!important;
+  grid-template-columns:repeat(5,68px)!important;
+  gap:4px!important;
+}
+.attendance-page .attendance-roster-grid .status-buttons button{
+  width:68px!important;
+  min-width:68px!important;
+  height:27px!important;
+  font-family:inherit!important;
+  font-size:6.8px!important;
+  padding:0 3px!important;
+  overflow:visible!important;
+}
+@media(max-width:980px){
+ .attendance-page .attendance-roster-grid{max-width:none!important}
+ .attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:minmax(300px,1fr) 330px!important}
+ .attendance-page .attendance-roster-grid .status-buttons{width:330px!important;grid-template-columns:repeat(5,64px)!important;gap:2px!important}
+ .attendance-page .attendance-roster-grid .status-buttons button{width:64px!important;min-width:64px!important}
+ .attendance-page .attendance-roster-grid .student-info strong{font-size:7.6px!important}
+}
+@media(max-width:720px){
+ .attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:1fr!important;gap:4px!important}
+ .attendance-page .attendance-roster-grid .status-buttons{width:100%!important;grid-template-columns:repeat(5,1fr)!important}
+ .attendance-page .attendance-roster-grid .status-buttons button{width:100%!important;min-width:0!important}
+}
