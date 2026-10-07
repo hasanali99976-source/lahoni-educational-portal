@@ -8,15 +8,17 @@ export type TeacherClassScope = {
   teacherId: string;
   subjectId: string;
   grade?: number | null;
+  stage?: "middle" | "secondary";
   selectedClassIds: string[];
   customized: boolean;
   assignmentSignature?: string;
   updatedAt?: string;
 };
 
-export function teacherClassScopeId(teacherId: string, subjectId: string, grade?: number | null) {
+export function teacherClassScopeId(teacherId: string, subjectId: string, grade?: number | null, stage: "middle" | "secondary" = "secondary") {
   const base = `${encodeURIComponent(teacherId)}__${encodeURIComponent(subjectId)}`;
-  return grade === 1 || grade === 2 || grade === 3 ? `${base}__grade_${grade}` : base;
+  const stagePart = stage === "middle" ? "__middle" : "";
+  return grade === 1 || grade === 2 || grade === 3 ? `${base}${stagePart}__grade_${grade}` : `${base}${stagePart}`;
 }
 
 export function subjectClassOwnerId(subjectId: string, schoolClassId: string) {
@@ -25,7 +27,7 @@ export function subjectClassOwnerId(subjectId: string, schoolClassId: string) {
 
 export function normalizeClassIds(value: unknown) {
   if (!Array.isArray(value)) return [] as string[];
-  return [...new Set(value.map(item => String(item || "").trim()).filter(item => /^\d+-\d+$/.test(item)))];
+  return [...new Set(value.map(item => String(item || "").trim()).filter(item => /^(?:middle-)?\d+-\d+$/.test(item)))];
 }
 
 export function assignmentScopeSignature(assignments: TeacherAssignment[], subjectId: string, grade?: number | null) {
