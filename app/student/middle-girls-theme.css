@@ -1,0 +1,28 @@
+/* Applied only after an MT middle-school student is authenticated. */
+.middle-girls-theme{
+  --sc-accent:#d65d9c;--sc-accent-2:#a954a3;--sc-gold:#e7ba60;
+  background:
+    radial-gradient(circle at 88% 8%,rgba(238,129,181,.30),transparent 30%),
+    radial-gradient(circle at 12% 90%,rgba(178,92,171,.24),transparent 28%),
+    linear-gradient(145deg,#351f39,#5a2d55 56%,#753b59)!important;
+}
+.middle-girls-theme .student-scene{filter:hue-rotate(285deg) saturate(.82) brightness(.82)!important}
+.middle-girls-theme .sc-sidebar,
+.middle-girls-theme .scg-shell{
+  background:linear-gradient(160deg,rgba(72,37,68,.96),rgba(48,27,52,.97))!important;
+  border-color:rgba(247,178,211,.25)!important;
+}
+.middle-girls-theme .sc-nav button.active,
+.middle-girls-theme .sc-nav button:hover,
+.middle-girls-theme .scg-subject-card.active{
+  background:linear-gradient(135deg,rgba(218,91,157,.30),rgba(169,84,163,.22))!important;
+  border-color:rgba(246,170,207,.34)!important;
+}
+.middle-girls-theme .sc-avatar,
+.middle-girls-theme .scg-mark{
+  background:linear-gradient(145deg,#e77bb4,#a954a3)!important;
+}
+.middle-girls-theme .sc-content,
+.middle-girls-theme .sc-main{
+  --accent:#d65d9c;--primary:#b85495;--brand:#c65a99;
+}
