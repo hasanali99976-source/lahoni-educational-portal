@@ -177,3 +177,23 @@
 @media(min-width:1500px){.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:minmax(0,1fr) 330px!important}.attendance-page .attendance-roster-grid .status-buttons{width:330px!important;grid-template-columns:repeat(5,64px)!important}.attendance-page .attendance-roster-grid .status-buttons button{width:64px!important}}
 @media(max-width:1250px){.attendance-page .attendance-roster-grid{grid-template-columns:1fr!important}.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:minmax(0,1fr) 330px!important}}
 @media(max-width:760px){.attendance-page .attendance-roster-grid .attendance-student-card{grid-template-columns:1fr!important}.attendance-page .attendance-roster-grid .status-buttons{width:100%!important;grid-template-columns:repeat(5,1fr)!important}.attendance-page .attendance-roster-grid .status-buttons button{width:100%!important;min-width:0!important}}
+
+
+/* v23 — unified attendance typography */
+.attendance-page,
+.attendance-page button,
+.attendance-page input,
+.attendance-page select,
+.attendance-page option,
+.attendance-page .attendance-roster-grid .student-info strong,
+.attendance-page .attendance-roster-grid .student-info small,
+.attendance-page .attendance-roster-grid .student-info>em,
+.attendance-page .attendance-roster-grid .status-buttons button{
+  font-family:inherit!important;
+}
+.attendance-page .attendance-roster-grid .student-info strong{
+  font-size:7.2px!important;
+  font-weight:800!important;
+  transform:none!important;
+  letter-spacing:0!important;
+}
