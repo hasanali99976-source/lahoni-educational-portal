@@ -60,3 +60,9 @@
 .ttv9-grid-row>button.filled{background:rgba(8,118,111,.24)!important;box-shadow:inset 0 0 0 1px rgba(94,211,194,.12)!important}.ttv9-grid-row>button.filled.today{background:rgba(8,118,111,.43)!important}.ttv9-grid-row>button.empty{opacity:.32!important}.ttv9-grid-row>button.empty strong{font-size:11px!important;color:#91a8ad!important}.ttv9-grid-row>button:hover:not(:disabled){background:rgba(57,157,153,.34)!important;box-shadow:inset 0 0 0 1px rgba(108,222,203,.45)!important}
 .ttv9-week.editing .ttv9-grid-row>button{cursor:pointer!important}.ttv9-week:not(.editing) .ttv9-grid-row>button{cursor:default!important}
 @media(max-width:760px){.ttv9-grid-head,.ttv9-grid-row{grid-template-columns:38px repeat(5,minmax(82px,1fr))!important}.ttv9-week{overflow-x:auto!important}.ttv9-grid-head,.ttv9-grid-row{min-width:500px!important}.ttv9-today{grid-template-columns:1fr!important}}
+
+
+/* v12 — stable first paint while the existing two required sources resolve */
+.ttv9-loading{min-height:220px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:14px!important;background:rgba(5,42,55,.34)!important;color:#fff!important;text-align:center!important}
+.ttv9-loading>span{width:26px!important;height:26px!important;border:3px solid rgba(255,255,255,.16)!important;border-top-color:#62d6bd!important;border-radius:50%!important;animation:ttv9spin .7s linear infinite!important}.ttv9-loading>b{font-size:12px!important}.ttv9-loading>small{font-size:8px!important;color:#b9cccf!important}
+@keyframes ttv9spin{to{transform:rotate(360deg)}}
