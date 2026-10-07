@@ -82,3 +82,20 @@
 .gv11-table-wrap .reason-cell select,.gv11-table-wrap .reason-cell input{height:25px!important;font-size:6.8px!important}
 .gv11-table-wrap .deduction-quick button{min-width:17px!important;font-size:6.5px!important;padding:1px!important}
 @media(max-width:1100px){.gv11-table-wrap{overflow-x:auto!important}.gv11-table-wrap table{min-width:980px!important}.gv11-section-tabs button{flex-basis:155px!important}}
+
+
+/* v25 — premium compact attainment workspace */
+.gv11-planbar{grid-template-columns:96px minmax(0,1fr)!important;gap:4px!important;background:rgba(5,48,58,.92)!important}.gv11-planbar>header h2{font-size:9px!important}.gv11-planbar>header small{display:none!important}
+.gv11-section-tabs{gap:5px!important}.gv11-section-tabs button{flex:1 1 0!important;min-width:0!important;max-width:none!important;height:38px!important;min-height:38px!important;border-radius:8px!important;padding:3px 6px!important;background:rgba(11,65,76,.94)!important;border-color:rgba(126,187,196,.35)!important}.gv11-section-tabs button>b{font-size:7.6px!important}.gv11-section-tabs button>small{font-size:6.5px!important}.gv11-section-tabs button.active{background:linear-gradient(135deg,rgba(8,130,116,.98),rgba(7,91,91,.98))!important;border-color:#76e0ca!important}
+.gv11-controlbar{min-height:38px!important}.gv11-kpis article{background:rgba(9,55,66,.86)!important;border:1px solid rgba(112,174,185,.28)!important}.gv11-insight{min-height:36px!important;background:rgba(7,54,64,.88)!important}
+.gv11-gradebook{background:rgba(4,42,51,.82)!important;border:1px solid rgba(112,185,195,.34)!important}.gv11-gradebook>header{min-height:36px!important;background:rgba(4,49,59,.94)!important}
+.gv11-table-wrap{height:min(68vh,760px)!important;max-height:min(68vh,760px)!important;background:rgba(3,35,43,.5)!important}
+.gv11-table-wrap thead th{background:#0b5a69!important;color:#fff!important;border-left:1px solid rgba(255,255,255,.13)!important;border-bottom:1px solid rgba(255,255,255,.18)!important}
+.gv11-table-wrap tbody tr:nth-child(odd) td{background:rgba(8,57,66,.72)!important}.gv11-table-wrap tbody tr:nth-child(even) td{background:rgba(12,67,76,.64)!important}.gv11-table-wrap tbody tr:hover td{background:rgba(18,91,96,.82)!important}
+.gv11-table-wrap td{border-bottom:1px solid rgba(135,193,201,.18)!important;border-left:1px solid rgba(135,193,201,.12)!important}
+.gv11-table-wrap th.name,.gv11-table-wrap td.name{width:18%!important}.gv11-table-wrap th:not(.num):not(.name):not(.deduction-col):not(.reason-col):not(.final-col):not(.row-action){width:auto!important}
+.gv11-table-wrap .deduction-col,.gv11-table-wrap .deduction-cell{width:5.2%!important;min-width:58px!important}.gv11-table-wrap .reason-col,.gv11-table-wrap .reason-cell{width:8.5%!important;min-width:92px!important}.gv11-table-wrap .final-col,.gv11-table-wrap .final-total{width:7%!important;min-width:78px!important}.gv11-table-wrap .row-action{width:4.5%!important;min-width:52px!important}
+.gv11-table-wrap .deduction-cell>input{width:38px!important;height:25px!important}.gv11-table-wrap .deduction-quick{display:none!important}.gv11-table-wrap .reason-cell input{display:none!important}.gv11-table-wrap .reason-cell select{width:100%!important}
+.gv11-table-wrap .final-total b{font-size:9px!important}.gv11-table-wrap .final-total small{font-size:6.5px!important}
+.gv11-table-wrap td input[type=number]{background:#f7fbfb!important;color:#092f36!important;border:1px solid rgba(8,93,100,.2)!important;box-shadow:none!important}
+@media(max-width:1100px){.gv11-section-tabs{overflow-x:auto!important}.gv11-section-tabs button{flex:0 0 145px!important}.gv11-table-wrap{overflow-x:auto!important}}
