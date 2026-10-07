@@ -4,10 +4,13 @@ import { adminDb } from "./firebase-admin";
 import {
   SCHOOL_STUDENTS_COLLECTION,
   canonicalClassName,
+  classId,
   gradeLabel,
   gradeNumber,
   normalizeStudentRecord,
+  schoolStage,
   sectionNumber,
+  type SchoolStage,
 } from "../school-roster";
 import {
   assignmentFromId,
@@ -25,6 +28,7 @@ import {
 
 export type ManagedClass = {
   id: string;
+  stage: SchoolStage;
   grade: 1 | 2 | 3;
   section: string;
   name: string;
@@ -65,17 +69,19 @@ function isAllSections(value: unknown) {
 }
 
 function assignmentMatchesExact(assignment: TeacherAssignment, schoolClass: ManagedClass) {
-  return gradeNumber(assignment.grade) === schoolClass.grade
+  return schoolStage(assignment.stage) === schoolClass.stage
+    && gradeNumber(assignment.grade) === schoolClass.grade
     && !isAllSections(assignment.section)
     && normalizedSection(assignment.section) === schoolClass.section;
 }
 
 function studentMatchesClass(data: Record<string, unknown>, schoolClass: ManagedClass) {
   const student = normalizeStudentRecord(data, String(data.code || data.accessCode || data.studentCode || ""));
-  if (student) return student.grade === schoolClass.grade && normalizedSection(student.section) === schoolClass.section;
+  if (student) return student.stage === schoolClass.stage && student.stage === schoolClass.stage
+      && student.grade === schoolClass.grade && normalizedSection(student.section) === schoolClass.section;
   const grade = gradeNumber(data.grade || data.className || data.class);
   const section = sectionNumber(data.section, data.className || data.class);
-  return grade === schoolClass.grade && normalizedSection(section) === schoolClass.section;
+  return schoolStage(data.stage, data.className || data.class) === schoolClass.stage && grade === schoolClass.grade && normalizedSection(section) === schoolClass.section;
 }
 
 async function commitOperations(operations: WriteOperation[]) {
@@ -214,14 +220,16 @@ export async function synchronizeClassChange(input: {
   } satisfies ClassSyncSummary;
 }
 
-export function managedClass(gradeValue: unknown, sectionValue: unknown): ManagedClass | null {
+export function managedClass(gradeValue: unknown, sectionValue: unknown, stageValue: unknown = "secondary"): ManagedClass | null {
+  const stage = schoolStage(stageValue);
   const grade = gradeNumber(gradeValue);
   const section = normalizedSection(sectionValue);
   if (!grade || !/^[1-8]$/.test(section)) return null;
   return {
-    id: `${grade}-${section}`,
+    id: classId(grade, section, stage),
+    stage,
     grade,
     section,
-    name: canonicalClassName(grade, section),
+    name: canonicalClassName(grade, section, stage),
   };
 }
