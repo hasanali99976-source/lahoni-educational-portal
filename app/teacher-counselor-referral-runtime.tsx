@@ -22,6 +22,8 @@ export default function TeacherCounselorReferralRuntime() {
   const [type, setType] = useState<ReferralType>("mastery");
   const [reason, setReason] = useState("الحاجة إلى دعم في الإتقان والتحصيل");
   const [openWhatsapp, setOpenWhatsapp] = useState(true);
+  const [notifyParent, setNotifyParent] = useState(true);
+  const [visibleToStudent, setVisibleToStudent] = useState(true);
   const [message, setMessage] = useState("");
 
   const subjectId = String(session.subjectKey || "").split("--")[0];
@@ -66,6 +68,8 @@ export default function TeacherCounselorReferralRuntime() {
     setClassFilter("");
     setSearch("");
     setMessage("");
+    setNotifyParent(true);
+    setVisibleToStudent(true);
     void loadStudents();
   }
 
@@ -94,7 +98,7 @@ export default function TeacherCounselorReferralRuntime() {
       const response = await fetch("/api/teacher/counselor-referrals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subjectId, subjectLabel, referralType: type, reason: reason.trim(), studentCodes: selected }),
+        body: JSON.stringify({ subjectId, subjectLabel, referralType: type, reason: reason.trim(), studentCodes: selected, notifyParent, visibleToStudent }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "تعذر تسجيل الإحالة.");
@@ -131,8 +135,12 @@ export default function TeacherCounselorReferralRuntime() {
       })}{!loading && !visible.length ? <p>لا يوجد طلاب مطابقون.</p> : null}</div>
 
       <label className="counselor-v2-reason"><span>سبب الإحالة الذي سيظهر في بوابة الطالب وولي الأمر</span><textarea value={reason} onChange={event => setReason(event.target.value)} placeholder="اكتب السبب بوضوح…" /></label>
-      <label className="counselor-v2-whatsapp"><input type="checkbox" checked={openWhatsapp} onChange={event => setOpenWhatsapp(event.target.checked)} /><span>فتح واتساب المرشد بعد تسجيل الإحالة</span></label>
-      <p className="counselor-v2-visibility">الإحالة تظهر للطالب وولي الأمر كتنبيه مرتفع الأولوية فور تحديث البوابة.</p>
+      <div className="counselor-v2-delivery">
+        <label><input type="checkbox" checked={visibleToStudent} onChange={event => setVisibleToStudent(event.target.checked)} /><span><b>إظهار في بوابة الطالب</b><small>تنبيه واضح باسم المادة وسبب الإحالة</small></span></label>
+        <label><input type="checkbox" checked={notifyParent} onChange={event => setNotifyParent(event.target.checked)} /><span><b>إبلاغ ولي الأمر</b><small>تسجيل إشعار ولي الأمر ضمن سجل الطالب</small></span></label>
+        <label><input type="checkbox" checked={openWhatsapp} onChange={event => setOpenWhatsapp(event.target.checked)} /><span><b>إرسال للمرشد</b><small>فتح رسالة واتساب المرشد بعد الحفظ</small></span></label>
+      </div>
+      <p className="counselor-v2-visibility">يتم حفظ الإحالة في سجل المرشد، وتظهر للطالب أو ولي الأمر فقط حسب الخيارات المحددة.</p>
       {message ? <div className="counselor-v2-message">{message}</div> : null}
       <footer><button type="button" onClick={() => setOpen(false)}>إلغاء</button><button type="button" className="primary" disabled={sending || loading} onClick={() => void sendReferral()}>{sending ? "جارٍ التسجيل…" : "تسجيل الإحالة"}</button></footer>
     </section></div> : null}
