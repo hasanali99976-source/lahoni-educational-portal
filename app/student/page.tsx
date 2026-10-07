@@ -17,7 +17,7 @@ type StudentView="home"|"discipline"|"grades"|"notes"|"report"|"certificate";
 type SubjectMetric={match:Match;plan:GradePlan|null;result:ReturnType<typeof calculateGradePlanResult>|null;earned:number;maximum:number;percentage:number;completion:number;deducted:number;hasData:boolean};
 type FeedItem={id:string;kind:"referral"|"note"|"alert";subject:string;title:string;text:string;meta:string;createdAt:string;tone:"violet"|"teal"|"gold"|"red"};
 
-const CODE_PATTERN=/^TH[123]\d{3}$/;
+const CODE_PATTERN=new RegExp("^(?:TH|MT)[123][0-9]{3}$");
 const LOGO="/icons/lahooni-identity-320.jpg";
 const AVATAR="/student/student-avatar.svg";
 const ar=(value:number)=>new Intl.NumberFormat("ar-SA-u-nu-arab",{maximumFractionDigits:2}).format(Number.isFinite(value)?value:0);
