@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 type GradeDeduction = { amount?: number; reversedAt?: string };
 type TeacherNote = { id?: string; label?: string; message?: string; createdAt?: string; teacherName?: string };
-type CounselorReferral = { id?: string; referralTypeLabel?: string; reason?: string; status?: string; teacherName?: string; subject?: string; createdAt?: string; severity?: string };
+type CounselorReferral = { id?: string; referralTypeLabel?: string; reason?: string; status?: string; teacherName?: string; subject?: string; createdAt?: string; severity?: string; visibleToStudent?: boolean };
 type StudentData = {
   name?: string;
   class?: string;
@@ -13,11 +13,11 @@ type StudentData = {
   teacherNotes?: TeacherNote[];
   gradeDeductions?: GradeDeduction[];
   counselorReferrals?: CounselorReferral[];
-  parentCounselorLastNotice?: { title?: string; message?: string; createdAt?: string; teacherCreated?: boolean; source?: string };
+  parentCounselorLastNotice?: { title?: string; message?: string; createdAt?: string; teacherCreated?: boolean; source?: string; visibleToStudent?: boolean; notifyParent?: boolean };
 };
 type Match = { subjectKey: string; subjectLabel: string; teacherName: string; accessToken: string; data?: StudentData };
 
-const STUDENT_CODE_PATTERN = /^TH[123]\d{3}$/;
+const STUDENT_CODE_PATTERN = new RegExp("^(?:TH|MT)[123][0-9]{3}$");
 
 function normalizeStudentCode(value: string) {
   return value
@@ -41,14 +41,14 @@ function noteList(data?: StudentData) {
 }
 
 function counselorAlert(data?: StudentData) {
-  const referral = Array.isArray(data?.counselorReferrals) ? data!.counselorReferrals![0] : undefined;
+  const referral = Array.isArray(data?.counselorReferrals) ? data!.counselorReferrals!.find(item => item.visibleToStudent !== false) : undefined;
   if (referral) return {
     title: referral.referralTypeLabel || "إحالة للمرشد الطلابي",
     message: referral.reason || "يوجد إجراء متابعة مع المرشد الطلابي.",
     status: referral.status || "جديدة",
   };
   const notice = data?.parentCounselorLastNotice;
-  if (notice?.teacherCreated === true && notice.source === "teacher_action") return {
+  if (notice?.teacherCreated === true && notice.source === "teacher_action" && notice.visibleToStudent !== false) return {
     title: notice.title || "إحالة للمرشد الطلابي",
     message: notice.message || "يوجد إجراء متابعة مع المرشد الطلابي.",
     status: "جديدة",
