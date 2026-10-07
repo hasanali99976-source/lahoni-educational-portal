@@ -11,7 +11,7 @@ import { SUBJECT_CLASS_OWNERS_COLLECTION, TEACHER_CLASS_SCOPES_COLLECTION, assig
 type LocatedStudent={studentId:string;teacherId:string;subjectId:string;data:Record<string,unknown>};
 type Candidate={teacherId:string;subjectId:string;teacherData:Record<string,unknown>;assignments:TeacherAssignment[];existing?:LocatedStudent;priority:number;matchedClass:boolean};
 type TeacherDirectoryEntry={teacherId:string;teacherData:Record<string,unknown>};
-const STUDENT_CODE_PATTERN=/^TH[123]\d{3}$/;const MAX_SUBJECT_MATCHES=30;const TEACHER_DIRECTORY_TTL_MS=60*60*1000;const STUDENT_ACCESS_TTL_MS=10*24*60*60*1000;
+const STUDENT_CODE_PATTERN=/^(?:TH|MT)[123]\\d{3}$/;const MAX_SUBJECT_MATCHES=30;const TEACHER_DIRECTORY_TTL_MS=60*60*1000;const STUDENT_ACCESS_TTL_MS=10*24*60*60*1000;
 let teacherDirectoryCache:{expiresAt:number;entries:TeacherDirectoryEntry[]}|null=null;let teacherDirectoryInflight:Promise<TeacherDirectoryEntry[]>|null=null;
 function isQuotaError(error:unknown){const source=error as {code?:unknown;message?:unknown};const text=`${String(source?.code||"")} ${String(source?.message||"")}`.toLowerCase();return text.includes("resource-exhausted")||text.includes("quota exceeded")}
 function hasVerifiedTeacherNotice(data:Record<string,unknown>){const notice=data.parentCounselorLastNotice;return !!notice&&typeof notice==="object"&&(notice as Record<string,unknown>).teacherCreated===true}
