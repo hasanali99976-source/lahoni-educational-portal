@@ -2,7 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../../lib/server/portal-auth";
-import { SCHOOL_CLASSES_COLLECTION, SCHOOL_STUDENTS_COLLECTION, canonicalClassName, classId, gradeNumber, sectionNumber } from "../../../../../lib/school-roster";
+import { SCHOOL_CLASSES_COLLECTION, SCHOOL_STUDENTS_COLLECTION, canonicalClassName, classId, gradeNumber, schoolStage, sectionNumber } from "../../../../../lib/school-roster";
 
 function refreshOfficialRoster(){revalidateTag("teacher-central-roster",{expire:0});}
 
@@ -28,12 +28,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (!previous.exists) return NextResponse.json({ ok: false, message: "الطالب غير موجود" }, { status: 404 });
     const current = previous.data() as Record<string, unknown>; const body = await request.json();
     const name = typeof body?.name === "string" ? body.name.replace(/\s+/g, " ").trim() : String(current.name || "");
-    const grade = gradeNumber(body?.grade ?? current.grade ?? current.className); const section = sectionNumber(body?.section ?? current.section, current.className);
+    const stage = schoolStage(body?.stage ?? current.stage, current.className); const grade = gradeNumber(body?.grade ?? current.grade ?? current.className); const section = sectionNumber(body?.section ?? current.section, current.className);
     if (name.length < 3 || !grade || !section) return NextResponse.json({ ok: false, message: "أكمل اسم الطالب والصف والفصل" }, { status: 400 });
-    const oldGrade = gradeNumber(current.grade ?? current.className); const oldSection = sectionNumber(current.section, current.className); const moved = oldGrade !== grade || oldSection !== section;
-    const now = new Date().toISOString(); const className = canonicalClassName(grade, section);
-    await reference.set({name,grade,section,className,active:body?.active===false?false:true,updatedAt:now,transferredAt:moved?now:current.transferredAt||null},{merge:true});
-    await adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(classId(grade,section)).set({grade,section,name:className,active:true,updatedAt:now,createdAt:now},{merge:true});
+    const oldStage = schoolStage(current.stage, current.className); const oldGrade = gradeNumber(current.grade ?? current.className); const oldSection = sectionNumber(current.section, current.className); const moved = oldStage !== stage || oldGrade !== grade || oldSection !== section;
+    const now = new Date().toISOString(); const className = canonicalClassName(grade, section, stage);
+    await reference.set({name,stage,grade,section,className,active:body?.active===false?false:true,updatedAt:now,transferredAt:moved?now:current.transferredAt||null},{merge:true});
+    await adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(classId(grade,section,stage)).set({stage,grade,section,name:className,active:true,updatedAt:now,createdAt:now},{merge:true});
 
     // Teacher class copies are historical snapshots. On a transfer, never let a stale copy
     // keep the student inside the old class report. We keep all recorded fields intact and
@@ -55,7 +55,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             rosterActive:false,
             transferred:true,
             transferredAt:now,
-            transferredFrom:oldGrade&&oldSection?canonicalClassName(oldGrade,oldSection):String(current.className||""),
+            transferredFrom:oldGrade&&oldSection?canonicalClassName(oldGrade,oldSection,oldStage):String(current.className||""),
             transferredTo:className,
             updatedAt:now
           },{merge:true}));
