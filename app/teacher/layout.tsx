@@ -19,6 +19,7 @@ import "./attendance-professional-v71.css";
 import "./teacher-ui-v107.css";
 import "./teacher-student-shell.css";
 import "./teacher-sidebar-v109.css";
+import "./middle-girls-theme.css";
 
 type TeacherTab = { href: string; key: string; label: string; note: string; badge?: string };
 type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; workspaceKey?: string; activeGrade?: number | null; activeGradeLabel?: string; subject?: string; subjects?: TeacherClientSubject[]; assignments?: TeacherClientAssignment[]; };
@@ -84,7 +85,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const contextValue={authenticated:true,teacherId,teacherName,subjectKey,workspaceKey,activeGrade,activeGradeLabel,subject:subjectName,subjects,assignments,setSubject:changeSubject,refresh:async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"});if(response.ok)applySession(await response.json());}};
   const cleanTeacherName=teacherName.replace(/^أ\.?\s*/,"");
   return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
-    <div className="teacher-student-shell" dir="rtl" data-subject={subjectKey}>
+    <div className="teacher-student-shell" dir="rtl" data-subject={subjectKey} data-stage={(activeGradeLabel||"").includes("المتوسط")?"middle":"secondary"}>
       <aside className={`tss-sidebar ${menuOpen?"open":""}`} aria-label="خدمات المعلم">
         <Link prefetch={false} href="/" className="tss-brand tss-brand-stacked">
           <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={68} height={68} priority unoptimized/>
