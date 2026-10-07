@@ -39,3 +39,23 @@
 .attendance-page .attendance-student-card:hover{background:rgba(18,83,91,.28)!important;border-color:rgba(255,255,255,.38)!important;transform:translateX(-2px)!important;transition:.14s ease!important}
 @media(max-width:1050px){.attendance-page .attendance-setup-panel{grid-template-columns:1fr!important}.attendance-page .attendance-student-card{grid-template-columns:1fr!important}.attendance-page .status-buttons{grid-template-columns:repeat(5,minmax(0,1fr))!important}.attendance-page .status-buttons button{width:100%!important}}
 @media(max-width:650px){.attendance-page .attendance-overview{grid-template-columns:repeat(2,1fr)!important}.attendance-page .attendance-stats{grid-template-columns:repeat(3,1fr)!important}.attendance-page .student-info{grid-template-columns:26px minmax(0,1fr) auto!important}.attendance-page .status-buttons{grid-template-columns:repeat(3,1fr)!important}}
+
+
+/* v14 — corrective attendance layout: dense, separated, readable */
+.attendance-page .attendance-card{padding:8px!important}
+.attendance-page .attendance-setup-panel{grid-template-columns:1fr!important;padding:6px 8px!important}
+.attendance-page .attendance-primary-controls{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+.attendance-page .attendance-main-actions{display:grid!important;grid-template-columns:1.25fr repeat(4,.72fr)!important;gap:5px!important}
+.attendance-page .attendance-main-actions button{width:100%!important;min-width:0!important;height:32px!important;font-size:8px!important}
+.attendance-page .attendance-overview{padding:6px 8px!important}.attendance-page .attendance-overview article{min-height:50px!important;padding:5px 8px!important}.attendance-page .attendance-overview article strong{font-size:17px!important}
+.attendance-page .attendance-workspace{padding:0!important}
+.attendance-page .attendance-list-head{padding:6px 8px 4px!important;border-top:1px solid rgba(255,255,255,.16)!important}
+.attendance-page .attendance-stats{padding:3px 8px 6px!important;gap:4px!important}.attendance-page .attendance-stats span{min-height:27px!important;font-size:7.5px!important;padding:3px!important}
+.attendance-page .attendance-list{gap:3px!important;padding:0 8px 8px!important}
+.attendance-page .attendance-student-card{display:grid!important;grid-template-columns:minmax(330px,1fr) 360px!important;direction:rtl!important;min-height:42px!important;padding:3px 5px!important;gap:6px!important;border:1px solid rgba(185,220,225,.30)!important;border-right-width:4px!important;border-radius:7px!important;background:rgba(3,31,42,.58)!important;box-shadow:0 1px 0 rgba(255,255,255,.04)!important}
+.attendance-page .attendance-student-card:nth-child(even){background:rgba(9,50,61,.58)!important}
+.attendance-page .student-info{grid-template-columns:25px minmax(0,1fr) 48px!important;gap:5px!important}.attendance-page .student-info>b{width:24px!important;height:24px!important;font-size:7px!important}.attendance-page .student-info strong{font-size:9px!important;line-height:1.15!important;color:#fff!important}.attendance-page .student-info small{font-size:6.4px!important;color:#bcd0d4!important}.attendance-page .student-info>em{width:48px!important;text-align:center!important;font-size:6.8px!important;padding:3px 2px!important}
+.attendance-page .status-buttons{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:3px!important;width:360px!important}.attendance-page .status-buttons button{width:auto!important;height:29px!important;min-width:0!important;padding:0 3px!important;font-size:7.4px!important;border-radius:6px!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
+.attendance-page .status-buttons button.present{order:1}.attendance-page .status-buttons button.absent{order:2}.attendance-page .status-buttons button.late{order:3}.attendance-page .status-buttons button.excused{order:4}.attendance-page .status-buttons button.escaped{order:5}
+@media(max-width:900px){.attendance-page .attendance-student-card{grid-template-columns:1fr!important}.attendance-page .status-buttons{width:100%!important}.attendance-page .attendance-main-actions{grid-template-columns:repeat(3,1fr)!important}}
+@media(max-width:600px){.attendance-page .attendance-primary-controls{grid-template-columns:1fr!important}.attendance-page .attendance-main-actions{grid-template-columns:repeat(2,1fr)!important}.attendance-page .attendance-stats{grid-template-columns:repeat(3,1fr)!important}.attendance-page .status-buttons{grid-template-columns:repeat(5,1fr)!important}.attendance-page .status-buttons button{font-size:6.8px!important}}
