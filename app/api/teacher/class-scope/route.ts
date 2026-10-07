@@ -42,13 +42,16 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const subjectId = String(body?.subjectId || "").split("--")[0].trim();
     const activeGrade = parseGrade(body?.grade);
+    const requestedStage = body?.stage === "middle" ? "middle" : body?.stage === "secondary" ? "secondary" : null;
     const selectedClassIds = normalizeClassIds(body?.selectedClassIds);
     const assignments = normalizeAssignments(user.assignments, user.subjectIds);
     const relevant = assignments.filter(item =>
-      item.subjectId === subjectId && (!activeGrade || gradeNumber(item.grade) === activeGrade),
+      item.subjectId === subjectId && (!activeGrade || gradeNumber(item.grade) === activeGrade) && (!requestedStage || (item.stage || "secondary") === requestedStage),
     );
+    const stages = [...new Set(relevant.map(item => item.stage || "secondary"))];
+    const stage = requestedStage || (stages.length === 1 ? stages[0] : null);
 
-    if (!subjectId || !activeGrade || !relevant.length) {
+    if (!subjectId || !activeGrade || !stage || !relevant.length) {
       return NextResponse.json({ ok: false, message: "المادة أو المرحلة غير مرتبطة بحسابك." }, { status: 400 });
     }
 
@@ -63,14 +66,14 @@ export async function PATCH(request: Request) {
         id: document.id,
         ...(document.data() as Record<string, unknown>),
       } as Partial<SchoolClass>);
-      if (schoolClass && schoolClass.active !== false && schoolClass.grade === activeGrade) {
+      if (schoolClass && schoolClass.active !== false && schoolClass.grade === activeGrade && schoolClass.stage === stage) {
         officialClassIds.add(schoolClass.id);
       }
     });
     studentSnapshot.docs.forEach(document => {
       const student = normalizeStudentRecord(document.data() as Record<string, unknown>, document.id);
-      if (student && student.active !== false && student.grade === activeGrade) {
-        officialClassIds.add(classId(student.grade, student.section));
+      if (student && student.active !== false && student.grade === activeGrade && student.stage === stage) {
+        officialClassIds.add(classId(student.grade, student.section, stage));
       }
     });
 
@@ -88,11 +91,12 @@ export async function PATCH(request: Request) {
 
     const now = new Date().toISOString();
     const scopeRef = database.collection(TEACHER_CLASS_SCOPES_COLLECTION)
-      .doc(teacherClassScopeId(session.userId, subjectId, activeGrade));
+      .doc(teacherClassScopeId(session.userId, subjectId, activeGrade, stage));
     await scopeRef.set({
       teacherId: session.userId,
       subjectId,
       grade: activeGrade,
+      stage,
       selectedClassIds,
       customized: true,
       assignmentSignature: assignmentScopeSignature(assignments, subjectId, activeGrade),
