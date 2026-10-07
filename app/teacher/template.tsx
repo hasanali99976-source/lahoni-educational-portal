@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import TeacherV24RuntimeFixes from "./v24-runtime-fixes";
 import TeacherUiStability from "./teacher-ui-stability";
 import TeacherLogoutFix from "./teacher-logout-fix";
+import TeacherCounselorReferralRuntime from "../teacher-counselor-referral-runtime";
+import "../teacher-counselor-referral-runtime.css";
 import "./teacher-typography-current.css";
 import "./teacher-current-experience.css";
 import "./teacher-avatar-current.css";
@@ -26,6 +28,7 @@ export default function TeacherTemplate({ children }: { children: ReactNode }) {
     <TeacherLogoutFix />
     <TeacherUiStability />
     <TeacherV24RuntimeFixes />
+    <TeacherCounselorReferralRuntime />
     {children}
   </>;
 }
