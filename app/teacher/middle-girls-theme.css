@@ -1,0 +1,27 @@
+/* Middle-school feminine identity: scoped only to teacher workspaces assigned to middle school. */
+.teacher-student-shell[data-stage="middle"]{
+  --tss-accent:#d85f9f;--tss-accent-2:#a95aa6;--tss-gold:#e6b85b;
+  --tss-bg:#351f38;--tss-panel:#512c50;--tss-ink:#fff7fb;
+  background:
+    radial-gradient(circle at 88% 8%,rgba(236,121,177,.28),transparent 30%),
+    radial-gradient(circle at 10% 92%,rgba(177,93,173,.22),transparent 28%),
+    linear-gradient(145deg,#321e37,#5a2d55 55%,#733956)!important;
+}
+.teacher-student-shell[data-stage="middle"] .tss-sidebar{
+  background:linear-gradient(180deg,rgba(67,35,64,.97),rgba(48,27,52,.98))!important;
+  border-color:rgba(247,178,211,.22)!important;
+}
+.teacher-student-shell[data-stage="middle"] .tss-nav a.active,
+.teacher-student-shell[data-stage="middle"] .tss-nav a:hover{
+  background:linear-gradient(135deg,rgba(218,91,157,.30),rgba(169,90,166,.20))!important;
+  border-color:rgba(244,166,204,.32)!important;
+}
+.teacher-student-shell[data-stage="middle"] .tss-side-profile-mark,
+.teacher-student-shell[data-stage="middle"] .tss-nav-badge{
+  background:linear-gradient(145deg,#e679b2,#a95aa6)!important;color:#fff!important;
+}
+.teacher-student-shell[data-stage="middle"] .tss-topbar,
+.teacher-student-shell[data-stage="middle"] .tss-content,
+.teacher-student-shell[data-stage="middle"] main{
+  --accent:#d85f9f;--primary:#b95596;--brand:#c85b9b;
+}
