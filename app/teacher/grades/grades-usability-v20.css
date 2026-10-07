@@ -56,3 +56,29 @@
 .gv11-table-wrap .deduction-quick{display:flex!important;flex-wrap:nowrap!important;gap:1px!important}.gv11-table-wrap .deduction-quick button{min-width:20px!important;padding:2px!important;font-size:7px!important}
 .gv11-table-wrap .reason-cell select,.gv11-table-wrap .reason-cell input{height:27px!important;font-size:7px!important;padding:2px 3px!important}
 @media(max-width:1100px){.gv11-table-wrap{overflow-x:auto!important}.gv11-table-wrap table{min-width:1050px!important}.gv11-section-tabs{overflow-x:auto!important;display:flex!important}.gv11-section-tabs button{min-width:125px!important}}
+
+
+/* v24 — dense roster + restored vertical scroll + safe unit tabs */
+.grades-v11{height:auto!important;min-height:0!important}
+.gv11-planbar{grid-template-columns:110px minmax(0,1fr)!important;padding:4px 5px!important;overflow:hidden!important}
+.gv11-section-tabs{display:flex!important;overflow-x:auto!important;overflow-y:hidden!important;gap:4px!important;padding:1px 0 3px!important;scrollbar-width:thin!important;scroll-snap-type:x proximity!important}
+.gv11-section-tabs button{flex:0 0 clamp(150px,19%,220px)!important;width:auto!important;min-width:150px!important;max-width:220px!important;min-height:39px!important;overflow:hidden!important;scroll-snap-align:start!important}
+.gv11-section-tabs button>b{font-size:8px!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.gv11-section-tabs button>small{font-size:6.8px!important}
+.gv11-gradebook{min-height:0!important;overflow:hidden!important}
+.gv11-table-wrap{height:min(62vh,680px)!important;max-height:min(62vh,680px)!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:stable!important;overscroll-behavior:contain!important}
+.gv11-table-wrap thead{position:sticky!important;top:0!important;z-index:20!important}.gv11-table-wrap th{top:0!important}
+.gv11-table-wrap table{width:100%!important;min-width:0!important;table-layout:fixed!important}
+.gv11-table-wrap th.name,.gv11-table-wrap td.name{width:17%!important;min-width:0!important}
+.gv11-table-wrap th.num,.gv11-table-wrap td.num{width:2.2%!important;min-width:28px!important}
+.gv11-table-wrap th:not(.num):not(.name):not(.deduction-col):not(.reason-col):not(.final-col):not(.row-action){width:6.4%!important}
+.gv11-table-wrap .deduction-col,.gv11-table-wrap .deduction-cell{width:5.4%!important;min-width:0!important}
+.gv11-table-wrap .reason-col,.gv11-table-wrap .reason-cell{width:9.2%!important;min-width:0!important}
+.gv11-table-wrap .final-col,.gv11-table-wrap .final-total{width:5.8%!important;min-width:0!important}
+.gv11-table-wrap .row-action{width:4.8%!important;min-width:0!important}
+.gv11-table-wrap th{height:50px!important;padding:3px 2px!important;font-size:7.6px!important;white-space:normal!important}
+.gv11-table-wrap th>span{display:block!important;line-height:1.05!important}.gv11-table-wrap th small{line-height:1!important}
+.gv11-table-wrap td{height:38px!important;padding:2px 3px!important}.gv11-table-wrap td.name b{font-size:9.5px!important}.gv11-table-wrap td.name small{font-size:6.7px!important}
+.gv11-table-wrap td input[type=number]{width:42px!important;height:26px!important;font-size:9px!important;border-radius:6px!important}
+.gv11-table-wrap .reason-cell select,.gv11-table-wrap .reason-cell input{height:25px!important;font-size:6.8px!important}
+.gv11-table-wrap .deduction-quick button{min-width:17px!important;font-size:6.5px!important;padding:1px!important}
+@media(max-width:1100px){.gv11-table-wrap{overflow-x:auto!important}.gv11-table-wrap table{min-width:980px!important}.gv11-section-tabs button{flex-basis:155px!important}}
