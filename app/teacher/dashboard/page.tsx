@@ -22,7 +22,7 @@ function riyadhDate(){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asi
 function attendanceDate(d:AttendanceDoc){const v=clean(d.date);return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:clean(d.id).match(/\d{4}-\d{2}-\d{2}/)?.[0]||""}
 function attendanceClass(d:AttendanceDoc){return clean(d.className||d.class)}
 function attendanceIndexKey(t:string,s:string){return `lahooni-attendance-index:${t}:${s}`}
-function localAttendanceIndex(t:string,s:string){try{const p=JSON.parse(localStorage.getItem(attendanceIndexKey(t,s))||"{}");return p&&typeof p==="object"?Object.values(p) as AttendanceDoc[]:[]}catch{return[]}}}
+function localAttendanceIndex(t:string,s:string){try{const p=JSON.parse(localStorage.getItem(attendanceIndexKey(t,s))||"{}");return p&&typeof p==="object"?Object.values(p) as AttendanceDoc[]:[]}catch{return[]}}
 
 export default function TeacherDashboardPage(){
  const session=useTeacherClient();const[now,setNow]=useState<Date|null>(null);const[schedule,setSchedule]=useState<Schedule>({});const[attendance,setAttendance]=useState<AttendanceDoc[]>([]);
