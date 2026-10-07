@@ -17,9 +17,9 @@ function dateLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:
 function timeLabel(value:Date){return new Intl.DateTimeFormat("ar-SA",{timeZone:"Asia/Riyadh",hour:"numeric",minute:"2-digit"}).format(value)}
 function riyadhDay(){return new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Riyadh",weekday:"long"}).format(new Date()).toLowerCase()}
 function localSchedule(key:string){try{const raw=localStorage.getItem(key);if(!raw)return{};const data=JSON.parse(raw);return data?.lessons&&typeof data.lessons==="object"?data.lessons as Schedule:{}}catch{return{}}
-function clean(v:unknown){return String(v||"").trim().replace(/\\s+/g," ")}
+function clean(v:unknown){return String(v||"").trim().replace(/\s+/g," ")}
 function riyadhDate(){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const g=(t:string)=>parts.find(p=>p.type===t)?.value||"";return `${g("year")}-${g("month")}-${g("day")}`}
-function attendanceDate(d:AttendanceDoc){const v=clean(d.date);return /^\\d{4}-\\d{2}-\\d{2}$/.test(v)?v:clean(d.id).match(/\\d{4}-\\d{2}-\\d{2}/)?.[0]||""}
+function attendanceDate(d:AttendanceDoc){const v=clean(d.date);return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:clean(d.id).match(/\d{4}-\d{2}-\d{2}/)?.[0]||""}
 function attendanceClass(d:AttendanceDoc){return clean(d.className||d.class)}
 function attendanceIndexKey(t:string,s:string){return `lahooni-attendance-index:${t}:${s}`}
 function localAttendanceIndex(t:string,s:string){try{const p=JSON.parse(localStorage.getItem(attendanceIndexKey(t,s))||"{}");return p&&typeof p==="object"?Object.values(p) as AttendanceDoc[]:[]}catch{return[]}}}
