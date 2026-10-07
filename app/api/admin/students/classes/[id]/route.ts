@@ -2,7 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../../../../../lib/server/firebase-admin";
 import { requireSession } from "../../../../../../lib/server/portal-auth";
-import { SCHOOL_CLASSES_COLLECTION } from "../../../../../../lib/school-roster";
+import { SCHOOL_CLASSES_COLLECTION, schoolStage } from "../../../../../../lib/school-roster";
 import {
   countActiveStudentsInClass,
   managedClass,
@@ -14,7 +14,7 @@ async function loadClass(id: string): Promise<ManagedClass | null> {
   const snapshot = await adminDb().collection(SCHOOL_CLASSES_COLLECTION).doc(id).get();
   if (!snapshot.exists) return null;
   const data = snapshot.data() as Record<string, unknown>;
-  return managedClass(data.grade ?? id.split("-")[0], data.section ?? id.split("-")[1]);
+  return managedClass(data.grade, data.section, schoolStage(data.stage, data.name));
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -25,7 +25,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (!previous) return NextResponse.json({ ok: false, message: "الفصل غير موجود" }, { status: 404 });
 
     const body = await request.json();
-    const next = managedClass(body?.grade, body?.section);
+    const next = managedClass(body?.grade, body?.section, previous.stage);
     if (!next) {
       return NextResponse.json({ ok: false, message: "اختر صفًا صحيحًا من الأول إلى الثالث وفصلًا من ١ إلى ٨." }, { status: 400 });
     }
@@ -41,6 +41,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const summary = await synchronizeClassChange({ previous, next });
     const now = new Date().toISOString();
     await database.collection(SCHOOL_CLASSES_COLLECTION).doc(next.id).set({
+      stage: next.stage,
       grade: next.grade,
       section: next.section,
       name: next.name,
