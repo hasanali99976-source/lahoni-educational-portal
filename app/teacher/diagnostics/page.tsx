@@ -11,7 +11,7 @@ import DiagnosticResults from "./diagnostic-results";
 import "./diagnostics.css";
 
 type Question = { id: string; text: string; options: string[]; correctIndex: number; skill: string };
-type Diagnostic = { id: string; title: string; instructions: string; published: boolean; questions: Question[]; plans: { low: string; medium: string; high: string } };
+type Diagnostic = { id: string; title: string; instructions: string; published: boolean; questions: Question[]; plans: { low: string; medium: string; high: string }; workspaceKey?: string; activeGrade?: number | null; teacherId?: string; subjectKey?: string; createdAt?: string; updatedAt?: string };
 const newQuestion = (): Question => ({ id: crypto.randomUUID(), text: "", options: ["", "", "", ""], correctIndex: 0, skill: "" });
 const emptyPlans = { low: "راجع المهارات الأساسية مع المعلم، ثم نفّذ أوراق العمل العلاجية وأعد التقييم.", medium: "راجع المهارات التي أخطأت فيها، ونفّذ تدريبًا قصيرًا قبل التقييم التالي.", high: "أداؤك متقن. انتقل إلى الأنشطة الإثرائية وحافظ على المراجعة المنتظمة." };
 const optionCounts = [2, 3, 4, 5, 6, 7, 8];
@@ -34,6 +34,7 @@ export default function DiagnosticsPage() {
   const [deletingId, setDeletingId] = useState("");
   const [preview, setPreview] = useState<Diagnostic | null>(null);
   const path = session?.teacherId && session.subjectKey ? tenantCollection(session.teacherId, session.subjectKey as SubjectKey, "diagnostics") : "";
+  const workspaceKey = String(session?.workspaceKey || `${session?.subjectKey || ""}--${session?.activeGrade || ""}`);
   useEffect(() => {
     setDiagnosticsLoaded(false);
     if (!path) return;
@@ -41,7 +42,7 @@ export default function DiagnosticsPage() {
     void getDocs(collection(db, path))
       .then(snapshot => {
         if (cancelled) return;
-        setItems(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Diagnostic, "id">) })));
+        setItems(snapshot.docs.map(item => ({ id: item.id, ...(item.data() as Omit<Diagnostic, "id">) })).filter(item => !item.workspaceKey || item.workspaceKey === workspaceKey));
       })
       .catch(() => {
         if (!cancelled) setItems([]);
@@ -50,7 +51,7 @@ export default function DiagnosticsPage() {
         if (!cancelled) setDiagnosticsLoaded(true);
       });
     return () => { cancelled = true; };
-  }, [path]);
+  }, [path, workspaceKey]);
   function updateQuestion(id: string, patch: Partial<Question>) { setQuestions(current => current.map(question => question.id === id ? { ...question, ...patch } : question)); }
   function setOptionCount(question: Question, count: number) {
     const nextOptions = Array.from({ length: count }, (_, index) => question.options[index] || "");
@@ -66,7 +67,7 @@ export default function DiagnosticsPage() {
   }
   async function save(published: boolean) {
     if (!path || !title.trim() || questions.some(question => !question.text.trim() || question.options.length < 2 || question.options.some(option => !option.trim()) || question.correctIndex < 0 || question.correctIndex >= question.options.length)) return setMessage("أكمل عنوان الاختبار وجميع الأسئلة والخيارات وحدد الإجابة الصحيحة.");
-    const id = crypto.randomUUID(); await setDoc(doc(db, path, id), { title: title.trim(), instructions: instructions.trim(), published, questions, plans, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+    const id = crypto.randomUUID(); const now = new Date().toISOString(); await setDoc(doc(db, path, id), { title: title.trim(), instructions: instructions.trim(), published, questions, plans, workspaceKey, activeGrade: session?.activeGrade || null, teacherId: session?.teacherId || "", subjectKey: session?.subjectKey || "", schemaVersion: 2, createdAt: now, updatedAt: now });
     setTitle(""); setInstructions(""); setQuestions([newQuestion()]); setPlans(emptyPlans); setMessage(published ? "تم نشر الاختبار في بوابة الطالب." : "تم حفظ الاختبار كمسودة.");
   }
   async function deleteDiagnostic(item: Diagnostic) {
