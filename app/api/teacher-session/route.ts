@@ -40,7 +40,7 @@ function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof no
 
 async function loadSelectedClassIds(teacherId: string, workspace: Workspace | null) {
   if (!workspace || !workspace.grade) return [] as string[];
-  const snapshot = await adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(teacherId, workspace.subjectId, workspace.grade)).get();
+  const snapshot = await adminDb().collection(TEACHER_CLASS_SCOPES_COLLECTION).doc(teacherClassScopeId(teacherId, workspace.subjectId, workspace.grade, workspace.stage)).get();
   if (!snapshot.exists || snapshot.data()?.customized !== true) return [] as string[];
   return normalizeClassIds(snapshot.data()?.selectedClassIds);
 }
