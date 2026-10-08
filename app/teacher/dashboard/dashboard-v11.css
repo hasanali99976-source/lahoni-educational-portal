@@ -112,3 +112,7 @@
 .teacher-student-shell:has(.teacher-dashboard-v11) .tss-content{background:transparent!important}
 .teacher-dashboard-v11::before{content:none!important;display:none!important}
 @media(max-width:700px){.teacher-student-shell:has(.teacher-dashboard-v11){background-attachment:scroll!important;background-position:center top!important}}
+
+/* Override the legacy fixed Unsplash office layer on the actual shell. */
+.teacher-student-shell:has(.teacher-dashboard-v11)::before{background-image:url("/api/teacher-dashboard-background")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.82) brightness(.82)!important;transform:none!important;opacity:1!important}
+.teacher-student-shell:has(.teacher-dashboard-v11)::after{background:linear-gradient(180deg,rgba(3,18,29,.36),rgba(3,23,32,.24) 45%,rgba(3,16,27,.58))!important}
