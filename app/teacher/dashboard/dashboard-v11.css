@@ -105,3 +105,9 @@
 @media(max-width:1250px){.td11-classes>article{grid-template-columns:1fr!important;grid-template-areas:"head" "stats" "actions"!important}.td11-classes>article>header{border-left:0!important;border-bottom:1px solid rgba(255,255,255,.10)!important;padding:0 0 6px!important}}
 @media(max-width:1050px){.td11-day-grid{grid-template-columns:1fr!important}.td11-day-grid>article{min-height:112px!important}.td11-classes{grid-template-columns:1fr!important}}
 @media(max-width:560px){.td11-class-meta{grid-template-columns:repeat(3,1fr)!important}.td11-classes footer{grid-template-columns:repeat(2,1fr)!important}}
+
+/* Soft, non-interactive classroom illustration on the dashboard only. */
+.teacher-dashboard-v11{position:relative;isolation:isolate}
+.teacher-dashboard-v11::before{content:"";position:absolute;z-index:-1;top:0;left:0;width:min(52%,650px);height:390px;pointer-events:none;background:url("/api/teacher-dashboard-background") center top/contain no-repeat;opacity:.23}
+.teacher-dashboard-v11> *{position:relative}
+@media(max-width:700px){.teacher-dashboard-v11::before{width:75%;height:260px;opacity:.13}}
