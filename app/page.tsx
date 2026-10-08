@@ -28,7 +28,13 @@ export default function HomePage(){
   return <main className="lh-home" dir="rtl"><style>{`
   .lh-home,.lh-home *{box-sizing:border-box}
   .lh-home{position:relative;isolation:isolate;min-height:100dvh;overflow:hidden;background:#04141f;color:#fff;font-family:"Tajawal","Noto Kufi Arabic",Tahoma,Arial,sans-serif}
-  .lh-home:before{content:"";position:absolute;inset:0;z-index:-3;background:linear-gradient(180deg,rgba(2,14,24,.44),rgba(2,18,29,.75) 60%,rgba(2,13,23,.98)),url("https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&fm=jpg&q=85&w=2000") center/cover no-repeat}
+  .lh-home:before{content:"";position:absolute;inset:0;z-index:-3;background:linear-gradient(180deg,rgba(2,14,24,.44),rgba(2,18,29,.75) 60%,rgba(2,13,23,.98)),url("https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&fm=jpg&q=82&w=2000") center/cover no-repeat}
+  .lh-school-subjects{position:absolute;top:138px;right:clamp(12px,3.2vw,70px);z-index:-1;display:flex;flex-direction:column;align-items:flex-start;gap:12px;pointer-events:none;opacity:.75}
+  .lh-school-subjects span{display:flex;align-items:center;gap:12px;min-width:152px;padding:12px 17px;border:1px solid rgba(240,199,118,.55);border-radius:12px;background:linear-gradient(105deg,rgba(2,31,46,.93),rgba(8,53,65,.73));box-shadow:0 10px 20px rgba(0,0,0,.23);font-size:14px;font-weight:900;color:#f5dda7;backdrop-filter:blur(6px)}
+  .lh-school-subjects span:nth-child(2){margin-right:14px}.lh-school-subjects span:nth-child(3){margin-right:28px}.lh-school-subjects span:nth-child(4){margin-right:42px}
+  .lh-school-subjects i{font-style:normal;font-size:19px;color:#7ce6dd}
+  @media(max-width:1000px){.lh-school-subjects{opacity:.35;right:12px}.lh-school-subjects span{font-size:11px;min-width:110px;padding:9px}}
+  @media(max-width:690px){.lh-school-subjects{display:none}}
   .lh-home:after{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at 51% 25%,rgba(0,205,225,.17),transparent 40%),radial-gradient(ellipse at 50% 55%,rgba(238,162,56,.12),transparent 44%)}
   .lh-frame{width:min(1640px,100%);margin:auto;padding:0 clamp(18px,4vw,64px)}
   .lh-top{min-height:93px;display:flex;align-items:center;justify-content:space-between;gap:20px}
@@ -87,6 +93,7 @@ export default function HomePage(){
   .lh-stars .star-side{font-size:22px;line-height:1;color:#8ae8df;text-shadow:0 0 12px rgba(66,220,218,.6)}
   @media(prefers-reduced-motion:reduce){.lh-card,.lh-card:after,.lh-enter b{transition:none}}
   `}</style>
+  <div className="lh-school-subjects" aria-hidden="true"><span><i>✎</i> اللغة العربية</span><span><i>▦</i> الرياضيات</span><span><i>⚗</i> العلوم</span><span><i>◈</i> التاريخ</span><span><i>✧</i> اللغة الإنجليزية</span></div>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
     <section className="lh-stage" aria-label="بوابة أستاذ لحوني التعليمية"><div className="lh-book lh-stars" aria-hidden="true"><span className="star-side">✧</span><span className="star-main">✦</span><span className="star-side">✧</span></div><div className="lh-smalltitle">بوابة</div><h1 className="lh-main-title">أستاذ لحوني</h1><div className="lh-subtitle">التعليمية</div><p className="lh-motto">تعليم أكثر تنظيمًا · متابعة أكثر أثرًا</p><p className="lh-intro">منظومة تعليمية تجمع الإدارة والمعلم والطالب وولي الأمر في تجربة واحدة، لتطوير التعلم ومتابعة الإنجاز.</p></section>
