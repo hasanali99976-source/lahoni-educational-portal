@@ -104,3 +104,7 @@
 .teacher-student-shell .tss-subject-switch select{max-width:170px;min-width:95px;border:0;outline:0;background:transparent;color:#fff;font:inherit;cursor:pointer}
 .teacher-student-shell .tss-subject-switch option{background:#103d42;color:#fff}
 @media(max-width:650px){.teacher-student-shell .tss-subject-switch{padding:4px 6px;font-size:10px}.teacher-student-shell .tss-subject-switch select{max-width:110px;min-width:65px}}
+
+.teacher-student-shell .tss-subject-switch{border-radius:999px!important;background:rgba(7,64,67,.72)!important;border:1px solid rgba(237,203,115,.55)!important;padding:7px 11px!important;box-shadow:0 5px 18px rgba(0,0,0,.12)!important}
+.teacher-student-shell .tss-subject-switch-icon{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#eac978,#c89636);color:#073b40!important;font-size:16px!important}
+.teacher-student-shell .tss-subject-switch select{padding:4px 6px!important;border-radius:8px!important;background:rgba(255,255,255,.09)!important;color:#fff!important}
