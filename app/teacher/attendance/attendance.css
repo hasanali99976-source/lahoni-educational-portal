@@ -11,3 +11,25 @@
 /* V120 — timetable lessons mirrored above attendance */
 .attendance-lesson-tabs{padding:14px 17px;border-bottom:1px solid #e4ebea;background:linear-gradient(135deg,#f7fbfa,#eef7f5)}.attendance-lesson-tabs-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.attendance-lesson-tabs-head small,.attendance-lesson-tabs-head strong{display:block}.attendance-lesson-tabs-head small{color:var(--subject);font-size:10px;font-weight:950}.attendance-lesson-tabs-head strong{margin-top:2px;color:#203e46;font-size:13px}.attendance-lesson-tabs-head>span{padding:6px 10px;border-radius:999px;background:var(--subject);color:#fff;font-size:10px;font-weight:950}.attendance-lesson-tabs-list{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:thin}.attendance-lesson-tabs-list button{flex:0 0 145px;min-height:72px;padding:9px 10px;border:2px solid #d4e3df;border-radius:12px;background:#fff;color:#294a51;text-align:right;cursor:pointer}.attendance-lesson-tabs-list button:nth-child(5n+1){background:#fff8e8;border-color:#e7c76f}.attendance-lesson-tabs-list button:nth-child(5n+2){background:#eef8ff;border-color:#8fc4e8}.attendance-lesson-tabs-list button:nth-child(5n+3){background:#f1fbf1;border-color:#91cf99}.attendance-lesson-tabs-list button:nth-child(5n+4){background:#fff0f5;border-color:#e6a5bb}.attendance-lesson-tabs-list button:nth-child(5n){background:#f5f0ff;border-color:#bba6e6}.attendance-lesson-tabs-list button.active{border-color:var(--subject)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--subject) 15%,transparent);transform:translateY(-1px)}.attendance-lesson-tabs-list b,.attendance-lesson-tabs-list strong,.attendance-lesson-tabs-list small{display:block}.attendance-lesson-tabs-list b{font-size:9px;color:var(--subject)}.attendance-lesson-tabs-list strong{margin-top:3px;font-size:13px}.attendance-lesson-tabs-list small{margin-top:2px;font-size:9px;color:#70878b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.attendance-lesson-tabs-list p{margin:0;padding:10px;color:#70878b;font-size:11px;font-weight:800}
 @media(max-width:700px){.attendance-lesson-tabs{padding:12px 10px}.attendance-lesson-tabs-head{align-items:flex-start}.attendance-lesson-tabs-list button{flex-basis:132px;min-height:76px}}
+
+/* Mobile register: every student and all five statuses stay reachable */
+@media(max-width:980px){
+.attendance-page,.attendance-card,.attendance-workspace,.attendance-list{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.attendance-card{overflow:visible}
+.attendance-student-card{width:100%;min-width:0;box-sizing:border-box;grid-template-columns:minmax(0,1fr);gap:8px}
+.attendance-student-card .student-info{min-width:0;grid-template-columns:32px minmax(0,1fr) auto}
+.attendance-student-card .student-info strong{overflow-wrap:anywhere}
+.attendance-student-card .status-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;gap:4px;padding:0;min-width:0}
+.attendance-student-card .status-buttons button{min-width:0;width:100%;height:auto;min-height:39px;padding:5px 2px;white-space:normal;overflow:visible;text-overflow:clip;font-size:10px;line-height:1.25}
+.attendance-setup-panel,.attendance-primary-controls,.attendance-main-actions{max-width:100%;min-width:0}
+}
+@media(max-width:480px){
+.attendance-list{padding:0 7px 12px}
+.attendance-student-card{padding:8px 7px}
+.attendance-student-card .student-info{grid-template-columns:28px minmax(0,1fr);gap:7px}
+.attendance-student-card .student-info>em{grid-column:2;justify-self:start}
+.attendance-student-card .status-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}
+.attendance-student-card .status-buttons button{min-height:36px}
+.attendance-overview{padding:9px;gap:6px}
+.attendance-overview article{padding:9px}
+}
