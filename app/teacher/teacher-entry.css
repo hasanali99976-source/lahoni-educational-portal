@@ -158,3 +158,10 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .teacher-entry-page .portal-entry-copy{max-width:420px!important}
 }
 @media(max-width:800px){.teacher-entry-page .portal-entry-card{width:100%!important;min-height:calc(100svh - 160px);padding:28px 22px!important;background:rgba(237,247,237,.89)!important;backdrop-filter:blur(28px)!important;border-radius:44px!important}}
+
+/* Precision placement: move the glass panel to the RIGHT edge, not left. */
+@media(min-width:801px){
+.teacher-entry-page .portal-entry-hero{grid-template-columns:minmax(0,1fr) minmax(520px,620px)!important;padding:8px 12px 24px 100px!important;gap:12px!important;align-items:start!important}
+.teacher-entry-page .portal-entry-card{grid-column:2!important;justify-self:end!important;align-self:start!important;margin-top:0!important;width:min(620px,100%)!important;max-width:620px!important;min-height:min(790px,calc(100vh - 90px))!important;padding:30px 44px!important;border-radius:58px!important}
+.teacher-entry-page .portal-entry-copy{grid-column:1!important;justify-self:center!important}
+}
