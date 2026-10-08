@@ -190,3 +190,9 @@
 .tss-reference-bell{width:36px!important;height:36px!important;background:rgba(4,42,56,.18)!important;border-color:rgba(255,255,255,.08)!important;box-shadow:none!important}
 .tss-reference-welcome{min-width:178px!important;padding:4px 7px!important;background:rgba(4,42,56,.14)!important;border-color:rgba(255,255,255,.07)!important;box-shadow:none!important}
 .tss-reference-welcome>span{width:27px!important;height:27px!important}
+
+/* Shared teacher portal background across ALL authenticated teacher tabs. */
+.teacher-student-shell{background-image:none!important;isolation:isolate!important}
+.teacher-student-shell::before{background-image:url("/api/teacher-dashboard-background")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.82) brightness(.82)!important;transform:none!important;opacity:1!important}
+.teacher-student-shell::after{background:linear-gradient(180deg,rgba(3,18,29,.36),rgba(3,23,32,.24) 45%,rgba(3,16,27,.58))!important}
+.teacher-student-shell .tss-main,.teacher-student-shell .tss-content{background:transparent!important}
