@@ -53,3 +53,31 @@ body *{visibility:hidden!important}
 .nv13-export-tools{grid-column:1/-1;display:grid;grid-template-columns:minmax(190px,1fr) auto auto;align-items:end;gap:8px;margin-top:10px;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(3,34,46,.16)}.nv13-export-tools label{display:grid;grid-template-columns:auto minmax(130px,190px);align-items:center;justify-content:start;gap:8px}.nv13-export-tools label span{font-size:8px;color:#dcebed;font-weight:900}.nv13-export-tools select{height:34px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:rgba(11,65,78,.72);color:#fff;padding:0 9px;font:inherit;font-size:8.5px;font-weight:800}.nv13-export-tools>button{height:34px;border:1px solid rgba(239,203,115,.35);border-radius:8px;background:rgba(239,203,115,.09);color:#ffe09a;padding:0 12px;font:inherit;font-size:8.5px;font-weight:900;white-space:nowrap}.nv13-report-class{display:grid;gap:7px}.nv13-report-class>h2{margin:8px 0 2px;padding:7px 9px;border-radius:9px;background:rgba(24,148,121,.13);font-size:12px;color:#9fe1d8}@media(max-width:620px){.nv13-export-tools{grid-template-columns:1fr}.nv13-export-tools label{grid-template-columns:1fr}.nv13-export-tools label,.nv13-export-tools select,.nv13-export-tools>button{width:100%}}
 
 .nv13-print-table{width:100%;border-collapse:collapse;table-layout:fixed}.nv13-print-table th,.nv13-print-table td{padding:7px;border:1px solid rgba(255,255,255,.15);text-align:right;vertical-align:top}.nv13-print-table th{color:#ffe09a;font-size:8px}.nv13-print-table td{color:#edf7f8;font-size:8px;line-height:1.5}
+/* Notes readability: opaque controls, clear editor and calm spacing */
+.notes-v13 .nv13-focus{background:rgba(5,39,49,.88);border-color:rgba(163,219,214,.32)}
+.notes-v13 .nv13-compose-card{background:rgba(7,48,58,.95);border:1px solid rgba(157,215,209,.36);padding:16px}
+.notes-v13 .nv13-section-head small{color:#a9e6db;font-size:10px}
+.notes-v13 .nv13-section-head h3{color:#fff;font-size:17px}
+.notes-v13 .nv13-presets{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.notes-v13 .nv13-presets button{min-height:72px;padding:10px;gap:9px;background:#eaf5f3;border:1px solid #afd5ce;border-radius:12px;color:#153d45;box-shadow:none}
+.notes-v13 .nv13-presets button:nth-child(4n+2){background:#eaf2fb;border-color:#b7d3e9}
+.notes-v13 .nv13-presets button:nth-child(4n+3){background:#fff3dd;border-color:#e8d2a6}
+.notes-v13 .nv13-presets button:nth-child(4n){background:#f4ebfa;border-color:#d7c3e5}
+.notes-v13 .nv13-presets button>i{background:#fff;color:#145b61;width:33px;height:33px;font-size:11px}
+.notes-v13 .nv13-presets button small{color:#486c72;font-size:10px;font-weight:800}
+.notes-v13 .nv13-presets button b{color:#123b43;font-size:12px;line-height:1.4;font-weight:900;text-shadow:none}
+.notes-v13 .nv13-presets button.active{background:#c7eee3;border:2px solid #0b8478;padding:9px;box-shadow:inset 0 -3px 0 #0b8478}
+.notes-v13 .nv13-editor-wrap{margin-top:15px;background:#fff;border:2px solid #a8d3cd;border-radius:13px;overflow:hidden}
+.notes-v13 .nv13-editor-head{background:#e7f3f0;border-bottom:1px solid #bad8d3;padding:10px 12px}
+.notes-v13 .nv13-editor-head small{color:#47727a;font-size:10px}
+.notes-v13 .nv13-editor-head b{color:#153d45;font-size:12px}
+.notes-v13 .nv13-editor-head button{background:#fff;color:#17535b;border-color:#a9c9c7;font-size:10px;padding:8px 10px}
+.notes-v13 .nv13-editor-wrap textarea{display:block;box-sizing:border-box;min-height:145px;background:#fff;color:#153a43;-webkit-text-fill-color:#153a43;font-size:14px;line-height:1.9;padding:14px;resize:vertical}
+.notes-v13 .nv13-editor-wrap textarea::placeholder{color:#66858a;-webkit-text-fill-color:#66858a}
+.notes-v13 .nv13-editor-wrap:focus-within{border-color:#0b877e;box-shadow:0 0 0 3px rgba(78,196,172,.17)}
+.notes-v13 .nv13-live-preview{background:#f7faf5;border:1px solid #d7e5d7;margin:0 11px 11px;padding:10px 12px}
+.notes-v13 .nv13-live-preview span{color:#8b691b;font-size:10px}
+.notes-v13 .nv13-live-preview p{color:#24464a;font-size:12px;line-height:1.75}
+.notes-v13 .nv13-actions{margin-top:13px}.notes-v13 .nv13-actions button{background:#0b8175;border-color:#5ac2b0;padding:11px 15px;font-size:12px}
+@media(max-width:1100px){.notes-v13 .nv13-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.notes-v13 .nv13-presets{grid-template-columns:1fr 1fr}.notes-v13 .nv13-presets button{min-height:76px;padding:8px}.notes-v13 .nv13-presets button b{font-size:11px}}
