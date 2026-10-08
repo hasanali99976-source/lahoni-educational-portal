@@ -28,7 +28,7 @@ export default function HomePage(){
   return <main className="lh-home" dir="rtl"><style>{`
   .lh-home,.lh-home *{box-sizing:border-box}
   .lh-home{position:relative;isolation:isolate;min-height:100dvh;overflow:hidden;background:#04141f;color:#fff;font-family:"Tajawal","Noto Kufi Arabic",Tahoma,Arial,sans-serif}
-  .lh-home:before{content:"";position:absolute;inset:0;z-index:-3;background:linear-gradient(180deg,rgba(2,14,24,.44),rgba(2,18,29,.75) 60%,rgba(2,13,23,.98)),url("https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&fm=jpg&q=82&w=2000") center/cover no-repeat}
+  .lh-home:before{content:"";position:absolute;inset:0;z-index:-3;background:linear-gradient(180deg,rgba(2,14,24,.44),rgba(2,18,29,.75) 60%,rgba(2,13,23,.98)),url("/lahooni_classroom_background.webp") center/cover no-repeat}
   .lh-school-subjects{position:absolute;top:138px;right:clamp(12px,3.2vw,70px);z-index:-1;display:flex;flex-direction:column;align-items:flex-start;gap:12px;pointer-events:none;opacity:.75}
   .lh-school-subjects span{display:flex;align-items:center;gap:12px;min-width:152px;padding:12px 17px;border:1px solid rgba(240,199,118,.55);border-radius:12px;background:linear-gradient(105deg,rgba(2,31,46,.93),rgba(8,53,65,.73));box-shadow:0 10px 20px rgba(0,0,0,.23);font-size:14px;font-weight:900;color:#f5dda7;backdrop-filter:blur(6px)}
   .lh-school-subjects span:nth-child(2){margin-right:14px}.lh-school-subjects span:nth-child(3){margin-right:28px}.lh-school-subjects span:nth-child(4){margin-right:42px}
