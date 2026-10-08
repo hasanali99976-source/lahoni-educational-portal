@@ -47,9 +47,9 @@ export default function HomePage(){
   .lh-motto{font-size:17px;font-weight:900;color:#f7dfac;margin:20px 0 6px;letter-spacing:.2px}
   .lh-intro{max-width:900px;margin:0 auto;font-size:14px;font-weight:700;line-height:1.9;color:#e4f1f0}
   .lh-roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:12px}
-  .lh-card{--accent:#77d5ff;--glow:rgba(48,176,245,.3);position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:332px;padding:20px 23px 19px;overflow:hidden;border:1px solid var(--accent);border-radius:24px;text-decoration:none;color:#fff;background:linear-gradient(145deg,rgba(7,76,109,.94),rgba(2,26,47,.98));box-shadow:0 18px 38px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.19);transition:transform .3s,border-color .3s,box-shadow .3s}
-  .lh-card.teacher{--accent:#ffda89;--glow:rgba(239,170,66,.32);background:linear-gradient(145deg,rgba(111,66,24,.96),rgba(37,25,22,.98))}
-  .lh-card.student{--accent:#6bf6d3;--glow:rgba(32,225,175,.3);background:linear-gradient(145deg,rgba(3,114,97,.96),rgba(1,36,44,.99))}
+  .lh-card{--accent:#77d5ff;--glow:rgba(48,176,245,.3);position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:300px;padding:20px 23px 19px;overflow:hidden;border:1px solid var(--accent);border-radius:24px;text-decoration:none;color:#fff;background:linear-gradient(145deg,rgba(7,76,109,.50),rgba(2,26,47,.65));box-shadow:0 18px 38px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.19);transition:transform .3s,border-color .3s,box-shadow .3s}
+  .lh-card.teacher{--accent:#ffda89;--glow:rgba(239,170,66,.32);background:linear-gradient(145deg,rgba(111,66,24,.50),rgba(37,25,22,.65))}
+  .lh-card.student{--accent:#6bf6d3;--glow:rgba(32,225,175,.3);background:linear-gradient(145deg,rgba(3,114,97,.50),rgba(1,36,44,.65))}
   .lh-card:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 25% 15%,var(--glow),transparent 50%),linear-gradient(125deg,transparent 20%,rgba(255,255,255,.055) 50%,transparent 72%)}
   .lh-card:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.16) 49%,transparent 65%);transform:translateX(130%);transition:transform .7s}
   .lh-card:hover,.lh-card:focus-visible{transform:translateY(-8px);box-shadow:0 26px 55px rgba(0,0,0,.55),0 0 36px var(--glow);outline:none}
@@ -63,7 +63,7 @@ export default function HomePage(){
   .lh-card-copy p{margin:0 0 14px;font-size:12px;line-height:1.7;color:#e4eff0}
   .lh-enter{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-radius:12px;border:1px solid var(--accent);background:rgba(2,17,29,.56);font-size:14px;font-weight:900;box-shadow:0 0 15px var(--glow)}
   .lh-enter b{display:grid;place-items:center;background:var(--accent);color:#05212d;width:29px;height:29px;border-radius:8px;font-size:20px;transition:transform .25s}.lh-card:hover .lh-enter b{transform:translateX(-6px)}
-  .card-scene{position:absolute;inset:54px 0 96px;z-index:-1;overflow:hidden;opacity:.93}
+  .card-scene{position:absolute;inset:54px 0 96px;z-index:-1;overflow:hidden;opacity:.64}
   .scene-halo{position:absolute;left:10%;top:3%;width:72%;height:125%;border-radius:50%;background:radial-gradient(ellipse,var(--glow),transparent 68%);filter:blur(7px)}
   .scene-screen{position:absolute;left:12%;top:12%;width:47%;height:65%;border:6px solid #162c3c;border-radius:9px;background:linear-gradient(140deg,#174e77,#061d38);box-shadow:9px 12px 0 rgba(0,0,0,.35),0 0 30px var(--glow);transform:perspective(400px) rotateY(-15deg)}
   .scene-screen i{display:block;width:65%;height:8px;margin:12px;background:#46a8dd;border-radius:5px}.scene-screen i:nth-child(2){width:42%;background:#f7ca74}.scene-screen i:nth-child(3){width:78%;background:#70dfdf}.scene-screen b{position:absolute;bottom:12px;right:10px;width:75%;height:25%;border:2px solid rgba(145,218,255,.5);border-radius:3px}
