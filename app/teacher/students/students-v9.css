@@ -26,3 +26,17 @@
 @media(max-width:850px){.sv9-student-list{overflow-x:auto}.sv9-student-list article{min-width:660px;grid-template-columns:32px minmax(170px,1fr) 145px 100px 105px}}
 @media(max-width:600px){.sv9-student-list article{min-width:640px}.sv9-class-options{grid-template-columns:1fr}}
 @media print{.sv9-student-list article{min-width:0;break-inside:avoid}.sv9-student-list article>button{display:none}}
+
+/* Class selection dialog: high-contrast accessible labels */
+.sv9-modal .sv9-class-options{background:#f2f7f6;gap:9px;padding:14px}
+.sv9-modal .sv9-class-options label{display:grid;grid-template-columns:20px 44px minmax(0,1fr);align-items:center;gap:9px;min-height:69px;padding:10px 12px;border:1px solid #aecfca;border-radius:12px;background:#fff;box-shadow:0 2px 7px rgba(11,65,66,.06);cursor:pointer;opacity:1}
+.sv9-modal .sv9-class-options label.selected{background:#e1f4ef;border:2px solid #087c72;padding:9px 11px;box-shadow:inset 4px 0 0 #087c72}
+.sv9-modal .sv9-class-options label input{width:17px;height:17px;accent-color:#08766f}
+.sv9-modal .sv9-class-options label>span{width:42px;height:42px;background:#cce8e2;color:#095c59;font-size:12px;opacity:1}
+.sv9-modal .sv9-class-options label>div{min-width:0;opacity:1}
+.sv9-modal .sv9-class-options label b{display:block;color:#123d45!important;-webkit-text-fill-color:#123d45!important;text-shadow:none!important;font-size:13px!important;line-height:1.45;font-weight:900;opacity:1}
+.sv9-modal .sv9-class-options label small{display:block;color:#466a6d!important;-webkit-text-fill-color:#466a6d!important;text-shadow:none!important;font-size:10px!important;line-height:1.4;opacity:1}
+.sv9-modal>section>header h2{color:#fff;font-size:20px}
+.sv9-modal>section>header p{color:#e5f4f2;font-size:11px}
+.sv9-modal footer{background:#f8fbfa}
+@media(max-width:600px){.sv9-modal .sv9-class-options{grid-template-columns:1fr}.sv9-modal .sv9-class-options label{min-height:62px}}
