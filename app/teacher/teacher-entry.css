@@ -94,3 +94,9 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .teacher-entry-page .portal-entry-note{color:#b7cbd0!important}
 .teacher-entry-page .portal-entry-brand small{color:#bfd0d5!important}
 .teacher-entry-tabs-large span small{color:#eee3c7!important}
+
+/* Saudi classroom background for teacher login only. Preserve existing branding and sign-in flows. */
+.teacher-entry-page{background:linear-gradient(90deg,rgba(3,25,32,.28) 0%,rgba(3,25,32,.18) 48%,rgba(3,25,32,.40) 100%),url("/api/teacher-entry-background") center center / cover no-repeat fixed,#092e35}
+.teacher-entry-page .portal-entry-shell{background:rgba(3,27,39,.24)!important}
+.teacher-entry-page .portal-entry-card{background:rgba(3,38,49,.86)!important}
+@media(max-width:800px){.teacher-entry-page{background-position:38% center;background-attachment:scroll}.teacher-entry-page .portal-entry-shell{background:rgba(3,27,39,.48)!important}}
