@@ -21,3 +21,27 @@
 .sv9-student-list article{display:grid;grid-template-columns:38px minmax(240px,1fr) 190px 130px 105px;gap:8px;align-items:center;min-height:48px;padding:5px 12px;border:0;border-bottom:1px solid #d7e6e5;border-radius:0;background:#fff!important;color:#153e46;box-shadow:none}.sv9-student-list article:nth-child(even){background:#eef7f5!important}.sv9-student-list article:before{display:none}.sv9-student-list article>b{width:28px;height:28px;border-radius:7px;background:#dceceb;color:#174c55;box-shadow:none;font-size:10px}.sv9-student-list strong{font-size:12px;color:#103c46}.sv9-student-list small{margin:0!important;padding:4px 8px!important;border:0!important;background:#d8efeb!important;color:#08666a!important;font-size:9px!important}.sv9-student-list small:before{content:""}.sv9-student-list code{min-width:0;min-height:30px;padding:5px 8px;border-color:#9acdd2;border-radius:7px;background:#e7f6f7!important;font-size:11px}.sv9-student-list button{min-height:30px;padding:5px 7px;border-color:#b9d5d2;background:#f6fbfa;color:#164d55;border-radius:7px;font-size:9px}
 @media(max-width:850px){.sv9-class-options{grid-template-columns:repeat(2,1fr)}.sv9-class-grid>button{max-width:none}.sv9-student-list{display:block;overflow-x:auto}.sv9-student-list:before{display:none}.sv9-student-list article{min-width:650px;grid-template-columns:34px minmax(210px,1fr) 160px 115px 95px}}
 @media(max-width:600px){.sv9-overview{grid-template-columns:repeat(2,1fr)}.sv9-class-options{grid-template-columns:1fr}.sv9-class-grid{display:grid;grid-template-columns:repeat(2,1fr)}.sv9-class-grid>button{width:100%;max-width:none}.sv9-hero h1{font-size:21px}}
+
+/* compact roster table v10 */
+.sv9-roster{max-width:100%;overflow:hidden}
+.sv9-roster>header{padding:9px 14px}
+.sv9-roster h2{font-size:16px}
+.sv9-roster header p{font-size:10px}
+.sv9-search{padding:7px 13px}
+.sv9-print-area{padding:0!important}
+.sv9-student-list{display:block!important;width:100%;overflow:visible;background:#fff}
+.sv9-student-list:before{content:none!important;display:none!important}
+.sv9-student-list article{display:grid!important;grid-template-columns:44px minmax(240px,2.6fr) minmax(150px,1fr) minmax(110px,.85fr) minmax(115px,.85fr)!important;gap:10px!important;align-items:center!important;min-height:43px!important;padding:5px 12px!important;border:0!important;border-bottom:1px solid #d9e6e6!important;border-radius:0!important;background:#fff!important;box-shadow:none!important}
+.sv9-student-list article:nth-child(even){background:#edf5f6!important}
+.sv9-student-list article:hover{background:#dcefee!important}
+.sv9-student-list article:before{display:none!important}
+.sv9-student-list article>b{width:27px!important;height:27px!important;border-radius:7px!important;background:#d7e8e9!important;color:#124e5b!important;box-shadow:none!important;font-size:11px!important}
+.sv9-student-list article>div{display:contents!important}
+.sv9-student-list strong{display:block!important;min-width:0;font-size:12px!important;line-height:1.3!important;font-weight:900!important;color:#153a46!important;text-shadow:none!important}
+.sv9-student-list small{display:block!important;width:fit-content!important;margin:0!important;padding:4px 8px!important;border:1px solid #9acfc9!important;border-radius:7px!important;background:#d9efea!important;color:#155d5d!important;font-size:10px!important;font-weight:800!important;white-space:nowrap!important}
+.sv9-student-list small:before{content:none!important}
+.sv9-student-list code{display:inline-flex!important;justify-content:center!important;min-width:0!important;min-height:28px!important;width:fit-content;padding:5px 9px!important;border:1px solid #9ac8cf!important;border-radius:7px!important;background:#e6f3f5!important;color:#145e70!important;-webkit-text-fill-color:#145e70!important;font-size:11px!important}
+.sv9-student-list button{min-height:29px!important;width:fit-content!important;padding:5px 10px!important;border:1px solid #a7c6c3!important;border-radius:7px!important;background:#f1f8f6!important;color:#16515a!important;font-size:10px!important;font-weight:850!important}
+.sv9-student-list button:hover{background:#0b7872!important;color:#fff!important}
+@media(max-width:850px){.sv9-student-list{overflow-x:auto!important}.sv9-student-list article{min-width:680px!important;grid-template-columns:40px minmax(220px,2.5fr) 145px 105px 110px!important}}
+@media print{.sv9-student-list article{min-width:0!important;break-inside:avoid!important}.sv9-student-list button{display:none!important}}
