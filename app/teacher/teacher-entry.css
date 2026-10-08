@@ -150,3 +150,11 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .teacher-entry-page .portal-entry-card{background:rgba(241,249,241,.74)!important;backdrop-filter:blur(20px) saturate(110%)!important;-webkit-backdrop-filter:blur(20px) saturate(110%)!important;border:1px solid rgba(255,255,255,.65)!important}
 .teacher-entry-page .portal-entry-copy{background:transparent!important;backdrop-filter:none!important}
 @media(max-width:800px){.teacher-entry-page{background-position:center center!important}.teacher-entry-page::before{display:none!important}}
+
+/* Extend the real login glass panel over the baked-in logo and fake login fields. */
+@media(min-width:801px){
+.teacher-entry-page .portal-entry-hero{grid-template-columns:minmax(0,1fr) minmax(540px,650px)!important;padding-right:clamp(24px,4vw,75px)!important;gap:12px!important}
+.teacher-entry-page .portal-entry-card{width:100%!important;max-width:650px!important;min-height:min(850px,calc(100vh - 105px))!important;padding:clamp(30px,4vw,58px)!important;border-radius:65px!important;display:flex;flex-direction:column;justify-content:center;background:rgba(237,247,237,.88)!important;backdrop-filter:blur(34px)!important;-webkit-backdrop-filter:blur(34px)!important}
+.teacher-entry-page .portal-entry-copy{max-width:420px!important}
+}
+@media(max-width:800px){.teacher-entry-page .portal-entry-card{width:100%!important;min-height:calc(100svh - 160px);padding:28px 22px!important;background:rgba(237,247,237,.89)!important;backdrop-filter:blur(28px)!important;border-radius:44px!important}}
