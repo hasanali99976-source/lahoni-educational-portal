@@ -86,6 +86,37 @@ export default function HomePage(){
   .lh-stars .star-main{font-size:43px;line-height:1;color:#ffdc91;text-shadow:0 0 10px rgba(255,196,87,.9),0 0 26px rgba(255,186,58,.5)}
   .lh-stars .star-side{font-size:22px;line-height:1;color:#8ae8df;text-shadow:0 0 12px rgba(66,220,218,.6)}
   @media(prefers-reduced-motion:reduce){.lh-card,.lh-card:after,.lh-enter b{transition:none}}
+
+  /* Unified restrained visual system for the real classroom background */
+  .lh-home{background:linear-gradient(180deg,rgba(5,19,29,.69) 0%,rgba(5,24,35,.73) 49%,rgba(4,17,27,.89) 100%),url("/lahooni_classroom_ready.webp.png") center center / cover no-repeat fixed}
+  .lh-frame{width:min(1450px,100%)}
+  .lh-top{min-height:86px}
+  .lh-brand,.lh-top-pill{background:rgba(5,27,38,.66);border-color:rgba(229,196,134,.32);box-shadow:0 8px 24px rgba(0,0,0,.16);backdrop-filter:blur(14px)}
+  .lh-stage{padding:6px 0 25px}
+  .lh-stars{height:40px;margin-bottom:7px;filter:none}
+  .lh-stars .star-main{font-size:31px;text-shadow:0 0 14px rgba(255,196,87,.34)}
+  .lh-stars .star-side{font-size:15px}
+  .lh-smalltitle{font-size:15px;letter-spacing:0;padding:5px 23px;border-radius:999px;background:rgba(6,36,48,.62);box-shadow:none}
+  .lh-main-title{font-size:clamp(52px,6.3vw,96px);line-height:1.28;letter-spacing:-1.5px;filter:drop-shadow(0 5px 6px rgba(0,0,0,.58));margin:4px auto}
+  .lh-main-title:after{display:none}
+  .lh-subtitle{font-size:clamp(25px,3vw,41px);padding:6px 32px 8px;border-radius:15px;border:1px solid rgba(115,218,222,.45);background:rgba(5,49,64,.78);box-shadow:0 10px 24px rgba(0,0,0,.22);text-shadow:none}
+  .lh-motto{margin:15px 0 7px;font-size:16px;color:#f6dca5}
+  .lh-intro{font-size:13px;max-width:780px;line-height:1.85;color:#e8eff0;text-shadow:0 2px 8px rgba(0,0,0,.55)}
+  .lh-roles{gap:17px;margin-top:18px}
+  .lh-card{min-height:285px;padding:20px 22px;border-radius:20px;background:linear-gradient(150deg,rgba(8,53,73,.83),rgba(4,29,43,.91));border:1px solid rgba(112,204,224,.48);box-shadow:0 13px 32px rgba(0,0,0,.27);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+  .lh-card.teacher{background:linear-gradient(150deg,rgba(92,61,35,.83),rgba(43,32,27,.91));border-color:rgba(243,197,119,.53)}
+  .lh-card.student{background:linear-gradient(150deg,rgba(8,89,78,.83),rgba(4,44,45,.91));border-color:rgba(115,224,194,.52)}
+  .lh-card:before{opacity:.35}
+  .lh-card-number{font-size:19px;opacity:.68}
+  .lh-card-icon{width:54px;height:54px;border-radius:15px;background:rgba(255,255,255,.055);box-shadow:none}
+  .card-scene{opacity:.28;inset:48px 0 100px}
+  .lh-card-copy h2{font-size:clamp(28px,2.5vw,36px);margin:4px 0 5px;text-shadow:0 2px 9px rgba(0,0,0,.3)}
+  .lh-card-copy small{font-size:12px}
+  .lh-card-copy p{font-size:12px;color:#edf2f1}
+  .lh-enter{border-color:rgba(255,255,255,.22);background:rgba(2,18,27,.42);box-shadow:none}
+  .lh-features{background:rgba(5,27,38,.68);border-color:rgba(224,193,133,.25);margin-top:22px}
+  @media(max-width:1000px){.lh-main-title{font-size:clamp(48px,7.3vw,78px)}.lh-card{min-height:275px}}
+  @media(max-width:690px){.lh-home{background-attachment:scroll;background-position:center top}.lh-stage{padding:20px 0 17px}.lh-main-title{font-size:clamp(39px,9.3vw,60px);letter-spacing:-1px}.lh-subtitle{font-size:clamp(23px,5.8vw,33px);padding:5px 22px}.lh-motto{font-size:12px}.lh-intro{font-size:11px}.lh-roles{gap:12px;margin-top:14px}.lh-card{min-height:245px;padding:17px}.lh-card-copy h2{font-size:30px}.lh-top{min-height:76px}}
   `}</style>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
