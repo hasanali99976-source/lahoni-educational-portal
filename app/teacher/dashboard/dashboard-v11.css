@@ -106,8 +106,9 @@
 @media(max-width:1050px){.td11-day-grid{grid-template-columns:1fr!important}.td11-day-grid>article{min-height:112px!important}.td11-classes{grid-template-columns:1fr!important}}
 @media(max-width:560px){.td11-class-meta{grid-template-columns:repeat(3,1fr)!important}.td11-classes footer{grid-template-columns:repeat(2,1fr)!important}}
 
-/* Soft, non-interactive classroom illustration on the dashboard only. */
-.teacher-dashboard-v11{position:relative;isolation:isolate}
-.teacher-dashboard-v11::before{content:"";position:absolute;z-index:-1;top:0;left:0;width:min(52%,650px);height:390px;pointer-events:none;background:url("/api/teacher-dashboard-background") center top/contain no-repeat;opacity:.23}
-.teacher-dashboard-v11> *{position:relative}
-@media(max-width:700px){.teacher-dashboard-v11::before{width:75%;height:260px;opacity:.13}}
+/* The image belongs to the full modern teacher shell, not an old dashboard card. */
+.teacher-student-shell:has(.teacher-dashboard-v11){position:relative;isolation:isolate;background-image:linear-gradient(rgba(247,250,248,.68),rgba(247,250,248,.68)),url("/api/teacher-dashboard-background")!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;background-attachment:fixed!important;min-height:100dvh}
+.teacher-student-shell:has(.teacher-dashboard-v11) .tss-main{background:transparent!important}
+.teacher-student-shell:has(.teacher-dashboard-v11) .tss-content{background:transparent!important}
+.teacher-dashboard-v11::before{content:none!important;display:none!important}
+@media(max-width:700px){.teacher-student-shell:has(.teacher-dashboard-v11){background-attachment:scroll!important;background-position:center top!important}}
