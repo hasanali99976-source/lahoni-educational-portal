@@ -27,7 +27,7 @@ function CardScene({kind}:{kind:string}){
 export default function HomePage(){
   return <main className="lh-home" dir="rtl"><style>{`
   .lh-home,.lh-home *{box-sizing:border-box}
-  .lh-home{position:relative;isolation:isolate;min-height:100dvh;overflow:hidden;background:linear-gradient(180deg,rgba(2,14,24,.30),rgba(2,18,29,.55) 65%,rgba(2,13,23,.80)),url("/lahooni_classroom_ready.webp.png") center center / cover no-repeat fixed;color:#fff;font-family:"Tajawal","Noto Kufi Arabic",Tahoma,Arial,sans-serif}
+  .lh-home{position:relative;isolation:isolate;min-height:100dvh;overflow:hidden;background:linear-gradient(180deg,rgba(3,20,32,.64),rgba(3,22,35,.76) 65%,rgba(2,13,23,.90)),url("/lahooni_classroom_ready.webp.png") center center / cover no-repeat fixed;color:#fff;font-family:"Tajawal","Noto Kufi Arabic",Tahoma,Arial,sans-serif}
   .lh-home:before{content:none}
   .lh-home:after{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at 51% 25%,rgba(0,205,225,.17),transparent 40%),radial-gradient(ellipse at 50% 55%,rgba(238,162,56,.12),transparent 44%)}
   .lh-frame{width:min(1640px,100%);margin:auto;padding:0 clamp(18px,4vw,64px)}
