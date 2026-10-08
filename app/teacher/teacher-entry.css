@@ -134,3 +134,11 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 .teacher-entry-page .teacher-quick-icons{gap:4px}.teacher-entry-page .teacher-quick-icons i{width:32px;height:32px;font-size:15px}
 @media(max-width:800px){.teacher-entry-page{background-attachment:fixed!important;background-position:38% center!important}.teacher-entry-page .portal-entry-hero{display:flex!important;flex-direction:column!important;padding:20px 12px 24px 70px!important}.teacher-entry-page .portal-entry-card{max-width:100%!important;border-radius:34px!important;align-self:stretch}.teacher-entry-side{left:5px;gap:2px;padding:6px 3px;border-radius:16px}.teacher-entry-side span{min-width:49px;font-size:9px;padding:6px 2px}.teacher-entry-side b{font-size:18px}.teacher-entry-page .portal-entry-copy{align-self:stretch!important}}
 @media(prefers-reduced-motion:reduce){.teacher-entry-page *, .teacher-entry-page *::before,.teacher-entry-page *::after{animation:none!important;transition:none!important}}
+
+/* Hide baked-in mockup logo/login on right, keeping the teacher and students visible. */
+.teacher-entry-page{background-attachment:fixed!important;background-position:left center!important}
+.teacher-entry-page::before{content:"";position:fixed;z-index:0;inset:0 0 0 57%;pointer-events:none;background:linear-gradient(90deg,rgba(232,239,225,.72),rgba(225,236,224,.96) 32%,rgba(225,236,224,.98));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.teacher-entry-page .portal-entry-shell{position:relative;z-index:1}
+.teacher-entry-page .portal-entry-card{background:rgba(245,250,243,.78)!important;backdrop-filter:blur(24px)!important}
+.teacher-entry-side{top:100px!important;bottom:18px!important;transform:none!important;min-height:calc(100vh - 118px);justify-content:space-evenly;border-radius:25px!important}
+@media(max-width:800px){.teacher-entry-page::before{inset:0 0 0 40%;background:linear-gradient(90deg,rgba(233,240,230,.56),rgba(230,238,229,.94))}.teacher-entry-side{top:90px!important;bottom:12px!important;min-height:calc(100vh - 102px)}}
