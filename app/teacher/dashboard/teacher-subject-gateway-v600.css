@@ -127,3 +127,22 @@
   .teacher-subject-trigger-v500{left:14px!important;bottom:14px!important}
   .teacher-subject-required-badge{font-size:11px!important;padding:0 10px!important}
 }
+
+/* 2026 subject gateway redesign: actual dashboard modal, not the header switcher */
+.teacher-subject-modal-v500 .teacher-subject-backdrop-v500{background:rgba(2,20,27,.75)!important;backdrop-filter:blur(18px) saturate(115%)!important}
+.teacher-subject-modal-v500 .teacher-subject-panel-v500{background:linear-gradient(145deg,rgba(7,48,57,.94),rgba(9,73,77,.90))!important;border:1px solid rgba(233,200,118,.42)!important;box-shadow:0 34px 110px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.13)!important;backdrop-filter:blur(20px)!important}
+.teacher-subject-modal-v500 .teacher-subject-panel-v500>header{background:linear-gradient(120deg,rgba(6,36,46,.7),rgba(8,84,83,.48))!important;border-bottom:1px solid rgba(230,198,120,.24)!important}
+.teacher-subject-modal-v500 .teacher-subject-panel-v500>header small{color:#efd392!important}
+.teacher-subject-modal-v500 .teacher-subject-panel-v500>header h2{font-size:clamp(27px,3.5vw,39px)!important}
+.teacher-subject-modal-v500 .teacher-subject-panel-v500>header p{color:#d0e9e6!important}
+.teacher-subject-modal-v500 .teacher-subject-required-badge{background:rgba(229,195,112,.17)!important;border:1px solid rgba(235,204,125,.48)!important;color:#f7dda0!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500{padding:28px!important;gap:20px!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500>button{min-height:152px!important;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.045))!important;border:1px solid rgba(235,203,129,.28)!important;border-radius:23px!important;color:#fff!important;box-shadow:inset 0 1px rgba(255,255,255,.13),0 14px 35px rgba(0,0,0,.13)!important;grid-template-columns:60px minmax(0,1fr) auto!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500>button:hover,.teacher-subject-modal-v500 .teacher-subject-grid-v500>button:focus-visible{background:linear-gradient(135deg,rgba(235,201,117,.20),rgba(255,255,255,.08))!important;border-color:rgba(241,210,133,.78)!important;transform:translateY(-4px)!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500>button.active{border-color:#e8c675!important;box-shadow:0 0 0 2px rgba(235,200,113,.18),0 14px 35px rgba(0,0,0,.15)!important}
+.teacher-subject-modal-v500 .teacher-subject-symbol-v500{width:58px!important;height:58px!important;background:linear-gradient(145deg,rgba(242,215,148,.23),rgba(235,191,91,.10))!important;border:1px solid rgba(237,204,124,.45)!important;border-radius:18px!important;color:#f5d890!important;font-family:Georgia,serif!important;font-size:35px!important;font-weight:700!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500>button strong{color:#fff!important;font-size:21px!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500>button small{color:#bcd7d5!important;font-size:13px!important}
+.teacher-subject-modal-v500 .teacher-subject-grid-v500>button i{color:#f7d78c!important;background:rgba(226,190,100,.15)!important;border:1px solid rgba(230,197,117,.30)!important;font-size:12px!important}
+.teacher-subject-trigger-v500{border-radius:999px!important;background:linear-gradient(135deg,#e7c477,#bb8b35)!important;color:#092f36!important;border:1px solid #f3d992!important;padding:11px 16px!important;font-weight:800!important}
+@media(max-width:720px){.teacher-subject-modal-v500 .teacher-subject-grid-v500{padding:14px!important;gap:12px!important}.teacher-subject-modal-v500 .teacher-subject-grid-v500>button{grid-template-columns:48px minmax(0,1fr) auto!important;min-height:110px!important;padding:12px!important;gap:9px!important}.teacher-subject-modal-v500 .teacher-subject-symbol-v500{width:46px!important;height:46px!important;font-size:29px!important}.teacher-subject-modal-v500 .teacher-subject-grid-v500>button strong{font-size:17px!important}.teacher-subject-modal-v500 .teacher-subject-grid-v500>button i{font-size:10px!important;padding:7px!important}}
