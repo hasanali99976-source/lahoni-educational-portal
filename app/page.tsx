@@ -60,4 +60,42 @@ export default function HomePage(){return <main className="new-home" dir="rtl"><
 @keyframes titleBreath{to{opacity:.6;transform:scale(1.09)}}@keyframes starTwinkle{50%{opacity:.35;transform:scale(.8)}}
 @media(max-width:850px){.hero-title-frame{padding:12px 12px 19px}.intro .hero-title-frame h1{font-size:clamp(36px,8vw,62px);line-height:1.5;letter-spacing:-1.2px}.intro .hero-title-frame h1 .hero-title-bottom{letter-spacing:0}.title-orbit{inset:18% -2%}.title-orbit-two{inset:24% -4%}.title-star-one{font-size:16px}.title-star-two{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.hero-title-frame:before,.title-star{animation:none}}
+
+/* Mobile and installed-app viewport safety: no clipped portal content */
+.new-home{width:100%;max-width:100%;overflow-x:clip;overflow-y:visible}
+.new-home .shell{height:auto;min-height:calc(100dvh - 20px);overflow:visible}
+.new-home .hero,.new-home .intro,.new-home .spaces,.new-home .space{min-width:0}
+@media(max-width:850px){
+.new-home{padding:6px;min-height:100dvh;overflow-x:hidden;overflow-y:auto}
+.new-home .shell{min-height:calc(100dvh - 12px);height:auto;border-radius:17px;overflow:visible}
+.new-home .top{flex:0 0 auto;min-height:62px;height:auto;padding:10px 13px}
+.new-home .hero{flex:1 0 auto;justify-content:flex-start;padding:24px 12px 26px;gap:0}
+.new-home .intro{width:100%;max-width:100%;padding:0 2px}
+.new-home .kicker{font-size:10px;padding:7px 12px}
+.new-home .hero-title-frame{width:100%;max-width:100%;padding:14px 4px 16px;margin:7px auto}
+.new-home .intro .hero-title-frame h1{font-size:clamp(27px,7.3vw,52px);line-height:1.4;letter-spacing:-.6px;overflow-wrap:anywhere}
+.new-home .intro .hero-title-frame h1 .hero-title-top,.new-home .intro .hero-title-frame h1 .hero-title-bottom{display:block;max-width:100%}
+.new-home .title-orbit{inset:19% 0}.new-home .title-orbit-two{inset:24% 1%}
+.new-home .title-star-one{left:3%}.new-home .title-star-two{right:3%}
+.new-home .hero-divider{gap:7px;margin:10px auto;font-size:10px}
+.new-home .hero-divider i{width:22px;flex:0 0 22px}
+.new-home .intro p{font-size:11px;line-height:1.75;padding:0 5px}
+.new-home .spaces{width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:9px;padding:21px 0 0}
+.new-home .space,.new-home .space.admin,.new-home .space.teacher,.new-home .space.student{width:100%;max-width:100%;min-height:102px;display:grid;grid-template-columns:42px minmax(0,1fr) 28px;align-items:center;gap:10px;padding:12px;border-radius:14px}
+.new-home .space>div{min-width:0}
+.new-home .space h2{font-size:20px;margin:2px 0}
+.new-home .space p{font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+.new-home .portal-icon{width:40px;height:40px}
+.new-home .arrow{width:28px;height:28px}
+.new-home .foot{flex:0 0 auto;min-height:54px;padding:12px;text-align:center}
+}
+@media(max-width:380px){
+.new-home .hero{padding:18px 9px 20px}
+.new-home .intro .hero-title-frame h1{font-size:clamp(25px,7vw,31px)}
+.new-home .space,.new-home .space.admin,.new-home .space.teacher,.new-home .space.student{grid-template-columns:36px minmax(0,1fr) 24px;gap:8px;padding:10px}
+.new-home .portal-icon{width:36px;height:36px}
+.new-home .space h2{font-size:18px}
+.new-home .space p{font-size:9px}
+}
+@media(display-mode:standalone){.new-home{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom,0px)}.new-home .shell{min-height:calc(100dvh - 12px)}}
 `}</style><div className="shell"><header className="top"><div className="brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار البوابة"/><div><b>أستاذ لحوني</b><small>المنصة التعليمية</small></div></div><span className="live"><i className="live-dot"/> بوابتك التعليمية</span></header><section className="hero"><div className="intro"><span className="kicker">منصة مدرسية متكاملة</span><div className="hero-title-frame"><span className="title-orbit title-orbit-one"/><span className="title-orbit title-orbit-two"/><h1><span className="hero-title-top">بوابة <em>أستاذ لحوني</em></span><span className="hero-title-bottom">التعليمية</span></h1><span className="title-star title-star-one">✦</span><span className="title-star title-star-two">✧</span></div><div className="hero-divider"><i/><span>تعليم أكثر تنظيمًا · متابعة أكثر أثرًا</span><i/></div><p>مساحات واضحة ومتكاملة للإدارة والمعلم والطالب، بهوية موحدة وتجربة مصممة للعمل اليومي على الجوال والويب.</p></div><div className="spaces">{portals.map(p=><Link href={p.href} className={`space ${p.tone}`} key={p.href}><span className="portal-icon"><PortalIcon type={p.icon}/></span><div><strong>{p.sub}</strong><h2>{p.title}</h2><p>{p.desc}</p></div><span className="arrow">←</span></Link>)}</div></section><footer className="foot"><b>بوابة أستاذ لحوني التعليمية</b><span>إدارة · معلم · طالب وولي أمر</span></footer></div></main>}
