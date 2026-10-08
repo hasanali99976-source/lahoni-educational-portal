@@ -23,17 +23,17 @@ function subjectHue(subjectId: string, subjectName: string) {
 
 function symbol(subjectId: string, subjectName: string) {
   const value = `${subjectId} ${subjectName}`.toLowerCase();
-  if (/تاريخ|history/.test(value)) return "🏛️";
-  if (/تفكير|ناقد|critical/.test(value)) return "🧠";
-  if (/كيمياء|chem/.test(value)) return "⚗️";
-  if (/فيزياء|phys/.test(value)) return "⚛️";
-  if (/أحياء|احياء|biology/.test(value)) return "🧬";
+  if (/تاريخ|history/.test(value)) return "▥";
+  if (/تفكير|ناقد|critical/.test(value)) return "✧";
+  if (/كيمياء|chem/.test(value)) return "◇";
+  if (/فيزياء|phys/.test(value)) return "✳";
+  if (/أحياء|احياء|biology/.test(value)) return "❖";
   if (/رياضيات|math/.test(value)) return "∑";
   if (/عربي|لغتي|arabic/.test(value)) return "ض";
   if (/انجليزي|english/.test(value)) return "A";
   if (/اسلام|إسلام|islam/.test(value)) return "☪";
-  if (/حاسب|تقنية|رقمي|computer|digital/.test(value)) return "💻";
-  return "📘";
+  if (/حاسب|تقنية|رقمي|computer|digital/.test(value)) return "⌘";
+  return "▤";
 }
 
 export default function TeacherSubjectGateway() {
@@ -91,7 +91,7 @@ export default function TeacherSubjectGateway() {
         const hue = (subjectHue(subject.subjectId, subject.subjectName) + index * 19) % 360;
         const active = subject.workspaceKey === session.workspaceKey;
         return <button type="button" key={subject.workspaceKey} className={active ? "active" : ""} style={{ "--subject-hue": hue } as CSSProperties} disabled={Boolean(changing)} onClick={() => void choose(subject.workspaceKey)}>
-          <span className="teacher-subject-symbol-v500">{symbol(subject.subjectId, subject.subjectName)}</span>
+          <span className="teacher-subject-symbol-v500" aria-hidden="true">{symbol(subject.subjectId, subject.subjectName)}</span>
           <span><strong>{subject.subjectName}</strong><small>{subject.gradeLabel || "المرحلة الثانوية"}</small></span>
           <i>{changing === subject.workspaceKey ? "جارٍ الفتح…" : active ? "دخول المادة الحالية" : "دخول المادة"}</i>
         </button>;
