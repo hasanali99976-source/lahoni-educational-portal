@@ -298,3 +298,18 @@ body *{visibility:hidden!important}
 .student-current-login .scl-card button[type=submit]{width:100%!important}
 }
 @media(min-width:761px) and (max-width:1100px){.student-current-login .scl-card{width:48vw!important;margin-right:3vw!important;padding:25px!important}}
+
+/* Student entry: the artwork itself IS the panel; never paint another card over it. */
+@media(min-width:761px){
+.student-current-login .scl-frame{overflow:visible!important}
+.student-current-login .scl-grid{align-items:center!important}
+.student-current-login .scl-card{width:43vw!important;max-width:680px!important;min-height:0!important;margin:0 5.6vw 0 auto!important;padding:clamp(16px,2.4vw,38px)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:9px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:translateY(6vh)!important;overflow:visible!important}
+.student-current-login .scl-card-glow{display:none!important}
+.student-current-login .scl-card>small{margin-top:0!important}
+.student-current-login .scl-card h2{margin:0!important}
+.student-current-login .scl-card>p{margin:0 0 14px!important}
+.student-current-login .scl-card label{margin-top:5px!important}
+.student-current-login .scl-card>em{margin-top:5px!important}
+}
+@media(min-width:761px) and (max-width:1100px){.student-current-login .scl-card{width:45vw!important;margin-right:4vw!important;transform:translateY(5vh)!important}}
+@media(max-width:760px){.student-current-login .scl-card{border:1px solid rgba(245,205,122,.34)!important;background:rgba(5,43,55,.60)!important;box-shadow:none!important}.student-current-login .scl-card-glow{display:none!important}}
