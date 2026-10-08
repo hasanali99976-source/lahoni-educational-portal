@@ -287,3 +287,14 @@ body *{visibility:hidden!important}
 .student-current-login .scl-card>em{color:#e5eeed!important;font-size:11px!important}
 @media(max-width:900px){.student-current-login .scl-card{width:min(460px,52vw)!important;margin-right:4vw!important;padding:22px!important}}
 @media(max-width:760px){.student-current-login .scl-grid{min-height:100dvh!important;align-items:flex-end!important;justify-content:center!important;padding:20px 12px!important}.student-current-login .scl-card{width:min(450px,100%)!important;margin:0 auto 16px!important;background:rgba(4,38,52,.78)!important;backdrop-filter:blur(12px)!important;padding:23px 18px!important}.student-current-login .student-scene{background-position:32% center!important}}
+
+/* Fill the existing artwork's right-side glass panel, not a smaller floating card. */
+@media(min-width:761px){
+.student-current-login .scl-frame{width:100%!important;max-width:none!important;padding:0!important}
+.student-current-login .scl-grid{width:100%!important;min-height:100dvh!important;justify-content:flex-start!important;align-items:center!important}
+.student-current-login .scl-card{box-sizing:border-box!important;width:45.5vw!important;max-width:none!important;min-height:75vh!important;margin:0 5.3vw 0 auto!important;padding:clamp(32px,4vw,68px)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;border-radius:36px!important;background:linear-gradient(145deg,rgba(5,46,58,.12),rgba(4,41,55,.20))!important;border:1px solid rgba(244,209,130,.24)!important;box-shadow:none!important;backdrop-filter:blur(2px)!important;-webkit-backdrop-filter:blur(2px)!important}
+.student-current-login .scl-card h2{font-size:clamp(30px,3vw,44px)!important}
+.student-current-login .scl-card label{width:100%!important}
+.student-current-login .scl-card button[type=submit]{width:100%!important}
+}
+@media(min-width:761px) and (max-width:1100px){.student-current-login .scl-card{width:48vw!important;margin-right:3vw!important;padding:25px!important}}
