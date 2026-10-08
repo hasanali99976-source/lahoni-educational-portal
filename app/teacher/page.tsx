@@ -16,10 +16,6 @@ export default function TeacherLoginPage(){
      const d=await r.json().catch(()=>null);
      if(!r.ok){setError(d?.message||"اسم المعلم أو الرقم السري غير صحيح");return;}
      if(d?.teacherId)setGradePlanCurrentTeacher(d.teacherId);
-     const sessionResponse=await fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"});
-     const session=await sessionResponse.json().catch(()=>null);
-     const available=Array.isArray(session?.subjects)?session.subjects:[];
-     if(available.length>1){const picked=sessionStorage.getItem("lahooni:teacher-subject-picked");if(!picked){setTeacherName(session?.teacherName||d?.teacherName||name.trim());setSubjects(available);setChoosing(true);return;}}
      sessionStorage.setItem("lahooni:teacher-entry-complete","1");window.location.assign("/teacher/dashboard");
    }catch{setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.")}
    finally{setLoading(false)}
