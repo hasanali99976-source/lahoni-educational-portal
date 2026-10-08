@@ -284,3 +284,13 @@ body *{visibility:hidden!important}
 .student-current-login .scl-card button[type=submit]{width:100%!important;border-radius:14px!important;background:linear-gradient(110deg,#ffe6a2,#e5b852)!important;color:#143747!important;font-size:16px!important}
 .student-current-login .scl-card>em{font-size:11px!important;color:#e5eeed!important}
 @media(max-width:760px){.student-current-login .student-scene{background-position:32% center!important}.student-current-login .scl-grid{align-items:flex-end!important;justify-content:center!important;padding:12px!important}.student-current-login .scl-card{width:min(440px,100%)!important;max-width:100%!important;margin:0 auto 12px!important;padding:20px 16px!important;transform:none!important;background:rgba(4,37,50,.68)!important;border:1px solid rgba(239,205,129,.4)!important;border-radius:20px!important;backdrop-filter:blur(8px)!important}}
+
+/* Student authenticated experience: school artwork across every student tab.
+   Login and subject selection screens retain their existing backgrounds. */
+body:has(.student-current-shell){background:#d8eef0!important}
+.student-current-shell .student-scene{position:fixed!important;inset:0!important;background-image:url("/student-dashboard-background.png.png")!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;filter:none!important;transform:none!important;z-index:-3!important}
+.student-current-shell .student-scene::before{background:linear-gradient(180deg,rgba(2,36,53,.09),rgba(2,39,51,.19))!important;backdrop-filter:none!important}
+.student-current-shell .student-scene::after{display:none!important;content:none!important}
+.student-current-shell .sc-sidebar{background:linear-gradient(165deg,rgba(4,43,63,.58),rgba(5,74,83,.43))!important;border:1px solid rgba(255,255,255,.32)!important;box-shadow:0 14px 38px rgba(5,39,57,.16),inset 0 1px rgba(255,255,255,.23)!important;backdrop-filter:blur(11px) saturate(1.18)!important;-webkit-backdrop-filter:blur(11px) saturate(1.18)!important}
+.student-current-shell .sc-sidebar .sc-brand,.student-current-shell .sc-sidebar .sc-profile{background:transparent!important}
+@media(max-width:760px){.student-current-shell .student-scene{background-position:54% center!important}.student-current-shell .sc-sidebar{background:rgba(5,49,65,.76)!important;backdrop-filter:blur(15px)!important}}
