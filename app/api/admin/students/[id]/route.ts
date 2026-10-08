@@ -88,3 +88,27 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
     return NextResponse.json({ ok: true, archivedTeacherCopies });
   } catch(error){console.error("archive student failed",error);return NextResponse.json({ok:false,message:"تعذر حذف الطالب"},{status:500});}
 }
+
+export async function POST(request: Request, context: {params: Promise<{id:string}>}){
+  if(!await requireSession("admin"))return NextResponse.json({ok:false},{status:401});
+  try{
+    const {id}=await context.params;
+    const code=normalizedCode(id);
+    if(!/^(TH|MT)[123][0-9]{3}$/.test(code))return NextResponse.json({ok:false,message:"كود الطالب غير صالح"},{status:400});
+    const body=await request.json().catch(()=>({}));
+    if(body?.action!=="restore")return NextResponse.json({ok:false,message:"إجراء غير معروف"},{status:400});
+    const ref=adminDb().collection(SCHOOL_STUDENTS_COLLECTION).doc(code);
+    const snap=await ref.get();
+    if(!snap.exists)return NextResponse.json({ok:false,message:"لم يُعثر على سجل الطالب الأصلي؛ لم تُنشأ أي بيانات جديدة"},{status:404});
+    const data=snap.data() as Record<string,unknown>;
+    const name=String(data.name||"").replace(/\s+/g," ").trim();
+    if(body?.expectedName&&name!==String(body.expectedName).replace(/\s+/g," ").trim())return NextResponse.json({ok:false,message:"الاسم لا يطابق السجل الأصلي؛ لم تُجرَ أي تغييرات"},{status:409});
+    const stage=schoolStage(data.stage,data.className);
+    if((stage==="secondary"?"TH":"MT")!==code.slice(0,2))return NextResponse.json({ok:false,message:"تعارض في المرحلة؛ لم تُجرَ أي تغييرات"},{status:409});
+    if(data.active!==false)return NextResponse.json({ok:true,alreadyActive:true,name,code,className:data.className});
+    await ref.set({active:true,rosterActive:true,archivedAt:null,updatedAt:new Date().toISOString()},{merge:true});
+    revalidateTag("admin-school-roster",{expire:0});
+    refreshOfficialRoster();
+    return NextResponse.json({ok:true,restored:true,name,code,className:data.className});
+  }catch(error){console.error("restore archived student failed",error);return NextResponse.json({ok:false,message:"تعذرت استعادة الطالب"},{status:500})}
+}
