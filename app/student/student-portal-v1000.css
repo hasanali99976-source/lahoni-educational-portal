@@ -294,3 +294,25 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-sidebar{background:linear-gradient(165deg,rgba(4,43,63,.58),rgba(5,74,83,.43))!important;border:1px solid rgba(255,255,255,.32)!important;box-shadow:0 14px 38px rgba(5,39,57,.16),inset 0 1px rgba(255,255,255,.23)!important;backdrop-filter:blur(11px) saturate(1.18)!important;-webkit-backdrop-filter:blur(11px) saturate(1.18)!important}
 .student-current-shell .sc-sidebar .sc-brand,.student-current-shell .sc-sidebar .sc-profile{background:transparent!important}
 @media(max-width:760px){.student-current-shell .student-scene{background-position:54% center!important}.student-current-shell .sc-sidebar{background:rgba(5,49,65,.76)!important;backdrop-filter:blur(15px)!important}}
+
+/* Secondary-school student portal: vivid glass dashboard with existing student avatar. */
+.student-current-shell .sc-sidebar{background:linear-gradient(160deg,rgba(2,38,74,.66),rgba(5,74,92,.50))!important;border-color:rgba(255,255,255,.46)!important;box-shadow:0 20px 45px rgba(2,31,61,.19),inset 0 1px rgba(255,255,255,.3)!important;backdrop-filter:blur(15px) saturate(145%)!important}
+.student-current-shell .sc-sidebar nav button{border-radius:16px!important;transition:transform .18s ease,background .18s ease,box-shadow .18s ease!important}
+.student-current-shell .sc-sidebar nav button:hover{transform:translateX(3px)!important;background:rgba(255,255,255,.19)!important}
+.student-current-shell .sc-sidebar nav button.active{background:linear-gradient(105deg,rgba(0,136,255,.95),rgba(0,206,232,.82))!important;border:1px solid rgba(255,255,255,.65)!important;box-shadow:0 9px 22px rgba(0,101,211,.28)!important}
+.student-current-shell .sc-sidebar nav button i{filter:drop-shadow(0 3px 4px rgba(0,0,0,.16))}
+.student-current-shell .sc-head-integrated>div{background:rgba(255,255,255,.78)!important;backdrop-filter:blur(12px)!important;border:1px solid rgba(255,255,255,.85)!important;box-shadow:0 10px 30px rgba(14,63,87,.12)!important;border-radius:20px!important}
+.student-current-shell .sc-hero{background:linear-gradient(118deg,rgba(4,78,136,.91),rgba(8,172,189,.81),rgba(77,70,205,.83))!important;border:1px solid rgba(255,255,255,.65)!important;box-shadow:0 18px 42px rgba(14,83,150,.21)!important;border-radius:28px!important;backdrop-filter:blur(9px)!important}
+.student-current-shell .sc-hero h2{color:#fff!important;text-shadow:0 2px 8px rgba(0,30,70,.2)!important}
+.student-current-shell .sc-kpis article{border:1px solid rgba(255,255,255,.8)!important;border-radius:23px!important;box-shadow:0 12px 26px rgba(13,69,105,.15),inset 0 1px rgba(255,255,255,.5)!important;transition:transform .2s ease,box-shadow .2s ease!important;backdrop-filter:blur(10px)!important}
+.student-current-shell .sc-kpis article:hover{transform:translateY(-5px)!important;box-shadow:0 18px 35px rgba(13,69,105,.22)!important}
+.student-current-shell .sc-kpis article.teal{background:linear-gradient(135deg,rgba(16,220,170,.94),rgba(9,151,188,.91))!important}
+.student-current-shell .sc-kpis article.gold{background:linear-gradient(135deg,rgba(255,218,93,.95),rgba(255,145,61,.92))!important}
+.student-current-shell .sc-kpis article.blue{background:linear-gradient(135deg,rgba(55,177,255,.94),rgba(46,104,235,.91))!important}
+.student-current-shell .sc-kpis article.violet{background:linear-gradient(135deg,rgba(186,112,255,.95),rgba(117,76,225,.92))!important}
+.student-current-shell .sc-kpis article.red{background:linear-gradient(135deg,rgba(255,125,147,.95),rgba(243,72,115,.92))!important}
+.student-current-shell .sc-chart-card,.student-current-shell .sc-page-title,.student-current-shell .sc-grade-sections>article{background:rgba(255,255,255,.88)!important;border:1px solid rgba(255,255,255,.93)!important;box-shadow:0 14px 36px rgba(12,68,101,.14)!important;border-radius:24px!important;backdrop-filter:blur(13px)!important}
+.student-current-shell .sc-chart-card h3,.student-current-shell .sc-page-title h2{color:#0b4777!important}
+.student-current-shell .sc-subject-bars u i{background:linear-gradient(90deg,#0ac9d7,#3778ff,#9857e8)!important}
+@media(max-width:760px){.student-current-shell .sc-sidebar{background:rgba(4,48,81,.82)!important}.student-current-shell .sc-hero{border-radius:20px!important}.student-current-shell .sc-kpis article{border-radius:18px!important}}
+@media(prefers-reduced-motion:reduce){.student-current-shell .sc-kpis article,.student-current-shell .sc-sidebar nav button{transition:none!important}}
