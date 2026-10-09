@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { preload } from "react-dom";
 
 const portals = [
   {href:"/admin",id:"01",kind:"admin",label:"إدارة المنصة",title:"الإدارة",description:"الطلاب، الفصول، المعلمون، الإسناد والتقارير.",button:"دخول بوابة الإدارة"},
@@ -25,6 +26,7 @@ function CardScene({kind}:{kind:string}){
   return <div className="card-scene student-scene" aria-hidden="true"><span className="scene-halo"/><span className="scene-book book-one"/><span className="scene-book book-two"/><span className="scene-cap">◆</span><span className="scene-orbit">✦</span></div>;
 }
 export default function HomePage(){
+ preload("/lahooni_classroom_ready.webp.png",{as:"image",fetchPriority:"high"});
   return <main className="lh-home" dir="rtl"><style>{`
   .lh-home,.lh-home *{box-sizing:border-box}
   .lh-home{position:relative;isolation:isolate;min-height:100dvh;overflow:hidden;background:linear-gradient(180deg,rgba(3,20,32,.64),rgba(3,22,35,.76) 65%,rgba(2,13,23,.90)),url("/lahooni_classroom_ready.webp.png") center center / cover no-repeat fixed;color:#fff;font-family:"Tajawal","Noto Kufi Arabic",Tahoma,Arial,sans-serif}
