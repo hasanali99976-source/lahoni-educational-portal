@@ -1,14 +1,13 @@
 "use client";
 import Link from "next/link";
 import { FormEvent,useState } from "react";
-import { getSubjectConfig } from "../../lib/subject-config";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-entry.css";
 
 const LOGO="/icons/lahooni-identity-320.jpg";
 
 export default function TeacherLoginPage(){
- const[name,setName]=useState(""),[password,setPassword]=useState(""),[show,setShow]=useState(false),[error,setError]=useState(""),[loading,setLoading]=useState(false),[subjects,setSubjects]=useState<Array<{workspaceKey:string;subjectName:string;gradeLabel?:string}>>([]),[teacherName,setTeacherName]=useState(""),[choosing,setChoosing]=useState(false);
+ const[name,setName]=useState(""),[password,setPassword]=useState(""),[show,setShow]=useState(false),[error,setError]=useState(""),[loading,setLoading]=useState(false);
  async function submit(e:FormEvent){
    e.preventDefault();if(loading)return;setError("");setLoading(true);
    try{
@@ -21,8 +20,6 @@ export default function TeacherLoginPage(){
    }catch{setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.")}
    finally{setLoading(false)}
  }
- async function chooseSubject(workspaceKey:string){if(loading)return;setLoading(true);setError("");try{const response=await fetch("/api/teacher-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceKey}),cache:"no-store",credentials:"same-origin"});if(!response.ok)throw new Error();sessionStorage.setItem("lahooni:teacher-subject-picked","1");sessionStorage.setItem("lahooni:teacher-entry-complete","1");window.location.assign("/teacher/dashboard");}catch{setError("تعذر اختيار المادة الآن. حاول مرة أخرى.")}finally{setLoading(false)}}
- if(choosing)return <main className="portal-entry-page teacher-entry-page teacher-choice-page" dir="rtl"><section className="teacher-choice-shell"><header className="teacher-choice-head"><div><span className="teacher-choice-kicker">✦ بوابة أستاذ لحوني التعليمية</span><h1>اختر المادة <em>للبدء</em></h1><p>{teacherName}، اختر المادة التي تريد العمل عليها، وستفتح مساحتها مباشرة.</p></div><span className="teacher-choice-mark">مساحة المعلم الذكية</span></header><div className="teacher-choice-grid">{subjects.map((subject,index)=>{const history=/تاريخ|history/i.test(subject.subjectName+" "+subject.workspaceKey);return <button key={subject.workspaceKey} type="button" className={history?"teacher-choice-card history":"teacher-choice-card thinking"} disabled={loading} onClick={()=>void chooseSubject(subject.workspaceKey)}><span className="teacher-choice-symbol">{history?"▤":"✧"}</span><span className="teacher-choice-info"><strong>{subject.subjectName||getSubjectConfig(subject.workspaceKey as never).label}</strong><small>{subject.gradeLabel||"المادة المسندة"}</small></span><span className="teacher-choice-open">{loading?"جارٍ الفتح…":index===0?"دخول المادة الحالية":"دخول المادة"} ←</span></button>})}</div>{error&&<p className="v3-error">{error}</p>}</section></main>;
  return <main className="portal-entry-page teacher-entry-page" dir="rtl"><div className="portal-entry-shell">
    <header className="portal-entry-top"><Link href="/" className="portal-entry-brand"><img src={LOGO} alt="هوية بوابة أستاذ لحوني التعليمية"/><span><strong>بوابة أستاذ لحوني التعليمية</strong><small>منصة مدرسية ذكية للتعليم والمتابعة والتواصل</small></span></Link><Link href="/" className="portal-entry-home">العودة للرئيسية</Link></header>
    <section className="portal-entry-hero">
