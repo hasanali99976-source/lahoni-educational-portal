@@ -157,6 +157,29 @@ export default function HomePage(){
   .lh-card-icon{background:rgba(255,255,255,.85);box-shadow:0 5px 15px rgba(67,118,155,.12)}
   .lh-enter{background:rgba(255,255,255,.9);border-color:#fff;color:#24516c;box-shadow:0 6px 15px rgba(65,119,154,.13)}
   .card-scene{opacity:.26}
+  /* Compact luminous entrance with a full-height classroom backdrop */
+  .lh-home{min-height:100vh;background:radial-gradient(ellipse at 15% 18%,rgba(255,193,224,.17),transparent 40%),radial-gradient(ellipse at 85% 20%,rgba(137,215,250,.16),transparent 43%),linear-gradient(145deg,rgba(255,251,247,.26),rgba(239,250,255,.24) 55%,rgba(255,246,251,.30)),url("/lahooni_classroom_ready.webp.png") center center / 100% 100% no-repeat; background-attachment:scroll}
+  .lh-frame{width:min(1500px,100%);padding-inline:clamp(16px,3.4vw,48px)}
+  .lh-top{min-height:74px}
+  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.8);box-shadow:0 5px 24px rgba(255,255,255,.45),0 7px 20px rgba(84,140,170,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .lh-brand{padding:6px 11px;border-radius:22px}.lh-brand img{width:49px;height:49px;border-radius:14px}
+  .lh-brand strong{font-size:20px}.lh-top-pill{padding:10px 19px}
+  .lh-stage{padding:0 0 12px}.lh-stars{height:29px;margin-bottom:2px}.lh-smalltitle{padding:3px 20px}
+  .lh-main-title{font-size:clamp(51px,6.5vw,94px);line-height:1.25;filter:drop-shadow(0 2px 0 white) drop-shadow(0 5px 0 rgba(133,153,196,.33)) drop-shadow(0 9px 16px rgba(255,255,255,.62))}
+  .lh-subtitle{font-size:clamp(25px,2.9vw,39px);padding:4px 25px}
+  .lh-motto{margin:10px 0 3px}.lh-intro{font-weight:800;text-shadow:0 1px 8px rgba(255,255,255,.9)}
+  .lh-roles{gap:15px;margin-top:15px}
+  .lh-card,.lh-card.teacher,.lh-card.student{min-height:225px;padding:13px 16px 14px;border-radius:25px;box-shadow:0 8px 25px rgba(77,134,164,.16),0 0 24px rgba(255,255,255,.58),inset 0 2px rgba(255,255,255,.9)}
+  .lh-card{background:linear-gradient(155deg,rgba(152,214,255,.86),rgba(205,237,255,.87))}
+  .lh-card.teacher{background:linear-gradient(155deg,rgba(255,182,174,.86),rgba(255,218,198,.87))}
+  .lh-card.student{background:linear-gradient(155deg,rgba(143,231,194,.86),rgba(209,250,225,.87))}
+  .lh-card-head{min-height:42px}.lh-card-icon{width:43px;height:43px;border-radius:14px}.lh-card-icon svg{width:30px;height:30px}.lh-card-number{font-size:16px}
+  .lh-card-copy h2{font-size:clamp(26px,2.3vw,33px);margin:0 0 2px}.lh-card-copy small{font-size:11px}.lh-card-copy p{font-size:11px;margin-bottom:8px}
+  .lh-enter{padding:6px 10px;font-size:12px;border-radius:13px}.lh-enter b{width:25px;height:25px}
+  .card-scene{inset:30px 0 65px;opacity:.17}
+  .lh-features{margin-top:14px;box-shadow:0 0 28px rgba(255,255,255,.6),0 10px 24px rgba(112,154,184,.13)}
+  .lh-card:hover{box-shadow:0 14px 33px rgba(84,151,184,.21),0 0 30px rgba(255,255,255,.9)}
+  @media(max-width:690px){.lh-home{background-size:auto,auto,auto,100% 100%}.lh-roles{gap:10px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:210px;padding:12px;border-radius:20px}.lh-card-copy h2{font-size:27px}.lh-top{min-height:70px}}
   @media(max-width:690px){.lh-home{background-size:auto,auto,auto,auto 76vh,auto;background-position:center,center,center,center top,center}}
   @media(max-width:690px){.lh-main-title{font-size:clamp(43px,10vw,66px);letter-spacing:-1px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:255px;border-radius:24px}.lh-roles{gap:14px;margin-top:22px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}}
   `}</style>
