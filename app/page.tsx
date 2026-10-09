@@ -182,6 +182,22 @@ export default function HomePage(){
   .lh-features{margin-top:14px;box-shadow:0 0 28px rgba(255,255,255,.6),0 10px 24px rgba(112,154,184,.13)}
   .lh-card:hover{box-shadow:0 14px 33px rgba(84,151,184,.21),0 0 30px rgba(255,255,255,.9)}
   @media(max-width:690px){.lh-home{background-size:auto,auto,auto,100% 100%}.lh-roles{gap:10px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:210px;padding:12px;border-radius:20px}.lh-card-copy h2{font-size:27px}.lh-top{min-height:70px}}
+  /* Clearer watercolor branding and less washed-out classroom. */
+  .lh-home{background:linear-gradient(145deg,rgba(255,250,246,.13),rgba(237,250,255,.13) 55%,rgba(255,245,251,.14)),url("/lahooni_classroom_ready.webp.png") center center / 100% 100% no-repeat!important}
+  .lh-home:after{opacity:.15!important}.lh-stage:before{opacity:.28!important}
+  .lh-main-title{background-image:linear-gradient(110deg,#f06b70 3%,#ff9e47 25%,#9253d7 46%,#278fce 69%,#20a88c 94%)!important;filter:drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 1px rgba(44,82,112,.3))!important}
+  .lh-smalltitle{color:#7541b0!important;background:rgba(255,255,255,.92)!important}
+  .lh-subtitle{color:#285d93!important;background:rgba(255,255,255,.92)!important;font-weight:900!important}
+  .lh-motto{color:#824a9c!important;font-weight:900!important}.lh-intro{color:#234f68!important;text-shadow:0 1px 3px #fff!important;font-weight:800!important}
+  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.75)!important;backdrop-filter:blur(4px)!important;border-color:#fff!important}
+  .lh-brand strong{color:#165477!important}.lh-brand small{color:#356b87!important}.lh-top-pill{color:#8448a2!important}
+  .lh-card,.lh-card.teacher,.lh-card.student{backdrop-filter:none!important;border-color:#fff!important}
+  .lh-card{background:linear-gradient(145deg,rgba(115,202,251,.88),rgba(194,231,255,.88))!important}
+  .lh-card.teacher{background:linear-gradient(145deg,rgba(255,151,150,.88),rgba(255,206,178,.89))!important}
+  .lh-card.student{background:linear-gradient(145deg,rgba(112,222,174,.88),rgba(192,245,207,.89))!important}
+  .lh-card:before{opacity:.27!important}.lh-card-copy h2{color:#164965!important}.lh-card-copy small,.lh-card-copy p{color:#285a75!important}
+  .lh-card-icon{background:rgba(255,255,255,.9)!important}.lh-enter{background:rgba(255,255,255,.95)!important;color:#164e72!important}
+  .lh-features{background:rgba(255,255,255,.75)!important;backdrop-filter:blur(3px)!important}
   @media(max-width:690px){.lh-home{background-size:auto,auto,auto,auto 76vh,auto;background-position:center,center,center,center top,center}}
   @media(max-width:690px){.lh-main-title{font-size:clamp(43px,10vw,66px);letter-spacing:-1px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:255px;border-radius:24px}.lh-roles{gap:14px;margin-top:22px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}}
   `}</style>
