@@ -119,3 +119,25 @@
 .attendance-page .status-buttons button{min-height:37px;border-radius:8px}
 .attendance-page .status-buttons button.active{transform:none;box-shadow:0 2px 5px #184a5a24}
 @media(max-width:850px){.attendance-page .attendance-student-card{grid-template-columns:1fr}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 125px}}
+
+
+/* Approved realistic attendance notebook — translucent ruled paper. */
+.attendance-page .attendance-card{position:relative;isolation:isolate;border:1px solid rgba(247,249,247,.95);border-radius:20px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 32px,rgba(96,148,181,.09) 33px,transparent 34px),linear-gradient(110deg,rgba(255,254,248,.91),rgba(246,251,255,.90) 52%,rgba(255,249,246,.91));box-shadow:0 16px 38px rgba(16,51,77,.23),inset 0 0 0 5px rgba(255,255,255,.28);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.attendance-page .attendance-hero{background:rgba(232,244,252,.58);border-bottom:1px solid #9eb9ca}
+.attendance-page .attendance-lesson-tabs{background:rgba(250,249,242,.43);border-bottom:1px solid #a9c3d2}
+.attendance-page .attendance-lesson-tabs-list{justify-content:center}
+.attendance-page .attendance-lesson-tabs-list button{background:linear-gradient(125deg,#d4eaff,#b9ddff);border:1px solid #90b8d6;box-shadow:0 3px 7px #205b8521}
+.attendance-page .attendance-setup-panel{background:rgba(250,253,255,.65);border-bottom:1px solid #a4c0d0}
+.attendance-page .attendance-overview{background:rgba(231,243,251,.45);border-bottom:1px solid #9cbacc}
+.attendance-page .attendance-overview article{border:1px solid #a5c5d8;box-shadow:0 2px 4px #245e8512}
+.attendance-page .attendance-workspace{background:transparent;border:0;padding:10px 13px 16px}
+.attendance-page .attendance-list-head{background:rgba(231,243,253,.57);border:1px solid #a8c5d5;border-radius:9px 9px 0 0;padding:10px 14px}
+.attendance-page .attendance-roster-grid{padding:0;gap:0;background:rgba(255,255,255,.34);border:1px solid #9fb9c9;border-top:0;border-radius:0 0 10px 10px;overflow:hidden}
+.attendance-page .attendance-student-card{min-height:58px;padding:6px 12px;grid-template-columns:minmax(210px,1fr) minmax(360px,1.1fr);background:rgba(255,255,255,.50);border:0;border-bottom:1px solid rgba(123,163,190,.60);border-radius:0;box-shadow:none}
+.attendance-page .attendance-student-card:nth-child(even){background:rgba(220,238,250,.42)}
+.attendance-page .attendance-student-card:last-child{border-bottom:0}
+.attendance-page .student-info>b{border:1px solid #b8d4e4;background:rgba(255,255,255,.72)}
+.attendance-page .status-buttons button{min-height:34px;border:1px solid rgba(255,255,255,.94);border-bottom:2px solid currentColor;border-radius:8px;font-size:12px;box-shadow:none}
+.attendance-page .status-buttons button.active{transform:none;outline:2px solid currentColor;outline-offset:-2px;box-shadow:0 2px 5px #184a5a1e}
+@media(max-width:850px){.attendance-page .attendance-student-card{grid-template-columns:1fr;gap:6px}}
+@media(max-width:560px){.attendance-page .attendance-workspace{padding:7px}.attendance-page .attendance-student-card{padding:8px}.attendance-page .status-buttons{gap:3px}}
