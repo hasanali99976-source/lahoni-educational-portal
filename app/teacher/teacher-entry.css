@@ -2,7 +2,7 @@ body:has(.teacher-entry-page){margin:0;background:#061d2b;color:#fff}.teacher-en
 
 /* Teacher entry — final integrated identity */
 .teacher-entry-page,.teacher-entry-page *{font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif}
-.teacher-entry-page{padding:12px;background:linear-gradient(180deg,rgba(3,18,29,.50),rgba(4,26,39,.64)),url('https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&fm=jpg&q=90&w=2400') center/cover fixed no-repeat}
+.teacher-entry-page{padding:12px;background:linear-gradient(180deg,rgba(3,18,29,.50),rgba(4,26,39,.64)),url('/lahooni_classroom_ready.webp.png') center/cover fixed no-repeat}
 .portal-entry-shell{min-height:calc(100dvh - 24px);border:1px solid rgba(255,255,255,.09);border-radius:28px;background:rgba(3,27,39,.30);box-shadow:none;backdrop-filter:blur(4px)}
 .portal-entry-top{height:76px;padding:0 25px;border-bottom-color:rgba(255,255,255,.08)}
 .portal-entry-brand img{width:46px;height:46px;border:1px solid rgba(239,199,105,.55)}
