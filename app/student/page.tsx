@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { preload } from "react-dom";
 import { calculateGradePlanResult, normalizeGradePlan, type GradePlan, type GradeValueMap } from "../../lib/grade-plan";
 import "./student-portal-v1000.css";
 import "./middle-girls-theme.css";
@@ -44,6 +45,7 @@ function compactDate(){return new Intl.DateTimeFormat("ar-SA",{year:"numeric",mo
 function feedDate(value:string){if(!value)return"بدون تاريخ";const date=new Date(value);if(Number.isNaN(date.getTime()))return value;return new Intl.DateTimeFormat("ar-SA",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Riyadh"}).format(date);}
 
 export default function StudentPage(){
+  preload("/student-login-background.png.png",{as:"image",fetchPriority:"high"});
   const [accessCode,setAccessCode]=useState("");const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);
   const [matches,setMatches]=useState<Match[]>([]);const [selectedKey,setSelectedKey]=useState("");const [subjectGate,setSubjectGate]=useState(false);const [view,setView]=useState<StudentView>("home");const [certificateSections,setCertificateSections]=useState<string[]>([]);const automaticLoginStarted=useRef(false);
 
