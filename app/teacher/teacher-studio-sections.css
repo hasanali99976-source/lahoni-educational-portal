@@ -33,3 +33,56 @@
 @media(max-width:760px){.teacher-student-shell .timetable-page .timetable-hero{padding:14px;flex-wrap:wrap}.teacher-student-shell .timetable-page .smart-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-student-shell .attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.teacher-student-shell .timetable-page .lesson-cell{transition:none}}
 @media print{.teacher-student-shell .timetable-page :is(.timetable-hero,.smart-strip,.timetable-meta,.table-wrap),.teacher-student-shell .attendance-page .attendance-card{box-shadow:none;background:#fff}}
+
+/* Studio watercolor v3 — actual daily and timetable components; no runtime changes. */
+.teacher-student-shell .teacher-dashboard-v11{--wc-ink:#154a66;gap:15px!important;color:var(--wc-ink)}
+.teacher-student-shell .teacher-dashboard-v11 :is(.td11-hero,.studio-actions,.studio-pulse,.studio-timeline,.td11-section-head,.td11-classes){min-width:0}
+.teacher-student-shell .teacher-dashboard-v11 .td11-hero{gap:12px!important}
+.teacher-student-shell .teacher-dashboard-v11 :is(.td11-greeting,.td11-ai){background:linear-gradient(125deg,#e1f5ff 0%,#eaf9ed 56%,#f5eaff 100%)!important;border:2px solid #fff!important;border-radius:23px!important;box-shadow:0 7px 0 #c3e1e7,0 12px 22px #143d551a!important;color:#154a66!important}
+.teacher-student-shell .teacher-dashboard-v11 :is(.td11-greeting,.td11-ai) :is(h1,h2,h3,strong,p,small){color:#154a66!important;text-shadow:none!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-actions{background:linear-gradient(110deg,#e4f5ff,#f2e9ff)!important;border:2px solid #fff!important;border-radius:24px!important;box-shadow:0 7px 0 #d1e0f0!important;padding:15px!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-action{border:2px solid #fff!important;border-radius:18px!important;box-shadow:0 5px 0 #bad8e1!important;color:#154a66!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-action.attendance{background:#bff1dd!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-action.grades{background:#cceaff!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-action.follow{background:#e6d6ff!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-action :is(b,strong,small,span){color:#154a66!important;text-shadow:none!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-pulse{background:linear-gradient(115deg,#d6f8f0,#e1f2ff 50%,#f0e2ff)!important;border:2px solid #fff!important;border-radius:24px!important;box-shadow:0 7px 0 #bddfe9!important;color:#154a66!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-pulse :is(h2,h3,b,strong,small,span,p){color:#154a66!important;text-shadow:none!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-stat{background:#fff!important;border:2px solid #d5e9f0!important;border-radius:18px!important;box-shadow:0 4px 0 #c7dce8!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-stat.present{background:#d5f8e8!important}.teacher-student-shell .teacher-dashboard-v11 .studio-stat.absent{background:#ffe2e9!important}.teacher-student-shell .teacher-dashboard-v11 .studio-stat.late{background:#fff0c9!important}.teacher-student-shell .teacher-dashboard-v11 .studio-stat.excused{background:#e8dfff!important}.teacher-student-shell .teacher-dashboard-v11 .studio-stat.escaped{background:#dceeff!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-timeline{background:linear-gradient(115deg,#e2f4ff,#f2e9ff)!important;border:2px solid #fff!important;border-radius:24px!important;box-shadow:0 7px 0 #c8dce9!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-timeline :is(h2,h3,b,strong,small,span,p){color:#164b67!important;text-shadow:none!important}
+.teacher-student-shell .teacher-dashboard-v11 .studio-lesson{background:#fff!important;border:1px solid #c4e3ee!important;border-radius:14px!important}
+.teacher-student-shell .teacher-dashboard-v11 .td11-classes>article{background:linear-gradient(115deg,#d9f5ee,#e6efff)!important}
+.teacher-student-shell .timetable-v9{color:#174b64!important;gap:14px!important}
+.teacher-student-shell .timetable-v9 :is(.ttv9-hero,.ttv9-today,.ttv9-week-head){background:linear-gradient(115deg,#d8f4ff,#e7f9ef 52%,#eee4ff)!important;border:2px solid #fff!important;border-radius:22px!important;box-shadow:0 6px 0 #c3e0e9,0 12px 25px #103d5818!important}
+.teacher-student-shell .timetable-v9 :is(.ttv9-hero,.ttv9-today,.ttv9-week-head) :is(h1,h2,h3,p,small,strong,span){color:#164a64!important;text-shadow:none!important}
+.teacher-student-shell .timetable-v9 .ttv9-hero-actions button,.teacher-student-shell .timetable-v9 .ttv9-week-head button{background:#fff!important;border:1px solid #b8d9e8!important;color:#174b64!important;font-weight:900!important}
+.teacher-student-shell .timetable-v9 .ttv9-hero-actions button.active{background:#baf1df!important}
+.teacher-student-shell .timetable-v9 .ttv9-week{background:linear-gradient(125deg,#e6f6ff,#f3eaff)!important;border:2px solid #fff!important;border-radius:22px!important;padding:13px!important;box-shadow:0 6px 0 #c3dfeb!important}
+.teacher-student-shell .timetable-v9 .ttv9-week>article{background:#fff3d8!important;border:2px solid #eacb80!important;border-radius:17px!important;padding:10px!important;min-width:0!important}
+.teacher-student-shell .timetable-v9 .ttv9-week>article:nth-child(2){background:#d9efff!important;border-color:#8bc9ef!important}
+.teacher-student-shell .timetable-v9 .ttv9-week>article:nth-child(3){background:#daf7e6!important;border-color:#8bd5aa!important}
+.teacher-student-shell .timetable-v9 .ttv9-week>article:nth-child(4){background:#ffe2ea!important;border-color:#f3a9c0!important}
+.teacher-student-shell .timetable-v9 .ttv9-week>article:nth-child(5){background:#e9dfff!important;border-color:#bba1ed!important}
+.teacher-student-shell .timetable-v9 .ttv9-week>article.today{box-shadow:inset 0 0 0 2px #24a6a5!important}
+.teacher-student-shell .timetable-v9 .ttv9-week article>header h3,.teacher-student-shell .timetable-v9 .ttv9-week article>header small{color:#154b64!important;text-shadow:none!important}
+.teacher-student-shell .timetable-v9 .ttv9-week article>header>span{background:#fff!important;color:#195574!important;border-color:#d5e8ee!important}
+.teacher-student-shell .timetable-v9 .ttv9-periods button{background:#ffffffde!important;border:1px solid #b7d8e5!important;border-radius:11px!important;opacity:1!important;color:#154b64!important;min-height:48px!important}
+.teacher-student-shell .timetable-v9 .ttv9-periods button.filled{background:linear-gradient(110deg,#c3f0e0,#d5ecff)!important;border:2px solid #5abbb7!important}
+.teacher-student-shell .timetable-v9 .ttv9-periods button :is(b,strong,small){color:#154b64!important;text-shadow:none!important;overflow-wrap:anywhere}
+.teacher-student-shell .timetable-v9 .ttv9-periods button>b{background:#d9eafa!important}
+.teacher-student-shell .timetable-v9 .ttv9-today article{background:#fff!important;border:1px solid #b6dfe5!important;border-radius:13px!important}
+.teacher-student-shell .timetable-v9 .ttv9-today article:nth-child(2n){background:#fff2d9!important}
+.teacher-student-shell .timetable-v9 .ttv9-today article>b{background:#48b5a7!important;color:#fff!important}
+.teacher-student-shell .timetable-v9 .ttv9-today article :is(strong,small){color:#154b64!important}
+.teacher-student-shell .timetable-v9 .ttv9-grid-head{background:#286e89!important;color:#fff!important}
+.teacher-student-shell .timetable-v9 .ttv9-grid-row{background:#f3faff!important;color:#154b64!important}
+.teacher-student-shell .timetable-v9 .ttv9-grid-row:nth-of-type(even){background:#e7f6ed!important}
+.teacher-student-shell .timetable-v9 .ttv9-grid-row>button{background:#fff!important;border:1px solid #c1dfe9!important;color:#154b64!important}
+.teacher-student-shell .timetable-v9 .ttv9-grid-row>button.filled{background:#d2f4e7!important;border-color:#68c6b0!important}
+.teacher-student-shell .timetable-v9 .ttv9-grid-row>button :is(strong,small,span){color:#154b64!important}
+@media(min-width:901px){.teacher-student-shell .timetable-v9 .ttv9-week{grid-template-columns:repeat(5,minmax(0,1fr))!important;overflow:visible!important}}
+@media(max-width:900px){.teacher-student-shell .timetable-v9 .ttv9-week{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){.teacher-student-shell .timetable-v9 .ttv9-week{grid-template-columns:1fr!important}.teacher-student-shell .teacher-dashboard-v11 .studio-actions{padding:10px!important}}
+@media print{.teacher-student-shell .timetable-v9 :is(.ttv9-hero,.ttv9-today,.ttv9-week,.ttv9-week-head){box-shadow:none!important;background:#fff!important}.teacher-student-shell .timetable-v9 .ttv9-week>article{background:#fff!important;border-color:#888!important}}
