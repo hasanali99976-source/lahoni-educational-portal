@@ -198,6 +198,8 @@ export default function HomePage(){
   .lh-card:before{opacity:.27!important}.lh-card-copy h2{color:#164965!important}.lh-card-copy small,.lh-card-copy p{color:#285a75!important}
   .lh-card-icon{background:rgba(255,255,255,.9)!important}.lh-enter{background:rgba(255,255,255,.95)!important;color:#164e72!important}
   .lh-features{background:rgba(255,255,255,.75)!important;backdrop-filter:blur(3px)!important}
+  /* Soften the classroom photo while keeping the colorful portal tiles crisp. */
+  .lh-home{background:linear-gradient(145deg,rgba(255,250,247,.43),rgba(239,250,255,.44) 55%,rgba(255,245,251,.43)),url("/lahooni_classroom_ready.webp.png") center center / 100% 100% no-repeat!important}
   @media(max-width:690px){.lh-home{background-size:auto,auto,auto,auto 76vh,auto;background-position:center,center,center,center top,center}}
   @media(max-width:690px){.lh-main-title{font-size:clamp(43px,10vw,66px);letter-spacing:-1px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:255px;border-radius:24px}.lh-roles{gap:14px;margin-top:22px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}}
   `}</style>
