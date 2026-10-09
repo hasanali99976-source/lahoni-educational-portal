@@ -688,3 +688,29 @@ body:has(.student-current-shell){background:#d8eef0!important}
 @media(max-width:1100px){.student-current-shell .sc-certificate-page>.sc-cert-toolbar{grid-template-columns:1fr!important}.student-current-shell .sc-cert-picks{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}}
 @media(max-width:600px){.student-current-shell .sc-dimensions>div,.student-current-shell .sc-cert-picks{grid-template-columns:1fr!important}}
 @media print{.student-current-shell .sc-certificate-page>.sc-cert-toolbar,.student-current-shell .sc-certificate-page>.sc-empty{display:none!important}}
+
+/* Student subject selection — share illustrated portal background and watercolor theme */
+.student-current-gate .student-scene{background-image:url('/student-dashboard-bg.png.png')!important;background-position:center!important;background-size:cover!important;filter:saturate(1.08) brightness(.98)!important;transform:none!important}
+.student-current-gate .scg-shell{width:min(1440px,calc(100% - 24px))!important;min-height:calc(100dvh - 24px)!important;margin:12px auto!important;padding:18px 24px 24px!important;border:2px solid #ffffffa6!important;border-radius:32px!important;background:linear-gradient(145deg,#e1faff29,#e8dfff29)!important;backdrop-filter:blur(5px)!important;box-shadow:0 14px 50px #06446735!important;gap:18px!important}
+.student-current-gate .scg-brand,.student-current-gate .scg-student{background:#e0f7ffdd!important;border:2px solid #fff!important;border-radius:24px!important;box-shadow:0 5px 0 #55a7c16e!important;color:#07436b!important}
+.student-current-gate .scg-student{background:#f2e4ffea!important}
+.student-current-gate .scg-brand :is(small,strong),.student-current-gate .scg-student :is(small,strong,b){color:#07436b!important;font-size:clamp(12px,1vw,17px)!important;font-weight:900!important}
+.student-current-gate .scg-student b{color:#a13484!important}
+.student-current-gate .scg-student button{background:#fff!important;border:2px solid #b6e2fa!important;color:#07527d!important}
+.student-current-gate .scg-title{padding:20px 12px 12px!important;background:#e9f8ffdf!important;border:2px solid #fff!important;border-radius:28px!important;box-shadow:0 5px 0 #70b5d85e!important}
+.student-current-gate .scg-title>span{background:#ffe397!important;color:#07436b!important;border:2px solid #fff!important;font-size:15px!important}
+.student-current-gate .scg-title h1{font-size:clamp(25px,2.7vw,40px)!important;color:#07436b!important;font-weight:950!important}
+.student-current-gate .scg-title p{font-size:clamp(13px,1.1vw,17px)!important;color:#215c7b!important;font-weight:750!important}
+.student-current-gate .scg-subjects{gap:18px!important}
+.student-current-gate .scg-subjects>button{background:linear-gradient(130deg,#adf3db,#42d2c0)!important;color:#063e66!important;border:3px solid #fff!important;border-radius:32px 30px 35px 30px!important;min-height:156px!important;box-shadow:0 7px 0 #1d998c7d,0 14px 22px #073f6540!important}
+.student-current-gate .scg-subjects>button:nth-child(3n+2){background:linear-gradient(130deg,#c9edff,#77c6ff)!important;box-shadow:0 7px 0 #3388c18a,0 14px 22px #073f6540!important}
+.student-current-gate .scg-subjects>button:nth-child(3n){background:linear-gradient(130deg,#fff0bb,#ffc76d)!important;box-shadow:0 7px 0 #c18c368a,0 14px 22px #073f6540!important}
+.student-current-gate .scg-subjects>button:nth-child(3n+4){background:linear-gradient(130deg,#ffd9eb,#ef9cc9)!important}
+.student-current-gate .scg-subjects>button:before{opacity:.22!important}
+.student-current-gate .scg-subjects>button :is(small,b,em,strong){color:#073e67!important;text-shadow:none!important;font-size:clamp(13px,1vw,17px)!important;font-weight:900!important}
+.student-current-gate .scg-subjects>button span b{font-size:clamp(18px,1.4vw,24px)!important}
+.student-current-gate .scg-subjects>button i{background:#ffffffb5!important;border:2px solid #fff!important;color:#07527d!important;border-radius:20px!important}
+.student-current-gate .scg-subjects>button u{background:#ffffffb5!important}
+.student-current-gate .scg-subjects>button u:after{background:linear-gradient(90deg,#00bfae,#269fff,#a765eb)!important}
+.student-current-gate .scg-shell>footer button{background:linear-gradient(110deg,#ffb8d3,#ff7da5)!important;border:2px solid #fff!important;border-radius:20px!important;color:#073e67!important;font-size:16px!important;font-weight:950!important;padding:12px 24px!important}
+@media(max-width:850px){.student-current-gate .scg-subjects{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}.student-current-gate .scg-shell{padding:12px!important}}
