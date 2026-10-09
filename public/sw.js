@@ -1,9 +1,9 @@
-const CACHE_NAME = "ostadh-lahooni-v127-mastery-refresh";
+const CACHE_NAME = "ostadh-lahooni-v128-sync";
 const STATIC_FILES = [
-  "/manifest.webmanifest?v=127-mastery-refresh",
-  "/icon.svg?v=127-mastery-refresh",
-  "/icons/lahooni-identity-320.jpg?v=127-mastery-refresh",
-  "/icons/ostadh-lahooni-192.jpg?v=127-mastery-refresh",
+  "/manifest.webmanifest?v=128-sync",
+  "/icon.svg?v=128-sync",
+  "/icons/lahooni-identity-320.jpg?v=128-sync",
+  "/icons/ostadh-lahooni-192.jpg?v=128-sync",
 ];
 
 self.addEventListener("message", event => {
@@ -21,7 +21,7 @@ self.addEventListener("activate", event => {
     await Promise.all(keys.filter(key => key.startsWith("ostadh-lahooni-") && key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    clients.forEach(client => client.postMessage({ type: "PORTAL_VERSION", version: "127-mastery-refresh" }));
+    clients.forEach(client => client.postMessage({ type: "PORTAL_VERSION", version: "128-sync" }));
   })());
 });
 
