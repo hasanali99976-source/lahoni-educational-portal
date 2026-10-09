@@ -557,3 +557,32 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-sidebar footer.sc-bottom-actions button:last-child{background:linear-gradient(135deg,#ffa6c4,#f47b9b)!important;color:#153d60!important}
 @media(max-width:1050px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr 1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:1/-1!important}}
 @media(max-width:760px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:auto!important}.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){background:rgba(233,248,255,.72)!important}}
+
+/* Student watercolor inner views v9 */
+.student-current-shell .sc-page .sc-page-title{background:linear-gradient(110deg,#c9fff0,#c5eaff,#e4d7ff)!important;border:3px solid #fff!important;border-radius:35px!important;box-shadow:0 5px 0 #76cbdc!important;padding:16px 20px!important;color:#073d62!important}
+.student-current-shell .sc-page .sc-page-title :is(h2,b,span){color:#073d62!important;font-weight:950!important}
+.student-current-shell .sc-page .sc-page-title p{color:#245b79!important;font-size:12px!important}
+.student-current-shell .sc-page .sc-score-orb{background:linear-gradient(145deg,#ffe39b,#eab258)!important;border:2px solid white!important;border-radius:32px!important}
+.student-current-shell .sc-page .sc-kpis article{border:3px solid white!important;border-radius:33px!important;box-shadow:0 5px 0 #4aa4be55!important}
+.student-current-shell .sc-page :is(.sc-chart-card,.sc-grade-sections>article,.sc-notes-stats>article,.sc-report-summary>article,.sc-feed-item){background:linear-gradient(140deg,#d7f3ff,#e3e5ff)!important;border:2px solid white!important;border-radius:26px!important;box-shadow:0 4px 0 #70b8d844!important;color:#08466b!important}
+.student-current-shell .sc-page :is(.sc-grade-sections>article,.sc-notes-stats>article,.sc-report-summary>article):nth-child(even){background:linear-gradient(135deg,#fff1b9,#d9ffe7)!important}
+.student-current-shell .sc-page :is(.sc-grade-sections>article,.sc-notes-stats>article,.sc-report-summary>article):nth-child(3n){background:linear-gradient(135deg,#ffdce9,#e5d9ff)!important}
+.student-current-shell .sc-discipline .discipline-summary{padding:16px!important}
+.student-current-shell .sc-discipline .discipline-meter{background:#ffffff66!important;border-radius:19px!important;padding:11px!important}
+.student-current-shell .sc-discipline .discipline-meter u i{background:linear-gradient(90deg,#10d3ae,#49a6f6,#b47af6,#ffda69)!important}
+.student-current-shell .sc-discipline .discipline-events{background:linear-gradient(135deg,#e1f8ff,#eee1ff)!important;border:2px solid white!important;border-radius:24px!important;padding:13px!important}
+.student-current-shell .sc-discipline .discipline-table{border-radius:20px!important;overflow:hidden!important}
+.student-current-shell .sc-discipline .discipline-row.head{background:linear-gradient(100deg,#52d3c6,#71b9fa,#c3a2ff)!important}
+.student-current-shell .sc-discipline .discipline-row.head span{color:#073e67!important;font-weight:950!important}
+.student-current-shell .sc-discipline .discipline-row:not(.head):nth-child(even){background:#e5f6ff!important}
+.student-current-shell .sc-discipline .discipline-row:not(.head):nth-child(odd){background:#f5eaff!important}
+.student-current-shell .sc-discipline .discipline-row:not(.head) span{color:#0c4b70!important;font-weight:800!important}
+.student-current-shell .sc-grades .sc-grade-items>div{background:#fff9!important;border:1px solid #c6e7ff!important;border-radius:16px!important}
+.student-current-shell .sc-grades .sc-grade-items>div:nth-child(even){background:#fff0d9!important}
+.student-current-shell .sc-notes .sc-feed-item:nth-child(even){background:linear-gradient(120deg,#fff0c7,#e2ffe4)!important}
+.student-current-shell .sc-sidebar nav button i{border:2px solid #fff!important;border-radius:14px!important;color:#093e69!important;background:#8de3fa!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+2) i{background:#9af2d1!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+3) i{background:#dfbaff!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+4) i{background:#ffe49b!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+5) i{background:#ffbbd4!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+6) i{background:#b6f4b8!important}
