@@ -1,0 +1,4 @@
+export const V2_SESSION_DAYS = 10;
+export const V2_SESSION_MAX_AGE = 60 * 60 * 24 * V2_SESSION_DAYS;
+export const V2_STUDENT_ACCESS_TTL_MS = V2_SESSION_MAX_AGE * 1000;
+export const V2_SESSION_POLICY_VERSION = "v2-10d";
