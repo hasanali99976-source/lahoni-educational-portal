@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { FormEvent,useState } from "react";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-entry.css";
@@ -7,6 +8,7 @@ import "./teacher-entry.css";
 const LOGO="/icons/lahooni-identity-320.jpg";
 
 export default function TeacherLoginPage(){
+ preload("/api/teacher-entry-background",{as:"image",fetchPriority:"high"});
  const[name,setName]=useState(""),[password,setPassword]=useState(""),[show,setShow]=useState(false),[error,setError]=useState(""),[loading,setLoading]=useState(false);
  async function submit(e:FormEvent){
    e.preventDefault();if(loading)return;setError("");setLoading(true);
