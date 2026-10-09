@@ -94,3 +94,28 @@
 .attendance-page .attendance-list{background:transparent}
 @media(max-width:900px){.attendance-page .attendance-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.attendance-page .attendance-head-copy p{display:none}}
 @media(max-width:650px){.attendance-page .attendance-hero{padding:9px;flex-wrap:wrap}.attendance-page .attendance-head-copy h1{font-size:18px}.attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 120px;min-height:48px}}
+
+
+/* Paper-register layout: clear rules and compact controls. */
+.attendance-page .attendance-card{border:2px solid #8fb4cb;border-radius:16px;background:#fffdf7f2;backdrop-filter:none}
+.attendance-page .attendance-lesson-tabs{padding:9px 13px;background:#edf7f5;border-bottom:2px solid #9bb9cc}
+.attendance-page .attendance-lesson-tabs-head{margin-bottom:7px}
+.attendance-page .attendance-lesson-tabs-list{gap:7px}
+.attendance-page .attendance-lesson-tabs-list button{flex:0 1 165px;min-height:48px;padding:6px 9px;border:2px solid #9cb7cb;border-radius:9px;box-shadow:none;transform:none}
+.attendance-page .attendance-lesson-tabs-list button.active{transform:none;outline:2px solid #dca83c}
+.attendance-page .attendance-setup-panel{padding:10px 13px;gap:8px;border-bottom:2px solid #a4bece}
+.attendance-page .attendance-primary-controls select,.attendance-page .attendance-primary-controls input{height:39px;border-radius:8px}
+.attendance-page .attendance-main-actions button{min-height:39px;padding:6px 11px;border-radius:8px}
+.attendance-page .attendance-overview{padding:8px;gap:6px;background:#eff6fa;border-bottom:2px solid #a4bece}
+.attendance-page .attendance-overview article{min-height:60px;padding:7px 9px;border:1px solid #a4bece;border-radius:9px;box-shadow:none}
+.attendance-page .attendance-overview article strong{font-size:21px}
+.attendance-page .attendance-workspace{background:#fffefa;border:1px solid #a4bece}
+.attendance-page .attendance-list-head{padding:10px 14px;border-bottom:2px solid #85a9c1}
+.attendance-page .attendance-roster-grid{display:grid;grid-template-columns:1fr;gap:0;padding:0 12px 12px;background:#fffefa}
+.attendance-page .attendance-student-card{margin:0;min-height:60px;padding:7px 11px;gap:9px;border:0;border-bottom:1.5px solid #a9c5d6;border-radius:0;box-shadow:none;background:#fffefa}
+.attendance-page .attendance-student-card:nth-child(even){background:#f0f7fb}
+.attendance-page .attendance-student-card:hover{background:#e4f5fb}
+.attendance-page .student-info strong{font-size:15px}
+.attendance-page .status-buttons button{min-height:37px;border-radius:8px}
+.attendance-page .status-buttons button.active{transform:none;box-shadow:0 2px 5px #184a5a24}
+@media(max-width:850px){.attendance-page .attendance-student-card{grid-template-columns:1fr}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 125px}}
