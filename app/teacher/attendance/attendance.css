@@ -105,3 +105,46 @@
 .attendance-page .status-buttons button.active{transform:none;outline:2px solid currentColor;outline-offset:-2px;box-shadow:0 2px 5px #184a5a24}
 @media(max-width:1050px){.attendance-page .attendance-student-card{grid-template-columns:1fr;gap:6px}}
 @media(max-width:650px){.attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 120px}.attendance-page .attendance-workspace{padding:7px}.attendance-page .attendance-student-card{padding:8px}}
+
+
+/* Authentic paper attendance grid; matches register columns and circular marks. */
+.attendance-page .attendance-register-scroll{width:100%;overflow-x:auto;border:1.5px solid #9db8ca;border-radius:4px;background:rgba(255,255,255,.86);scrollbar-width:thin}
+.attendance-page .attendance-register-table{width:100%;min-width:730px;border-collapse:collapse;table-layout:fixed;direction:rtl;color:#1b5479;font-size:13px}
+.attendance-page .attendance-register-table th,.attendance-page .attendance-register-table td{border:1px solid rgba(129,163,187,.48);padding:4px 8px;vertical-align:middle;height:36px}
+.attendance-page .attendance-register-table thead th{height:39px;background:linear-gradient(180deg,#e7f5ff,#d8ebfa);font-size:13px;font-weight:900;text-align:center;white-space:nowrap}
+.attendance-page .attendance-register-table thead th:nth-child(1){width:45px}
+.attendance-page .attendance-register-table thead th:nth-child(2){width:32%;text-align:right}
+.attendance-page .attendance-register-table thead th:nth-child(3){width:105px}
+.attendance-page .attendance-register-table thead th:nth-child(n+4){width:8.6%}
+.attendance-page .attendance-register-table tbody tr:nth-child(odd){background:rgba(255,255,255,.57)}
+.attendance-page .attendance-register-table tbody tr:nth-child(even){background:rgba(227,240,249,.58)}
+.attendance-page .attendance-register-table tbody tr:hover{background:rgba(213,238,250,.84)}
+.attendance-page .attendance-register-table .register-number{text-align:center;font-weight:850}
+.attendance-page .attendance-register-table .register-name{text-align:right;font-weight:900;font-size:13px}
+.attendance-page .attendance-register-table .register-code{text-align:center;font-weight:800;color:#3977a1;font-size:12px;direction:ltr}
+.attendance-page .attendance-register-table .register-choice{text-align:center;padding:2px 4px}
+.attendance-page .attendance-register-table .register-col-present{background:rgba(118,223,185,.17)}
+.attendance-page .attendance-register-table .register-col-absent{background:rgba(255,170,188,.19)}
+.attendance-page .attendance-register-table .register-col-late{background:rgba(255,215,140,.21)}
+.attendance-page .attendance-register-table .register-col-excused{background:rgba(197,172,255,.19)}
+.attendance-page .attendance-register-table .register-col-escaped{background:rgba(255,165,198,.18)}
+.attendance-page .attendance-register-table thead .register-col-present{background:#c5f3e5}
+.attendance-page .attendance-register-table thead .register-col-absent{background:#ffe0e9}
+.attendance-page .attendance-register-table thead .register-col-late{background:#fff0c9}
+.attendance-page .attendance-register-table thead .register-col-excused{background:#e9dcff}
+.attendance-page .attendance-register-table thead .register-col-escaped{background:#ffdce9}
+.attendance-page .attendance-register-table .register-radio{display:inline-grid;place-items:center;width:27px;height:27px;min-width:27px;min-height:27px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;box-shadow:none;transform:none}
+.attendance-page .attendance-register-table .register-radio span{display:block;width:14px;height:14px;border:1.8px solid #b1a0bb;border-radius:50%;background:#fff;transition:background .12s ease}
+.attendance-page .attendance-register-table .register-col-present .register-radio span{border-color:#16aa7c}
+.attendance-page .attendance-register-table .register-col-absent .register-radio span{border-color:#d47b98}
+.attendance-page .attendance-register-table .register-col-late .register-radio span{border-color:#c7a269}
+.attendance-page .attendance-register-table .register-col-excused .register-radio span{border-color:#aa8cdd}
+.attendance-page .attendance-register-table .register-col-escaped .register-radio span{border-color:#d482a9}
+.attendance-page .attendance-register-table .register-radio.selected span{background:#11b58a;box-shadow:inset 0 0 0 3px #fff}
+.attendance-page .attendance-register-table .register-col-absent .register-radio.selected span{background:#e66d8e}
+.attendance-page .attendance-register-table .register-col-late .register-radio.selected span{background:#d9a33c}
+.attendance-page .attendance-register-table .register-col-excused .register-radio.selected span{background:#9b75dc}
+.attendance-page .attendance-register-table .register-col-escaped .register-radio.selected span{background:#d46aab}
+.attendance-page .attendance-register-table .register-radio:focus-visible{outline:2px solid #147cb6;outline-offset:1px}
+.attendance-page .attendance-register-table .register-radio:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:650px){.attendance-page .attendance-register-table{min-width:650px;font-size:12px}.attendance-page .attendance-register-table th,.attendance-page .attendance-register-table td{height:35px;padding:3px 5px}.attendance-page .attendance-register-table .register-name{font-size:12px}}
