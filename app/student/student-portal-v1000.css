@@ -586,3 +586,27 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-sidebar nav button:nth-child(6n+4) i{background:#ffe49b!important}
 .student-current-shell .sc-sidebar nav button:nth-child(6n+5) i{background:#ffbbd4!important}
 .student-current-shell .sc-sidebar nav button:nth-child(6n+6) i{background:#b6f4b8!important}
+
+/* Clear notes and background-integrated identities */
+.student-current-shell .sc-head.sc-head-integrated{background:transparent!important;border:0!important;box-shadow:none!important;gap:16px!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:0!important;padding:5px 12px!important;min-height:76px!important;text-shadow:0 2px 3px white,0 0 8px white!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date) :is(strong,small,span){color:#073d69!important;font-weight:950!important;opacity:1!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:clamp(20px,1.7vw,29px)!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) small{font-size:16px!important;color:#087eb0!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) span{font-size:17px!important;color:#6d35b2!important}
+.student-current-shell .sc-head-integrated .sc-head-date strong{font-size:clamp(17px,1.6vw,25px)!important;color:#9c3e86!important}
+.student-current-shell .sc-head-integrated .sc-head-date small{font-size:17px!important;color:#076f9d!important}
+.student-current-shell .sc-notes .sc-notes-stats{gap:12px!important}
+.student-current-shell .sc-notes .sc-notes-stats>article{padding:16px 19px!important;min-height:95px!important}
+.student-current-shell .sc-notes .sc-notes-stats>article:nth-child(1){background:linear-gradient(110deg,#d2eaff,#dcd3ff)!important}
+.student-current-shell .sc-notes .sc-notes-stats>article:nth-child(2){background:linear-gradient(110deg,#fff1b4,#d2ffe6)!important}
+.student-current-shell .sc-notes .sc-notes-stats>article:nth-child(3){background:linear-gradient(110deg,#ffd6e8,#ead8ff)!important}
+.student-current-shell .sc-notes .sc-notes-stats>article :is(small,b){color:#073f69!important;opacity:1!important;font-weight:950!important}
+.student-current-shell .sc-notes .sc-notes-stats>article small{font-size:17px!important}
+.student-current-shell .sc-notes .sc-notes-stats>article b{font-size:24px!important}
+.student-current-shell .sc-notes .sc-notes-stats>article i{color:#074568!important;opacity:1!important}
+.student-current-shell .sc-notes .sc-feed-item{background:linear-gradient(115deg,#d2f4ff,#e7ddff)!important;padding:19px!important}
+.student-current-shell .sc-notes .sc-feed-item :is(h3,p,small,span,b){color:#0a4369!important;opacity:1!important}
+.student-current-shell .sc-notes .sc-feed-item :is(h3,b){font-weight:950!important}
+.student-current-shell .sc-notes .sc-feed-item:nth-child(even){background:linear-gradient(115deg,#fff0c2,#e1ffe2)!important}
+@media(max-width:760px){.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){padding:3px!important;min-height:0!important}.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:17px!important}}
