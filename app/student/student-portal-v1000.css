@@ -445,3 +445,61 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-sidebar nav button::after{width:19px!important;height:9px!important;top:-5px!important}
 @media(max-width:1050px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr 1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:1/-1!important}}
 @media(max-width:760px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:auto!important}.student-current-shell .sc-kpis article{min-height:98px!important}.student-current-shell .sc-hero{padding:18px!important}}
+
+/* Student clouds v6: distinctive illustrated clouds, compact metrics and readable charts. */
+.student-current-shell .sc-head.sc-head-integrated{gap:12px!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){position:relative!important;isolation:isolate!important;overflow:visible!important;border:3px solid white!important;border-radius:46px 55px 43px 51px!important;box-shadow:0 6px 0 #7bbce4,0 13px 25px rgba(10,75,116,.17)!important}
+.student-current-shell .sc-head-integrated .sc-student-head-card{background:linear-gradient(115deg,#c4efff,#9cd6ff)!important}
+.student-current-shell .sc-head-integrated .sc-teacher-head-card{background:linear-gradient(115deg,#e5d3ff,#b4d8ff)!important}
+.student-current-shell .sc-head-integrated .sc-head-date{background:linear-gradient(115deg,#fff3ad,#ffd5a5)!important;box-shadow:0 6px 0 #eebf63,0 13px 25px rgba(10,75,116,.12)!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date)::before{content:"☁"!important;position:absolute!important;display:block!important;top:-27px!important;right:18px!important;z-index:-1!important;font-size:51px!important;line-height:1!important;color:#c5efff!important;text-shadow:-1px -1px white,2px 0 white!important;pointer-events:none!important}
+.student-current-shell .sc-head-integrated .sc-teacher-head-card::before{color:#e1d3ff!important}
+.student-current-shell .sc-head-integrated .sc-head-date::before{color:#fff0a5!important}
+.student-current-shell .sc-head-integrated :is(strong,b){font-size:clamp(13px,1.12vw,17px)!important;color:#073f72!important;font-weight:950!important}
+.student-current-shell .sc-head-integrated :is(small,span){color:#14577f!important;font-weight:800!important}
+.student-current-shell .sc-hero{min-height:128px!important;padding:15px 22px!important;border-radius:30px!important;background:linear-gradient(120deg,#0789bd,#13c4cb,#6654d5)!important}
+.student-current-shell .sc-hero h2{font-size:clamp(18px,1.7vw,26px)!important;margin:7px 0!important}
+.student-current-shell .sc-hero p{font-size:12px!important;line-height:1.4!important;margin:4px 0!important}
+.student-current-shell .sc-hero::after{content:"⭐ ✨"!important;left:19%!important;top:4px!important;font-size:25px!important}
+.student-current-shell .sc-kpis{gap:12px!important;margin-top:9px!important}
+.student-current-shell .sc-kpis article{min-height:102px!important;border-radius:35px 43px 34px 39px!important;overflow:visible!important;padding:12px 15px!important;isolation:isolate!important}
+.student-current-shell .sc-kpis article::before{content:""!important;display:block!important;position:absolute!important;top:-12px!important;right:26px!important;width:61px!important;height:23px!important;border-radius:80% 80% 0 0!important;background:inherit!important;border:3px solid white!important;border-bottom:0!important;z-index:-1!important}
+.student-current-shell .sc-kpis article::after{content:"★"!important;display:block!important;position:absolute!important;left:12px!important;bottom:4px!important;font-size:29px!important;color:rgba(255,255,255,.48)!important;background:none!important;width:auto!important;height:auto!important}
+.student-current-shell .sc-kpis article span{font-size:13px!important;font-weight:950!important;color:#063d65!important}
+.student-current-shell .sc-kpis article b{font-size:24px!important;color:#053c66!important}
+.student-current-shell .sc-kpis article small{font-size:11px!important;color:#0d4d70!important}
+.student-current-shell .sc-kpis article.teal{background:linear-gradient(140deg,#7afbe0,#23c8af)!important}
+.student-current-shell .sc-kpis article.gold{background:linear-gradient(140deg,#ffe99b,#ffc34f)!important}
+.student-current-shell .sc-kpis article.blue{background:linear-gradient(140deg,#a4e6ff,#55b4ff)!important}
+.student-current-shell .sc-kpis article.violet{background:linear-gradient(140deg,#ebc3ff,#bb82ff)!important}
+.student-current-shell .sc-kpis article.red{background:linear-gradient(140deg,#ffc2d8,#fa84a9)!important}
+.student-current-shell .sc-analytics-grid{grid-template-columns:1.1fr .9fr!important;gap:13px!important}
+.student-current-shell .sc-chart-card{background:linear-gradient(140deg,#dff3ff,#dce7ff)!important}
+.student-current-shell .sc-chart-card:nth-child(2n){background:linear-gradient(140deg,#fff2b9,#dcffe7)!important}
+.student-current-shell .sc-chart-card>header{background:rgba(255,255,255,.45)!important;border-radius:22px 22px 0 0!important}
+.student-current-shell .sc-chart-card h3{color:#08436f!important;font-size:17px!important}
+.student-current-shell .sc-subject-bars{gap:8px!important}
+.student-current-shell .sc-subject-bars>div{grid-template-columns:minmax(88px,130px) minmax(60px,1fr) 42px!important;gap:9px!important;background:#fff!important;border:2px solid #cce6fb!important;border-radius:17px!important}
+.student-current-shell .sc-subject-bars span{font-size:12px!important;color:#084a76!important;font-weight:900!important}
+.student-current-shell .sc-subject-bars b{font-size:12px!important;color:#084a76!important}
+.student-current-shell .sc-subject-bars u{height:14px!important;background:#c5e4fa!important;border:1px solid white!important}
+.student-current-shell .sc-subject-bars>div:nth-child(4n+1) u i{background:linear-gradient(90deg,#08d6bc,#20a2f5)!important}
+.student-current-shell .sc-subject-bars>div:nth-child(4n+2) u i{background:linear-gradient(90deg,#ffac31,#ffd75a)!important}
+.student-current-shell .sc-subject-bars>div:nth-child(4n+3) u i{background:linear-gradient(90deg,#9565fa,#e16aeb)!important}
+.student-current-shell .sc-subject-bars>div:nth-child(4n+4) u i{background:linear-gradient(90deg,#ff629a,#ff9fba)!important}
+.student-current-shell .sc-column-chart{height:240px!important;gap:6px!important;padding:12px 5px!important}
+.student-current-shell .sc-column-chart>div{min-width:0!important;grid-template-rows:22px 120px minmax(0,1fr)!important;align-items:start!important}
+.student-current-shell .sc-column-chart>div>b{font-size:11px!important;font-weight:950!important;color:#07517e!important}
+.student-current-shell .sc-column-chart u{height:115px!important;width:clamp(24px,3vw,45px)!important;border-radius:15px!important;background:#cce7ff!important}
+.student-current-shell .sc-column-chart>div:nth-child(5n+1) u i{background:linear-gradient(0deg,#00bfae,#347ff7)!important}
+.student-current-shell .sc-column-chart>div:nth-child(5n+2) u i{background:linear-gradient(0deg,#ffa52b,#ffe04c)!important}
+.student-current-shell .sc-column-chart>div:nth-child(5n+3) u i{background:linear-gradient(0deg,#a15cf3,#ed8cf4)!important}
+.student-current-shell .sc-column-chart>div:nth-child(5n+4) u i{background:linear-gradient(0deg,#21c980,#8bea72)!important}
+.student-current-shell .sc-column-chart>div:nth-child(5n+5) u i{background:linear-gradient(0deg,#fa669b,#ffb17e)!important}
+.student-current-shell .sc-column-chart>div>span{font-size:10px!important;line-height:1.2!important;font-weight:850!important;color:#114f76!important;overflow-wrap:anywhere!important}
+.student-current-shell .sc-sidebar nav button{min-height:46px!important;border-radius:26px 31px 25px 30px!important;box-shadow:0 4px 0 rgba(0,30,65,.22),inset 0 2px rgba(255,255,255,.38)!important}
+.student-current-shell .sc-sidebar nav button::before{width:36px!important;height:15px!important;top:-9px!important;right:18px!important;border-radius:100% 100% 0 0!important}
+.student-current-shell .sc-sidebar nav button::after{width:24px!important;height:12px!important;top:-7px!important;right:53px!important;border-radius:100% 100% 0 0!important}
+.student-current-shell .sc-sidebar nav button b{font-size:12px!important;font-weight:950!important}
+.student-current-shell .sc-sidebar nav button i{font-size:19px!important}
+@media(max-width:760px){.student-current-shell .sc-analytics-grid{grid-template-columns:1fr!important}.student-current-shell .sc-column-chart{height:230px!important}.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date)::before{display:none!important}}
