@@ -30,3 +30,28 @@
 .attendance-page .attendance-roster-grid .status-buttons button{min-width:0;width:100%;height:auto;min-height:40px;padding:5px 2px;white-space:normal;line-height:1.35}
 @container(max-width:650px){.attendance-page .attendance-roster-grid .status-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @container(max-width:360px){.attendance-page .attendance-roster-grid .status-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Watercolor attendance status controls: state-driven, accessible animation */
+.attendance-page .attendance-roster-grid .attendance-student-card{background:linear-gradient(110deg,#f4fbff,#f5fff9);border:1px solid #a9d7e3;border-right:5px solid #4cbbbd;border-radius:17px;box-shadow:0 3px 0 #a6d1da;transition:background .2s,border-color .2s}
+.attendance-page .attendance-roster-grid .attendance-student-card:nth-child(even){background:linear-gradient(110deg,#fff9ed,#f6f0ff);border-right-color:#c7a1e9}
+.attendance-page .attendance-roster-grid .student-info strong{color:#17445e;font-size:15px;font-weight:950}
+.attendance-page .attendance-roster-grid .student-info>b{background:#e4efff;color:#16577a;border-radius:12px}
+.attendance-page .attendance-roster-grid .status-buttons{gap:7px;align-items:stretch;padding:5px 3px 8px}
+.attendance-page .attendance-roster-grid .status-buttons button{position:relative;isolation:isolate;min-height:44px;border:2px solid transparent;border-bottom-width:4px;border-radius:13px;font-size:12px;font-weight:950;line-height:1.3;box-shadow:0 2px 0 #17445e16;transition:transform .2s cubic-bezier(.2,1.5,.5,1),box-shadow .2s,filter .2s;touch-action:manipulation}
+.attendance-page .attendance-roster-grid .status-buttons button.present{background:#baf2d7;color:#125d47;border-color:#60c69c}
+.attendance-page .attendance-roster-grid .status-buttons button.absent{background:#ffd0dc;color:#94354c;border-color:#ef91ab}
+.attendance-page .attendance-roster-grid .status-buttons button.late{background:#ffe7a5;color:#805313;border-color:#e5bb57}
+.attendance-page .attendance-roster-grid .status-buttons button.excused{background:#d7dcff;color:#4e4196;border-color:#aaa9ed}
+.attendance-page .attendance-roster-grid .status-buttons button.escaped{background:#f0d4ff;color:#783d9c;border-color:#c48ee9}
+.attendance-page .attendance-roster-grid .status-buttons button.active{transform:scale(1.085) translateY(-2px);z-index:2;border-color:#fff;outline:2px solid currentColor;outline-offset:0;box-shadow:0 6px 0 #184a5a32,0 8px 16px #184a5a22;filter:saturate(1.2)}
+.attendance-page .attendance-roster-grid .status-buttons button.active.present{background:#23ba85;color:#fff}
+.attendance-page .attendance-roster-grid .status-buttons button.active.absent{background:#ef6387;color:#fff}
+.attendance-page .attendance-roster-grid .status-buttons button.active.late{background:#e7a72d;color:#fff}
+.attendance-page .attendance-roster-grid .status-buttons button.active.excused{background:#7374dd;color:#fff}
+.attendance-page .attendance-roster-grid .status-buttons button.active.escaped{background:#ac65d8;color:#fff}
+.attendance-page .attendance-roster-grid .status-buttons button:focus-visible{outline:3px solid #1479bc;outline-offset:3px}
+@media(hover:hover){.attendance-page .attendance-roster-grid .status-buttons button:hover:not(.active){transform:translateY(-3px) scale(1.035);filter:saturate(1.15)}}
+@media(prefers-reduced-motion:no-preference){.attendance-page .attendance-roster-grid .status-buttons button.active{animation:attendancePop .32s cubic-bezier(.15,1.5,.35,1) both}@keyframes attendancePop{0%{transform:scale(.92)}65%{transform:scale(1.12) translateY(-3px)}100%{transform:scale(1.085) translateY(-2px)}}}
+@media(prefers-reduced-motion:reduce){.attendance-page .attendance-roster-grid .status-buttons button,.attendance-page .attendance-roster-grid .attendance-student-card{animation:none;transition:none}}
+@container(max-width:650px){.attendance-page .attendance-roster-grid .status-buttons button{font-size:11px;min-height:43px}}
