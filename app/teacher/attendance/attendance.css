@@ -69,3 +69,16 @@
 @media(max-width:1050px){.attendance-student-card{grid-template-columns:1fr}.attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.attendance-setup-panel{align-items:stretch}.attendance-primary-controls,.attendance-main-actions{width:100%}.attendance-primary-controls label{min-width:130px}.attendance-main-actions button{flex:1 1 110px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}.attendance-lesson-tabs-list button{flex-basis:110px;min-height:72px}.attendance-overview article{min-height:77px}.attendance-overview article strong{font-size:25px}}
 @media(prefers-reduced-motion:reduce){.attendance-page button{animation:none;transition:none}}
+
+/* Compact lesson switcher: keeps attendance roster above the fold */
+.attendance-page .attendance-lesson-tabs{padding:12px 16px 14px;background:linear-gradient(105deg,#d8f7f0e8,#fff2d6e8 52%,#ece1ffe8)}
+.attendance-page .attendance-lesson-tabs-head{margin-bottom:9px;align-items:center}
+.attendance-page .attendance-lesson-tabs-head strong{font-size:15px}
+.attendance-page .attendance-lesson-tabs-head>span{padding:6px 11px;font-size:12px;white-space:nowrap}
+.attendance-page .attendance-lesson-tabs-list{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:9px}
+.attendance-page .attendance-lesson-tabs-list button{flex:0 1 195px;min-height:58px;padding:8px 12px;border-radius:15px;border-width:2px;border-bottom-width:3px;text-align:right;font-size:13px;box-shadow:0 3px 8px #1b567b16}
+.attendance-page .attendance-lesson-tabs-list button b{display:inline;font-size:12px;margin:0 0 0 8px}
+.attendance-page .attendance-lesson-tabs-list button strong{display:inline;font-size:13px}
+.attendance-page .attendance-lesson-tabs-list button small{font-size:10px;margin-top:2px}
+.attendance-page .attendance-lesson-tabs-list button.active{transform:none;outline:2px solid #eab34d;outline-offset:0;box-shadow:0 3px 0 #dba44875}
+@media(max-width:650px){.attendance-page .attendance-lesson-tabs{padding:10px}.attendance-page .attendance-lesson-tabs-list{gap:7px}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 130px;min-height:55px;padding:7px 9px}.attendance-page .attendance-lesson-tabs-head{flex-wrap:wrap}}
