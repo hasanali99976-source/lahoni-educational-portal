@@ -2,33 +2,12 @@
 
 import { useEffect } from "react";
 
-const CURRENT_CACHE = "ostadh-lahooni-v128-sync";
-const SERVICE_WORKER_VERSION = "128-sync";
+const CURRENT_CACHE = "ostadh-lahooni-v129-background-sync";
+const SERVICE_WORKER_VERSION = "129-background-sync";
 
 export default function PwaRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
-
-    // Teacher routes must always use the current deployment, never an old offline app shell.
-    if (window.location.pathname.startsWith("/teacher")) {
-      void navigator.serviceWorker.getRegistrations().then(async registrations => {
-        await Promise.all(registrations.filter(registration => registration.scope.startsWith(window.location.origin)).map(registration => registration.unregister()));
-        const keys = await caches.keys();
-        await Promise.all(keys.filter(key => key.startsWith("ostadh-lahooni-")).map(key => caches.delete(key)));
-        if (navigator.serviceWorker.controller && !sessionStorage.getItem("lahooni:teacher-sw-refresh")) {
-          sessionStorage.setItem("lahooni:teacher-sw-refresh", "1");
-          window.location.reload();
-        }
-      }).catch(() => undefined);
-      return;
-    }
-
-    let reloading = false;
-    const onControllerChange = () => {
-      if (reloading) return;
-      reloading = true;
-      window.location.reload();
-    };
 
     const register = async () => {
       try {
@@ -42,13 +21,11 @@ export default function PwaRegister() {
       }
     };
 
-    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
     if (document.readyState === "complete") void register();
     else window.addEventListener("load", register, { once: true });
 
     return () => {
       window.removeEventListener("load", register);
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
     };
   }, []);
 
