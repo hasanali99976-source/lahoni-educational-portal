@@ -116,3 +116,29 @@
 /* Override the legacy fixed Unsplash office layer on the actual shell. */
 .teacher-student-shell:has(.teacher-dashboard-v11)::before{background-image:url("/api/teacher-dashboard-background")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.82) brightness(.82)!important;transform:none!important;opacity:1!important}
 .teacher-student-shell:has(.teacher-dashboard-v11)::after{background:linear-gradient(180deg,rgba(3,18,29,.36),rgba(3,23,32,.24) 45%,rgba(3,16,27,.58))!important}
+
+
+/* Studio teacher 2026: compact colorful dashboard, preserving all functional elements. */
+.teacher-student-shell .teacher-dashboard-v11{gap:12px!important}
+.teacher-student-shell .td11-day-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:11px!important}
+.teacher-student-shell .td11-day-grid>article{min-height:150px!important;padding:15px!important;border-radius:21px!important;border:2px solid rgba(255,255,255,.75)!important;box-shadow:0 12px 25px rgba(4,37,53,.14)!important;backdrop-filter:blur(13px)!important}
+.teacher-student-shell .td11-day-grid>article:nth-child(1){background:linear-gradient(140deg,rgba(214,238,255,.94),rgba(229,245,255,.88))!important}
+.teacher-student-shell .td11-day-grid>article:nth-child(2){background:linear-gradient(140deg,rgba(216,250,235,.94),rgba(239,255,242,.87))!important}
+.teacher-student-shell .td11-day-grid>article:nth-child(3){background:linear-gradient(140deg,rgba(245,229,255,.94),rgba(255,243,251,.87))!important}
+.teacher-student-shell .td11-day-grid header small,.teacher-student-shell .td11-day-grid header b,.teacher-student-shell .td11-day-grid header span{font-size:11px!important;color:#28617b!important}
+.teacher-student-shell .td11-next>div>b,.teacher-student-shell .td11-progress header>b{font-size:20px!important;color:#123f58!important}
+.teacher-student-shell .td11-next>div p,.teacher-student-shell .td11-progress-line p{font-size:11px!important;color:#355b6c!important}
+.teacher-student-shell .td11-academic>div>span{min-height:54px!important;background:rgba(255,255,255,.67)!important;border:1px solid rgba(63,141,159,.12)!important;border-radius:12px!important}
+.teacher-student-shell .td11-day-grid footer a{min-height:35px!important;font-size:10px!important;border-radius:12px!important}
+.teacher-student-shell .td11-section-head{background:linear-gradient(100deg,rgba(218,246,255,.94),rgba(240,232,255,.92))!important;border:2px solid rgba(255,255,255,.75)!important;border-radius:20px!important;padding:13px 17px!important;min-height:76px!important}
+.teacher-student-shell .td11-section-head h2{font-size:19px!important;color:#104866!important}
+.teacher-student-shell .td11-section-head small,.teacher-student-shell .td11-section-head p{font-size:11px!important;color:#386982!important}
+.teacher-student-shell .td11-classes>article{background:linear-gradient(130deg,rgba(230,248,255,.94),rgba(247,243,255,.91))!important;border:2px solid rgba(255,255,255,.8)!important;border-radius:20px!important;padding:13px!important;box-shadow:0 9px 22px rgba(4,37,53,.12)!important}
+.teacher-student-shell .td11-class-meta span{background:rgba(255,255,255,.78)!important;border:1px solid rgba(73,147,178,.13)!important;border-radius:12px!important;min-height:48px!important}
+.teacher-student-shell .td11-class-meta b{font-size:11px!important;color:#15516c!important}
+.teacher-student-shell .td11-class-meta small{font-size:9px!important;color:#4b7384!important}
+.teacher-student-shell .td11-classes footer a{background:linear-gradient(120deg,#cbefff,#e5f8ed)!important;color:#15516b!important;border:1px solid rgba(79,154,180,.20)!important;border-radius:11px!important;font-size:10px!important;min-height:36px!important}
+.teacher-student-shell .td11-workflow,.teacher-student-shell .td11-race,.teacher-student-shell .td11-record{background:linear-gradient(130deg,rgba(226,247,255,.94),rgba(246,240,255,.92))!important;border:2px solid rgba(255,255,255,.78)!important;border-radius:20px!important;box-shadow:0 10px 24px rgba(4,37,53,.12)!important}
+.teacher-student-shell .td11-workflow a{background:rgba(255,255,255,.76)!important;border-radius:13px!important}
+@media(max-width:1100px){.teacher-student-shell .td11-day-grid{grid-template-columns:1fr!important}.teacher-student-shell .td11-classes>article{grid-template-columns:1fr!important;grid-template-areas:"head" "stats" "actions"!important}}
+@media(max-width:600px){.teacher-student-shell .td11-classes{grid-template-columns:1fr!important}.teacher-student-shell .td11-day-grid>article{min-height:120px!important}}
