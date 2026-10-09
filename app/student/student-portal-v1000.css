@@ -3,7 +3,7 @@
 body:has(.student-current-login),body:has(.student-current-gate),body:has(.student-current-shell){margin:0;background:#061923;color:#fff;overflow-x:hidden}
 .student-current-login,.student-current-gate,.student-current-shell,.student-current-login *,.student-current-gate *,.student-current-shell *{box-sizing:border-box;font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif}
 .student-current-login,.student-current-gate,.student-current-shell{min-height:100dvh;position:relative;isolation:isolate}
-.student-scene{position:fixed;inset:0;z-index:-3;background:url('https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&fm=jpg&q=94&w=2600') center/cover no-repeat;filter:saturate(1.08) contrast(1.06) brightness(.76);transform:scale(1.02)}
+.student-scene{position:fixed;inset:0;z-index:-3;background:url('/student-login-background.png.png') center/cover no-repeat;filter:saturate(1.08) contrast(1.06) brightness(.76);transform:scale(1.02)}
 .student-scene:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,18,29,.35),rgba(4,26,39,.24) 35%,rgba(3,20,31,.38) 70%,rgba(3,16,27,.72)),radial-gradient(circle at 52% 15%,rgba(255,220,140,.24),transparent 38%)}
 .student-scene:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,22,35,.52),transparent 23%,transparent 74%,rgba(2,22,35,.48));backdrop-filter:blur(.35px)}
 
