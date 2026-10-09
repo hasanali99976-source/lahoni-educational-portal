@@ -20,6 +20,7 @@ import "./teacher-ui-v107.css";
 import "./teacher-student-shell.css";
 import "./teacher-sidebar-v109.css";
 import "./middle-girls-theme.css";
+import "./teacher-studio-sections.css";
 
 type TeacherTab = { href: string; key: string; label: string; note: string; badge?: string };
 type TeacherSession = { teacherId?: string; teacherName?: string; subjectKey?: SubjectKey; workspaceKey?: string; activeGrade?: number | null; activeGradeLabel?: string; subject?: string; subjects?: TeacherClientSubject[]; assignments?: TeacherClientAssignment[]; };
