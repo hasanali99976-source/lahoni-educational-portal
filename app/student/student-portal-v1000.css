@@ -367,3 +367,62 @@ body:has(.student-current-shell){background:#d8eef0!important}
 @media(max-width:950px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr 1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:1/-1!important;grid-row:2!important}}
 @media(max-width:760px){.student-current-shell .sc-sidebar{background:rgba(5,52,80,.88)!important}.student-current-shell .sc-sidebar nav button{min-height:48px!important}.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:auto!important;grid-row:auto!important}}
 @media(prefers-reduced-motion:reduce){.student-current-shell .sc-sidebar nav button{transition:none!important}}
+
+/* Student visual system v4: compact navigation, readable academic surfaces. */
+.student-current-shell .sc-sidebar{padding:12px 9px!important;background:linear-gradient(160deg,rgba(6,48,74,.89),rgba(4,74,80,.83))!important}
+.student-current-shell .sc-sidebar .sc-brand{display:flex!important;flex-direction:column!important;gap:5px!important;padding:2px 5px 10px!important;border-bottom:1px solid rgba(255,255,255,.25)!important}
+.student-current-shell .sc-sidebar .sc-brand img{width:60px!important;height:60px!important;object-fit:contain!important;border-radius:17px!important;background:transparent!important;box-shadow:0 4px 15px rgba(0,18,41,.2)!important}
+.student-current-shell .sc-sidebar .sc-brand span b{font-size:15px!important;color:white!important}
+.student-current-shell .sc-sidebar .sc-brand span small{font-size:10px!important;color:#d9f8ff!important}
+.student-current-shell .sc-sidebar .sc-subject{min-height:63px!important;padding:7px 9px!important;margin:8px 0!important;border-radius:17px!important}
+.student-current-shell .sc-sidebar .sc-subject small,.student-current-shell .sc-sidebar .sc-subject em{color:#fff0b4!important;opacity:1!important}
+.student-current-shell .sc-sidebar .sc-quick-actions{display:flex!important;gap:5px!important;flex-wrap:wrap!important}
+.student-current-shell .sc-sidebar .sc-quick-actions button,.student-current-shell .sc-sidebar footer button{background:rgba(255,255,255,.13)!important;border:1px solid rgba(255,255,255,.38)!important;border-radius:12px!important;color:#fff!important;padding:7px 9px!important;min-height:34px!important;font-size:11px!important}
+.student-current-shell .sc-sidebar nav{gap:5px!important;padding:7px 3px!important}
+.student-current-shell .sc-sidebar nav button{min-height:44px!important;padding:5px 9px!important;gap:7px!important;border-radius:16px!important;grid-template-columns:30px minmax(0,1fr)!important;box-shadow:0 2px 0 rgba(0,34,56,.2),inset 0 1px rgba(255,255,255,.3)!important}
+.student-current-shell .sc-sidebar nav button>i{width:28px!important;height:28px!important;font-size:16px!important;border-radius:10px!important}
+.student-current-shell .sc-sidebar nav button b{font-size:11px!important;line-height:1.2!important}
+.student-current-shell .sc-sidebar nav button small{display:none!important}
+.student-current-shell .sc-sidebar nav button.active{outline:2px solid #ffe39a!important;outline-offset:0!important}
+.student-current-shell .sc-sidebar .sc-side-progress{padding:9px!important;margin-top:5px!important}
+.student-current-shell .sc-sidebar footer{padding-top:7px!important}
+.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:minmax(210px,1fr) minmax(180px,220px) minmax(210px,1fr)!important;align-items:center!important;gap:9px!important;margin-bottom:12px!important}
+.student-current-shell .sc-head-integrated .sc-teacher-head-card,.student-current-shell .sc-head-integrated .sc-student-head-card{min-height:72px!important;max-width:none!important;padding:9px 12px!important;gap:10px!important;border-radius:18px!important;background:#f1faff!important;border:2px solid #fff!important;box-shadow:0 4px 0 rgba(22,107,165,.18)!important}
+.student-current-shell .sc-head-integrated .sc-head-date{width:auto!important;min-width:0!important;min-height:72px!important;max-width:none!important;padding:8px 12px!important;border-radius:18px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;background:#fff5d8!important;border:2px solid white!important;box-shadow:0 4px 0 rgba(176,118,35,.16)!important}
+.student-current-shell .sc-head-integrated .sc-head-date strong{font-size:13px!important;white-space:normal!important;text-align:center!important;line-height:1.4!important}
+.student-current-shell .sc-head-integrated .sc-head-date small{font-size:11px!important;text-align:center!important;color:#8c5a16!important}
+.student-current-shell .sc-head-integrated .sc-student-head-card strong,.student-current-shell .sc-head-integrated .sc-teacher-head-card strong{font-size:15px!important;line-height:1.3!important}
+.student-current-shell .sc-head-integrated .sc-student-head-card span,.student-current-shell .sc-head-integrated .sc-teacher-head-card span{font-size:12px!important;color:#225b7d!important}
+.student-current-shell .sc-page-title{min-height:125px!important;padding:18px 22px!important;border-radius:24px!important;background:linear-gradient(115deg,#e8f8ff,#fff7e6)!important;border:2px solid #fff!important;box-shadow:0 5px 0 rgba(23,114,163,.13)!important}
+.student-current-shell .sc-page-title h2{font-size:clamp(19px,1.65vw,27px)!important;color:#0e3c62!important}
+.student-current-shell .sc-page-title p{color:#285778!important;font-size:13px!important;line-height:1.6!important}
+.student-current-shell .sc-page-title>div>span{color:#087ba7!important;font-weight:900!important}
+.student-current-shell .sc-kpis article{min-height:95px!important;padding:12px 15px!important;border-radius:22px!important;border:2px solid rgba(255,255,255,.85)!important;box-shadow:0 4px 0 rgba(7,67,94,.14)!important}
+.student-current-shell .sc-kpis article span,.student-current-shell .sc-kpis article b,.student-current-shell .sc-kpis article small{color:#103a56!important;font-weight:800!important}
+.student-current-shell .sc-kpis article small{font-size:11px!important}
+.student-current-shell .sc-kpis article::after{font-size:50px!important;bottom:-15px!important}
+.student-current-shell .sc-chart-card,.student-current-shell .sc-grade-sections>article{background:#f5fbff!important;border:2px solid white!important;border-radius:22px!important}
+.student-current-shell .sc-chart-card header,.student-current-shell .sc-grade-sections>article header{color:#123e62!important}
+.student-current-shell .sc-chart-card :is(h2,h3,h4,strong,b,small,span,p),.student-current-shell .sc-grade-sections>article :is(h2,h3,h4,strong,b,small,span,p){color:#164360!important;opacity:1!important}
+.student-current-shell .sc-page :is(h2,h3,h4){color:#113e63!important}
+.student-current-shell .sc-page :is(label,small,span,p){opacity:1!important}
+.student-current-shell .sc-grade-sections>article :is(label,small,span){color:#285e7a!important}
+.student-current-shell .sc-grade-sections>article :is(input,select){color:#123c5c!important}
+.student-current-shell .discipline-table{border:2px solid #d3e9f5!important;border-radius:16px!important;overflow:hidden!important;background:#f4faff!important}
+.student-current-shell .discipline-row{background:#e9f6ff!important;color:#123d60!important}
+.student-current-shell .discipline-row:nth-child(2n){background:#fff!important}
+.student-current-shell .discipline-row.head{background:#156a9b!important}
+.student-current-shell .discipline-row.head span{color:#fff!important;font-weight:900!important}
+.student-current-shell .discipline-row:not(.head) span{color:#1a4a66!important;font-weight:700!important}
+.student-current-shell .discipline-meter,.student-current-shell .discipline-summary{color:#153f5e!important}
+.student-current-shell .discipline-meter :is(span,b,small){color:#1b4d6c!important;opacity:1!important}
+.student-current-shell .sc-score-orb{background:linear-gradient(135deg,#ffe38b,#e9a936)!important;color:#153d57!important;border-radius:23px!important}
+.student-current-shell .sc-score-orb :is(b,small){color:#173e5a!important}
+.student-current-shell .sc-page :is(table,thead,tbody,tr,td,th){border-color:rgba(29,107,154,.22)!important}
+.student-current-shell .sc-page th{background:#176e9c!important;color:white!important}
+.student-current-shell .sc-page td{background:rgba(244,251,255,.94)!important;color:#163f5e!important}
+.student-current-shell .sc-page input[type="checkbox"]{accent-color:#0987c2!important;width:17px!important;height:17px!important}
+.student-current-shell .sc-page button{font-weight:800!important}
+.student-current-shell .sc-certificate-page{color:#143c5b!important}
+@media(max-width:1080px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr 1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:1/-1!important;grid-row:2!important;min-height:48px!important}}
+@media(max-width:760px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:auto!important;grid-row:auto!important}.student-current-shell .sc-sidebar nav button{min-height:43px!important}}
