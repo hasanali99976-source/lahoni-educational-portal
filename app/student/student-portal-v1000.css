@@ -714,3 +714,17 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-gate .scg-subjects>button u:after{background:linear-gradient(90deg,#00bfae,#269fff,#a765eb)!important}
 .student-current-gate .scg-shell>footer button{background:linear-gradient(110deg,#ffb8d3,#ff7da5)!important;border:2px solid #fff!important;border-radius:20px!important;color:#073e67!important;font-size:16px!important;font-weight:950!important;padding:12px 24px!important}
 @media(max-width:850px){.student-current-gate .scg-subjects{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}.student-current-gate .scg-shell{padding:12px!important}}
+
+
+/* Student login alignment: compact inputs inside the artwork's right-side glass panel. */
+.student-current-login .scl-grid{align-items:center!important;justify-content:flex-start!important}
+.student-current-login .scl-card{width:min(35vw,500px)!important;max-width:500px!important;margin:0 8vw 0 auto!important;padding:0 8px!important;gap:7px!important;transform:translateY(5vh)!important}
+.student-current-login .scl-card h2{font-size:clamp(25px,2.5vw,35px)!important;margin:0 0 2px!important}
+.student-current-login .scl-card>p{font-size:12px!important;line-height:1.5!important;margin:0 0 6px!important}
+.student-current-login .scl-card label{margin:0!important;gap:5px!important}
+.student-current-login .scl-input{height:45px!important;min-height:45px!important;border-radius:11px!important}
+.student-current-login .scl-input input{height:43px!important;min-height:0!important;padding:8px 12px!important;font-size:15px!important}
+.student-current-login .scl-input b{width:35px!important;min-width:35px!important;font-size:15px!important}
+.student-current-login .scl-card button[type=submit]{height:46px!important;min-height:46px!important;margin-top:8px!important;padding:7px 12px!important;font-size:14px!important;border-radius:12px!important}
+.student-current-login .scl-card>em{font-size:10px!important;margin-top:3px!important}
+@media(max-width:760px){.student-current-login .scl-grid{align-items:flex-end!important;justify-content:center!important;padding:12px!important}.student-current-login .scl-card{width:min(390px,100%)!important;max-width:100%!important;margin:0 auto 3vh!important;padding:17px 15px!important;transform:none!important;gap:7px!important;border-radius:18px!important;background:rgba(5,39,52,.73)!important;border:1px solid rgba(255,226,166,.5)!important;backdrop-filter:blur(6px)!important}.student-current-login .scl-card h2{font-size:26px!important}}
