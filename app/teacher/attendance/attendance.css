@@ -3,7 +3,13 @@
 .attendance-page *{box-sizing:border-box}
 .attendance-card{overflow:hidden;border:2px solid #ffffffd9;border-radius:26px;background:linear-gradient(145deg,#e3f5ffdb,#f1eaffd9 53%,#fff2e2df);box-shadow:0 12px 0 #1c6c8a27,0 22px 35px #0634482b;backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}
 .attendance-loading{padding:25px}
-.attendance-hero{display:none}
+.attendance-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0;padding:11px 18px;background:linear-gradient(110deg,#c9eaffb8,#e4f5f0b8,#f5e3ffb8);border-bottom:2px solid #ffffffb8}
+.attendance-head-copy{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.attendance-head-copy .attendance-eyebrow{font-size:13px;font-weight:900}
+.attendance-head-copy h1{font-size:22px;line-height:1.2;margin:0;color:#12456c}
+.attendance-head-copy p{font-size:12px;margin:0;color:#386a86}
+.hijri-card{display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:14px;background:#ffffffa8;font-size:12px}
+.hijri-card small,.hijri-card strong{font-size:12px}
 .attendance-lesson-tabs{padding:16px;background:linear-gradient(100deg,#c5effbea,#ffe6a9e8,#e3d5ffea);border-bottom:3px solid #ffffffdc}
 .attendance-lesson-tabs-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
 .attendance-lesson-tabs-head small,.attendance-lesson-tabs-head strong{display:block;color:#174a6c;font-weight:900}
@@ -32,15 +38,18 @@
 .attendance-main-actions .attendance-save{background:#2188f5;color:white;border-bottom-color:#1367c7}
 .attendance-main-actions .attendance-delete{background:#ffb3c1;color:#9c2d4a;border-bottom-color:#e87891}
 .attendance-main-actions button:disabled{opacity:.55;cursor:not-allowed}
-.attendance-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:15px;background:linear-gradient(90deg,#c8f6e5c9,#e4e6ffda,#ffecf1c9)}
-.attendance-overview article{position:relative;min-height:96px;padding:13px 16px;border:2px solid #fff;border-radius:20px;background:#c6e9ff;box-shadow:0 5px 0 #4e83ae27}
+.attendance-overview{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px;background:linear-gradient(90deg,#c8f6e5c9,#e4e6ffda,#ffecf1c9)}
+.attendance-overview article{position:relative;min-height:73px;padding:9px 11px;border:2px solid #fff;border-radius:20px;background:#c6e9ff;box-shadow:0 5px 0 #4e83ae27}
 .attendance-overview article:nth-child(1){background:#d5e9ff}
 .attendance-overview article:nth-child(2){background:#b8f2d8}
 .attendance-overview article:nth-child(3){background:#ffd1de}
-.attendance-overview article:nth-child(4){background:#fff0b9}
+.attendance-overview article:nth-child(4){background:#ffe9b6}
+.attendance-overview article:nth-child(5){background:#e7d7ff}
+.attendance-overview article:nth-child(6){background:#fbd2eb}
+.attendance-overview article:nth-child(7){background:#fff0b9}
 .attendance-overview article span{display:block;font-weight:950;font-size:14px}
-.attendance-overview article strong{display:block;font-weight:1000;font-size:31px;line-height:1.3}
-.attendance-overview article:after{position:absolute;left:13px;top:16px;font-size:27px;opacity:.75}
+.attendance-overview article strong{display:block;font-weight:1000;font-size:24px;line-height:1.2}
+.attendance-overview article:after{position:absolute;left:10px;top:12px;font-size:18px;opacity:.65}
 .attendance-overview article.total:after{content:"👥"}.attendance-overview article.present:after{content:"✓"}.attendance-overview article.absent:after{content:"✕"}.attendance-overview article.rate:after{content:"🏆"}
 .attendance-workspace{padding:13px;background:linear-gradient(130deg,#e3f4ffad,#fff4f4ac,#ebe4ffad)}
 .attendance-list-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 10px 14px}
@@ -50,8 +59,8 @@
 .attendance-stats span{padding:7px 13px;border-radius:12px;border:1px solid #fff;font-size:13px;font-weight:950}
 .attendance-stats .present{background:#bdf1d8;color:#126e4c}.attendance-stats .absent{background:#ffd1de;color:#a53c59}.attendance-stats .late{background:#ffebba;color:#90621c}.attendance-stats .excused{background:#e2d5ff;color:#6d49a8}.attendance-stats .escaped{background:#fbd0e8;color:#aa447c}
 .attendance-list{display:grid;gap:5px;width:100%;min-width:0}
-.attendance-student-card{display:grid;grid-template-columns:minmax(220px,1fr) minmax(370px,1.15fr);align-items:center;gap:12px;padding:8px 11px;border:2px solid #fff;border-right:6px solid #59c6ba;border-radius:15px;background:#e0f0ffda;box-shadow:0 2px 0 #5594b526;transition:background .2s,transform .2s}
-.attendance-student-card:nth-child(4n+2){background:#fce6f0dd;border-right-color:#f29eb9}.attendance-student-card:nth-child(4n+3){background:#fff0d4dd;border-right-color:#efbd6b}.attendance-student-card:nth-child(4n){background:#e9e1ffdd;border-right-color:#b19ae9}
+.attendance-student-card{display:grid;grid-template-columns:minmax(220px,1fr) minmax(370px,1.15fr);align-items:center;gap:12px;padding:8px 11px;border:2px solid #fff;border-right:6px solid #59c6ba;border-radius:15px;background:#e0f0ffb0;box-shadow:0 2px 0 #5594b526;transition:background .2s,transform .2s}
+.attendance-student-card:nth-child(4n+2){background:#fce6f0b0;border-right-color:#f29eb9}.attendance-student-card:nth-child(4n+3){background:#fff0d4b0;border-right-color:#efbd6b}.attendance-student-card:nth-child(4n){background:#e9e1ffb0;border-right-color:#b19ae9}
 .student-info{display:flex;align-items:center;gap:10px;min-width:0}
 .student-info>b{display:grid;place-items:center;flex:none;width:31px;height:31px;border-radius:10px;background:#ffffffb8;color:#174a71}
 .student-info>div{min-width:0;flex:1}.student-info strong{display:block;color:#143d63;font-size:16px;font-weight:1000}.student-info small{display:block;color:#476c89;font-size:11px;font-weight:750}
@@ -66,19 +75,22 @@
 .attendance-message{margin:10px 14px;padding:10px 13px;border-radius:12px;background:#fff1b9;color:#6c4a0f;font-weight:850}
 @media(hover:hover){.status-buttons button:hover:not(.active),.attendance-main-actions button:hover:not(:disabled),.attendance-lesson-tabs-list button:hover:not(.active){transform:translateY(-3px)}}
 @media(prefers-reduced-motion:no-preference){.status-buttons button.active{animation:watercolorPick .28s ease-out}@keyframes watercolorPick{0%{transform:scale(.92)}65%{transform:scale(1.12) translateY(-3px)}100%{transform:scale(1.075) translateY(-2px)}}}
-@media(max-width:1050px){.attendance-student-card{grid-template-columns:1fr}.attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.attendance-setup-panel{align-items:stretch}.attendance-primary-controls,.attendance-main-actions{width:100%}.attendance-primary-controls label{min-width:130px}.attendance-main-actions button{flex:1 1 110px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}.attendance-lesson-tabs-list button{flex-basis:110px;min-height:72px}.attendance-overview article{min-height:77px}.attendance-overview article strong{font-size:25px}}
+@media(max-width:1050px){.attendance-student-card{grid-template-columns:1fr}.attendance-overview{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){.attendance-setup-panel{align-items:stretch}.attendance-primary-controls,.attendance-main-actions{width:100%}.attendance-primary-controls label{min-width:130px}.attendance-main-actions button{flex:1 1 110px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}.attendance-lesson-tabs-list button{flex-basis:110px;min-height:72px}.attendance-overview article{min-height:77px}.attendance-overview article strong{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.attendance-page button{animation:none;transition:none}}
 
-/* Compact lesson switcher: keeps attendance roster above the fold */
-.attendance-page .attendance-lesson-tabs{padding:12px 16px 14px;background:linear-gradient(105deg,#d8f7f0e8,#fff2d6e8 52%,#ece1ffe8)}
-.attendance-page .attendance-lesson-tabs-head{margin-bottom:9px;align-items:center}
-.attendance-page .attendance-lesson-tabs-head strong{font-size:15px}
-.attendance-page .attendance-lesson-tabs-head>span{padding:6px 11px;font-size:12px;white-space:nowrap}
-.attendance-page .attendance-lesson-tabs-list{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:9px}
-.attendance-page .attendance-lesson-tabs-list button{flex:0 1 195px;min-height:58px;padding:8px 12px;border-radius:15px;border-width:2px;border-bottom-width:3px;text-align:right;font-size:13px;box-shadow:0 3px 8px #1b567b16}
-.attendance-page .attendance-lesson-tabs-list button b{display:inline;font-size:12px;margin:0 0 0 8px}
-.attendance-page .attendance-lesson-tabs-list button strong{display:inline;font-size:13px}
-.attendance-page .attendance-lesson-tabs-list button small{font-size:10px;margin-top:2px}
-.attendance-page .attendance-lesson-tabs-list button.active{transform:none;outline:2px solid #eab34d;outline-offset:0;box-shadow:0 3px 0 #dba44875}
-@media(max-width:650px){.attendance-page .attendance-lesson-tabs{padding:10px}.attendance-page .attendance-lesson-tabs-list{gap:7px}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 130px;min-height:55px;padding:7px 9px}.attendance-page .attendance-lesson-tabs-head{flex-wrap:wrap}}
+
+/* Compact single-source lesson switcher and translucent roster */
+.attendance-page .attendance-lesson-tabs{padding:10px 14px;background:linear-gradient(105deg,#d8f7f0dc,#fff2d6dc 52%,#ece1ffdc)}
+.attendance-page .attendance-lesson-tabs-head{margin-bottom:7px}
+.attendance-page .attendance-lesson-tabs-head strong{font-size:14px}
+.attendance-page .attendance-lesson-tabs-head>span{padding:5px 10px;font-size:12px}
+.attendance-page .attendance-lesson-tabs-list{gap:8px}
+.attendance-page .attendance-lesson-tabs-list button{flex:0 1 185px;min-height:51px;padding:6px 10px;border-radius:14px;border-bottom-width:3px;text-align:right;font-size:12px}
+.attendance-page .attendance-lesson-tabs-list button b{display:inline;font-size:12px;margin:0 0 0 7px}
+.attendance-page .attendance-lesson-tabs-list button strong{display:inline;font-size:12px}
+.attendance-page .attendance-lesson-tabs-list button.active{transform:none;outline:2px solid #eab34d;box-shadow:0 3px 0 #dba44875}
+.attendance-page .attendance-workspace{background:#e4f1ffc2}
+.attendance-page .attendance-list{background:transparent}
+@media(max-width:900px){.attendance-page .attendance-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.attendance-page .attendance-head-copy p{display:none}}
+@media(max-width:650px){.attendance-page .attendance-hero{padding:9px;flex-wrap:wrap}.attendance-page .attendance-head-copy h1{font-size:18px}.attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 120px;min-height:48px}}
