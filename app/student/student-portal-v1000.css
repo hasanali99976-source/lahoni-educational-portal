@@ -625,3 +625,33 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){background:none!important;background-color:transparent!important;filter:none!important}
 .student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date)::before,.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date)::after{background:none!important;box-shadow:none!important;border:0!important}
 @media(max-width:760px){.student-current-shell .sc-report .sc-report-table>header,.student-current-shell .sc-report .sc-report-table>div{gap:5px!important;padding:8px!important}.student-current-shell .sc-report .sc-report-table>div :is(strong,span,b,em){font-size:11px!important}}
+
+/* Unified soft watercolor navigation, identities and certificate selection */
+.student-current-shell .sc-sidebar{background:linear-gradient(160deg,rgba(8,56,78,.68),rgba(9,83,76,.57))!important;backdrop-filter:blur(12px) saturate(1.35)!important;-webkit-backdrop-filter:blur(12px) saturate(1.35)!important}
+.student-current-shell .sc-sidebar nav button{background:linear-gradient(110deg,#7cdbf0,#44b5ee)!important;border:2px solid #fff!important;color:#073e67!important;border-radius:25px 28px 24px 30px!important;box-shadow:0 4px 0 #124e7370!important;font-weight:950!important;text-shadow:none!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+2){background:linear-gradient(110deg,#8ef1d6,#36c7b1)!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+3){background:linear-gradient(110deg,#e4b9ff,#a77af5)!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+4){background:linear-gradient(110deg,#ffe3a3,#ffb94e)!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+5){background:linear-gradient(110deg,#ffbddb,#f578aa)!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+6){background:linear-gradient(110deg,#b6f4c9,#58cfa0)!important}
+.student-current-shell .sc-sidebar nav button.active{outline:2px solid #ffdd70!important;outline-offset:1px!important}
+.student-current-shell .sc-sidebar nav button i{background:#ffffffb8!important;border:2px solid #fff!important;border-radius:16px!important;color:#09466b!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+2) i{background:#cbfff0!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+3) i{background:#f1dcff!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+4) i{background:#fff0bf!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+5) i{background:#ffe0eb!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+6) i{background:#d5ffe7!important}
+.student-current-shell .sc-head.sc-head-integrated{padding:3px 8px 5px!important;min-height:56px!important;gap:9px!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){padding:2px 5px!important;min-height:48px!important;text-shadow:0 1px 3px #fff,0 0 7px #ffffffa8!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:clamp(14px,1.15vw,18px)!important;line-height:1.2!important;color:#083d69!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) small{font-size:11px!important;color:#066c9d!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) span{font-size:12px!important;color:#7a2fa2!important}
+.student-current-shell .sc-head-integrated .sc-head-date strong{font-size:clamp(14px,1.2vw,18px)!important;color:#a82f79!important}
+.student-current-shell .sc-head-integrated .sc-head-date small{font-size:12px!important;color:#08547c!important}
+.student-current-shell .sc-cert-toolbar{background:linear-gradient(110deg,#d3f5ff,#e9dfff)!important;border:2px solid #fff!important;border-radius:24px!important;color:#07436a!important;box-shadow:0 4px 0 #71c5d677!important}
+.student-current-shell .sc-cert-toolbar :is(span,b){color:#07436a!important;font-size:clamp(12px,1vw,16px)!important;font-weight:900!important}
+.student-current-shell .sc-cert-toolbar button{background:linear-gradient(120deg,#ffe69a,#ffc45d)!important;border:2px solid #fff!important;border-radius:18px!important;color:#07416b!important;font-size:13px!important}
+.student-current-shell .sc-certificate-page input[type=checkbox]{accent-color:#12a8c8!important;width:17px!important;height:17px!important}
+.student-current-shell .sc-certificate-page label{color:#073f66!important;font-weight:850!important}
+.student-current-shell .sc-report .sc-report-breakdown,.student-current-shell .sc-report .sc-report-analysis{background:linear-gradient(125deg,#d9f6ff,#e7e3ff)!important;color:#073f68!important;border:2px solid #fff!important;border-radius:22px!important}
+@media(max-width:760px){.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:13px!important}.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) :is(small,span){font-size:10px!important}}
