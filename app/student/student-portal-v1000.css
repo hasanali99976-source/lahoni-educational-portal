@@ -758,3 +758,17 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-login .scl-grid{justify-content:center!important;align-items:center!important;padding:14px!important}
 .student-current-login .scl-card{margin:0!important;transform:none!important;width:min(400px,100%)!important}
 }
+
+
+/* New approved student entrance artwork: use the repository asset, not a baked-in glass panel. */
+.student-current-login .student-scene{background-image:url("/student-login-bg.png.png")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important}
+.student-current-login .scl-grid{min-height:100dvh!important;display:flex!important;justify-content:center!important;align-items:center!important;padding:clamp(16px,3vw,32px)!important}
+.student-current-login .scl-card{width:min(420px,calc(100vw - 32px))!important;max-width:420px!important;margin:0!important;transform:none!important;padding:clamp(20px,3vw,30px)!important;gap:10px!important;background:linear-gradient(145deg,rgba(250,254,255,.96),rgba(235,247,255,.96) 58%,rgba(255,241,250,.95))!important;border:2px solid rgba(255,255,255,.98)!important;border-radius:27px!important;box-shadow:0 15px 48px rgba(20,73,116,.24),0 0 25px rgba(255,255,255,.35)!important;backdrop-filter:blur(7px)!important;text-align:center!important}
+.student-current-login .scl-card>small{color:#9570b3!important;text-shadow:none!important}
+.student-current-login .scl-card h2{color:#23617f!important;text-shadow:none!important}
+.student-current-login .scl-card>p,.student-current-login .scl-card>em{color:#54788c!important;text-shadow:none!important}
+.student-current-login .scl-card label>span{color:#366782!important;text-shadow:none!important}
+.student-current-login .scl-input{background:#fff!important;border:2px solid #c4e4f4!important}
+.student-current-login .scl-input input{background:#fff!important;color:#205673!important}
+@media(min-width:761px){.student-current-login .scl-grid{justify-content:flex-start!important}.student-current-login .scl-card{margin:0 8vw 0 auto!important}}
+@media(max-width:760px){.student-current-login .student-scene{background-position:37% center!important}.student-current-login .scl-grid{align-items:center!important;justify-content:center!important}.student-current-login .scl-card{margin:0!important;width:min(390px,100%)!important}}
