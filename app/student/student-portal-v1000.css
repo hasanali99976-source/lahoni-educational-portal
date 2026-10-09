@@ -395,3 +395,53 @@ body:has(.student-current-shell){background:#d8eef0!important}
 @media(max-width:1050px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr 1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:1/-1!important;min-height:52px!important}}
 @media(max-width:760px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:auto!important}.student-current-shell .sc-sidebar nav button{min-height:45px!important}.student-current-shell .sc-sidebar{background:rgba(5,49,75,.88)!important}}
 @media(prefers-reduced-motion:reduce){.student-current-shell .sc-sidebar nav button{transition:none!important}}
+
+/* Cartoon student dashboard v5 — colorful cloud motif without touching student data. */
+.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:minmax(200px,1fr) minmax(170px,220px) minmax(200px,1fr)!important;gap:13px!important}
+.student-current-shell .sc-head-integrated :is(.sc-teacher-head-card,.sc-student-head-card,.sc-head-date){position:relative!important;overflow:visible!important;border:3px solid #fff!important;border-radius:34px 38px 33px 39px!important;background:linear-gradient(145deg,#dcf6ff,#f7fdff)!important;box-shadow:0 6px 0 #9bd8ed,0 11px 23px rgba(5,69,114,.17)!important;min-height:82px!important}
+.student-current-shell .sc-head-integrated .sc-head-date{background:linear-gradient(145deg,#fff0b4,#e7faff)!important;box-shadow:0 6px 0 #f2c971,0 11px 23px rgba(5,69,114,.12)!important}
+.student-current-shell .sc-head-integrated .sc-teacher-head-card{background:linear-gradient(145deg,#e8f4ff,#e8e3ff)!important}
+.student-current-shell .sc-head-integrated :is(strong,b){font-weight:950!important;font-size:clamp(13px,1.1vw,18px)!important;color:#063e73!important}
+.student-current-shell .sc-head-integrated :is(small,span){font-weight:750!important;font-size:12px!important;color:#245e87!important}
+.student-current-shell .sc-head-integrated .sc-student-head-card button{background:linear-gradient(125deg,#ffdb5f,#ffae3d)!important;color:#173d60!important;border:2px solid white!important;font-weight:950!important}
+.student-current-shell .sc-head-integrated .sc-teacher-head-avatar{background:linear-gradient(145deg,#43c7ff,#7563f4)!important;border:2px solid #fff!important;color:white!important}
+.student-current-shell .sc-hero{position:relative!important;min-height:160px!important;padding:22px 30px!important;border-radius:35px!important;background:linear-gradient(115deg,#0872b7,#1ab2c2,#6753d2)!important;border:3px solid #fff!important;box-shadow:0 6px 0 #7cd5e4,0 15px 30px rgba(8,79,134,.18)!important}
+.student-current-shell .sc-hero::after{content:"✦ ✨"!important;position:absolute!important;left:20%;top:8px;font-size:30px;color:#ffe47b;opacity:.65;pointer-events:none}
+.student-current-shell .sc-hero h2{font-size:clamp(20px,2vw,30px)!important;line-height:1.3!important}
+.student-current-shell .sc-hero p{font-size:13px!important;line-height:1.6!important}
+.student-current-shell .sc-kicker{background:#ffdf72!important;color:#12476b!important;border:2px solid white!important;border-radius:100px!important;font-weight:950!important}
+.student-current-shell .sc-kpis{gap:13px!important}
+.student-current-shell .sc-kpis article{position:relative!important;min-height:111px!important;padding:13px 16px!important;border:3px solid #fff!important;border-radius:33px 35px 29px 33px!important;box-shadow:0 6px 0 rgba(20,78,105,.23),0 14px 20px rgba(5,69,104,.12)!important}
+.student-current-shell .sc-kpis article::before{content:""!important;position:absolute!important;top:-10px!important;right:27px!important;width:47px!important;height:17px!important;border-radius:60% 60% 0 0!important;background:inherit!important;border-top:3px solid white!important;pointer-events:none!important}
+.student-current-shell .sc-kpis article.teal{background:linear-gradient(135deg,#79ffd2,#15d3b6)!important}
+.student-current-shell .sc-kpis article.gold{background:linear-gradient(135deg,#ffe98b,#ffb93e)!important}
+.student-current-shell .sc-kpis article.blue{background:linear-gradient(135deg,#9ce8ff,#40aafa)!important}
+.student-current-shell .sc-kpis article.violet{background:linear-gradient(135deg,#e5b9ff,#ae72f5)!important}
+.student-current-shell .sc-kpis article.red{background:linear-gradient(135deg,#ffb8ce,#f878a0)!important}
+.student-current-shell .sc-kpis article :is(span,b,small){color:#093f6c!important;font-weight:950!important}
+.student-current-shell .sc-kpis article b{font-size:clamp(21px,1.8vw,28px)!important}
+.student-current-shell .sc-kpis article i{background:rgba(255,255,255,.72)!important;border:2px solid white!important;color:#0c5482!important;border-radius:15px!important}
+.student-current-shell .sc-chart-card,.student-current-shell .sc-grade-sections>article{border:3px solid #fff!important;border-radius:28px!important;background:linear-gradient(140deg,#e5f7ff,#f3e9ff)!important;box-shadow:0 6px 0 #b6d6f0,0 13px 26px rgba(8,66,111,.12)!important;padding:17px!important}
+.student-current-shell .sc-chart-card:nth-child(2n),.student-current-shell .sc-grade-sections>article:nth-child(2n){background:linear-gradient(140deg,#fff2c5,#e0ffed)!important;box-shadow:0 6px 0 #e6d69e,0 13px 26px rgba(8,66,111,.12)!important}
+.student-current-shell .sc-chart-card h3{font-size:18px!important;font-weight:950!important;color:#074577!important}
+.student-current-shell .sc-chart-card header small{font-size:12px!important;font-weight:800!important;color:#2877a1!important}
+.student-current-shell .sc-subject-bars>div{background:#fff!important;border:1px solid #d4e9ff!important;border-radius:17px!important;margin-bottom:7px!important;padding:9px 12px!important}
+.student-current-shell .sc-subject-bars :is(span,b){color:#094b79!important;font-weight:900!important}
+.student-current-shell .sc-subject-bars u{background:#c9e5f7!important;height:12px!important}
+.student-current-shell .sc-column-chart{gap:10px!important}
+.student-current-shell .sc-column-chart>div{min-width:0!important}
+.student-current-shell .sc-column-chart>div>span{font-size:11px!important;font-weight:850!important;line-height:1.35!important;color:#174c79!important;overflow-wrap:anywhere!important}
+.student-current-shell .sc-column-chart>div>b{font-size:12px!important;color:#074b7d!important}
+.student-current-shell .sc-column-chart u{border:2px solid #fff!important;background:#d9eafc!important;border-radius:14px!important;box-shadow:0 3px 0 rgba(28,105,155,.15)!important}
+.student-current-shell .sc-page-title{background:linear-gradient(115deg,#e3f7ff,#fff1c5)!important;border:3px solid white!important;border-radius:30px!important;min-height:105px!important;padding:16px 22px!important;box-shadow:0 6px 0 #a8d9e7!important}
+.student-current-shell .sc-page-title h2{font-size:clamp(19px,1.6vw,25px)!important;font-weight:950!important}
+.student-current-shell .sc-page-title p{font-size:12px!important;line-height:1.5!important}
+.student-current-shell .sc-page :is(table,thead,tbody,tr,td,th){border-color:#b4d9ee!important}
+.student-current-shell .sc-page th{background:#1582b7!important;color:white!important;font-weight:950!important}
+.student-current-shell .sc-page td{background:#e8f7ff!important;color:#103e66!important;font-weight:750!important}
+.student-current-shell .sc-page tbody tr:nth-child(2n) td{background:#fff2d4!important}
+.student-current-shell .sc-sidebar nav button{border-radius:22px 24px 20px 23px!important;min-height:45px!important}
+.student-current-shell .sc-sidebar nav button::before{width:27px!important;height:11px!important;top:-7px!important}
+.student-current-shell .sc-sidebar nav button::after{width:19px!important;height:9px!important;top:-5px!important}
+@media(max-width:1050px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr 1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:1/-1!important}}
+@media(max-width:760px){.student-current-shell .sc-head.sc-head-integrated{grid-template-columns:1fr!important}.student-current-shell .sc-head-integrated .sc-head-date{grid-column:auto!important}.student-current-shell .sc-kpis article{min-height:98px!important}.student-current-shell .sc-hero{padding:18px!important}}
