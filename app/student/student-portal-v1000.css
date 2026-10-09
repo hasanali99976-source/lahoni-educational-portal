@@ -316,3 +316,26 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-subject-bars u i{background:linear-gradient(90deg,#0ac9d7,#3778ff,#9857e8)!important}
 @media(max-width:760px){.student-current-shell .sc-sidebar{background:rgba(4,48,81,.82)!important}.student-current-shell .sc-hero{border-radius:20px!important}.student-current-shell .sc-kpis article{border-radius:18px!important}}
 @media(prefers-reduced-motion:reduce){.student-current-shell .sc-kpis article,.student-current-shell .sc-sidebar nav button{transition:none!important}}
+
+/* Playful secondary-school navigation: individual colorful cloud tabs, not a flat list. */
+.student-current-shell .sc-sidebar{background:linear-gradient(165deg,rgba(4,53,91,.34),rgba(7,76,89,.28))!important;border:1px solid rgba(255,255,255,.40)!important;box-shadow:0 12px 32px rgba(3,40,68,.12)!important;backdrop-filter:blur(9px) saturate(130%)!important;-webkit-backdrop-filter:blur(9px) saturate(130%)!important}
+.student-current-shell .sc-sidebar nav{gap:9px!important;overflow-y:auto!important;scrollbar-width:thin!important;padding:6px 4px 10px!important}
+.student-current-shell .sc-sidebar nav button{--tab-a:#19a9f6;--tab-b:#1162d6;position:relative!important;isolation:isolate!important;display:grid!important;grid-template-columns:38px minmax(0,1fr)!important;min-height:56px!important;padding:8px 12px!important;gap:9px!important;border-radius:23px 28px 22px 27px!important;background:linear-gradient(120deg,var(--tab-a),var(--tab-b))!important;border:2px solid rgba(255,255,255,.78)!important;color:#fff!important;box-shadow:0 6px 0 rgba(4,37,71,.17),0 9px 19px rgba(3,42,77,.18),inset 0 2px 0 rgba(255,255,255,.35)!important;text-shadow:0 1px 2px rgba(0,27,67,.32)!important;overflow:visible!important;transform:none!important}
+.student-current-shell .sc-sidebar nav button::before,.student-current-shell .sc-sidebar nav button::after{content:""!important;position:absolute!important;z-index:-1!important;pointer-events:none!important;background:var(--tab-a)!important;border:2px solid rgba(255,255,255,.60)!important;border-bottom:0!important;border-radius:100% 100% 20% 20%!important}
+.student-current-shell .sc-sidebar nav button::before{width:34px!important;height:16px!important;top:-7px!important;right:22px!important}
+.student-current-shell .sc-sidebar nav button::after{width:23px!important;height:12px!important;top:-5px!important;right:58px!important}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+1){--tab-a:#0ab8ff;--tab-b:#0968e4}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+2){--tab-a:#24c5b8;--tab-b:#0b938d}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+3){--tab-a:#a35aff;--tab-b:#6942d4}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+4){--tab-a:#ffbb43;--tab-b:#f18b25}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+5){--tab-a:#ff729c;--tab-b:#e84783}
+.student-current-shell .sc-sidebar nav button:nth-child(6n+6){--tab-a:#49cf78;--tab-b:#159e74}
+.student-current-shell .sc-sidebar nav button>i{width:36px!important;height:36px!important;display:grid!important;place-items:center!important;border-radius:13px!important;background:rgba(255,255,255,.26)!important;border:1px solid rgba(255,255,255,.38)!important;font-size:21px!important;box-shadow:inset 0 1px rgba(255,255,255,.3)!important}
+.student-current-shell .sc-sidebar nav button b{font-size:11px!important;color:#fff!important;line-height:1.25!important}
+.student-current-shell .sc-sidebar nav button small{color:rgba(255,255,255,.89)!important;font-size:7px!important}
+.student-current-shell .sc-sidebar nav button.active{filter:saturate(1.15) brightness(1.1)!important;outline:3px solid rgba(255,238,145,.87)!important;outline-offset:1px!important;box-shadow:0 7px 0 rgba(4,37,71,.19),0 12px 24px rgba(4,40,75,.25),inset 0 2px rgba(255,255,255,.45)!important}
+.student-current-shell .sc-sidebar nav button:hover{transform:translateY(-3px) scale(1.015)!important;box-shadow:0 9px 0 rgba(4,37,71,.16),0 15px 25px rgba(3,42,77,.22)!important}
+.student-current-shell .sc-sidebar .sc-subject{background:linear-gradient(120deg,rgba(255,223,124,.65),rgba(242,151,59,.55))!important;border:1px solid rgba(255,255,255,.6)!important;border-radius:18px!important}
+.student-current-shell .sc-sidebar .sc-side-progress{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.28)!important;border-radius:16px!important}
+@media(max-width:760px){.student-current-shell .sc-sidebar{background:rgba(5,48,79,.69)!important;backdrop-filter:blur(12px)!important}.student-current-shell .sc-sidebar nav button{min-height:52px!important}}
+@media(prefers-reduced-motion:reduce){.student-current-shell .sc-sidebar nav button{transition:none!important}}
