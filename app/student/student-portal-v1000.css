@@ -655,3 +655,36 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-certificate-page label{color:#073f66!important;font-weight:850!important}
 .student-current-shell .sc-report .sc-report-breakdown,.student-current-shell .sc-report .sc-report-analysis{background:linear-gradient(125deg,#d9f6ff,#e7e3ff)!important;color:#073f68!important;border:2px solid #fff!important;border-radius:22px!important}
 @media(max-width:760px){.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:13px!important}.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) :is(small,span){font-size:10px!important}}
+
+/* Target actual analysis and certificate DOM nodes; keep printed certificate untouched */
+.student-current-shell .sc-dimensions{background:linear-gradient(115deg,#d8f6ff,#e9e2ff 60%,#fff2c9)!important;border:3px solid #fff!important;border-radius:26px!important;box-shadow:0 8px 0 #72c8d56b,0 12px 30px #123b5540!important;padding:18px!important;color:#08416b!important}
+.student-current-shell .sc-dimensions header small{color:#b23983!important;font-size:14px!important;font-weight:900!important}
+.student-current-shell .sc-dimensions header h3{color:#07446e!important;font-size:clamp(18px,1.6vw,24px)!important;font-weight:950!important}
+.student-current-shell .sc-dimensions>div{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(185px,1fr))!important;gap:13px!important}
+.student-current-shell .sc-dimensions article{background:linear-gradient(125deg,#c8f5ec,#e0f4ff)!important;border:2px solid #fff!important;border-radius:22px!important;padding:16px!important;box-shadow:0 4px 0 #55b5c450!important;min-height:126px!important}
+.student-current-shell .sc-dimensions article:nth-child(4n+2){background:linear-gradient(125deg,#ffdeeb,#f2ddff)!important}
+.student-current-shell .sc-dimensions article:nth-child(4n+3){background:linear-gradient(125deg,#fff0b6,#ffdab9)!important}
+.student-current-shell .sc-dimensions article:nth-child(4n+4){background:linear-gradient(125deg,#d8edff,#d8d9ff)!important}
+.student-current-shell .sc-dimensions article span{color:#06476d!important;font-size:clamp(14px,1.1vw,18px)!important;font-weight:900!important}
+.student-current-shell .sc-dimensions article b{color:#9e2878!important;font-size:clamp(15px,1.2vw,19px)!important;font-weight:950!important}
+.student-current-shell .sc-dimensions article small{color:#326b80!important;font-size:13px!important;font-weight:800!important}
+.student-current-shell .sc-dimensions article u{height:12px!important;margin:13px 0 9px!important;background:#ffffffb5!important;border:1px solid #b2d5f0!important;border-radius:30px!important}
+.student-current-shell .sc-dimensions article u i{border-radius:30px!important;background:linear-gradient(90deg,#08c6b8,#28a9ff,#ae64f5)!important}
+.student-current-shell .sc-certificate-page>.sc-cert-toolbar{display:grid!important;grid-template-columns:minmax(200px,1fr) minmax(280px,2fr) auto!important;gap:16px!important;align-items:center!important;padding:20px!important;background:linear-gradient(115deg,#d9f8ff,#e8dfff 65%,#ffeac4)!important;border:3px solid #fff!important;border-radius:28px!important;box-shadow:0 8px 0 #72c8d55c!important}
+.student-current-shell .sc-cert-toolbar>div:first-child{gap:6px!important}
+.student-current-shell .sc-cert-toolbar>div:first-child span{color:#9b327e!important;font-size:15px!important;font-weight:900!important}
+.student-current-shell .sc-cert-toolbar>div:first-child b{color:#073f69!important;font-size:18px!important;font-weight:950!important;line-height:1.5!important}
+.student-current-shell .sc-cert-picks{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;max-height:none!important;overflow:visible!important}
+.student-current-shell .sc-cert-picks label{display:flex!important;flex-direction:row!important;align-items:center!important;gap:9px!important;background:linear-gradient(110deg,#fff,#d4f4ff)!important;border:2px solid #fff!important;border-radius:16px!important;padding:10px 12px!important;min-height:48px!important;color:#073f69!important;box-shadow:0 3px 0 #70c4d548!important;cursor:pointer!important}
+.student-current-shell .sc-cert-picks label:nth-child(4n+2){background:linear-gradient(110deg,#fff,#ffe0ee)!important}
+.student-current-shell .sc-cert-picks label:nth-child(4n+3){background:linear-gradient(110deg,#fff,#e5ddff)!important}
+.student-current-shell .sc-cert-picks label:nth-child(4n+4){background:linear-gradient(110deg,#fff,#fff0c7)!important}
+.student-current-shell .sc-cert-picks label span{font-size:clamp(12px,1vw,15px)!important;color:#06436a!important;font-weight:900!important;line-height:1.5!important}
+.student-current-shell .sc-cert-picks label:has(input:checked){outline:2px solid #00aeb9!important;background:#baf5df!important}
+.student-current-shell .sc-cert-picks input{flex:0 0 auto!important;width:20px!important;height:20px!important;accent-color:#08adad!important}
+.student-current-shell .sc-cert-toolbar>button{min-height:52px!important;padding:12px 18px!important;background:linear-gradient(110deg,#ffdf86,#ffb94e)!important;color:#073e67!important;border:2px solid #fff!important;border-radius:18px!important;font-size:15px!important;font-weight:950!important;white-space:nowrap!important}
+.student-current-shell .sc-cert-toolbar>button:disabled{opacity:.55!important;cursor:not-allowed!important}
+.student-current-shell .sc-certificate-page>.sc-empty{background:#e0f5ff!important;border:2px solid #fff!important;border-radius:20px!important;color:#07517a!important;font-size:16px!important;font-weight:850!important;padding:20px!important;text-align:center!important}
+@media(max-width:1100px){.student-current-shell .sc-certificate-page>.sc-cert-toolbar{grid-template-columns:1fr!important}.student-current-shell .sc-cert-picks{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}}
+@media(max-width:600px){.student-current-shell .sc-dimensions>div,.student-current-shell .sc-cert-picks{grid-template-columns:1fr!important}}
+@media print{.student-current-shell .sc-certificate-page>.sc-cert-toolbar,.student-current-shell .sc-certificate-page>.sc-empty{display:none!important}}
