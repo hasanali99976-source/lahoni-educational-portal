@@ -690,7 +690,7 @@ body:has(.student-current-shell){background:#d8eef0!important}
 @media print{.student-current-shell .sc-certificate-page>.sc-cert-toolbar,.student-current-shell .sc-certificate-page>.sc-empty{display:none!important}}
 
 /* Student subject selection — share illustrated portal background and watercolor theme */
-.student-current-gate .student-scene{background-image:url('/student-dashboard-bg.png.png')!important;background-position:center!important;background-size:cover!important;filter:saturate(1.08) brightness(.98)!important;transform:none!important}
+.student-current-gate .student-scene{background-image:url('/student-dashboard-background.png.png')!important;background-position:center!important;background-size:cover!important;filter:saturate(1.08) brightness(.98)!important;transform:none!important}
 .student-current-gate .scg-shell{width:min(1440px,calc(100% - 24px))!important;min-height:calc(100dvh - 24px)!important;margin:12px auto!important;padding:18px 24px 24px!important;border:2px solid #ffffffa6!important;border-radius:32px!important;background:linear-gradient(145deg,#e1faff29,#e8dfff29)!important;backdrop-filter:blur(5px)!important;box-shadow:0 14px 50px #06446735!important;gap:18px!important}
 .student-current-gate .scg-brand,.student-current-gate .scg-student{background:#e0f7ffdd!important;border:2px solid #fff!important;border-radius:24px!important;box-shadow:0 5px 0 #55a7c16e!important;color:#07436b!important}
 .student-current-gate .scg-student{background:#f2e4ffea!important}
