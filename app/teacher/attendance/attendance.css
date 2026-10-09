@@ -78,47 +78,51 @@
 @media(max-width:1050px){.attendance-student-card{grid-template-columns:1fr}.attendance-overview{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:650px){.attendance-setup-panel{align-items:stretch}.attendance-primary-controls,.attendance-main-actions{width:100%}.attendance-primary-controls label{min-width:130px}.attendance-main-actions button{flex:1 1 110px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}.attendance-lesson-tabs-list button{flex-basis:110px;min-height:72px}.attendance-overview article{min-height:77px}.attendance-overview article strong{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.attendance-page button{animation:none;transition:none}}
-/* Attendance register: one coherent paper treatment, no stacked overrides. */
-.attendance-page .attendance-card{border:1.5px solid rgba(143,180,203,.85);border-radius:18px;background:linear-gradient(115deg,rgba(255,253,246,.86),rgba(242,250,255,.84));box-shadow:0 14px 30px #133e5d28,inset 0 0 0 4px #ffffff44;backdrop-filter:blur(3px)}
-.attendance-page .attendance-hero{padding:10px 16px;background:#e3f1f7c9;border-bottom:1.5px solid #91b2c5}
-.attendance-page .attendance-head-copy h1{font-size:21px}
-.attendance-page .attendance-lesson-tabs{padding:9px 13px;background:#eaf6f1bd;border-bottom:1.5px solid #9bb9cc}
-.attendance-page .attendance-lesson-tabs-head{margin-bottom:7px}
-.attendance-page .attendance-lesson-tabs-list{gap:7px}
-.attendance-page .attendance-lesson-tabs-list button{flex:0 1 165px;min-height:49px;padding:6px 9px;border:1.5px solid #9cb7cb;border-bottom:3px solid #7ba6bf;border-radius:10px;box-shadow:0 2px 4px #205b8516;transform:none;font-size:12px}
-.attendance-page .attendance-lesson-tabs-list button.active{transform:none;outline:2px solid #dca83c}
-.attendance-page .attendance-setup-panel{padding:10px 13px;gap:8px;background:#f9fcffb8;border-bottom:1.5px solid #a4bece}
-.attendance-page .attendance-primary-controls select,.attendance-page .attendance-primary-controls input{height:39px;border-radius:8px}
-.attendance-page .attendance-main-actions button{min-height:39px;padding:6px 11px;border-radius:8px}
-.attendance-page .attendance-overview{padding:8px;gap:6px;background:#eaf4f9a8;border-bottom:1.5px solid #a4bece}
-.attendance-page .attendance-overview article{min-height:60px;padding:7px 9px;border:1px solid #a4bece;border-radius:9px;box-shadow:none}
-.attendance-page .attendance-overview article strong{font-size:21px}
-.attendance-page .attendance-workspace{padding:10px 13px 15px;background:transparent}
-.attendance-page .attendance-list-head{padding:10px 14px;background:#e5f2f9c9;border:1px solid #9bb7c9;border-radius:10px 10px 0 0}
-.attendance-page .attendance-list.attendance-roster-grid{display:grid;grid-template-columns:1fr;gap:0;padding:0;border:1px solid #9bb7c9;border-top:0;border-radius:0 0 10px 10px;overflow:hidden;background:repeating-linear-gradient(to bottom,#fffef9a8 0px,#fffef9a8 57px,#9cb9ca77 58px,#fffef9a8 59px)}
-.attendance-page .attendance-student-card{display:grid;grid-template-columns:minmax(210px,1fr) minmax(360px,1.1fr);min-height:58px;margin:0;padding:7px 12px;gap:9px;border:0;border-bottom:1px solid #a9c5d6;border-radius:0;box-shadow:none;background:#ffffff75}
-.attendance-page .attendance-student-card:nth-child(even){background:#dceefa66}
-.attendance-page .attendance-student-card:last-child{border-bottom:0}
-.attendance-page .student-info strong{font-size:15px}
-.attendance-page .status-buttons{gap:5px}
-.attendance-page .status-buttons button{min-height:36px;padding:5px 3px;border:1px solid #fff;border-bottom:2px solid currentColor;border-radius:8px;font-size:12px}
-.attendance-page .status-buttons button.active{transform:none;outline:2px solid currentColor;outline-offset:-2px;box-shadow:0 2px 5px #184a5a24}
-@media(max-width:1050px){.attendance-page .attendance-student-card{grid-template-columns:1fr;gap:6px}}
-@media(max-width:650px){.attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-page .attendance-lesson-tabs-list button{flex:1 1 120px}.attendance-page .attendance-workspace{padding:7px}.attendance-page .attendance-student-card{padding:8px}}
 
-
-/* Authentic paper attendance grid; matches register columns and circular marks. */
-.attendance-page .attendance-register-scroll{width:100%;overflow-x:auto;border:1.5px solid #9db8ca;border-radius:4px;background:rgba(255,255,255,.86);scrollbar-width:thin}
+/* Unified compact academic attendance sheet. */
+.attendance-page .attendance-card{overflow:hidden;border:1px solid #a6bfcc;border-radius:15px;background:rgba(255,253,249,.89);box-shadow:0 10px 28px #143c5429;backdrop-filter:blur(3px)}
+.attendance-page .attendance-hero{padding:8px 14px;background:rgba(228,243,251,.78);border-bottom:1px solid #9bb7c6}
+.attendance-page .attendance-head-copy h1{font-size:20px}
+.attendance-page .attendance-head-copy p{font-size:12px}
+.attendance-page .attendance-lesson-tabs{display:flex;align-items:center;gap:14px;min-height:0;padding:9px 14px;background:rgba(240,248,246,.76);border-bottom:1px solid #a8bfca}
+.attendance-page .attendance-lesson-tabs-head{flex:0 0 230px;display:flex;align-items:center;gap:7px;margin:0}
+.attendance-page .attendance-lesson-tabs-head strong{font-size:12px;line-height:1.5;font-weight:800}
+.attendance-page .attendance-lesson-tabs-head small{font-size:12px}
+.attendance-page .attendance-lesson-tabs-head>span{padding:4px 7px;font-size:11px;white-space:nowrap}
+.attendance-page .attendance-lesson-tabs-list{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+.attendance-page .attendance-lesson-tabs-list button{flex:0 1 165px;min-height:43px;padding:5px 8px;border:1px solid #9bb9ca;border-radius:8px;border-bottom:2px solid #86acc3;box-shadow:none;transform:none;font-size:12px;text-align:center}
+.attendance-page .attendance-lesson-tabs-list button b{display:inline;font-size:12px;margin:0 4px}
+.attendance-page .attendance-lesson-tabs-list button strong{display:inline;font-size:12px}
+.attendance-page .attendance-lesson-tabs-list button.active{transform:none;outline:2px solid #e7b14b;outline-offset:-2px;box-shadow:none}
+.attendance-page .attendance-setup-panel{display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(255,255,255,.63);border-bottom:1px solid #a9bfcd}
+.attendance-page .attendance-primary-controls{gap:7px}
+.attendance-page .attendance-primary-controls label{min-width:155px;max-width:205px}
+.attendance-page .attendance-primary-controls label>span{margin-bottom:3px;font-size:12px}
+.attendance-page .attendance-primary-controls select,.attendance-page .attendance-primary-controls input{height:36px;border:1px solid #aac8dc;border-radius:7px}
+.attendance-page .attendance-main-actions{gap:5px}
+.attendance-page .attendance-main-actions button{min-height:36px;padding:5px 10px;border:1px solid #fff;border-bottom:2px solid #80a9c7;border-radius:7px;box-shadow:none;font-size:12px}
+.attendance-page .attendance-overview{display:flex;align-items:center;gap:0;padding:0;background:rgba(226,242,247,.74);border-bottom:1px solid #a4bfce}
+.attendance-page .attendance-overview article,.attendance-page .attendance-overview article:nth-child(n){flex:1;min-width:0;min-height:53px;margin:0;padding:7px 9px;border:0;border-left:1px solid #adc6d3;border-radius:0;background:transparent;box-shadow:none}
+.attendance-page .attendance-overview article:last-child{border-left:0}
+.attendance-page .attendance-overview article span{font-size:12px}
+.attendance-page .attendance-overview article strong{font-size:19px}
+.attendance-page .attendance-overview article:after{font-size:13px;left:6px;top:9px}
+.attendance-page .attendance-workspace{padding:8px 12px 13px;background:transparent}
+.attendance-page .attendance-list-head{padding:5px 8px 9px;background:transparent;border:0;border-bottom:1px solid #8eafc2;border-radius:0}
+.attendance-page .attendance-list-head span{font-size:11px}
+.attendance-page .attendance-list-head h2{font-size:18px}
+.attendance-page .attendance-date-chip{padding:5px 9px;border:1px solid #dfbf7d;border-radius:7px;font-size:12px}
+.attendance-page .attendance-register-scroll{width:100%;overflow-x:auto;border:1px solid #9db8ca;border-radius:3px;background:rgba(255,255,255,.79)}
 .attendance-page .attendance-register-table{width:100%;min-width:730px;border-collapse:collapse;table-layout:fixed;direction:rtl;color:#1b5479;font-size:13px}
-.attendance-page .attendance-register-table th,.attendance-page .attendance-register-table td{border:1px solid rgba(129,163,187,.48);padding:4px 8px;vertical-align:middle;height:36px}
-.attendance-page .attendance-register-table thead th{height:39px;background:linear-gradient(180deg,#e7f5ff,#d8ebfa);font-size:13px;font-weight:900;text-align:center;white-space:nowrap}
+.attendance-page .attendance-register-table th,.attendance-page .attendance-register-table td{border:1px solid rgba(129,163,187,.48);padding:3px 7px;vertical-align:middle;height:34px}
+.attendance-page .attendance-register-table thead th{height:37px;background:#dceefa;font-size:12px;font-weight:900;text-align:center;white-space:nowrap}
 .attendance-page .attendance-register-table thead th:nth-child(1){width:45px}
 .attendance-page .attendance-register-table thead th:nth-child(2){width:32%;text-align:right}
 .attendance-page .attendance-register-table thead th:nth-child(3){width:105px}
 .attendance-page .attendance-register-table thead th:nth-child(n+4){width:8.6%}
-.attendance-page .attendance-register-table tbody tr:nth-child(odd){background:rgba(255,255,255,.57)}
-.attendance-page .attendance-register-table tbody tr:nth-child(even){background:rgba(227,240,249,.58)}
-.attendance-page .attendance-register-table tbody tr:hover{background:rgba(213,238,250,.84)}
+.attendance-page .attendance-register-table tbody tr:nth-child(odd){background:rgba(255,255,255,.56)}
+.attendance-page .attendance-register-table tbody tr:nth-child(even){background:rgba(225,240,250,.57)}
+.attendance-page .attendance-register-table tbody tr:hover{background:rgba(211,236,249,.8)}
 .attendance-page .attendance-register-table .register-number{text-align:center;font-weight:850}
 .attendance-page .attendance-register-table .register-name{text-align:right;font-weight:900;font-size:13px}
 .attendance-page .attendance-register-table .register-code{text-align:center;font-weight:800;color:#3977a1;font-size:12px;direction:ltr}
@@ -134,7 +138,7 @@
 .attendance-page .attendance-register-table thead .register-col-excused{background:#e9dcff}
 .attendance-page .attendance-register-table thead .register-col-escaped{background:#ffdce9}
 .attendance-page .attendance-register-table .register-radio{display:inline-grid;place-items:center;width:27px;height:27px;min-width:27px;min-height:27px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;box-shadow:none;transform:none}
-.attendance-page .attendance-register-table .register-radio span{display:block;width:14px;height:14px;border:1.8px solid #b1a0bb;border-radius:50%;background:#fff;transition:background .12s ease}
+.attendance-page .attendance-register-table .register-radio span{display:block;width:14px;height:14px;border:1.8px solid #b1a0bb;border-radius:50%;background:#fff}
 .attendance-page .attendance-register-table .register-col-present .register-radio span{border-color:#16aa7c}
 .attendance-page .attendance-register-table .register-col-absent .register-radio span{border-color:#d47b98}
 .attendance-page .attendance-register-table .register-col-late .register-radio span{border-color:#c7a269}
@@ -147,4 +151,5 @@
 .attendance-page .attendance-register-table .register-col-escaped .register-radio.selected span{background:#d46aab}
 .attendance-page .attendance-register-table .register-radio:focus-visible{outline:2px solid #147cb6;outline-offset:1px}
 .attendance-page .attendance-register-table .register-radio:disabled{opacity:.55;cursor:not-allowed}
-@media(max-width:650px){.attendance-page .attendance-register-table{min-width:650px;font-size:12px}.attendance-page .attendance-register-table th,.attendance-page .attendance-register-table td{height:35px;padding:3px 5px}.attendance-page .attendance-register-table .register-name{font-size:12px}}
+@media(max-width:1000px){.attendance-page .attendance-lesson-tabs{flex-wrap:wrap}.attendance-page .attendance-lesson-tabs-head{flex:1 1 100%}.attendance-page .attendance-overview{flex-wrap:wrap}.attendance-page .attendance-overview article{flex:1 1 25%}}
+@media(max-width:650px){.attendance-page .attendance-lesson-tabs-list{overflow-x:auto;flex-wrap:nowrap}.attendance-page .attendance-lesson-tabs-list button{flex:0 0 130px}.attendance-page .attendance-setup-panel{align-items:stretch}.attendance-page .attendance-primary-controls label{flex:1 1 140px}.attendance-page .attendance-overview article{flex:1 1 33%}.attendance-page .attendance-register-table{min-width:650px}}
