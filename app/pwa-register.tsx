@@ -9,6 +9,20 @@ export default function PwaRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
+    // Teacher routes must always use the current deployment, never an old offline app shell.
+    if (window.location.pathname.startsWith("/teacher")) {
+      void navigator.serviceWorker.getRegistrations().then(async registrations => {
+        await Promise.all(registrations.filter(registration => registration.scope.startsWith(window.location.origin)).map(registration => registration.unregister()));
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(key => key.startsWith("ostadh-lahooni-")).map(key => caches.delete(key)));
+        if (navigator.serviceWorker.controller && !sessionStorage.getItem("lahooni:teacher-sw-refresh")) {
+          sessionStorage.setItem("lahooni:teacher-sw-refresh", "1");
+          window.location.reload();
+        }
+      }).catch(() => undefined);
+      return;
+    }
+
     let reloading = false;
     const onControllerChange = () => {
       if (reloading) return;
