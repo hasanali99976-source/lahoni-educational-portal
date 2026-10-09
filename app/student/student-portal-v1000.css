@@ -589,13 +589,13 @@ body:has(.student-current-shell){background:#d8eef0!important}
 
 /* Clear notes and background-integrated identities */
 .student-current-shell .sc-head.sc-head-integrated{background:transparent!important;border:0!important;box-shadow:none!important;gap:16px!important}
-.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:0!important;padding:5px 12px!important;min-height:76px!important;text-shadow:0 2px 3px white,0 0 8px white!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:0!important;padding:5px 12px!important;min-height:54px!important;text-shadow:0 1px 3px #ffffffbb!important}
 .student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date) :is(strong,small,span){color:#073d69!important;font-weight:950!important;opacity:1!important}
-.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:clamp(20px,1.7vw,29px)!important}
-.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) small{font-size:16px!important;color:#087eb0!important}
-.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) span{font-size:17px!important;color:#6d35b2!important}
-.student-current-shell .sc-head-integrated .sc-head-date strong{font-size:clamp(17px,1.6vw,25px)!important;color:#9c3e86!important}
-.student-current-shell .sc-head-integrated .sc-head-date small{font-size:17px!important;color:#076f9d!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:clamp(15px,1.3vw,21px)!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) small{font-size:12px!important;color:#087eb0!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) span{font-size:13px!important;color:#6d35b2!important}
+.student-current-shell .sc-head-integrated .sc-head-date strong{font-size:clamp(14px,1.25vw,19px)!important;color:#9c3e86!important}
+.student-current-shell .sc-head-integrated .sc-head-date small{font-size:13px!important;color:#076f9d!important}
 .student-current-shell .sc-notes .sc-notes-stats{gap:12px!important}
 .student-current-shell .sc-notes .sc-notes-stats>article{padding:16px 19px!important;min-height:95px!important}
 .student-current-shell .sc-notes .sc-notes-stats>article:nth-child(1){background:linear-gradient(110deg,#d2eaff,#dcd3ff)!important}
@@ -610,3 +610,18 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-notes .sc-feed-item :is(h3,b){font-weight:950!important}
 .student-current-shell .sc-notes .sc-feed-item:nth-child(even){background:linear-gradient(115deg,#fff0c2,#e1ffe2)!important}
 @media(max-width:760px){.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){padding:3px!important;min-height:0!important}.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card) strong{font-size:17px!important}}
+
+/* Compact report table with colored watercolor rows */
+.student-current-shell .sc-report .sc-report-table{background:linear-gradient(140deg,#d8f5ff,#e8e2ff)!important;border:2px solid white!important;border-radius:25px!important;padding:9px!important;box-shadow:0 5px 0 #6fb9d855!important}
+.student-current-shell .sc-report .sc-report-table>header{background:linear-gradient(100deg,#ffdf8b,#b9f5e1,#c7dcff)!important;border-radius:16px!important;color:#07416a!important;font-size:14px!important;font-weight:950!important}
+.student-current-shell .sc-report .sc-report-table>header span{color:#07416a!important;font-weight:950!important}
+.student-current-shell .sc-report .sc-report-table>div{background:#ffffffc9!important;border:1px solid #b4e4fa!important;border-radius:15px!important;margin-top:7px!important;padding:12px!important;color:#0b4168!important}
+.student-current-shell .sc-report .sc-report-table>div:nth-child(3n){background:#e7f8dc!important}
+.student-current-shell .sc-report .sc-report-table>div:nth-child(3n+1){background:#ffe6ef!important}
+.student-current-shell .sc-report .sc-report-table>div:nth-child(3n+2){background:#e6edff!important}
+.student-current-shell .sc-report .sc-report-table>div :is(strong,span,b,em){color:#0a4268!important;font-size:clamp(12px,1vw,16px)!important;font-weight:850!important;opacity:1!important}
+.student-current-shell .sc-report .sc-report-table>div em.done{background:#baf6d5!important;color:#087052!important;border-radius:99px!important;padding:5px 9px!important}
+.student-current-shell .sc-report .sc-report-table>div em.live{background:#ffe6a9!important;color:#79520a!important;border-radius:99px!important;padding:5px 9px!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date){background:none!important;background-color:transparent!important;filter:none!important}
+.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date)::before,.student-current-shell .sc-head-integrated :is(.sc-student-head-card,.sc-teacher-head-card,.sc-head-date)::after{background:none!important;box-shadow:none!important;border:0!important}
+@media(max-width:760px){.student-current-shell .sc-report .sc-report-table>header,.student-current-shell .sc-report .sc-report-table>div{gap:5px!important;padding:8px!important}.student-current-shell .sc-report .sc-report-table>div :is(strong,span,b,em){font-size:11px!important}}
