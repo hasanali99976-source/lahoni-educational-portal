@@ -1,0 +1,35 @@
+/* Smart Teacher Studio — phase 2: timetable, attendance, gradebook, follow-up.
+   Presentation only: no state, listeners, requests or data mutations. */
+.teacher-student-shell :is(.timetable-page,.attendance-page,.grades-page,.follow-up-page){--studio-ink:#164a61;--studio-blue:#dff2ff;--studio-mint:#d9f6e9;--studio-lilac:#eee4ff;--studio-peach:#ffedcd;color:var(--studio-ink)}
+.teacher-student-shell :is(.timetable-page,.attendance-page,.grades-page,.follow-up-page) :is(h1,h2,h3){color:#114965;letter-spacing:0;line-height:1.5}
+.teacher-student-shell .timetable-page :is(.timetable-hero,.smart-strip,.timetable-meta,.table-wrap){border:1px solid rgba(255,255,255,.85);border-radius:22px;box-shadow:0 8px 24px rgba(18,70,93,.12);overflow:hidden}
+.teacher-student-shell .timetable-page .timetable-hero{background:linear-gradient(115deg,#e1f5ff,#e8f8ed 58%,#fff0d5);padding:18px 22px}
+.teacher-student-shell .timetable-page .smart-strip{background:linear-gradient(115deg,#e9e4ff,#e4f7ff);padding:15px}
+.teacher-student-shell .timetable-page .smart-stats article{background:#fff;border:1px solid #cde5f2;border-radius:15px}
+.teacher-student-shell .timetable-page .timetable-meta{background:rgba(242,251,255,.96)}
+.teacher-student-shell .timetable-page .table-wrap{background:#f7fcff}
+.teacher-student-shell .timetable-page .weekly-table th{background:#246c88;color:#fff;border-color:#246c88}
+.teacher-student-shell .timetable-page .weekly-table td{border-color:#d3e8f1;background:#f7fcff}
+.teacher-student-shell .timetable-page .lesson-cell{background:#edf5fb;border:1px solid #d6e6f0;transition:background .16s,transform .16s}
+.teacher-student-shell .timetable-page .lesson-cell.filled{background:linear-gradient(135deg,#d9f5e9,#e4efff);border:1px solid #9bd8d5}
+.teacher-student-shell .timetable-page .lesson-cell:hover{background:#e1f6f4;transform:translateY(-1px)}
+.teacher-student-shell .attendance-page .attendance-card{background:#f6fcff;border:1px solid #d0e7f3;border-radius:22px;box-shadow:0 10px 28px rgba(14,77,104,.10)}
+.teacher-student-shell .attendance-page .attendance-setup-panel{background:linear-gradient(110deg,#e0f4ff,#e5f9f0);border-bottom-color:#bfe1e9}
+.teacher-student-shell .attendance-page .attendance-overview{background:linear-gradient(110deg,#f0e9ff,#e8f8ff);gap:10px}
+.teacher-student-shell .attendance-page .attendance-overview article{background:#fff;border:1px solid #c8e3ed;border-radius:16px;box-shadow:0 4px 12px rgba(25,76,106,.06)}
+.teacher-student-shell .attendance-page .attendance-overview article:nth-child(4n+2){background:#eaf9f0}
+.teacher-student-shell .attendance-page .attendance-overview article:nth-child(4n+3){background:#fff1dc}
+.teacher-student-shell .attendance-page .attendance-overview article:nth-child(4n){background:#f1eaff}
+.teacher-student-shell .grades-page :is(.gradebook-scroll,.gradebook-table){border-radius:15px}
+.teacher-student-shell .grades-page .gradebook-table{border-collapse:separate;border-spacing:0}
+.teacher-student-shell .grades-page .gradebook-table thead th{background:#246c88;color:#fff;border-color:#4388a2}
+.teacher-student-shell .grades-page .gradebook-table tbody tr:nth-child(odd){background:#f2faff}
+.teacher-student-shell .grades-page .gradebook-table tbody tr:nth-child(even){background:#eaf7f1}
+.teacher-student-shell .grades-page .gradebook-table tbody tr:hover{background:#fff3d8}
+.teacher-student-shell .grades-page :is(input,select,textarea){accent-color:#1f9ca0}
+.teacher-student-shell .follow-up-page :is(table,section,article){border-color:#cce5ef}
+.teacher-student-shell :is(.timetable-page,.attendance-page,.grades-page,.follow-up-page) :is(button,select,input){font-family:inherit}
+.teacher-student-shell :is(.timetable-page,.attendance-page,.grades-page,.follow-up-page) :is(button,a):focus-visible{outline:3px solid #e5ad45;outline-offset:2px}
+@media(max-width:760px){.teacher-student-shell .timetable-page .timetable-hero{padding:14px;flex-wrap:wrap}.teacher-student-shell .timetable-page .smart-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-student-shell .attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.teacher-student-shell .timetable-page .lesson-cell{transition:none}}
+@media print{.teacher-student-shell .timetable-page :is(.timetable-hero,.smart-strip,.timetable-meta,.table-wrap),.teacher-student-shell .attendance-page .attendance-card{box-shadow:none;background:#fff}}
