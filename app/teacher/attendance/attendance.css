@@ -55,3 +55,28 @@
 @media(prefers-reduced-motion:no-preference){.attendance-page .attendance-roster-grid .status-buttons button.active{animation:attendancePop .32s cubic-bezier(.15,1.5,.35,1) both}@keyframes attendancePop{0%{transform:scale(.92)}65%{transform:scale(1.12) translateY(-3px)}100%{transform:scale(1.085) translateY(-2px)}}}
 @media(prefers-reduced-motion:reduce){.attendance-page .attendance-roster-grid .status-buttons button,.attendance-page .attendance-roster-grid .attendance-student-card{animation:none;transition:none}}
 @container(max-width:650px){.attendance-page .attendance-roster-grid .status-buttons button{font-size:11px;min-height:43px}}
+
+
+/* Watercolor register surfaces — translucent without sacrificing readability */
+.attendance-page .attendance-card{background:rgba(230,247,252,.83);border:2px solid rgba(255,255,255,.9);border-radius:24px;box-shadow:0 10px 0 rgba(42,128,147,.2),0 20px 35px rgba(0,42,55,.18);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px)}
+.attendance-page .attendance-setup-panel{background:linear-gradient(110deg,rgba(209,248,235,.9),rgba(218,236,255,.86),rgba(248,225,255,.85));border-bottom:2px solid rgba(255,255,255,.9);border-radius:22px 22px 0 0}
+.attendance-page .attendance-workspace{background:linear-gradient(145deg,rgba(218,246,255,.72),rgba(255,246,223,.66),rgba(235,225,255,.7))}
+.attendance-page .attendance-list-head{background:rgba(255,255,255,.35)}
+.attendance-page .attendance-overview{background:linear-gradient(105deg,rgba(207,246,234,.82),rgba(219,233,255,.82),rgba(255,226,241,.82));gap:10px}
+.attendance-page .attendance-overview article{background:rgba(255,255,255,.66);border:2px solid rgba(255,255,255,.85);border-radius:17px;box-shadow:0 4px 0 rgba(63,126,147,.13)}
+.attendance-page .attendance-overview article:nth-child(4n+1){background:rgba(185,242,215,.8);border-color:#7dd5ad}
+.attendance-page .attendance-overview article:nth-child(4n+2){background:rgba(255,207,219,.8);border-color:#f3a3b6}
+.attendance-page .attendance-overview article:nth-child(4n+3){background:rgba(255,229,162,.82);border-color:#e6c472}
+.attendance-page .attendance-overview article:nth-child(4n){background:rgba(207,223,255,.82);border-color:#a5c4ec}
+.attendance-page .attendance-overview article span,.attendance-page .attendance-overview article strong{color:#153e58}
+.attendance-page .attendance-roster-grid .attendance-student-card{background:rgba(238,250,255,.79);border:2px solid rgba(255,255,255,.92);border-right:6px solid #4dc6ad;box-shadow:0 3px 0 rgba(33,104,126,.17);backdrop-filter:blur(5px)}
+.attendance-page .attendance-roster-grid .attendance-student-card:nth-child(4n+2){background:rgba(255,238,246,.82);border-right-color:#f19ab7}
+.attendance-page .attendance-roster-grid .attendance-student-card:nth-child(4n+3){background:rgba(255,246,213,.83);border-right-color:#efc66b}
+.attendance-page .attendance-roster-grid .attendance-student-card:nth-child(4n){background:rgba(234,228,255,.82);border-right-color:#b8a2ef}
+.attendance-page .attendance-roster-grid .status-buttons button:not(.active){box-shadow:inset 0 1px 0 #ffffffaa,0 3px 0 #164b6020}
+.attendance-page .attendance-roster-grid .status-buttons button.active{box-shadow:0 5px 0 #184a5a36,0 8px 15px #184a5a20}
+.attendance-page .attendance-date-chip{background:#ffedb9;border:2px solid #f5cf74;border-radius:14px}
+.attendance-page .attendance-main-actions button{border-radius:13px;border-width:2px;font-size:12px}
+.attendance-page .attendance-main-actions .attendance-save{background:#12a88f;border-color:#087e76}
+.attendance-page .attendance-main-actions .attendance-delete{background:#ffe0e6;border-color:#e6a0b0;color:#96384b}
+.attendance-page .attendance-primary-controls select,.attendance-page .attendance-primary-controls input{background:rgba(255,255,255,.85);border:2px solid #a6d6e3;border-radius:13px}
