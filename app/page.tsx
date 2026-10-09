@@ -145,6 +145,19 @@ export default function HomePage(){
   .lh-card:hover,.lh-card:focus-visible{box-shadow:0 24px 44px rgba(116,148,175,.25),0 0 20px var(--glow)}
   .lh-features{background:rgba(255,255,255,.67);border:2px solid #fff;border-radius:26px;box-shadow:0 12px 30px rgba(123,155,182,.12)}
   .lh-feature,.lh-feature strong,.lh-feature small,.lh-foot{color:#52778b}
+  /* Full classroom composition, clearer colors and brighter portal cards */
+  .lh-home{background:radial-gradient(ellipse at 12% 15%,rgba(255,191,215,.19),transparent 37%),radial-gradient(ellipse at 85% 10%,rgba(159,224,255,.19),transparent 38%),linear-gradient(145deg,rgba(255,251,248,.43),rgba(236,249,253,.40) 50%,rgba(255,245,250,.43)),url("/lahooni_classroom_ready.webp.png") center top / 100% auto no-repeat,linear-gradient(145deg,#f9f4f3,#e8f7fb);background-attachment:scroll}
+  .lh-home:after{opacity:.38}
+  .lh-card{background:linear-gradient(155deg,rgba(153,214,255,.96),rgba(207,235,255,.95));border-color:#fff;box-shadow:0 19px 35px rgba(60,117,167,.20),inset 0 2px 0 #fff}
+  .lh-card.teacher{background:linear-gradient(155deg,rgba(255,181,169,.97),rgba(255,219,192,.96));box-shadow:0 19px 35px rgba(181,104,99,.18),inset 0 2px 0 #fff}
+  .lh-card.student{background:linear-gradient(155deg,rgba(137,224,187,.97),rgba(204,246,215,.96));box-shadow:0 19px 35px rgba(79,156,127,.18),inset 0 2px 0 #fff}
+  .lh-card:before{opacity:.58}
+  .lh-card-copy h2{color:#264e68;text-shadow:0 2px 0 rgba(255,255,255,.72)}
+  .lh-card-copy small{color:#3d6b84}.lh-card-copy p{color:#3d6175}
+  .lh-card-icon{background:rgba(255,255,255,.85);box-shadow:0 5px 15px rgba(67,118,155,.12)}
+  .lh-enter{background:rgba(255,255,255,.9);border-color:#fff;color:#24516c;box-shadow:0 6px 15px rgba(65,119,154,.13)}
+  .card-scene{opacity:.26}
+  @media(max-width:690px){.lh-home{background-size:auto,auto,auto,auto 76vh,auto;background-position:center,center,center,center top,center}}
   @media(max-width:690px){.lh-main-title{font-size:clamp(43px,10vw,66px);letter-spacing:-1px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:255px;border-radius:24px}.lh-roles{gap:14px;margin-top:22px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}}
   `}</style>
   <div className="lh-frame">
