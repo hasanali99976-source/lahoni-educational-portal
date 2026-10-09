@@ -117,6 +117,35 @@ export default function HomePage(){
   .lh-features{background:rgba(5,27,38,.68);border-color:rgba(224,193,133,.25);margin-top:22px}
   @media(max-width:1000px){.lh-main-title{font-size:clamp(48px,7.3vw,78px)}.lh-card{min-height:275px}}
   @media(max-width:690px){.lh-home{background-attachment:scroll;background-position:center top}.lh-stage{padding:20px 0 17px}.lh-main-title{font-size:clamp(39px,9.3vw,60px);letter-spacing:-1px}.lh-subtitle{font-size:clamp(23px,5.8vw,33px);padding:5px 22px}.lh-motto{font-size:12px}.lh-intro{font-size:11px}.lh-roles{gap:12px;margin-top:14px}.lh-card{min-height:245px;padding:17px}.lh-card-copy h2{font-size:30px}.lh-top{min-height:76px}}
+
+  /* Watercolor / soft clay identity — home page only */
+  .lh-home{color:#25495b;background:radial-gradient(ellipse at 12% 15%,rgba(255,190,214,.55),transparent 37%),radial-gradient(ellipse at 86% 10%,rgba(150,217,255,.66),transparent 38%),radial-gradient(ellipse at 65% 72%,rgba(198,180,248,.45),transparent 46%),linear-gradient(145deg,#fff9f4 0%,#eaf9fc 48%,#fff4f8 100%);background-attachment:scroll}
+  .lh-home:after{background:radial-gradient(circle at 5% 60%,rgba(255,195,157,.35),transparent 24%),radial-gradient(circle at 95% 55%,rgba(147,231,204,.4),transparent 26%);z-index:-1}
+  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.7);border:2px solid rgba(255,255,255,.96);box-shadow:0 9px 25px rgba(91,129,157,.13);color:#365b75}
+  .lh-brand strong{color:#396b88}.lh-brand small{color:#6b8796}.lh-brand img{border-color:#fff;box-shadow:0 5px 14px rgba(97,149,172,.18)}
+  .lh-top-pill{color:#a46b9d}
+  .lh-stage:before{background:radial-gradient(ellipse,rgba(255,205,229,.62),rgba(164,220,253,.38) 48%,transparent 75%);filter:blur(23px)}
+  .lh-stars .star-main{color:#ffbd6c;text-shadow:0 3px 0 #fff,0 5px 16px rgba(238,148,89,.3)}
+  .lh-stars .star-side{color:#80bfd2;text-shadow:none}
+  .lh-smalltitle{color:#876cba;border:2px solid #fff;background:rgba(255,255,255,.76);box-shadow:0 5px 16px rgba(122,128,183,.13);font-size:17px}
+  .lh-main-title{font-size:clamp(55px,7.1vw,108px);line-height:1.36;letter-spacing:-2px;background:linear-gradient(115deg,#ff9f9f 5%,#ffbb79 25%,#b78ce6 46%,#74bedc 68%,#79cdb6 92%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 0 rgba(139,161,194,.34)) drop-shadow(0 10px 11px rgba(109,130,161,.19));paint-order:stroke fill;-webkit-text-stroke:1.3px rgba(255,255,255,.48)}
+  .lh-subtitle{color:#6387ae;background:rgba(255,255,255,.75);border:2px solid #fff;border-radius:24px;box-shadow:0 9px 23px rgba(126,163,192,.14);text-shadow:none}
+  .lh-motto{color:#9872a7;font-size:19px}.lh-intro{color:#5c7888;text-shadow:none;font-size:15px}
+  .lh-roles{gap:23px;margin-top:29px}
+  .lh-card,.lh-card.teacher,.lh-card.student{min-height:315px;border:3px solid rgba(255,255,255,.94);border-radius:32px;box-shadow:0 16px 34px rgba(101,132,164,.16),inset 0 1px 0 #fff;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#3e6279}
+  .lh-card{--accent:#6dafe2;--glow:rgba(110,182,230,.28);background:linear-gradient(150deg,rgba(195,232,255,.96),rgba(231,243,255,.95))}
+  .lh-card.teacher{--accent:#d9989d;--glow:rgba(239,154,165,.25);background:linear-gradient(150deg,rgba(255,218,207,.96),rgba(255,237,222,.95))}
+  .lh-card.student{--accent:#6ab8a6;--glow:rgba(109,201,169,.24);background:linear-gradient(150deg,rgba(202,244,225,.96),rgba(230,250,241,.95))}
+  .lh-card:before{opacity:.9;background:radial-gradient(circle at 15% 18%,rgba(255,255,255,.85),transparent 52%),radial-gradient(circle at 90% 85%,var(--glow),transparent 55%)}
+  .lh-card-number{color:var(--accent);opacity:1}.lh-card-icon{background:rgba(255,255,255,.64);border:2px solid #fff;color:var(--accent);border-radius:20px}
+  .lh-card-copy h2{font-size:clamp(33px,3vw,43px);color:#3b6076;text-shadow:0 2px 0 rgba(255,255,255,.95)}
+  .lh-card-copy small{color:#6889a0}.lh-card-copy p{color:#627b89;font-size:13px}
+  .lh-enter{color:#446579;background:rgba(255,255,255,.73);border:2px solid rgba(255,255,255,.94);box-shadow:0 5px 14px rgba(99,133,158,.1);border-radius:17px}
+  .lh-enter b{color:#fff;background:var(--accent)}.card-scene{opacity:.19}
+  .lh-card:hover,.lh-card:focus-visible{box-shadow:0 24px 44px rgba(116,148,175,.25),0 0 20px var(--glow)}
+  .lh-features{background:rgba(255,255,255,.67);border:2px solid #fff;border-radius:26px;box-shadow:0 12px 30px rgba(123,155,182,.12)}
+  .lh-feature,.lh-feature strong,.lh-feature small,.lh-foot{color:#52778b}
+  @media(max-width:690px){.lh-main-title{font-size:clamp(43px,10vw,66px);letter-spacing:-1px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:255px;border-radius:24px}.lh-roles{gap:14px;margin-top:22px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}}
   `}</style>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
