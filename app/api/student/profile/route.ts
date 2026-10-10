@@ -12,7 +12,7 @@ type HistoricalTimetable = { lessons?: Record<string, TimetableLesson> };
 type ReferralRow = Record<string, unknown> & { id: string };
 type StudentSnapshot = { id: string; exists: boolean; data(): unknown };
 
-const ATTENDANCE_START_DATE = "2026-08-23";
+// Show every teacher-saved historical attendance date, including records entered retroactively.
 const SCHOOL_WEEKDAYS = [0, 1, 2, 3, 4] as const;
 const DAY_INDEX: Record<string, number> = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4 };
 const DAY_LABELS: Record<string, string> = { sunday: "الأحد", monday: "الاثنين", tuesday: "الثلاثاء", wednesday: "الأربعاء", thursday: "الخميس" };
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
 
   // Read attendance records from the same subject cloud collection used by the teacher.
   // Filter class after normalization so legacy/canonical class spellings cannot hide saved attendance.
-  const attendanceQuery = adminDb().collection(`${root}/attendance`).where("date", ">=", ATTENDANCE_START_DATE);
+  const attendanceQuery = adminDb().collection(`${root}/attendance`);
   const referralQuery = aliasList.length
     ? adminDb().collection(`${root}/counselorReferrals`).where("studentId", "in", aliasList)
     : adminDb().collection(`${root}/counselorReferrals`).where("studentId", "==", access.studentId);
@@ -115,7 +115,7 @@ export async function GET(request: Request) {
   for (const record of attendance.docs) {
     const data = record.data() as Record<string, any>;
     const date = typeof data.date === "string" ? data.date : "";
-    if (!date || date < ATTENDANCE_START_DATE) continue;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
     const recordClass = normalizeClass(data.class || data.className || "");
     // Do not discard a saved student event merely because the student moved class later.
     // Student aliases are the durable link; class is only descriptive historical metadata.
