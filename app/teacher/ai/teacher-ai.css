@@ -51,3 +51,10 @@
  .teacher-ai-page .plan-steps em{background:#226e91!important;color:#fff!important}
  .teacher-ai-page .plan-actions{display:none!important}
 }
+
+@media print {
+ .teacher-student-shell,.teacher-student-shell .tss-main,.teacher-student-shell .tss-content{display:block!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;background:white!important;padding:0!important}
+ .teacher-student-shell .tss-hero-header{display:none!important}
+ .teacher-student-shell .tss-content .teacher-ai-page{display:block!important;overflow:visible!important;height:auto!important;background:white!important}
+ .teacher-student-shell .tss-content .teacher-ai-page .generated-plan{display:block!important;overflow:visible!important;visibility:visible!important;background:white!important}
+}
