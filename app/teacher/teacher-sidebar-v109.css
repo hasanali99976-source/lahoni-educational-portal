@@ -171,3 +171,9 @@
 .teacher-student-shell .tss-side-profile-copy small{font-family:inherit!important;font-size:10.5px!important;font-weight:500!important;line-height:1.4!important;color:#c1e2e8!important}
 @media(max-height:820px) and (min-width:981px){.teacher-student-shell .tss-side-profile{grid-template-columns:39px minmax(0,1fr)!important;padding:7px 9px!important}.teacher-student-shell .tss-side-profile-mark{width:39px!important;height:39px!important}.teacher-student-shell .tss-side-profile-mark svg{width:32px;height:32px}}
 @media(max-width:980px){.teacher-student-shell .tss-side-profile{grid-template-columns:43px minmax(0,1fr)!important}.teacher-student-shell .tss-side-profile-mark{width:43px!important;height:43px!important}.teacher-student-shell .tss-side-profile-copy strong{font-size:13px!important}}
+
+/* v122 — cartoon teacher portrait and balanced sidebar identity */
+.teacher-student-shell .tss-side-profile-mark{padding:0!important;overflow:hidden!important;background:#8ed0e0!important;border:2px solid #ffe6ac!important;border-radius:50%!important;box-shadow:0 4px 12px #001c3155,0 0 0 2px #ffffff22!important}
+.teacher-student-shell .tss-side-profile-mark img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+.teacher-student-shell .tss-side-profile-copy strong{font-size:14px!important;font-weight:850!important;line-height:1.35!important}
+.teacher-student-shell .tss-side-profile-copy span{font-size:12px!important;font-weight:800!important}
