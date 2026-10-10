@@ -154,6 +154,22 @@ export default function HomePage(){
   .lh-feature strong{color:#24536c;font-size:13px}.lh-feature small{color:#4a7287;font-size:12px}.lh-foot{color:#456c80}
   @media(max-width:1000px){.lh-roles{gap:12px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:235px;padding:13px}.lh-card-copy h2{font-size:30px}}
   @media(max-width:690px){.lh-home{background:linear-gradient(115deg,rgba(255,248,245,.34),rgba(239,250,255,.32)),url("/lahooni_classroom_ready.webp.png") center top / auto 100vh no-repeat,#e8f3f8}.lh-top{min-height:70px}.lh-brand strong{font-size:15px}.lh-brand img{width:42px;height:42px}.lh-top-pill{padding:8px 11px}.lh-stage{padding:16px 0 12px}.lh-main-title{font-size:clamp(43px,10vw,65px);letter-spacing:-1px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}.lh-roles{gap:12px;margin-top:15px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:226px;padding:13px;border-radius:21px}.lh-card-copy h2{font-size:29px}.lh-features{margin-top:12px}}
+
+  /* Responsive app / phone presentation with a stable background crop. */
+  .lh-home{background-color:#e8f3f8;min-width:0}
+  .lh-frame,.lh-stage,.lh-roles,.lh-card{min-width:0}
+  @media(max-width:690px){
+    .lh-home{background-image:linear-gradient(115deg,rgba(255,248,245,.32),rgba(239,250,255,.3)),url("/lahooni_classroom_ready.webp.png");background-size:cover,cover;background-position:center,center 28%;background-repeat:no-repeat;background-attachment:scroll}
+    .lh-frame{width:100%;max-width:100%;padding-inline:12px}
+    .lh-top{gap:8px;flex-wrap:wrap}
+    .lh-stage{max-width:100%;overflow-wrap:anywhere}
+    .lh-main-title{font-size:clamp(35px,10vw,58px);max-width:100%;white-space:normal;text-align:center}
+    .lh-subtitle{max-width:100%;text-align:center}
+    .lh-roles{grid-template-columns:1fr;gap:12px}
+    .lh-card,.lh-card.teacher,.lh-card.student{width:100%;min-height:205px}
+    .lh-features{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:390px){.lh-top-pill{font-size:9px}.lh-brand strong{font-size:13px}.lh-main-title{font-size:37px}.lh-card-copy h2{font-size:27px}}
 `}</style>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
