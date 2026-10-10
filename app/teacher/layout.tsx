@@ -102,7 +102,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
         <header className="tss-head tss-head-reference">
-          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><span className="tss-ref-head"><i className="tss-ref-shemagh"/><i className="tss-ref-face"/><i className="tss-ref-agal"/></span><span className="tss-ref-body"/></div><div><h1>أ. {cleanTeacherName}</h1><p>معلم {subjectName}</p></div></div>
+          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><img src="/icons/teacher-cartoon-avatar.svg" alt="" width="46" height="46" /></div><div><h1>أ. {cleanTeacherName}</h1><p>معلم {subjectName}</p></div></div>
           <div className="tss-reference-date"><span className="tss-date-icon">▣</span><div><strong>{todayLabel}</strong><small>بوابة المعلم التعليمية</small></div></div>
           <div className="tss-reference-actions"><button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button></div>
         </header>
