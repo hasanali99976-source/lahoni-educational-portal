@@ -101,10 +101,20 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       </aside>
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
-        <header className="tss-head tss-head-reference">
-          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><img src="/icons/teacher-avatar.png.png" alt="" width="46" height="46" /></div><div><h1>أ. {cleanTeacherName}</h1><p>معلم {subjectName}</p></div></div>
-          <div className="tss-reference-date"><span className="tss-date-icon">▣</span><div><strong>{todayLabel}</strong><small>بوابة المعلم التعليمية</small></div></div>
-          <div className="tss-reference-actions"><button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button></div>
+        <header className="tss-hero-header" aria-label="هوية بوابة المعلم">
+          <div className="tss-hero-top">
+            <div className="tss-hero-identity"><img src="/icons/teacher-avatar.png.png" alt="صورة المعلم" width="66" height="66"/><div><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"بوابة المعلم التعليمية"}</small></div></div>
+            <div className="tss-hero-intro"><span className="tss-hero-date">{todayLabel}</span><h1>بوابة المعلم <em>التعليمية</em></h1><p>مساحة عملك للتعليم والمتابعة والإنجاز</p></div>
+            <button type="button" className="tss-mobile-menu tss-hero-menu" onClick={()=>setMenuOpen(v=>!v)}>☰ القائمة</button>
+          </div>
+          <nav className="tss-hero-shortcuts" aria-label="اختصارات بوابة المعلم">{[
+            {href:"/teacher/dashboard",label:"الرئيسية",key:"dashboard"},
+            {href:"/teacher/timetable",label:"الجدول الدراسي",key:"timetable"},
+            {href:"/teacher/attendance",label:"الحضور",key:"attendance"},
+            {href:"/teacher/grades",label:"التحصيل",key:"grades"},
+            {href:"/teacher/students",label:"الطلاب",key:"students"},
+            {href:"/teacher/reports",label:"التقارير",key:"reports"}
+          ].map(item=><Link prefetch={false} key={item.key} href={item.href} className={pathname===item.href?"active":""}><span className="tss-hero-shortcut-icon"><TabIcon type={item.key}/></span><b>{item.label}</b></Link>)}</nav>
         </header>
         <div className="tss-content">{children}</div>
       </main>
