@@ -1,22 +1,22 @@
 /* Teacher Attendance — Watercolor Studio, single consolidated stylesheet */
 .attendance-page{--ink:#123e65;--aqua:#2bc9bb;--sky:#83c9ff;--gold:#ffd77e;--rose:#ff91b5;--violet:#ba9bff;width:100%;padding:0;color:var(--ink);font-family:Tajawal,"Segoe UI",sans-serif;direction:rtl}
 .attendance-page *{box-sizing:border-box}
-.attendance-card{overflow:hidden;border:2px solid #ffffffd9;border-radius:26px;background:linear-gradient(145deg,#e3f5ffdb,#f1eaffd9 53%,#fff2e2df);box-shadow:0 12px 0 #1c6c8a27,0 22px 35px #0634482b;backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}
+
 .attendance-loading{padding:25px}
-.attendance-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0;padding:11px 18px;background:linear-gradient(110deg,#c9eaffb8,#e4f5f0b8,#f5e3ffb8);border-bottom:2px solid #ffffffb8}
+
 .attendance-head-copy{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .attendance-head-copy .attendance-eyebrow{font-size:13px;font-weight:900}
-.attendance-head-copy h1{font-size:22px;line-height:1.2;margin:0;color:#12456c}
-.attendance-head-copy p{font-size:12px;margin:0;color:#386a86}
+
+
 .hijri-card{display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:14px;background:#ffffffa8;font-size:12px}
 .hijri-card small,.hijri-card strong{font-size:12px}
-.attendance-lesson-tabs{padding:16px;background:linear-gradient(100deg,#c5effbea,#ffe6a9e8,#e3d5ffea);border-bottom:3px solid #ffffffdc}
-.attendance-lesson-tabs-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+
+
 .attendance-lesson-tabs-head small,.attendance-lesson-tabs-head strong{display:block;color:#174a6c;font-weight:900}
 .attendance-lesson-tabs-head strong{font-size:17px}
 .attendance-lesson-tabs-head>span{border-radius:25px;background:#fff9;padding:8px 15px;font-weight:900}
-.attendance-lesson-tabs-list{display:flex;gap:10px;flex-wrap:wrap}
-.attendance-lesson-tabs-list button{position:relative;flex:1 1 125px;min-height:86px;cursor:pointer;border:2px solid #fff;border-bottom:5px solid #9cb8e0;border-radius:18px;background:linear-gradient(135deg,#d8ecff,#bde2ff);color:#11436d;box-shadow:0 6px 14px #35648b18;font:900 15px Tajawal,"Segoe UI",sans-serif;transition:transform .2s,box-shadow .2s}
+
+
 .attendance-lesson-tabs-list button:nth-child(5n+2){background:linear-gradient(130deg,#fbd8f0,#e6c9ff);border-bottom-color:#bd91e4}
 .attendance-lesson-tabs-list button:nth-child(5n+3){background:linear-gradient(130deg,#c9fff0,#a9e8d8);border-bottom-color:#5ec5a7}
 .attendance-lesson-tabs-list button:nth-child(5n+4){background:linear-gradient(130deg,#ffe8bc,#ffcf80);border-bottom-color:#e7b251}
@@ -25,21 +25,21 @@
 .attendance-lesson-tabs-list button b{font-size:13px;margin-bottom:6px}
 .attendance-lesson-tabs-list button small{font-size:11px;margin-top:4px}
 .attendance-lesson-tabs-list button.active{outline:3px solid #f5b735;outline-offset:-3px;box-shadow:0 7px 0 #d69a35a1,0 10px 20px #bc83263a;transform:translateY(-3px)}
-.attendance-setup-panel{display:flex;align-items:end;justify-content:space-between;gap:12px;padding:15px;flex-wrap:wrap;background:#ffffffb3;border-bottom:2px solid #ffffffdc}
+
 .attendance-primary-controls{display:flex;flex-wrap:wrap;gap:10px}
 .attendance-primary-controls label{min-width:175px;flex:1}
-.attendance-primary-controls label>span{display:block;font-size:13px;font-weight:950;margin-bottom:6px;color:#17476a}
-.attendance-primary-controls select,.attendance-primary-controls input{width:100%;height:44px;padding:0 12px;border:2px solid #b5d5f2;border-radius:13px;background:#f8fcff;color:#143f69;font:900 14px Tajawal,"Segoe UI",sans-serif}
-.attendance-main-actions{display:flex;gap:8px;flex-wrap:wrap}
-.attendance-main-actions button{min-height:44px;padding:7px 15px;border:2px solid #fff;border-bottom:4px solid #79a6cb;border-radius:13px;background:#d5eaff;color:#114d78;font:950 13px Tajawal,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 4px 8px #16405e19}
+
+
+
+
 .attendance-main-actions button:nth-child(3){background:#f1d7ff;color:#693ba1;border-bottom-color:#ad79d7}
 .attendance-main-actions button:nth-child(4){background:#cce0ff;color:#284d99;border-bottom-color:#83a9e4}
 .attendance-main-actions button:nth-child(5){background:#b9f1df;color:#12684d;border-bottom-color:#67c6a3}
 .attendance-main-actions .attendance-save{background:#2188f5;color:white;border-bottom-color:#1367c7}
 .attendance-main-actions .attendance-delete{background:#ffb3c1;color:#9c2d4a;border-bottom-color:#e87891}
 .attendance-main-actions button:disabled{opacity:.55;cursor:not-allowed}
-.attendance-overview{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:10px;background:linear-gradient(90deg,#c8f6e5c9,#e4e6ffda,#ffecf1c9)}
-.attendance-overview article{position:relative;min-height:73px;padding:9px 11px;border:2px solid #fff;border-radius:20px;background:#c6e9ff;box-shadow:0 5px 0 #4e83ae27}
+
+
 .attendance-overview article:nth-child(1){background:#d5e9ff}
 .attendance-overview article:nth-child(2){background:#b8f2d8}
 .attendance-overview article:nth-child(3){background:#ffd1de}
@@ -47,13 +47,13 @@
 .attendance-overview article:nth-child(5){background:#e7d7ff}
 .attendance-overview article:nth-child(6){background:#fbd2eb}
 .attendance-overview article:nth-child(7){background:#fff0b9}
-.attendance-overview article span{display:block;font-weight:950;font-size:14px}
-.attendance-overview article strong{display:block;font-weight:1000;font-size:24px;line-height:1.2}
-.attendance-overview article:after{position:absolute;left:10px;top:12px;font-size:18px;opacity:.65}
+
+
+
 .attendance-overview article.total:after{content:"👥"}.attendance-overview article.present:after{content:"✓"}.attendance-overview article.absent:after{content:"✕"}.attendance-overview article.rate:after{content:"🏆"}
-.attendance-workspace{padding:13px;background:linear-gradient(130deg,#e3f4ffad,#fff4f4ac,#ebe4ffad)}
-.attendance-list-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 10px 14px}
-.attendance-list-head span{font-size:13px;font-weight:950;color:#277cbd}.attendance-list-head h2{font-size:22px;margin:2px 0;color:#123e65}
+
+
+.attendance-list-head span{font-size:13px;font-weight:950;color:#277cbd}
 .attendance-date-chip{background:#fff8d5;border:2px solid #f6d58c;border-radius:13px;padding:8px 13px;font-weight:900}
 .attendance-stats{display:flex;flex-wrap:wrap;gap:8px;padding:0 6px 12px}
 .attendance-stats span{padding:7px 13px;border-radius:12px;border:1px solid #fff;font-size:13px;font-weight:950}
@@ -75,11 +75,11 @@
 .attendance-message{margin:10px 14px;padding:10px 13px;border-radius:12px;background:#fff1b9;color:#6c4a0f;font-weight:850}
 @media(hover:hover){.status-buttons button:hover:not(.active),.attendance-main-actions button:hover:not(:disabled),.attendance-lesson-tabs-list button:hover:not(.active){transform:translateY(-3px)}}
 @media(prefers-reduced-motion:no-preference){.status-buttons button.active{animation:watercolorPick .28s ease-out}@keyframes watercolorPick{0%{transform:scale(.92)}65%{transform:scale(1.12) translateY(-3px)}100%{transform:scale(1.075) translateY(-2px)}}}
-@media(max-width:1050px){.attendance-student-card{grid-template-columns:1fr}.attendance-overview{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:650px){.attendance-setup-panel{align-items:stretch}.attendance-primary-controls,.attendance-main-actions{width:100%}.attendance-primary-controls label{min-width:130px}.attendance-main-actions button{flex:1 1 110px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}.attendance-lesson-tabs-list button{flex-basis:110px;min-height:72px}.attendance-overview article{min-height:77px}.attendance-overview article strong{font-size:21px}}
+@media(max-width:1050px){.attendance-student-card{grid-template-columns:1fr}}
+@media(max-width:650px){.attendance-primary-controls,.attendance-primary-controls label{min-width:130px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}}
 @media(prefers-reduced-motion:reduce){.attendance-page button{animation:none;transition:none}}
 
-/* Attendance register: approved compact, icon-led pastel interface. */
+/* Attendance register: canonical compact styling; legacy conflicting declarations removed. */
 .attendance-page{font-family:"Tajawal","IBM Plex Sans Arabic","Segoe UI",sans-serif;color:#103d62}
 .attendance-page .attendance-card{border-radius:17px;background:linear-gradient(120deg,rgba(233,247,255,.95),rgba(245,238,255,.93));border:1px solid #c6deed;box-shadow:0 4px 15px #0d4d751c}
 .attendance-page .attendance-hero{padding:12px 17px;gap:10px;min-height:64px}
