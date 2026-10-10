@@ -101,3 +101,24 @@
  .teacher-ai-page .plan-students-table{width:100%!important;table-layout:fixed!important}
  .teacher-ai-page .plan-students-table thead{display:table-header-group!important}
 }
+
+/* The print tree must be isolated from all portal backgrounds and navigation. */
+@media print {
+ @page {size:A4 portrait;margin:12mm}
+ html,body,#__next,body>div,body>div>div,main,.teacher-student-shell,.teacher-student-shell .tss-main,.teacher-student-shell .tss-content{background:#fff!important;background-image:none!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important}
+ body *{visibility:hidden!important}
+ .teacher-ai-page .generated-plan,.teacher-ai-page .generated-plan *{visibility:visible!important}
+ .teacher-ai-page .generated-plan .no-print,.teacher-ai-page .generated-plan .no-print *{visibility:hidden!important;display:none!important}
+ .teacher-student-shell .tss-hero-header,.teacher-student-shell .tss-hero-top,.teacher-student-shell .tss-hero-shortcuts,.teacher-ai-page>.no-print{display:none!important}
+ .teacher-student-shell,.teacher-student-shell .tss-main,.teacher-student-shell .tss-content,.teacher-ai-page{display:block!important;position:static!important;overflow:visible!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;width:100%!important}
+ .teacher-ai-page .generated-plan{position:static!important;display:block!important;overflow:visible!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#18364b!important}
+ .teacher-ai-page .generated-plan h2{font-size:20px!important;color:#15577a!important}
+ .teacher-ai-page .generated-plan h3{font-size:13px!important;color:#15577a!important}
+ .teacher-ai-page .generated-plan .plan-steps article{border-right:3px solid #168a9c!important;background:#f8fcff!important}
+ .teacher-ai-page .generated-plan .plan-schedule{background:#f1f8fc!important}
+ .teacher-ai-page .generated-plan .plan-meta article{background:#eaf5fa!important}
+ .teacher-ai-page .generated-plan .plan-students-table th{background:#d8edf7!important;color:#174c6a!important}
+ .teacher-ai-page .generated-plan .plan-students-table td{background:#fff!important;color:#18364b!important}
+ .teacher-ai-page .generated-plan .plan-students-table tr:nth-child(even) td{background:#f1f8fc!important}
+ .teacher-ai-page .generated-plan .ai-enrichment-section{break-before:page!important}
+}
