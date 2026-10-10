@@ -815,3 +815,11 @@ body:has(.student-current-shell){background:#d8eef0!important}
 .student-current-shell .sc-cert-toolbar>button{grid-area:print!important;justify-self:end!important;min-height:47px!important;padding:10px 18px!important;border:2px solid #fff!important;border-radius:16px!important;background:linear-gradient(110deg,#ffda87,#ffc17c)!important;color:#245578!important;box-shadow:0 6px 15px rgba(179,137,78,.15)!important;font-size:14px!important;font-weight:900!important}
 @media(max-width:700px){.student-current-shell .sc-certificate-page>.sc-cert-toolbar{grid-template-columns:1fr!important;grid-template-areas:"heading" "units" "print"!important;padding:15px!important;gap:13px!important}.student-current-shell .sc-cert-toolbar>.sc-cert-picks{grid-template-columns:1fr!important}.student-current-shell .sc-cert-toolbar>button{justify-self:stretch!important;width:100%!important}.student-current-shell .sc-cert-picks>.sc-unit-choice{min-height:88px!important;padding:11px!important}.student-current-shell .sc-cert-picks .sc-unit-art{flex-basis:49px!important;width:49px!important;height:49px!important;font-size:26px!important}}
 }
+
+/* Keep student background visible and correctly cropped in the installed mobile app. */
+.student-current-shell,.student-current-gate,.student-current-login{min-width:0;max-width:100%;overflow-x:clip}
+@media(max-width:760px){
+ .student-current-shell .student-scene,.student-current-gate .student-scene{background-position:54% center!important;background-attachment:scroll!important;transform:none!important}
+ .student-current-login .student-scene{background-position:56% center!important;background-attachment:scroll!important;transform:none!important}
+ .student-current-shell :is(main,section,article){min-width:0;max-width:100%}
+}
