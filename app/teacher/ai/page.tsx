@@ -76,15 +76,24 @@ export default function TeacherAiPage() {
       fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(session.subjectKey)}`, { cache: "no-store", signal: controller.signal, credentials: "same-origin" }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الدرجات المحفوظة"); return data; }),
     ]).then(([data, academicData]) => {
       const byCode = academicData.byCode && typeof academicData.byCode === "object" ? academicData.byCode as Record<string, Record<string, unknown>> : {};
+      const key = (value: unknown) => String(value || "").trim().toUpperCase();
+      const stored = new Map<string, Record<string, unknown>>();
+      Object.entries(byCode).forEach(([code, row]) => {
+        [code, row.documentId, row.id, row.code, row.accessCode, row.studentCode].map(key).filter(Boolean).forEach(alias => stored.set(alias, row));
+      });
       const roster = (Array.isArray(data.students) ? data.students : []).map((item: Record<string, unknown>) => {
-        const id = String(item.code || item.id || "").trim().toUpperCase();
-        const academic = byCode[id] || Object.values(byCode).find(row => [row.code, row.accessCode, row.studentCode, row.documentId].some(value => String(value || "").trim().toUpperCase() === id)) || {};
+        const aliases = [item.id, item.code, item.accessCode, item.studentCode].map(key).filter(Boolean);
+        const academic = aliases.map(alias => stored.get(alias)).find(Boolean);
+        const className = String(item.className || item.class || "").trim();
         return {
-          ...item, id, name: String(item.name || "").trim(),
-          class: String(item.className || item.class || ""),
-          gradeValues: academic.gradeValues && typeof academic.gradeValues === "object" ? academic.gradeValues : item.gradeValues,
-          gradePlanValues: academic.gradePlanValues && typeof academic.gradePlanValues === "object" ? academic.gradePlanValues : item.gradePlanValues,
-          units: academic.units && typeof academic.units === "object" ? academic.units : item.units,
+          ...item, id: String(item.id || item.code || "").trim(), name: String(item.name || "").trim(),
+          class: className, className,
+          ...(academic ? {
+            gradeValues: academic.gradeValues,
+            gradePlanValues: academic.gradePlanValues,
+            activeGradePlanId: academic.activeGradePlanId,
+            activeGradePlanVersion: academic.activeGradePlanVersion,
+          } : {}),
         } as Student;
       }).filter((item: Student) => item.id && item.name);
       setStudents(roster.sort((a: Student, b: Student) => (a.name || "").localeCompare(b.name || "", "ar")));
