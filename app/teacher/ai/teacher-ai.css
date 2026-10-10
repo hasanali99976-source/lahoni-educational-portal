@@ -82,3 +82,22 @@
  .teacher-ai-page .plan-students-table tr{break-inside:avoid;page-break-inside:avoid}
  .teacher-ai-page .plan-students-table thead{display:table-header-group}
 }
+
+.ai-part-title{margin:20px 0 10px;padding:11px 15px;border-right:5px solid #147a9b;border-radius:9px;background:#e2f3fa;color:#124764}
+.ai-enrichment-section{margin-top:24px;padding-top:10px;border-top:2px solid #c9dce8}
+.ai-enrichment-section .ai-part-title{border-right-color:#13836a;background:#e2f5eb;color:#12614f}
+@media print{
+ @page{size:A4;margin:12mm}
+ html,body,body>div,body>div>div,.teacher-student-shell,.teacher-student-shell .tss-main,.teacher-student-shell .tss-content,.teacher-ai-page,.teacher-ai-page .generated-plan{background:#fff!important;background-image:none!important;box-shadow:none!important;filter:none!important}
+ .teacher-student-shell,.teacher-student-shell .tss-main,.teacher-student-shell .tss-content{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;position:static!important;padding:0!important;margin:0!important}
+ .teacher-student-shell .tss-hero-header{display:none!important}
+ .teacher-ai-page .generated-plan{border:0!important;padding:0!important;margin:0!important;overflow:visible!important}
+ .teacher-ai-page .generated-plan>header{background:#fff!important;border-bottom:2px solid #1e6e91!important}
+ .teacher-ai-page .ai-part-title{background:#e2f3fa!important;color:#124764!important;border-right:5px solid #147a9b!important;margin:12px 0 6px!important;padding:7px!important;break-after:avoid}
+ .teacher-ai-page .ai-enrichment-section{break-before:page!important;border-top:0!important;margin:0!important;padding:0!important}
+ .teacher-ai-page .ai-enrichment-section .ai-part-title{background:#e2f5eb!important;color:#12614f!important;border-right-color:#13836a!important}
+ .teacher-ai-page .plan-schedule,.teacher-ai-page .plan-meta article,.teacher-ai-page .plan-steps article{background:#fff!important;background-image:none!important}
+ .teacher-ai-page .plan-students-table tr:nth-child(even){background:#f1f7fb!important}
+ .teacher-ai-page .plan-students-table{width:100%!important;table-layout:fixed!important}
+ .teacher-ai-page .plan-students-table thead{display:table-header-group!important}
+}
