@@ -3,5 +3,51 @@
 @media print{.no-print,.teacher-sidebar,.teacher-menu-button,.teacher-mobile-header,.teacher-welcome-strip{display:none!important}.teacher-main{padding:0!important}.teacher-ai-page{display:block}.generated-plan{box-shadow:none;border:0;padding:0}.generated-plan>header{padding-bottom:20px}.plan-students span,.plan-steps article{break-inside:avoid}.plan-actions{display:none!important}}
 
 
-/* Teacher integrated transparent theme */
-.teacher-ai-page{color:#f5fbfc}.teacher-ai-hero,.plan-builder,.plan-selection,.generated-plan{background:rgba(6,42,55,.20)!important;border-color:rgba(255,255,255,.25)!important;box-shadow:none!important;color:#fff!important}.teacher-ai-hero{background:rgba(13,83,97,.34)!important}.teacher-ai-page :is(h1,h2,h3,strong,b){color:#fff!important}.teacher-ai-page :is(p,small,label){color:#dcebed!important}.scope-buttons,.plan-selection article,.plan-meta article,.plan-schedule,.manual-students label,.plan-steps article,.plan-students span{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.18)!important;color:#fff!important}.scope-buttons button{color:#dcebed}.scope-buttons button.active{background:rgba(24,148,121,.30)!important;color:#fff!important;box-shadow:none}.plan-selection article:nth-child(3n+2){background:rgba(35,118,174,.16)!important}.plan-selection article:nth-child(3n){background:rgba(184,132,32,.16)!important}@media(max-width:760px){.teacher-ai-page{gap:10px}.teacher-ai-hero{align-items:stretch;flex-direction:column}.scope-buttons,.manual-students,.plan-selection,.plan-meta,.plan-students>div{grid-template-columns:1fr!important}.plan-actions{display:grid;grid-template-columns:1fr}}
+
+/* Unified readable learning-studio palette — replaces legacy dark overlay */
+.teacher-ai-page{font-family:"Tajawal","Cairo",system-ui,sans-serif;color:#173a56;gap:20px}
+.teacher-ai-hero,.teacher-ai-page .plan-builder,.teacher-ai-page .plan-selection,.teacher-ai-page .generated-plan{border:1px solid #c6ddeb!important;box-shadow:0 10px 30px rgba(20,63,98,.10)!important;color:#163b5b!important}
+.teacher-ai-hero{background:linear-gradient(115deg,#126b82 0%,#206f9f 54%,#315ea1 100%)!important;border-color:#8ec7d7!important;color:#fff!important}
+.teacher-ai-hero :is(h1,p,span,b,small){color:#fff!important}
+.teacher-ai-page .plan-builder,.teacher-ai-page .generated-plan{background:rgba(247,252,255,.96)!important}
+.teacher-ai-page :is(.plan-builder,.generated-plan) :is(h2,h3,b,strong){color:#143e65!important}
+.teacher-ai-page :is(.plan-builder,.generated-plan) :is(p,small,label){color:#42617b!important}
+.teacher-ai-page .plan-builder header small{background:#e1f3fa;color:#15658a}
+.teacher-ai-page .scope-buttons{background:#e4eef7!important;border:1px solid #c4d9eb;padding:7px;gap:9px}
+.teacher-ai-page .scope-buttons button{min-height:54px;background:#f4f9fe!important;color:#245579!important;border:1px solid #c7dceb;font-weight:900;cursor:pointer;transition:background .15s,box-shadow .15s}
+.teacher-ai-page .scope-buttons button.active{background:linear-gradient(115deg,#0b8b82,#146ea9)!important;color:#fff!important;border-color:#0c807e!important;box-shadow:0 5px 15px #126e9e33!important}
+.teacher-ai-page .scope-buttons button:focus-visible,.teacher-ai-page button:focus-visible,.teacher-ai-page input:focus-visible,.teacher-ai-page select:focus-visible{outline:3px solid #ffbc52;outline-offset:2px}
+.teacher-ai-page .plan-builder select,.teacher-ai-page .threshold-field input{background:#fff!important;color:#163b5b!important;border:1px solid #a9c5da;min-height:49px}
+.teacher-ai-page .plan-selection{grid-template-columns:repeat(4,minmax(0,1fr));background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important}
+.teacher-ai-page .plan-selection article{background:#e3f2fc!important;border:1px solid #bed9ef;border-radius:16px;padding:17px;min-width:0}
+.teacher-ai-page .plan-selection article:nth-child(2){background:#e8f7f1!important;border-color:#b5e3d0}
+.teacher-ai-page .plan-selection article:nth-child(3){background:#fff1e3!important;border-color:#efd4b6}
+.teacher-ai-page .plan-selection article:nth-child(4){background:#f0ebff!important;border-color:#d7c9ef}
+.teacher-ai-page .plan-selection :is(small,strong){color:#18476a!important;overflow-wrap:anywhere}
+.teacher-ai-page .plan-selection strong{font-size:clamp(21px,2.2vw,30px)}
+.teacher-ai-page .plan-meta article{background:#eaf4fd!important;border:1px solid #c8dff0}
+.teacher-ai-page .plan-steps article{background:#fff!important;border:1px solid #c5dce9!important;border-right:4px solid #168a9c!important}
+.teacher-ai-page .plan-schedule{background:#eaf5fb!important;border:1px solid #c7dfea}
+.teacher-ai-page .plan-schedule span{border-color:#c7dfea}
+.teacher-ai-page .plan-students span,.teacher-ai-page .manual-students label{background:#fff!important;border:1px solid #cbdfea!important}
+.teacher-ai-page .manual-students small,.teacher-ai-page .plan-students small{color:#536f87!important}
+.teacher-ai-page .manual-students input{accent-color:#078a83;width:18px;height:18px}
+.teacher-ai-page .manual-students button{color:#174b73;cursor:pointer}
+.teacher-ai-page .plan-actions button{cursor:pointer;min-height:46px}
+.teacher-ai-page .ai-message{background:#e3f7ef;color:#08654e;border:1px solid #b8e4d1}
+@media(max-width:900px){.teacher-ai-page .plan-selection{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.teacher-ai-page .plan-selection{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-ai-page .plan-selection article:last-child{grid-column:auto}.teacher-ai-page .scope-buttons{grid-template-columns:1fr}.teacher-ai-page .manual-students,.teacher-ai-page .plan-meta,.teacher-ai-page .plan-students>div{grid-template-columns:1fr}}
+@media print{
+ @page{size:A4;margin:14mm}
+ html,body,.teacher-ai-page,.teacher-main{background:#fff!important;color:#111!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ body *{text-shadow:none!important}
+ .teacher-ai-page{display:block!important;font-family:"Tajawal","Cairo",sans-serif!important}
+ .teacher-ai-page .no-print,.teacher-ai-page .ai-message,.teacher-sidebar,.teacher-menu-button,.teacher-mobile-header,.teacher-welcome-strip,.teacher-ai-hero,.teacher-ai-page .plan-builder,.teacher-ai-page .plan-selection{display:none!important}
+ .teacher-ai-page .generated-plan{display:block!important;background:#fff!important;color:#111!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+ .teacher-ai-page .generated-plan :is(h2,h3,b,strong,p,small,span){color:#111!important}
+ .teacher-ai-page .generated-plan>header{break-after:avoid;border-bottom:2px solid #24698d}
+ .teacher-ai-page .plan-meta article,.teacher-ai-page .plan-steps article,.teacher-ai-page .plan-schedule,.teacher-ai-page .plan-students span{background:#fff!important;border:1px solid #9bb7c7!important;color:#111!important}
+ .teacher-ai-page .plan-steps article,.teacher-ai-page .plan-students span,.teacher-ai-page .plan-meta article,.teacher-ai-page .plan-schedule span{break-inside:avoid;page-break-inside:avoid}
+ .teacher-ai-page .plan-steps em{background:#226e91!important;color:#fff!important}
+ .teacher-ai-page .plan-actions{display:none!important}
+}
