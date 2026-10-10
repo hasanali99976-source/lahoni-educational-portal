@@ -122,7 +122,7 @@ export default function ReportsPage() {
 
   const rosterClasses = useMemo(() => [...new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [students]);
   const recordedClasses = useMemo(() => [...new Set(attendanceDocs.map(item => String(item.class || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar", { numeric: true })), [attendanceDocs]);
-  const classes = reportType === "attendance" ? recordedClasses : rosterClasses;
+  const classes = rosterClasses;
   useEffect(() => {
     if (!classes.length) { setSelectedClasses([]); return; }
     setSelectedClasses(current => {
