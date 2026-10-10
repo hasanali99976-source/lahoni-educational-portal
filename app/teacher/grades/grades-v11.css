@@ -44,31 +44,41 @@
 @media(max-width:1100px){.tss-content .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.tss-content .grades-v11 .gv11-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.tss-content .grades-v11 .gv11-controlbar{flex-wrap:wrap}}
 @media(max-width:650px){.tss-content .grades-v11 .gv11-section-tabs,.tss-content .grades-v11 .gv11-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tss-content .grades-v11 .gv11-controlbar{align-items:stretch;flex-direction:column}.tss-content .grades-v11 .gv11-class-control :is(select,input){width:100%}.tss-content .grades-v11 .gv11-class-control label{flex:1 1 100%}.tss-content .grades-v11 .gv11-gradebook :is(th.name,td.name){min-width:190px}.tss-content .grades-v11 .gv11-gradebook>footer{flex-direction:column}}
 
-/* Explicit visual isolation: legacy teacher themes use !important declarations. */
-.tss-content .grades-v11{isolation:isolate;color:#123b68!important;background:transparent!important}
-.tss-content .grades-v11 :is(.gv11-planbar,.gv11-controlbar,.gv11-gradebook){background:rgba(220,238,252,.74)!important;color:#123b68!important;border-color:rgba(126,176,215,.6)!important}
-.tss-content .grades-v11 .gv11-section-tabs button{color:#153d69!important;overflow:hidden!important;min-height:75px!important;background:rgba(216,235,252,.78)!important}
-.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+3){background:rgba(227,213,250,.78)!important}
-.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+4){background:rgba(208,245,226,.78)!important}
-.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n){background:rgba(255,229,207,.78)!important}
-.tss-content .grades-v11 .gv11-section-tabs button.active{background:rgba(0,147,133,.95)!important;color:white!important}
-.tss-content .grades-v11 .gv11-section-tabs button :is(b,span,small){color:inherit!important;text-shadow:none!important}
-.tss-content .grades-v11 .gv11-kpis article{color:#123b68!important;background:rgba(202,229,253,.86)!important}
-.tss-content .grades-v11 .gv11-kpis article:nth-child(2){background:rgba(222,214,252,.87)!important}
-.tss-content .grades-v11 .gv11-kpis article:nth-child(3){background:rgba(255,226,209,.87)!important}
-.tss-content .grades-v11 .gv11-kpis article:nth-child(4){background:rgba(199,246,223,.87)!important}
-.tss-content .grades-v11 .gv11-kpis article:nth-child(5){background:rgba(255,215,230,.87)!important}
-.tss-content .grades-v11 .gv11-kpis article :is(b,small,span){color:#123b68!important;text-shadow:none!important}
-.tss-content .grades-v11 .gv11-gradebook>header{background:rgba(216,236,252,.92)!important;color:#123b68!important}
-.tss-content .grades-v11 .gv11-gradebook>header :is(h2,small,div){color:#123b68!important}
-.tss-content .grades-v11 .gv11-gradebook th{background:rgba(203,225,249,.96)!important;color:#153e70!important;text-shadow:none!important}
-.tss-content .grades-v11 .gv11-gradebook td{background:rgba(247,251,255,.8)!important;color:#16476f!important;text-shadow:none!important}
-.tss-content .grades-v11 .gv11-gradebook tbody tr:nth-child(even) td{background:rgba(202,225,246,.82)!important}
-.tss-content .grades-v11 .gv11-gradebook td.name{background:rgba(222,237,252,.96)!important;min-width:270px!important;width:26%!important}
-.tss-content .grades-v11 .gv11-gradebook td.name :is(b,small){color:#16476f!important;text-shadow:none!important;white-space:normal!important;overflow:visible!important}
-.tss-content .grades-v11 .gv11-gradebook tbody tr:nth-child(even) td.name{background:rgba(205,225,246,.96)!important}
-.tss-content .grades-v11 .gv11-gradebook :is(th.deduction-col,td.deduction-cell){background:rgba(252,219,231,.88)!important}
-.tss-content .grades-v11 .gv11-gradebook :is(th.reason-col,td.reason-cell){background:rgba(217,231,248,.9)!important}
-.tss-content .grades-v11 .gv11-gradebook td.final-total{background:rgba(185,243,214,.91)!important}
+
+/* Final single-scope gradebook design; override inherited dark portal styles. */
+.tss-content .grades-v11{isolation:isolate;color:#153f6a!important}
+.tss-content .grades-v11 .gv11-planbar{background:rgba(195,225,248,.74)!important}
+.tss-content .grades-v11 .gv11-controlbar{background:rgba(218,238,254,.83)!important}
+.tss-content .grades-v11 .gv11-section-tabs button{min-height:69px!important;background:rgba(210,230,250,.82)!important;color:#153f6a!important;overflow:visible!important}
+.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+3){background:rgba(226,215,252,.86)!important}
+.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+4){background:rgba(204,242,225,.86)!important}
+.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n){background:rgba(250,230,209,.86)!important}
+.tss-content .grades-v11 .gv11-section-tabs button.active{background:#078f85!important;color:#fff!important}
+.tss-content .grades-v11 .gv11-section-tabs button :is(b,span,small){color:inherit!important;text-shadow:none!important;opacity:1!important}
+.tss-content .grades-v11 .gv11-kpis article{background:rgba(208,230,252,.87)!important;color:#153f6a!important}
+.tss-content .grades-v11 .gv11-kpis article:nth-child(2){background:rgba(226,216,252,.88)!important}
+.tss-content .grades-v11 .gv11-kpis article:nth-child(3){background:rgba(255,229,206,.88)!important}
+.tss-content .grades-v11 .gv11-kpis article:nth-child(4){background:rgba(201,242,220,.88)!important}
+.tss-content .grades-v11 .gv11-kpis article:nth-child(5){background:rgba(251,214,230,.88)!important}
+.tss-content .grades-v11 .gv11-kpis article :is(b,small,span){color:#153f6a!important;text-shadow:none!important;opacity:1!important}
+.tss-content .grades-v11 .gv11-gradebook{background:rgba(219,238,252,.83)!important}
+.tss-content .grades-v11 .gv11-gradebook>header{background:rgba(209,231,250,.95)!important}
+.tss-content .grades-v11 .gv11-gradebook>header :is(h2,small,div){color:#153f6a!important}
+.tss-content .grades-v11 .gv11-gradebook th{background:rgba(204,226,251,.97)!important;color:#153f6a!important;text-shadow:none!important}
+.tss-content .grades-v11 .gv11-gradebook td{background:rgba(245,251,255,.87)!important;color:#16476f!important;text-shadow:none!important}
+.tss-content .grades-v11 .gv11-gradebook tbody tr:nth-child(even) td{background:rgba(204,226,245,.89)!important}
+.tss-content .grades-v11 .gv11-gradebook :is(th.name,td.name){width:29%!important;min-width:280px!important}
+.tss-content .grades-v11 .gv11-gradebook td.name{background:rgba(221,236,252,.98)!important}
+.tss-content .grades-v11 .gv11-gradebook tbody tr:nth-child(even) td.name{background:rgba(204,224,245,.98)!important}
+.tss-content .grades-v11 .gv11-gradebook td.name :is(b,small){color:#16476f!important;text-shadow:none!important;white-space:normal!important;overflow:visible!important;opacity:1!important}
+.tss-content .grades-v11 .gv11-gradebook :is(th.deduction-col,td.deduction-cell){background:rgba(250,216,230,.91)!important}
+.tss-content .grades-v11 .gv11-gradebook :is(th.reason-col,td.reason-cell){background:rgba(217,232,250,.92)!important}
+.tss-content .grades-v11 .gv11-gradebook td.final-total{background:rgba(187,240,211,.95)!important}
 .tss-content .grades-v11 .gv11-gradebook td.final-total b{color:#087e58!important}
-.tss-content .grades-v11 .gv11-gradebook td input,.tss-content .grades-v11 .gv11-gradebook td select{color:#123b68!important;background:rgba(255,255,255,.96)!important}
+.tss-content .grades-v11 .gv11-gradebook td :is(input,select){background:rgba(255,255,255,.97)!important;color:#153f6a!important}
+.tss-content .grades-v11 .gv11-main-actions button{display:inline-flex!important;align-items:center!important;gap:8px!important;background:#197be1!important;color:#fff!important}
+.tss-content .grades-v11 .gv11-main-actions button svg,.tss-content .grades-v11 .gv11-gradebook .row-action svg{display:inline-block!important;flex:none!important;width:17px!important;height:17px!important;stroke:currentColor!important;visibility:visible!important;opacity:1!important}
+.tss-content .grades-v11 .gv11-gradebook th.row-action svg{display:block;margin:0 auto 2px;width:18px;height:18px;stroke:#1767ad}
+.tss-content .grades-v11 .gv11-gradebook td.row-action button{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:68px}
+@media(max-width:1100px){.tss-content .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.tss-content .grades-v11 .gv11-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.tss-content .grades-v11 .gv11-section-tabs,.tss-content .grades-v11 .gv11-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tss-content .grades-v11 .gv11-gradebook :is(th.name,td.name){min-width:210px!important}}
