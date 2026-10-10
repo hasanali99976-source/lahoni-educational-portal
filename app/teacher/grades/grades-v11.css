@@ -77,3 +77,12 @@
 .tss-content main.grades-v11 .gv11-gradebook td.name :is(b,small){color:#103d70!important;opacity:1!important}
 .tss-content main.grades-v11 .gv11-gradebook td.row-action button{display:inline-flex!important;align-items:center!important;gap:5px!important;background:#fff!important;color:#126bc2!important}
 .tss-content main.grades-v11 .gv11-gradebook td.row-action svg{display:block!important}
+
+/* Unit selection and typography: selected tab remains clearly distinct. */
+.tss-content main.grades-v11{font-family:"Tajawal","Cairo","Noto Sans Arabic",Tahoma,sans-serif!important}
+.tss-content main.grades-v11 .gv11-section-tabs button{filter:none!important;opacity:.82!important;transform:none!important;transition:background .16s,border-color .16s,box-shadow .16s,opacity .16s!important;border:2px solid rgba(225,241,252,.36)!important;box-shadow:none!important}
+.tss-content main.grades-v11 .gv11-section-tabs button.active{opacity:1!important;background:#087e79!important;border:3px solid #a6fff0!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18),0 0 0 3px rgba(0,181,166,.3),0 5px 16px rgba(0,58,73,.24)!important}
+.tss-content main.grades-v11 .gv11-section-tabs button.active .gv11-unit-icon{background:rgba(255,255,255,.3)!important}
+.tss-content main.grades-v11 .gv11-section-tabs button:is(:hover,:focus-visible){opacity:1!important;border-color:#c9f9ff!important}
+.tss-content main.grades-v11 .gv11-gradebook th .gv11-grade-icon{font-family:"Segoe UI Symbol","Apple Color Emoji",sans-serif!important;font-weight:800!important}
+.tss-content main.grades-v11 .gv11-gradebook td.name small{font-size:11px!important;letter-spacing:.2px!important}
