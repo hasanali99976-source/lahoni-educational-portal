@@ -76,7 +76,7 @@ export default function TeacherAiPage() {
       const byCode = academicData.byCode && typeof academicData.byCode === "object" ? academicData.byCode as Record<string, Record<string, unknown>> : {};
       const roster = (Array.isArray(data.students) ? data.students : []).map((item: Record<string, unknown>) => {
         const id = String(item.code || item.id || "").trim().toUpperCase();
-        const academic = byCode[id] || {};
+        const academic = byCode[id] || Object.values(byCode).find(row => [row.code, row.accessCode, row.studentCode, row.documentId].some(value => String(value || "").trim().toUpperCase() === id)) || {};
         return {
           ...item, id, name: String(item.name || "").trim(),
           class: String(item.className || item.class || ""),
