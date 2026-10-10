@@ -122,3 +122,20 @@
  .teacher-ai-page .generated-plan .plan-students-table tr:nth-child(even) td{background:#f1f8fc!important}
  .teacher-ai-page .generated-plan .ai-enrichment-section{break-before:page!important}
 }
+
+/* Final unified academic print report: two plans, one student register. */
+.ai-report-student-register{margin-top:24px;padding-top:12px;border-top:3px solid #1c789a}
+.ai-report-student-register>h3{padding:12px 14px;background:#e8f2fb;border-radius:10px;border-right:5px solid #1a7198;color:#154b6e}
+@media print{
+ @page{size:A4 portrait;margin:12mm}
+ .teacher-ai-page .generated-plan{font-size:11px!important;line-height:1.55!important}
+ .teacher-ai-page .generated-plan>header{background:#fff!important}
+ .teacher-ai-page .generated-plan>header h2{color:#145578!important}
+ .teacher-ai-page .ai-enrichment-section{break-before:auto!important;page-break-before:auto!important}
+ .teacher-ai-page .ai-report-student-register{break-before:page!important;page-break-before:always!important;border:0!important;margin:0!important;padding:0!important}
+ .teacher-ai-page .ai-report-student-register>h3{background:#e8f2fb!important;color:#154b6e!important;padding:8px!important}
+ .teacher-ai-page .plan-students-table{font-size:10px!important}
+ .teacher-ai-page .plan-students-table td,.teacher-ai-page .plan-students-table th{padding:4px 7px!important}
+ .teacher-ai-page .plan-students-table tr{break-inside:avoid!important}
+ .teacher-ai-page .plan-students-table thead{display:table-header-group!important}
+}
