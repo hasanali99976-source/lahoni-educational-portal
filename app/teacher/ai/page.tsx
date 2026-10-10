@@ -69,11 +69,11 @@ export default function TeacherAiPage() {
   useEffect(() => {
     if (!session?.subjectKey) return;
     const controller = new AbortController();
-    const params = new URLSearchParams({ subjectId: session.subjectKey });
+    const params = new URLSearchParams({ subjectId: String(session.subjectKey).split("--")[0] });
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
     Promise.all([
       fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal, credentials: "same-origin" }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الطلاب"); return data; }),
-      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(session.subjectKey)}`, { cache: "no-store", signal: controller.signal, credentials: "same-origin" }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الدرجات المحفوظة"); return data; }),
+      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(String(session.subjectKey).split("--")[0])}`, { cache: "no-store", signal: controller.signal, credentials: "same-origin" }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الدرجات المحفوظة"); return data; }),
     ]).then(([data, academicData]) => {
       const byCode = academicData.byCode && typeof academicData.byCode === "object" ? academicData.byCode as Record<string, Record<string, unknown>> : {};
       const key = (value: unknown) => String(value || "").trim().toUpperCase();
