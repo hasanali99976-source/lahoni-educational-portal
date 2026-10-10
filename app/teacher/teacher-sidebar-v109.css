@@ -187,3 +187,30 @@
 .teacher-student-shell .tss-teacher-identity p{font-family:"Tajawal","IBM Plex Sans Arabic",system-ui,sans-serif!important;font-size:12px!important;line-height:1.45!important;font-weight:650!important;margin:0!important;color:#dcecf0!important}
 .teacher-student-shell .tss-head-reference{min-height:70px!important;padding-block:10px!important;align-items:center!important}
 @media(max-width:980px){.teacher-student-shell .tss-reference-avatar{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex-basis:40px!important}.teacher-student-shell .tss-teacher-identity h1{font-size:13px!important}.teacher-student-shell .tss-teacher-identity p{font-size:11px!important}.teacher-student-shell .tss-head-reference{min-height:64px!important}}
+
+/* v124 — unified teacher banner and illustrated shortcut strip */
+.teacher-student-shell .tss-hero-header{position:relative;isolation:isolate;overflow:hidden;margin:0 0 14px;padding:20px 22px 16px;border-radius:22px;border:1px solid rgba(255,222,153,.48);background:linear-gradient(112deg,rgba(3,36,52,.95),rgba(8,69,82,.87) 52%,rgba(6,43,57,.93));box-shadow:0 16px 35px #092d3a35;color:white;direction:rtl}
+.teacher-student-shell .tss-hero-header:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(248,201,111,.22),transparent 45%),linear-gradient(135deg,transparent 20%,rgba(113,218,222,.12) 55%,transparent 78%);opacity:1}
+.teacher-student-shell .tss-hero-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(210px,1.25fr) auto;align-items:center;gap:16px;min-height:100px}
+.teacher-student-shell .tss-hero-identity{display:flex;align-items:center;gap:12px;min-width:0}
+.teacher-student-shell .tss-hero-identity img{width:68px;height:68px;flex-shrink:0;object-fit:cover;border-radius:50%;border:3px solid #f4d38b;box-shadow:0 0 0 3px #ffffff22,0 0 22px #ffd98c66}
+.teacher-student-shell .tss-hero-identity>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.teacher-student-shell .tss-hero-identity strong{font-size:clamp(16px,1.45vw,23px);font-weight:900;line-height:1.4;color:#fff;white-space:normal}
+.teacher-student-shell .tss-hero-identity span{font-size:clamp(13px,1.2vw,18px);font-weight:800;color:#ffdb90}
+.teacher-student-shell .tss-hero-identity small{font-size:12px;color:#b9e2ee}
+.teacher-student-shell .tss-hero-intro{text-align:center;min-width:0}
+.teacher-student-shell .tss-hero-date{display:inline-flex;padding:5px 12px;border:1px solid #ffffff42;border-radius:50px;background:#ffffff17;color:#e4f4f7;font-size:12px;font-weight:700}
+.teacher-student-shell .tss-hero-intro h1{margin:8px 0 2px;font-size:clamp(22px,2.3vw,35px);font-weight:950;line-height:1.4;color:#fff}
+.teacher-student-shell .tss-hero-intro h1 em{font-style:normal;color:#ffd48a}
+.teacher-student-shell .tss-hero-intro p{margin:0;color:#c6e4ec;font-size:13px;font-weight:650}
+.teacher-student-shell .tss-hero-menu{align-self:start}
+.teacher-student-shell .tss-hero-shortcuts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:13px}
+.teacher-student-shell .tss-hero-shortcuts a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:83px;padding:10px 5px;border:1px solid #a8d5e052;border-radius:16px;background:linear-gradient(155deg,#ffffff1e,#75d3dd13);box-shadow:inset 0 1px #ffffff2b;text-align:center;text-decoration:none;color:#f8fcff;transition:transform .15s,background .15s}
+.teacher-student-shell .tss-hero-shortcuts a:hover{transform:translateY(-2px);background:#8ddce52c}
+.teacher-student-shell .tss-hero-shortcuts a.active{border-color:#ffd581;box-shadow:0 0 0 1px #ffd5817a,0 0 18px #e4b45a35;background:linear-gradient(150deg,#f7d47e4f,#19485caa);color:#ffe3a1}
+.teacher-student-shell .tss-hero-shortcuts b{font-size:12px;font-weight:850;line-height:1.4}
+.teacher-student-shell .tss-hero-shortcut-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;color:#b1f0f7;background:#53c6d32e;border:1px solid #91e4ef55}
+.teacher-student-shell .tss-hero-shortcuts a.active .tss-hero-shortcut-icon{color:#ffe19c;background:#e7b95536;border-color:#fbd38b}
+.teacher-student-shell .tss-hero-shortcut-icon svg{width:20px;height:20px}
+@media(max-width:1100px){.teacher-student-shell .tss-hero-header{padding:14px}.teacher-student-shell .tss-hero-top{grid-template-columns:1fr auto;min-height:0}.teacher-student-shell .tss-hero-intro{grid-column:1/-1;grid-row:2;text-align:right}.teacher-student-shell .tss-hero-intro h1{font-size:23px}.teacher-student-shell .tss-hero-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}.teacher-student-shell .tss-hero-shortcuts a{min-height:68px}.teacher-student-shell .tss-hero-identity img{width:54px;height:54px}}
+@media(max-width:550px){.teacher-student-shell .tss-hero-header{margin-bottom:9px;padding:12px;border-radius:16px}.teacher-student-shell .tss-hero-top{gap:9px}.teacher-student-shell .tss-hero-identity img{width:46px;height:46px}.teacher-student-shell .tss-hero-identity strong{font-size:14px}.teacher-student-shell .tss-hero-identity span{font-size:12px}.teacher-student-shell .tss-hero-intro h1{font-size:20px}.teacher-student-shell .tss-hero-intro p{font-size:11px}.teacher-student-shell .tss-hero-shortcuts{gap:6px;margin-top:10px}.teacher-student-shell .tss-hero-shortcuts a{min-height:62px;border-radius:11px;padding:7px 2px}.teacher-student-shell .tss-hero-shortcuts b{font-size:10px}.teacher-student-shell .tss-hero-shortcut-icon{width:27px;height:27px}.teacher-student-shell .tss-hero-shortcut-icon svg{width:17px;height:17px}}
