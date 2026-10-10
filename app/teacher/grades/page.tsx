@@ -231,7 +231,7 @@ export default function GradesPage(){
       <header><h2>{activePlan.mode==="units"?"الوحدات":"الفترات"}</h2></header>
       <div className="gv11-section-tabs">{activePlan.sections.map(item=>{
         const active=item.id===section?.id;
-        const parts=item.label.split(/\s*[-–—]\s*/,2); const shortTitle=parts[0]||item.label; const unitName=parts[1]||""; return <button type="button" key={item.id} className={active?"active":""} title={item.label} onClick={()=>setSelectedSection(item.id)}><b>{shortTitle}</b>{unitName?<span>{unitName}</span>:null}<small>{item.max}°</small></button>;
+        const parts=item.label.split(/\s*[-–—]\s*/,2); const shortTitle=parts[0]||item.label; const unitName=parts[1]||""; const unitIcon=["📖","🌴","🏰","🗺️","🚩"][activePlan.sections.indexOf(item)]||"📚"; return <button type="button" key={item.id} className={active?"active":""} title={item.label} onClick={()=>setSelectedSection(item.id)}><span className="gv11-unit-icon" aria-hidden="true">{unitIcon}</span><b>{shortTitle}</b>{unitName?<span className="gv11-unit-name">{unitName}</span>:null}<small>{item.max}°</small></button>;
       })}</div>
     </section>
 
