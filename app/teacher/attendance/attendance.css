@@ -202,3 +202,16 @@
 .attendance-page .attendance-overview article:nth-child(6){background:rgba(251,210,235,.77)}
 .attendance-page .attendance-overview article:nth-child(7){background:rgba(255,240,185,.77)}
 .attendance-page .attendance-register-table tbody td,.attendance-page .attendance-register-table tbody th{background-color:transparent}
+
+/* Transparent roster glass: let the teacher background show through the table. */
+.attendance-page .attendance-register-table{background:transparent!important}
+.attendance-page .attendance-register-table tbody tr{background:transparent!important}
+.attendance-page .attendance-register-table tbody td,.attendance-page .attendance-register-table tbody th{background:rgba(239,248,255,.29)!important;backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px)}
+.attendance-page .attendance-register-table tbody tr:nth-child(even) td,.attendance-page .attendance-register-table tbody tr:nth-child(even) th{background:rgba(222,237,249,.36)!important}
+.attendance-page .attendance-register-table tbody .register-col-present,.attendance-page .attendance-register-table tbody td:nth-child(4){background:rgba(164,235,210,.33)!important}
+.attendance-page .attendance-register-table tbody td:nth-child(5){background:rgba(255,195,216,.30)!important}
+.attendance-page .attendance-register-table tbody td:nth-child(6){background:rgba(255,225,162,.32)!important}
+.attendance-page .attendance-register-table tbody td:nth-child(7){background:rgba(214,193,255,.32)!important}
+.attendance-page .attendance-register-table tbody td:nth-child(8){background:rgba(255,191,219,.30)!important}
+.attendance-page .attendance-register-table thead th{background-color:rgba(215,233,250,.72)!important}
+.attendance-page .attendance-register-table .register-name,.attendance-page .attendance-register-table .register-code{color:#103d60;text-shadow:0 1px 0 rgba(255,255,255,.6)}
