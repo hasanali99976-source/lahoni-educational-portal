@@ -99,7 +99,7 @@ export default function TeacherAiPage() {
   const eligibleStudents = scope === "threshold" ? analyzed.filter(student => student.hasGrades) : candidates.filter(student => student.hasGrades);
   const remedialStudents = eligibleStudents.filter(student => student.percentage <= threshold);
   const enrichmentStudents = eligibleStudents.filter(student => student.percentage >= 85 && student.percentage > threshold);
-  const planStudents = [...remedialStudents, ...enrichmentStudents];
+  const planStudents = [...new Map([...remedialStudents, ...enrichmentStudents].map(student => [student.id, student])).values()];
   const gradedCandidates = planStudents.filter(student => student.hasGrades);
   const average = gradedCandidates.length ? Math.round(gradedCandidates.reduce((sum, student) => sum + student.percentage, 0) / gradedCandidates.length) : 0;
   const averageCompletion = gradedCandidates.length ? Math.round(gradedCandidates.reduce((sum, student) => sum + student.completion, 0) / gradedCandidates.length) : 0;
