@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
@@ -87,34 +86,14 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   const cleanTeacherName=teacherName.replace(/^أ\.?\s*/,"");
   return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
     <div className="teacher-student-shell" dir="rtl" data-subject={subjectKey} data-stage={(activeGradeLabel||"").includes("المتوسط")?"middle":"secondary"}>
-      <aside className={`tss-sidebar ${menuOpen?"open":""}`} aria-label="خدمات المعلم">
-        <Link prefetch={false} href="/" className="tss-brand tss-brand-stacked">
-          <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={68} height={68} priority unoptimized/>
-          <span><b>أستاذ لحوني</b><small>بوابة المعلم التعليمية</small></span>
-        </Link>
-        <div className="tss-side-profile" aria-label="هوية المعلم والمادة">
-          <div className="tss-side-profile-mark" aria-hidden="true"><img src="/icons/teacher-avatar.png.png" alt="" width="46" height="46" decoding="async" /></div>
-          <div className="tss-side-profile-copy"><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"مساحة المعلم التعليمية"}</small></div>
-        </div>
-        <nav className="tss-nav">{navGroups.map(group=><section className="tss-nav-group" key={group.title} aria-label={group.title}><div className="tss-nav-group-title">{group.title}</div>{group.tabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} aria-current={active?"page":undefined} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span>{tab.badge?<em className="tss-nav-badge">{tab.badge}</em>:null}</Link>})}</section>)}</nav>
-        <footer className="tss-footer"><span className="tss-motto">بالعِلم نصنع المستقبل</span><button type="button" className="tss-logout" onClick={logout}><span>↪</span><b>تسجيل الخروج</b></button></footer>
-      </aside>
-      <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
         <header className="tss-hero-header" aria-label="هوية بوابة المعلم">
           <div className="tss-hero-top">
             <div className="tss-hero-identity"><img src="/icons/teacher-avatar.png.png" alt="صورة المعلم" width="66" height="66"/><div><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"بوابة المعلم التعليمية"}</small></div></div>
             <div className="tss-hero-intro"><span className="tss-hero-date">{todayLabel}</span><h1>بوابة المعلم <em>التعليمية</em></h1><p>مساحة عملك للتعليم والمتابعة والإنجاز</p></div>
-            <button type="button" className="tss-mobile-menu tss-hero-menu" onClick={()=>setMenuOpen(v=>!v)}>☰ القائمة</button>
+            <button type="button" className="tss-hero-signout" onClick={logout} title="تسجيل الخروج">↪ خروج</button>
           </div>
-          <nav className="tss-hero-shortcuts" aria-label="اختصارات بوابة المعلم">{[
-            {href:"/teacher/dashboard",label:"الرئيسية",key:"dashboard"},
-            {href:"/teacher/timetable",label:"الجدول الدراسي",key:"timetable"},
-            {href:"/teacher/attendance",label:"الحضور",key:"attendance"},
-            {href:"/teacher/grades",label:"التحصيل",key:"grades"},
-            {href:"/teacher/students",label:"الطلاب",key:"students"},
-            {href:"/teacher/reports",label:"التقارير",key:"reports"}
-          ].map(item=><Link prefetch={false} key={item.key} href={item.href} className={pathname===item.href?"active":""}><span className="tss-hero-shortcut-icon"><TabIcon type={item.key}/></span><b>{item.label}</b></Link>)}</nav>
+          <nav className="tss-hero-shortcuts" aria-label="جميع خدمات بوابة المعلم">{allTabs.map(tab=><Link prefetch={false} key={tab.key} href={tab.href} className={pathname.startsWith(tab.href)?"active":""} aria-current={pathname.startsWith(tab.href)?"page":undefined}><span className="tss-hero-shortcut-icon"><TabIcon type={tab.key}/></span><b>{tab.label}</b></Link>)}</nav>
         </header>
         <div className="tss-content">{children}</div>
       </main>
