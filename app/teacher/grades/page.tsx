@@ -16,7 +16,6 @@ import {
 } from "../../../lib/grade-plan";
 import { useGradePlan } from "../../../lib/use-grade-plan";
 import "./grades-v11.css";
-import "./grades-inline-deductions.css";
 
 type GradeDeduction={
   id:string;planId?:string;scope?:"plan"|"section"|"item";
