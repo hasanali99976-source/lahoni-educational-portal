@@ -7,9 +7,9 @@
 .tss-content .grades-v11 .gv11-planbar:before{content:"▥  إدخال وتحليل درجات الوحدة";display:block;font-size:20px;font-weight:900;margin-bottom:8px}
 .tss-content .grades-v11 .gv11-planbar>header{display:none}
 .tss-content .grades-v11 .gv11-section-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.tss-content .grades-v11 .gv11-section-tabs button{display:grid;grid-template-columns:minmax(0,1fr) 42px;grid-template-rows:auto auto;gap:3px 8px;align-items:center;min-width:0;height:86px;padding:10px 12px;border:1px solid rgba(146,196,226,.9);border-radius:12px;background:rgba(194,225,250,.45);color:var(--ink);text-align:right;cursor:pointer}
+.tss-content .grades-v11 .gv11-section-tabs button{display:grid;grid-template-columns:48px minmax(0,1fr) 44px;grid-template-rows:auto auto;gap:3px 8px;align-items:center;min-width:0;min-height:86px;height:auto;padding:10px 12px;border:1px solid rgba(146,196,226,.9);border-radius:12px;background:rgba(194,225,250,.45);color:var(--ink);text-align:right;cursor:pointer}
 .tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+2){background:rgba(204,226,255,.48)}.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+3){background:rgba(226,212,252,.5)}.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n+4){background:rgba(205,246,224,.49)}.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5n){background:rgba(255,227,200,.5)}
-.tss-content .grades-v11 .gv11-section-tabs button>b{grid-column:1;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tss-content .grades-v11 .gv11-section-tabs button>span{grid-column:1;font-size:11px;line-height:1.45;color:#315f83}.tss-content .grades-v11 .gv11-section-tabs button>small{grid-column:2;grid-row:1/3;font-size:16px;font-weight:900;color:#39779a}
+.tss-content .grades-v11 .gv11-section-tabs button>b{grid-column:2;grid-row:1;font-size:14px;font-weight:900;white-space:normal;overflow:visible;line-height:1.35}.tss-content .grades-v11 .gv11-section-tabs button .gv11-unit-name{grid-column:2;grid-row:2;font-size:11px;line-height:1.45;color:#315f83;white-space:normal;overflow-wrap:break-word}.tss-content .grades-v11 .gv11-section-tabs button>small{grid-column:3;grid-row:1/3;font-size:16px;font-weight:900;color:#39779a}
 .tss-content .grades-v11 .gv11-section-tabs button.active{background:linear-gradient(110deg,rgba(0,159,141,.9),rgba(10,132,145,.86));border-color:#8de9d9;color:white;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}.tss-content .grades-v11 .gv11-section-tabs button.active :is(span,small){color:white}
 .tss-content .grades-v11 .gv11-controlbar{order:1;display:flex;align-items:end;justify-content:space-between;gap:12px;padding:10px 12px;background:rgba(220,240,254,.58)}
 .tss-content .grades-v11 .gv11-class-control,.tss-content .grades-v11 .gv11-main-actions{display:flex;align-items:end;flex-wrap:wrap;gap:8px}
@@ -44,47 +44,16 @@
 @media(max-width:1100px){.tss-content .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.tss-content .grades-v11 .gv11-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.tss-content .grades-v11 .gv11-controlbar{flex-wrap:wrap}}
 @media(max-width:650px){.tss-content .grades-v11 .gv11-section-tabs,.tss-content .grades-v11 .gv11-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tss-content .grades-v11 .gv11-controlbar{align-items:stretch;flex-direction:column}.tss-content .grades-v11 .gv11-class-control :is(select,input){width:100%}.tss-content .grades-v11 .gv11-class-control label{flex:1 1 100%}.tss-content .grades-v11 .gv11-gradebook :is(th.name,td.name){min-width:190px}.tss-content .grades-v11 .gv11-gradebook>footer{flex-direction:column}}
 
-
-
-
-
-
-/* Single gradebook presentation: bright translucent panels and accessible navy text. */
-.tss-content main.grades-v11{--ink:#123b68;color:#123b68!important}
-.tss-content main.grades-v11 .gv11-planbar{background:rgba(180,215,240,.42)!important}
-.tss-content main.grades-v11 .gv11-planbar:before{color:#123b68!important}
-.tss-content main.grades-v11 .gv11-section-tabs button{grid-template-columns:46px minmax(0,1fr) 42px!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:9px!important;min-height:92px!important;height:auto!important;padding:10px 12px!important;overflow:visible!important;background:rgba(69,123,163,.55)!important;color:#fff!important}
-.tss-content main.grades-v11 .gv11-section-tabs button:nth-child(3){background:rgba(117,119,179,.61)!important}
-.tss-content main.grades-v11 .gv11-section-tabs button:nth-child(4){background:rgba(59,147,135,.61)!important}
-.tss-content main.grades-v11 .gv11-section-tabs button:nth-child(5){background:rgba(157,132,101,.61)!important}
-.tss-content main.grades-v11 .gv11-section-tabs button.active{background:rgba(0,157,138,.91)!important;border:2px solid #9df8e2!important}
-.tss-content main.grades-v11 .gv11-section-tabs button .gv11-unit-icon{grid-column:1;grid-row:1/3;display:grid;place-items:center;width:44px;height:48px;border-radius:10px;background:rgba(255,255,255,.18);font-size:27px;line-height:1}
-.tss-content main.grades-v11 .gv11-section-tabs button>b{grid-column:2;grid-row:1;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.4!important;color:#fff!important}
-.tss-content main.grades-v11 .gv11-section-tabs button .gv11-unit-name{grid-column:2;grid-row:2;display:block;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:break-word;color:#f3faff!important;line-height:1.4}
-.tss-content main.grades-v11 .gv11-section-tabs button>small{grid-column:3;grid-row:1/3;color:#fff!important;font-size:18px}
-.tss-content main.grades-v11 .gv11-controlbar{background:rgba(219,237,252,.75)!important}
-.tss-content main.grades-v11 .gv11-class-control label>span{color:#123b68!important}
-.tss-content main.grades-v11 .gv11-kpis article{background:rgba(185,220,253,.82)!important;color:#123b68!important}
-.tss-content main.grades-v11 .gv11-kpis article:nth-child(2){background:rgba(213,207,251,.82)!important}
-.tss-content main.grades-v11 .gv11-kpis article:nth-child(3){background:rgba(255,219,200,.82)!important}
-.tss-content main.grades-v11 .gv11-kpis article:nth-child(4){background:rgba(185,244,217,.82)!important}
-.tss-content main.grades-v11 .gv11-kpis article:nth-child(5){background:rgba(255,207,225,.82)!important}
-.tss-content main.grades-v11 .gv11-kpis article :is(small,b,span){color:#123b68!important;text-shadow:none!important}
-.tss-content main.grades-v11 .gv11-gradebook{background:rgba(211,233,249,.56)!important}
-.tss-content main.grades-v11 .gv11-gradebook>header{background:rgba(212,235,253,.86)!important;color:#123b68!important}
-.tss-content main.grades-v11 .gv11-gradebook>header :is(small,h2){color:#123b68!important}
-.tss-content main.grades-v11 .gv11-gradebook thead th{height:83px!important;background:rgba(215,233,252,.97)!important;color:#124272!important}
-.tss-content main.grades-v11 .gv11-gradebook thead th :is(span,small){color:#124272!important}
-.tss-content main.grades-v11 .gv11-gradebook .gv11-grade-icon{display:block!important;margin:0 auto 2px!important;font-size:20px!important;font-weight:900!important;line-height:1.1!important;color:#1874c9!important}
-.tss-content main.grades-v11 .gv11-gradebook thead th:nth-child(3) .gv11-grade-icon{color:#0a9c5e!important}
-.tss-content main.grades-v11 .gv11-gradebook thead th:nth-child(4) .gv11-grade-icon{color:#8c36cc!important}
-.tss-content main.grades-v11 .gv11-gradebook thead th:nth-child(5) .gv11-grade-icon{color:#e66b16!important}
-.tss-content main.grades-v11 .gv11-gradebook tbody tr:nth-child(odd) td{background:rgba(225,237,251,.84)!important;color:#16446e!important}
-.tss-content main.grades-v11 .gv11-gradebook tbody tr:nth-child(even) td{background:rgba(191,212,235,.87)!important;color:#16446e!important}
-.tss-content main.grades-v11 .gv11-gradebook :is(th.name,td.name){width:26%!important;min-width:270px!important}
-.tss-content main.grades-v11 .gv11-gradebook td.name :is(b,small){color:#123d70!important;opacity:1!important;text-shadow:none!important}
-.tss-content main.grades-v11 .gv11-gradebook td.final-total{background:rgba(163,245,198,.82)!important}
-.tss-content main.grades-v11 .gv11-gradebook td.final-total b{color:#087f59!important}
-.tss-content main.grades-v11 .gv11-gradebook td.row-action button{display:inline-flex!important;align-items:center;justify-content:center;gap:5px;background:#fff!important;color:#126bc2!important}
-.tss-content main.grades-v11 .gv11-gradebook .row-action svg{display:block!important}
-@media(max-width:850px){.tss-content main.grades-v11 .gv11-section-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Canonical unit layout: each icon owns its cell, no text overlays. */
+.tss-content .grades-v11 .gv11-section-tabs button{background:rgba(56,111,157,.68);color:#fff;min-height:88px}
+.tss-content .grades-v11 .gv11-section-tabs button:nth-child(3){background:rgba(111,112,174,.73)}
+.tss-content .grades-v11 .gv11-section-tabs button:nth-child(4){background:rgba(48,143,132,.73)}
+.tss-content .grades-v11 .gv11-section-tabs button:nth-child(5){background:rgba(143,121,91,.73)}
+.tss-content .grades-v11 .gv11-section-tabs button .gv11-unit-icon{grid-column:1;grid-row:1/3;display:grid;place-items:center;width:44px;height:48px;border-radius:10px;background:rgba(255,255,255,.15);font-size:26px;line-height:1}
+.tss-content .grades-v11 .gv11-section-tabs button>b,.tss-content .grades-v11 .gv11-section-tabs button .gv11-unit-name,.tss-content .grades-v11 .gv11-section-tabs button>small{color:#fff}
+.tss-content .grades-v11 .gv11-gradebook .gv11-grade-icon{display:block;margin:0 auto 2px;font-size:20px;font-weight:900;line-height:1.1;color:#1874c9}
+.tss-content .grades-v11 .gv11-gradebook th{height:83px}
+.tss-content .grades-v11 .gv11-gradebook th :is(span,small){color:#124272}
+.tss-content .grades-v11 .gv11-gradebook td.name :is(b,small){color:#123d70;opacity:1}
+.tss-content .grades-v11 .gv11-gradebook td.row-action button{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.tss-content .grades-v11 .gv11-gradebook td.row-action svg{display:block}
