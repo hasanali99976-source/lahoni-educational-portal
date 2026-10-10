@@ -9,7 +9,7 @@ import { useGradePlan } from "../../../lib/use-grade-plan";
 import "./teacher-ai.css";
 
 type Student = GradeStudentLike & { id: string; name?: string; class?: string; className?: string };
-type Analyzed = Student & { percentage: number; completion: number; weakest: string; action: string };
+type Analyzed = Student & { percentage: number; completion: number; hasGrades: boolean; weakest: string; action: string };
 
 function actionFor(key: string, label: string) {
   const actions: Record<string, string> = {
@@ -27,11 +27,13 @@ function actionFor(key: string, label: string) {
 
 function analyze(student: Student, plan: GradePlan): Analyzed {
   const result = calculateGradePlanResult(plan, student);
-  const weakest = [...result.dimensions].filter(item => item.maximum > 0).sort((a, b) => a.percentage - b.percentage)[0];
+  const recordedCategories = new Set(result.sections.flatMap(section => section.items.filter(item => item.recorded).map(item => item.item.category)));
+  const weakest = [...result.dimensions].filter(item => item.maximum > 0 && recordedCategories.has(item.key as never)).sort((a, b) => a.percentage - b.percentage)[0];
   const weakestLabel = weakest?.label || "المهارات الأساسية";
   return {
     ...student,
-    percentage: Math.round(result.percentage),
+    percentage: result.recordedMaximum > 0 ? Math.round(result.earned / result.recordedMaximum * 100) : 0,
+    hasGrades: result.recordedMaximum > 0,
     completion: Math.round(result.completion),
     weakest: weakestLabel,
     action: actionFor(weakest?.key || "custom", weakestLabel),
@@ -59,23 +61,40 @@ export default function TeacherAiPage() {
     const controller = new AbortController();
     const params = new URLSearchParams({ subjectId: session.subjectKey });
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
-    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal })
-      .then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الطلاب"); return data; })
-      .then(data => setStudents((Array.isArray(data.students) ? data.students : []).map((item: Record<string, unknown>) => ({ ...item, id: String(item.code || item.id || ""), class: String(item.className || item.class || "") } as Student)).sort((a: Student, b: Student) => (a.name || "").localeCompare(b.name || "", "ar"))))
-      .catch(error => { if ((error as Error)?.name !== "AbortError") setMessage("تعذر تحميل طلاب مادة المعلم الحالي"); });
+    Promise.all([
+      fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal, credentials: "same-origin" }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الطلاب"); return data; }),
+      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(session.subjectKey)}`, { cache: "no-store", signal: controller.signal, credentials: "same-origin" }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الدرجات المحفوظة"); return data; }),
+    ]).then(([data, academicData]) => {
+      const byCode = academicData.byCode && typeof academicData.byCode === "object" ? academicData.byCode as Record<string, Record<string, unknown>> : {};
+      const roster = (Array.isArray(data.students) ? data.students : []).map((item: Record<string, unknown>) => {
+        const id = String(item.code || item.id || "").trim().toUpperCase();
+        const academic = byCode[id] || {};
+        return {
+          ...item, id, name: String(item.name || "").trim(),
+          class: String(item.className || item.class || ""),
+          gradeValues: academic.gradeValues && typeof academic.gradeValues === "object" ? academic.gradeValues : item.gradeValues,
+          gradePlanValues: academic.gradePlanValues && typeof academic.gradePlanValues === "object" ? academic.gradePlanValues : item.gradePlanValues,
+          units: academic.units && typeof academic.units === "object" ? academic.units : item.units,
+        } as Student;
+      }).filter((item: Student) => item.id && item.name);
+      setStudents(roster.sort((a: Student, b: Student) => (a.name || "").localeCompare(b.name || "", "ar")));
+      setMessage("");
+    }).catch(error => { if ((error as Error)?.name !== "AbortError") { setStudents([]); setMessage(error instanceof Error ? error.message : "تعذر تحميل درجات الطلاب"); } });
     return () => controller.abort();
   }, [session?.subjectKey, session?.activeGrade]);
 
   const analyzed = useMemo(() => activePlan ? students.map(student => analyze(student, activePlan)) : [], [students, activePlan]);
   const classes = useMemo(() => Array.from(new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
-  const candidates = useMemo(() => scope === "threshold" ? analyzed.filter(student => student.percentage < threshold) : scope === "class" ? analyzed.filter(student => !selectedClass || String(student.className || student.class || "") === selectedClass) : analyzed.filter(student => selectedIds.includes(student.id)), [analyzed, scope, threshold, selectedClass, selectedIds]);
-  const average = candidates.length ? Math.round(candidates.reduce((sum, student) => sum + student.percentage, 0) / candidates.length) : 0;
-  const averageCompletion = candidates.length ? Math.round(candidates.reduce((sum, student) => sum + student.completion, 0) / candidates.length) : 0;
-  const weakSkills = useMemo(() => Object.entries(candidates.reduce<Record<string, number>>((result, student) => ({ ...result, [student.weakest]: (result[student.weakest] || 0) + 1 }), {})).sort((a, b) => b[1] - a[1]), [candidates]);
+  const candidates = useMemo(() => scope === "threshold" ? analyzed.filter(student => student.hasGrades && student.percentage < threshold) : scope === "class" ? analyzed.filter(student => !selectedClass || String(student.className || student.class || "") === selectedClass) : analyzed.filter(student => selectedIds.includes(student.id)), [analyzed, scope, threshold, selectedClass, selectedIds]);
+  const gradedCandidates = candidates.filter(student => student.hasGrades);
+  const average = gradedCandidates.length ? Math.round(gradedCandidates.reduce((sum, student) => sum + student.percentage, 0) / gradedCandidates.length) : 0;
+  const averageCompletion = gradedCandidates.length ? Math.round(gradedCandidates.reduce((sum, student) => sum + student.completion, 0) / gradedCandidates.length) : 0;
+  const weakSkills = useMemo(() => Object.entries(gradedCandidates.reduce<Record<string, number>>((result, student) => ({ ...result, [student.weakest]: (result[student.weakest] || 0) + 1 }), {})).sort((a, b) => b[1] - a[1]), [candidates]);
 
   async function savePlan() {
     if (!activePlan) return setMessage("اعتمد خطة توزيع الدرجات أولًا حتى يكون التحليل مبنيًا على نظام واضح.");
     if (!candidates.length) return setMessage("لا يوجد طلاب مطابقون للاختيار الحالي.");
+    if (!gradedCandidates.length) return setMessage("لا توجد درجات مرصودة للطلاب المختارين. لا يمكن اعتماد خطة علاجية دون نتائج فعلية.");
     const id = crypto.randomUUID();
     await setDoc(doc(db, plansPath, id), {
       title: `الخطة العلاجية لمادة ${subject}`,
@@ -100,9 +119,9 @@ export default function TeacherAiPage() {
   return <main className="teacher-ai-page" dir="rtl">
     <section className="teacher-ai-hero no-print"><div><span>المساعد التعليمي الذكي</span><h1>تحليل الطلاب من خطة الدرجات المعتمدة</h1><p>الذكاء الاصطناعي لا يفترض توزيعًا ثابتًا؛ يحتسب الأداء من الخطة المعتمدة للمعلم ثم يبني المقترحات العلاجية.</p></div><div className="teacher-ai-status"><b>{subject}</b><small>{activePlan ? `خطة الدرجات: نسخة ${activePlan.version}` : "لا توجد خطة درجات معتمدة"}</small></div></section>
     {!activePlan ? <section className="plan-builder no-print"><header><div><small>إعداد مطلوب</small><h2>اعتمد توزيع الـ100 درجة أولًا</h2></div></header><p>لن يبدأ التحليل الذكي بدرجات افتراضية. بعد اعتماد الخطة سيقرأها تلقائيًا.</p><a href="/teacher/grade-plan">إعداد توزيع الدرجات</a></section> : <>
-      <section className="plan-builder no-print"><header><div><small>١</small><h2>حدد نطاق التحليل</h2></div></header><div className="scope-buttons"><button className={scope === "threshold" ? "active" : ""} onClick={() => setScope("threshold")}>حسب الدرجة</button><button className={scope === "class" ? "active" : ""} onClick={() => setScope("class")}>فصل كامل</button><button className={scope === "manual" ? "active" : ""} onClick={() => setScope("manual")}>طلاب محددون</button></div>{scope === "threshold" && <label className="threshold-field">اختر كل طالب درجته أقل من <span><input type="number" min="1" max="100" value={threshold} onChange={event => setThreshold(Number(event.target.value))} /><b>٪</b></span></label>}{scope === "class" && <label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>}{scope === "manual" && <div className="manual-students"><div><button onClick={() => setSelectedIds(analyzed.map(student => student.id))}>تحديد الكل</button><button onClick={() => setSelectedIds([])}>إلغاء التحديد</button></div>{analyzed.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name || "—"}</b><small>{String(student.className || student.class || "—")} • {student.percentage}% • اكتمال {student.completion}%</small></span></label>)}</div>}<label>مدة الخطة العلاجية<select value={duration} onChange={event => setDuration(event.target.value)}><option>أسبوعان</option><option>٣ أسابيع</option><option>٤ أسابيع</option><option>٦ أسابيع</option></select></label></section>
+      <section className="plan-builder no-print"><header><div><small>١</small><h2>حدد نطاق التحليل</h2></div></header><div className="scope-buttons"><button className={scope === "threshold" ? "active" : ""} onClick={() => setScope("threshold")}>حسب الدرجة</button><button className={scope === "class" ? "active" : ""} onClick={() => setScope("class")}>فصل كامل</button><button className={scope === "manual" ? "active" : ""} onClick={() => setScope("manual")}>طلاب محددون</button></div>{scope === "threshold" && <label className="threshold-field">اختر الطلاب الذين تقل درجاتهم المرصودة عن <span><input type="number" min="1" max="100" value={threshold} onChange={event => setThreshold(Number(event.target.value))} /><b>٪</b></span></label>}{scope === "class" && <label>الفصل<select value={selectedClass} onChange={event => setSelectedClass(event.target.value)}><option value="">جميع الفصول</option>{classes.map(name => <option key={name}>{name}</option>)}</select></label>}{scope === "manual" && <div className="manual-students"><div><button onClick={() => setSelectedIds(analyzed.map(student => student.id))}>تحديد الكل</button><button onClick={() => setSelectedIds([])}>إلغاء التحديد</button></div>{analyzed.map(student => <label key={student.id}><input type="checkbox" checked={selectedIds.includes(student.id)} onChange={event => setSelectedIds(current => event.target.checked ? [...new Set([...current, student.id])] : current.filter(id => id !== student.id))} /><span><b>{student.name || "—"}</b><small>{String(student.className || student.class || "—")} • {student.hasGrades ? `${student.percentage}%` : "لم تُرصد درجات"} • اكتمال {student.completion}%</small></span></label>)}</div>}<label>مدة الخطة العلاجية<select value={duration} onChange={event => setDuration(event.target.value)}><option>أسبوعان</option><option>٣ أسابيع</option><option>٤ أسابيع</option><option>٦ أسابيع</option></select></label></section>
       <section className="plan-selection no-print"><article><small>الطلاب المختارون</small><strong>{candidates.length}</strong></article><article><small>متوسطهم الحالي</small><strong>{average}%</strong></article><article><small>اكتمال الرصد</small><strong>{averageCompletion}%</strong></article><article><small>أكثر عنصر يحتاج دعمًا</small><strong>{weakSkills[0]?.[0] || "—"}</strong></article></section>
-      <section className="generated-plan"><header><div><span>الخطة العلاجية المقترحة</span><h2>خطة علاجية لمادة {subject}</h2><p>إعداد المعلم: {teacherName} • مبنية على خطة الدرجات نسخة {activePlan.version}</p></div><div className="plan-actions no-print"><button onClick={() => void savePlan()}>حفظ الخطة العلاجية</button><button onClick={() => window.print()}>طباعة / PDF</button></div></header><div className="plan-meta"><article><b>الفئة المستهدفة</b><p>{candidates.length} طالبًا {scope === "threshold" ? `درجاتهم أقل من ${threshold}%` : scope === "class" ? `من ${selectedClass || "جميع الفصول"}` : "تم تحديدهم يدويًا"}.</p></article><article><b>مصدر التحليل</b><p>خطة توزيع الدرجات المعتمدة رقم {activePlan.version}، مع الحفاظ على الدرجات الخام الأصلية.</p></article></div><div className="plan-steps"><h3>إجراءات التنفيذ</h3>{weakSkills.slice(0, 4).map(([skill, count], index) => <article key={skill}><em>{index + 1}</em><div><b>{skill}</b><small>{count} طالب يحتاجون دعمًا في هذا المحور</small><p>{candidates.find(student => student.weakest === skill)?.action}</p></div></article>)}{!weakSkills.length && <p>اختر طلابًا ليتم بناء الخطة العلاجية من درجاتهم.</p>}</div><div className="plan-schedule"><h3>الجدول الزمني وقياس الأثر</h3><span><b>الأسبوع الأول</b> تشخيص العنصر الأضعف وتحديد نقطة البداية.</span><span><b>منتصف الخطة</b> تدريب موجه ومتابعة قصيرة لكل مجموعة.</span><span><b>نهاية الخطة</b> تقويم بعدي ومقارنة النتيجة بالنسبة الحالية {average}%.</span></div><div className="plan-students"><h3>الطلاب المشمولون بالخطة</h3><div>{candidates.map(student => <span key={student.id}><b>{student.name || "—"}</b><small>{String(student.className || student.class || "—")} • {student.percentage}% • {student.weakest}</small></span>)}</div></div></section>
+      <section className="generated-plan"><header><div><span>الخطة العلاجية المقترحة</span><h2>خطة علاجية لمادة {subject}</h2><p>إعداد المعلم: {teacherName} • مبنية على خطة الدرجات نسخة {activePlan.version}</p></div><div className="plan-actions no-print"><button onClick={() => void savePlan()}>حفظ الخطة العلاجية</button><button onClick={() => window.print()}>طباعة / PDF</button></div></header><div className="plan-meta"><article><b>الفئة المستهدفة</b><p>{candidates.length} طالبًا {scope === "threshold" ? `درجاتهم أقل من ${threshold}%` : scope === "class" ? `من ${selectedClass || "جميع الفصول"}` : "تم تحديدهم يدويًا"}.</p></article><article><b>مصدر التحليل</b><p>خطة توزيع الدرجات المعتمدة رقم {activePlan.version}، مع الحفاظ على الدرجات الخام الأصلية.</p></article></div><div className="plan-steps"><h3>إجراءات التنفيذ</h3>{weakSkills.slice(0, 4).map(([skill, count], index) => <article key={skill}><em>{index + 1}</em><div><b>{skill}</b><small>{count} طالب يحتاجون دعمًا في هذا المحور</small><p>{candidates.find(student => student.weakest === skill)?.action}</p></div></article>)}{!weakSkills.length && <p>اختر طلابًا ليتم بناء الخطة العلاجية من درجاتهم.</p>}</div><div className="plan-schedule"><h3>الجدول الزمني وقياس الأثر</h3><span><b>الأسبوع الأول</b> تشخيص العنصر الأضعف وتحديد نقطة البداية.</span><span><b>منتصف الخطة</b> تدريب موجه ومتابعة قصيرة لكل مجموعة.</span><span><b>نهاية الخطة</b> تقويم بعدي ومقارنة النتيجة بالنسبة الحالية {average}%.</span></div><div className="plan-students"><h3>الطلاب المشمولون بالخطة</h3><div>{candidates.map(student => <span key={student.id}><b>{student.name || "—"}</b><small>{String(student.className || student.class || "—")} • {student.hasGrades ? `${student.percentage}%` : "لم تُرصد درجات"} • {student.weakest}</small></span>)}</div></div></section>
     </>}
     {message && <p className="ai-message no-print" role="status">{message}</p>}
   </main>;
