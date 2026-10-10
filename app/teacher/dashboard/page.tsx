@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import "./dashboard-v11.css";
+import "./daily-premium.css";
 
 type Lesson={subject?:string;className?:string;notes?:string};
 type Schedule=Record<string,Lesson>;
