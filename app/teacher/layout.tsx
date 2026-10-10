@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { preload } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
@@ -70,6 +71,7 @@ function TabIcon({ type }: { type: string }) {
 }
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
+  preload("/teacher-dashboard-bg.png.png", { as: "image", fetchPriority: "high" });
   const pathname=usePathname(); const router=useRouter(); const isLoginPage=pathname==="/teacher"; const entryRedirectKey="lahooni:teacher-entry-complete";
   const [ready,setReady]=useState(false); const [menuOpen,setMenuOpen]=useState(false); const [entryChecking,setEntryChecking]=useState(true);
   const [teacherId,setTeacherId]=useState<string>(); const [teacherName,setTeacherName]=useState("المعلم"); const [subjectKey,setSubjectKey]=useState<SubjectKey>("history"); const [workspaceKey,setWorkspaceKey]=useState("history"); const [activeGrade,setActiveGrade]=useState<number|null>(null); const [activeGradeLabel,setActiveGradeLabel]=useState(""); const [subjectName,setSubjectName]=useState("التاريخ"); const [subjects,setSubjects]=useState<TeacherClientSubject[]>([]); const [assignments,setAssignments]=useState<TeacherClientAssignment[]>([]); const [switchingSubject,setSwitchingSubject]=useState(false); const [todayLabel,setTodayLabel]=useState("");
