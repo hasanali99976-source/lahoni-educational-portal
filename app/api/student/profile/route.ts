@@ -63,6 +63,7 @@ export async function GET(request: Request) {
   const student = [...candidates].sort((a, b) => studentRichness((b.data() || {}) as Record<string, unknown>) - studentRichness((a.data() || {}) as Record<string, unknown>))[0]!;
   const studentData = student.data() as Record<string, unknown>;
   const studentClass = normalizeClass(studentData.class || studentData.className || `${String(studentData.grade || "")} ${String(studentData.section || "")}`);
+  const classMatchesStudent = (value: unknown) => normalizeClass(value) === studentClass && Boolean(studentClass);
 
   const aliases = new Set<string>([access.studentId, student.id]);
   candidates.forEach(doc => {
@@ -144,7 +145,7 @@ export async function GET(request: Request) {
     const match = cell.match(/^(sunday|monday|tuesday|wednesday|thursday)-([1-7])$/);
     if (!match || !studentClass) return;
     const lessonClass = normalizeClass(lesson?.className);
-    if (lessonClass !== studentClass) return;
+    if (!classMatchesStudent(lesson?.className)) return;
     timetableWeekdays.add(DAY_INDEX[match[1]]);
     timetableLessons.push({ dayKey: match[1], dayLabel: DAY_LABELS[match[1]] || match[1], dayIndex: DAY_INDEX[match[1]], period: Number(match[2]), className: lessonClass, subject: String(lesson?.subject || "").trim(), notes: String(lesson?.notes || "").trim() });
   });
@@ -174,7 +175,7 @@ export async function GET(request: Request) {
   const historicalSlots = new Map<number, number[]>();
   for (const [key, periods] of historicalPeriods) {
     const [className, day] = key.split("|");
-    if (className !== studentClass) continue;
+    if (!classMatchesStudent(className)) continue;
     const weekday = Number(day);
     historicalSlots.set(weekday, [...new Set([...(historicalSlots.get(weekday) || []), ...periods])]);
   }
@@ -232,5 +233,5 @@ export async function GET(request: Request) {
     referralCount: counselorReferrals.length,
   };
 
-  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, events: attendanceEvents, automaticThrough: today, attendanceMode: "teacher_saved_only", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
+  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, events: attendanceEvents, automaticThrough: today, attendanceMode: "scheduled_default_with_teacher_override", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 }
