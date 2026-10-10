@@ -193,6 +193,21 @@
 
 /* Shared teacher portal background across ALL authenticated teacher tabs. */
 .teacher-student-shell{background-image:none!important;isolation:isolate!important}
-.teacher-student-shell::before{background-image:url("/api/teacher-dashboard-background")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.82) brightness(.82)!important;transform:none!important;opacity:1!important}
+.teacher-student-shell::before{background-image:url("/teacher-dashboard-bg.png.png")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.82) brightness(.82)!important;transform:none!important;opacity:1!important}
 .teacher-student-shell::after{background:linear-gradient(180deg,rgba(3,18,29,.36),rgba(3,23,32,.24) 45%,rgba(3,16,27,.58))!important}
 .teacher-student-shell .tss-main,.teacher-student-shell .tss-content{background:transparent!important}
+
+/* Local static image avoids a serverless proxy and a second remote GitHub fetch. */
+.teacher-student-shell::before{background-color:#102b3b!important;background-image:url("/teacher-dashboard-bg.png.png")!important;background-position:center 38%!important;background-size:cover!important}
+@media(max-width:980px){
+ .teacher-student-shell{width:100%!important;min-width:0!important;overflow-x:clip!important}
+ .teacher-student-shell::before{background-position:52% center!important;background-attachment:scroll!important;transform:none!important}
+ .teacher-student-shell .tss-main{width:100%!important;min-width:0!important;padding:8px 8px 20px!important}
+ .teacher-student-shell .tss-content{min-width:0!important;max-width:100%!important;overflow-x:clip!important;padding-inline:4px!important}
+ .teacher-student-shell .tss-content>*{min-width:0!important;max-width:100%!important}
+}
+@media(max-width:600px){
+ .teacher-student-shell::before{background-position:56% center!important}
+ .teacher-student-shell .tss-main{padding:5px 6px 18px!important}
+ .teacher-student-shell .tss-content{padding:2px!important}
+}
