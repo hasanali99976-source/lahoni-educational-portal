@@ -61,6 +61,7 @@ export default function TeacherAiPage() {
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [duration, setDuration] = useState("٤ أسابيع");
+  const [planType, setPlanType] = useState<"remedial" | "enrichment">("remedial");
   const [message, setMessage] = useState("");
   const plansPath = useMemo(() => teacherId ? tenantCollection(teacherId, subjectKey as never, "treatmentPlans") : "", [teacherId, subjectKey]);
 
@@ -95,18 +96,20 @@ export default function TeacherAiPage() {
   const unitLabel = selectedUnit === "all" ? "كل الوحدات" : activePlan?.sections.find(section => section.id === selectedUnit)?.label || "كل الوحدات";
   const classes = useMemo(() => Array.from(new Set(students.map(student => String(student.className || student.class || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar")), [students]);
   const candidates = useMemo(() => scope === "threshold" ? analyzed.filter(student => student.hasGrades && student.percentage <= threshold) : scope === "class" ? analyzed.filter(student => !selectedClass || String(student.className || student.class || "") === selectedClass) : analyzed.filter(student => selectedIds.includes(student.id)), [analyzed, scope, threshold, selectedClass, selectedIds]);
-  const gradedCandidates = candidates.filter(student => student.hasGrades);
+  const planStudents = planType === "enrichment" && scope === "threshold" ? analyzed.filter(student => student.hasGrades && student.percentage > threshold) : candidates;
+  const gradedCandidates = planStudents.filter(student => student.hasGrades);
   const average = gradedCandidates.length ? Math.round(gradedCandidates.reduce((sum, student) => sum + student.percentage, 0) / gradedCandidates.length) : 0;
   const averageCompletion = gradedCandidates.length ? Math.round(gradedCandidates.reduce((sum, student) => sum + student.completion, 0) / gradedCandidates.length) : 0;
   const weakSkills = useMemo(() => Object.entries(gradedCandidates.reduce<Record<string, number>>((result, student) => ({ ...result, [student.weakest]: (result[student.weakest] || 0) + 1 }), {})).sort((a, b) => b[1] - a[1]), [candidates]);
 
   async function savePlan() {
     if (!activePlan) return setMessage("اعتمد خطة توزيع الدرجات أولًا حتى يكون التحليل مبنيًا على نظام واضح.");
-    if (!candidates.length) return setMessage("لا يوجد طلاب مطابقون للاختيار الحالي.");
+    if (!planStudents.length) return setMessage("لا يوجد طلاب مطابقون للاختيار الحالي.");
     if (!gradedCandidates.length) return setMessage("لا توجد درجات مرصودة للطلاب المختارين. لا يمكن اعتماد خطة علاجية دون نتائج فعلية.");
     const id = crypto.randomUUID();
     await setDoc(doc(db, plansPath, id), {
-      title: `الخطة العلاجية لمادة ${subject}`,
+      title: `الخطة ${planType === "remedial" ? "العلاجية" : "الإثرائية"} لمادة ${subject}`,
+      planType,
       teacherName,
       subject,
       subjectKey,
@@ -118,11 +121,11 @@ export default function TeacherAiPage() {
       className: scope === "class" ? selectedClass : "",
       gradePlanId: activePlan.id,
       gradePlanVersion: activePlan.version,
-      students: candidates.map(student => ({ id: student.id, name: student.name || "", className: String(student.className || student.class || ""), percentage: student.percentage, completion: student.completion, weakest: student.weakest })),
+      students: planStudents.map(student => ({ id: student.id, name: student.name || "", className: String(student.className || student.class || ""), percentage: student.percentage, completion: student.completion, weakest: student.weakest })),
       objectives: weakSkills.map(([skill]) => `رفع إتقان ${skill}`),
       createdAt: new Date().toISOString(),
     });
-    setMessage("تم حفظ الخطة العلاجية مبنية على توزيع الدرجات المعتمد.");
+    setMessage("تم حفظ الخطة مبنية على توزيع الدرجات المعتمد.");
   }
 
   if (planLoading) return <main className="teacher-ai-page" dir="rtl"><p className="ai-message">جارٍ تحميل خطة توزيع الدرجات…</p></main>;
