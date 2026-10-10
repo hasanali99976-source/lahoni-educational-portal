@@ -26,7 +26,7 @@
 .attendance-lesson-tabs-list button small{font-size:11px;margin-top:4px}
 .attendance-lesson-tabs-list button.active{outline:3px solid #f5b735;outline-offset:-3px;box-shadow:0 7px 0 #d69a35a1,0 10px 20px #bc83263a;transform:translateY(-3px)}
 
-.attendance-primary-controls{display:flex;flex-wrap:wrap;gap:10px}
+.attendance-primary-controls{display:flex;flex-wrap:wrap;gap:10px;display:flex;align-items:center}
 .attendance-primary-controls label{min-width:175px;flex:1}
 
 
@@ -79,6 +79,18 @@
 @media(max-width:650px){.attendance-primary-controls,.attendance-primary-controls label{min-width:130px}.attendance-student-card{padding:9px}.student-info strong{font-size:14px}.student-info em{font-size:11px}.status-buttons{gap:4px}.status-buttons button{font-size:11px;min-height:41px}}
 @media(prefers-reduced-motion:reduce){.attendance-page button{animation:none;transition:none}}
 
+
+.attendance-lesson-tabs{display:grid;grid-template-columns:minmax(180px,240px) minmax(0,1fr);align-items:center}
+
+.attendance-lesson-tabs-head{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;margin:0}
+
+.attendance-lesson-tabs-list{display:flex;flex-wrap:wrap;justify-content:flex-start}
+
+.attendance-setup-panel{display:flex;align-items:center;justify-content:space-between}
+
+.attendance-workspace{padding:0}
+
+.attendance-list-head{display:flex;align-items:center;justify-content:space-between}
 /* Attendance register: canonical compact styling; legacy conflicting declarations removed. */
 .attendance-page{font-family:"Tajawal","IBM Plex Sans Arabic","Segoe UI",sans-serif;color:#103d62}
 .attendance-page .attendance-card{border-radius:17px;background:linear-gradient(120deg,rgba(233,247,255,.95),rgba(245,238,255,.93));border:1px solid #c6deed;box-shadow:0 4px 15px #0d4d751c}
@@ -153,3 +165,13 @@
 .attendance-page .attendance-register-table .register-radio:focus-visible{outline:2px solid #087bb2;outline-offset:1px}
 @media(max-width:1050px){.attendance-page .attendance-overview{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:700px){.attendance-page .attendance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-page .attendance-lesson-tabs-list{overflow-x:auto;flex-wrap:nowrap}.attendance-page .attendance-lesson-tabs-list button{flex:0 0 135px}.attendance-page .attendance-register-table{min-width:760px}}
+
+/* Explicit responsive layout: preserve compact reference without inherited gaps. */
+.attendance-page .attendance-lesson-tabs{display:grid;grid-template-columns:minmax(185px,240px) minmax(0,1fr);align-items:center;min-height:0}
+.attendance-page .attendance-lesson-tabs-head{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;margin:0}
+.attendance-page .attendance-lesson-tabs-list{display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center}
+.attendance-page .attendance-lesson-tabs-list button{flex:0 1 155px;min-width:125px}
+.attendance-page .attendance-setup-panel{display:flex;align-items:center;justify-content:space-between}
+.attendance-page .attendance-primary-controls{display:flex;align-items:center;gap:10px}
+.attendance-page .attendance-workspace{padding:0}
+@media(max-width:700px){.attendance-page .attendance-lesson-tabs{grid-template-columns:1fr}.attendance-page .attendance-lesson-tabs-list{flex-wrap:nowrap;overflow-x:auto}}
