@@ -90,7 +90,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       <aside className={`tss-sidebar ${menuOpen?"open":""}`} aria-label="خدمات المعلم">
         <Link prefetch={false} href="/" className="tss-brand tss-brand-stacked">
           <Image src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني التعليمية" width={68} height={68} priority unoptimized/>
-          <span><b>بوابة المعلم</b><small>بوابة أستاذ لحوني التعليمية</small></span>
+          <span><b>أستاذ لحوني</b><small>بوابة المعلم التعليمية</small></span>
         </Link>
         <div className="tss-side-profile" aria-label="هوية المعلم والمادة">
           <div className="tss-side-profile-mark" aria-hidden="true">أ</div>
