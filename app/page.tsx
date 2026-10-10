@@ -120,89 +120,41 @@ export default function HomePage(){
   @media(max-width:1000px){.lh-main-title{font-size:clamp(48px,7.3vw,78px)}.lh-card{min-height:275px}}
   @media(max-width:690px){.lh-home{background-attachment:scroll;background-position:center top}.lh-stage{padding:20px 0 17px}.lh-main-title{font-size:clamp(39px,9.3vw,60px);letter-spacing:-1px}.lh-subtitle{font-size:clamp(23px,5.8vw,33px);padding:5px 22px}.lh-motto{font-size:12px}.lh-intro{font-size:11px}.lh-roles{gap:12px;margin-top:14px}.lh-card{min-height:245px;padding:17px}.lh-card-copy h2{font-size:30px}.lh-top{min-height:76px}}
 
-  /* Watercolor / soft clay identity — home page only */
-  .lh-home{color:#25495b;background:radial-gradient(ellipse at 12% 15%,rgba(255,190,214,.40),transparent 37%),radial-gradient(ellipse at 86% 10%,rgba(150,217,255,.42),transparent 38%),radial-gradient(ellipse at 65% 72%,rgba(198,180,248,.34),transparent 46%),linear-gradient(145deg,rgba(255,249,244,.79) 0%,rgba(234,249,252,.77) 48%,rgba(255,244,248,.79) 100%),url("/lahooni_classroom_ready.webp.png") center center / cover no-repeat fixed;background-attachment:scroll}
-  .lh-home:after{background:radial-gradient(circle at 5% 60%,rgba(255,195,157,.35),transparent 24%),radial-gradient(circle at 95% 55%,rgba(147,231,204,.4),transparent 26%);z-index:-1}
-  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.7);border:2px solid rgba(255,255,255,.96);box-shadow:0 9px 25px rgba(91,129,157,.13);color:#365b75}
-  .lh-brand strong{color:#396b88}.lh-brand small{color:#6b8796}.lh-brand img{border-color:#fff;box-shadow:0 5px 14px rgba(97,149,172,.18)}
-  .lh-top-pill{color:#a46b9d}
-  .lh-stage:before{background:radial-gradient(ellipse,rgba(255,205,229,.62),rgba(164,220,253,.38) 48%,transparent 75%);filter:blur(23px)}
-  .lh-stars .star-main{color:#ffbd6c;text-shadow:0 3px 0 #fff,0 5px 16px rgba(238,148,89,.3)}
-  .lh-stars .star-side{color:#80bfd2;text-shadow:none}
-  .lh-smalltitle{color:#876cba;border:2px solid #fff;background:rgba(255,255,255,.76);box-shadow:0 5px 16px rgba(122,128,183,.13);font-size:17px}
-  .lh-main-title{font-size:clamp(55px,7.1vw,108px);line-height:1.36;letter-spacing:-2px;background:linear-gradient(115deg,#ff9f9f 5%,#ffbb79 25%,#b78ce6 46%,#74bedc 68%,#79cdb6 92%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 0 rgba(139,161,194,.34)) drop-shadow(0 10px 11px rgba(109,130,161,.19));paint-order:stroke fill;-webkit-text-stroke:1.3px rgba(255,255,255,.48)}
-  .lh-subtitle{color:#6387ae;background:rgba(255,255,255,.75);border:2px solid #fff;border-radius:24px;box-shadow:0 9px 23px rgba(126,163,192,.14);text-shadow:none}
-  .lh-motto{color:#9872a7;font-size:19px}.lh-intro{color:#5c7888;text-shadow:none;font-size:15px}
-  .lh-roles{gap:23px;margin-top:29px}
-  .lh-card,.lh-card.teacher,.lh-card.student{min-height:315px;border:3px solid rgba(255,255,255,.94);border-radius:32px;box-shadow:0 16px 34px rgba(101,132,164,.16),inset 0 1px 0 #fff;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#3e6279}
-  .lh-card{--accent:#6dafe2;--glow:rgba(110,182,230,.28);background:linear-gradient(150deg,rgba(195,232,255,.96),rgba(231,243,255,.95))}
-  .lh-card.teacher{--accent:#d9989d;--glow:rgba(239,154,165,.25);background:linear-gradient(150deg,rgba(255,218,207,.96),rgba(255,237,222,.95))}
-  .lh-card.student{--accent:#6ab8a6;--glow:rgba(109,201,169,.24);background:linear-gradient(150deg,rgba(202,244,225,.96),rgba(230,250,241,.95))}
-  .lh-card:before{opacity:.9;background:radial-gradient(circle at 15% 18%,rgba(255,255,255,.85),transparent 52%),radial-gradient(circle at 90% 85%,var(--glow),transparent 55%)}
-  .lh-card-number{color:var(--accent);opacity:1}.lh-card-icon{background:rgba(255,255,255,.64);border:2px solid #fff;color:var(--accent);border-radius:20px}
-  .lh-card-copy h2{font-size:clamp(33px,3vw,43px);color:#3b6076;text-shadow:0 2px 0 rgba(255,255,255,.95)}
-  .lh-card-copy small{color:#6889a0}.lh-card-copy p{color:#627b89;font-size:13px}
-  .lh-enter{color:#446579;background:rgba(255,255,255,.73);border:2px solid rgba(255,255,255,.94);box-shadow:0 5px 14px rgba(99,133,158,.1);border-radius:17px}
-  .lh-enter b{color:#fff;background:var(--accent)}.card-scene{opacity:.19}
-  .lh-card:hover,.lh-card:focus-visible{box-shadow:0 24px 44px rgba(116,148,175,.25),0 0 20px var(--glow)}
-  .lh-features{background:rgba(255,255,255,.67);border:2px solid #fff;border-radius:26px;box-shadow:0 12px 30px rgba(123,155,182,.12)}
-  .lh-feature,.lh-feature strong,.lh-feature small,.lh-foot{color:#52778b}
-  /* Full classroom composition, clearer colors and brighter portal cards */
-  .lh-home{background:radial-gradient(ellipse at 12% 15%,rgba(255,191,215,.19),transparent 37%),radial-gradient(ellipse at 85% 10%,rgba(159,224,255,.19),transparent 38%),linear-gradient(145deg,rgba(255,251,248,.43),rgba(236,249,253,.40) 50%,rgba(255,245,250,.43)),url("/lahooni_classroom_ready.webp.png") center top / 100% auto no-repeat,linear-gradient(145deg,#f9f4f3,#e8f7fb);background-attachment:scroll}
-  .lh-home:after{opacity:.38}
-  .lh-card{background:linear-gradient(155deg,rgba(153,214,255,.96),rgba(207,235,255,.95));border-color:#fff;box-shadow:0 19px 35px rgba(60,117,167,.20),inset 0 2px 0 #fff}
-  .lh-card.teacher{background:linear-gradient(155deg,rgba(255,181,169,.97),rgba(255,219,192,.96));box-shadow:0 19px 35px rgba(181,104,99,.18),inset 0 2px 0 #fff}
-  .lh-card.student{background:linear-gradient(155deg,rgba(137,224,187,.97),rgba(204,246,215,.96));box-shadow:0 19px 35px rgba(79,156,127,.18),inset 0 2px 0 #fff}
-  .lh-card:before{opacity:.58}
-  .lh-card-copy h2{color:#264e68;text-shadow:0 2px 0 rgba(255,255,255,.72)}
-  .lh-card-copy small{color:#3d6b84}.lh-card-copy p{color:#3d6175}
-  .lh-card-icon{background:rgba(255,255,255,.85);box-shadow:0 5px 15px rgba(67,118,155,.12)}
-  .lh-enter{background:rgba(255,255,255,.9);border-color:#fff;color:#24516c;box-shadow:0 6px 15px rgba(65,119,154,.13)}
-  .card-scene{opacity:.26}
-  /* Compact luminous entrance with a full-height classroom backdrop */
-  .lh-home{min-height:100vh;background:radial-gradient(ellipse at 15% 18%,rgba(255,193,224,.17),transparent 40%),radial-gradient(ellipse at 85% 20%,rgba(137,215,250,.16),transparent 43%),linear-gradient(145deg,rgba(255,251,247,.26),rgba(239,250,255,.24) 55%,rgba(255,246,251,.30)),url("/lahooni_classroom_ready.webp.png") center center / 100% 100% no-repeat; background-attachment:scroll}
-  .lh-frame{width:min(1500px,100%);padding-inline:clamp(16px,3.4vw,48px)}
-  .lh-top{min-height:74px}
-  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.8);box-shadow:0 5px 24px rgba(255,255,255,.45),0 7px 20px rgba(84,140,170,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  .lh-brand{padding:6px 11px;border-radius:22px}.lh-brand img{width:49px;height:49px;border-radius:14px}
-  .lh-brand strong{font-size:20px}.lh-top-pill{padding:10px 19px}
-  .lh-stage{padding:0 0 12px}.lh-stars{height:29px;margin-bottom:2px}.lh-smalltitle{padding:3px 20px}
-  .lh-main-title{font-size:clamp(51px,6.5vw,94px);line-height:1.25;filter:drop-shadow(0 2px 0 white) drop-shadow(0 5px 0 rgba(133,153,196,.33)) drop-shadow(0 9px 16px rgba(255,255,255,.62))}
-  .lh-subtitle{font-size:clamp(25px,2.9vw,39px);padding:4px 25px}
-  .lh-motto{margin:10px 0 3px}.lh-intro{font-weight:800;text-shadow:0 1px 8px rgba(255,255,255,.9)}
-  .lh-roles{gap:15px;margin-top:15px}
-  .lh-card,.lh-card.teacher,.lh-card.student{min-height:225px;padding:13px 16px 14px;border-radius:25px;box-shadow:0 8px 25px rgba(77,134,164,.16),0 0 24px rgba(255,255,255,.58),inset 0 2px rgba(255,255,255,.9)}
-  .lh-card{background:linear-gradient(155deg,rgba(152,214,255,.86),rgba(205,237,255,.87))}
-  .lh-card.teacher{background:linear-gradient(155deg,rgba(255,182,174,.86),rgba(255,218,198,.87))}
-  .lh-card.student{background:linear-gradient(155deg,rgba(143,231,194,.86),rgba(209,250,225,.87))}
-  .lh-card-head{min-height:42px}.lh-card-icon{width:43px;height:43px;border-radius:14px}.lh-card-icon svg{width:30px;height:30px}.lh-card-number{font-size:16px}
-  .lh-card-copy h2{font-size:clamp(26px,2.3vw,33px);margin:0 0 2px}.lh-card-copy small{font-size:11px}.lh-card-copy p{font-size:11px;margin-bottom:8px}
-  .lh-enter{padding:6px 10px;font-size:12px;border-radius:13px}.lh-enter b{width:25px;height:25px}
-  .card-scene{inset:30px 0 65px;opacity:.17}
-  .lh-features{margin-top:14px;box-shadow:0 0 28px rgba(255,255,255,.6),0 10px 24px rgba(112,154,184,.13)}
-  .lh-card:hover{box-shadow:0 14px 33px rgba(84,151,184,.21),0 0 30px rgba(255,255,255,.9)}
-  @media(max-width:690px){.lh-home{background-size:auto,auto,auto,100% 100%}.lh-roles{gap:10px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:210px;padding:12px;border-radius:20px}.lh-card-copy h2{font-size:27px}.lh-top{min-height:70px}}
-  /* Clearer watercolor branding and less washed-out classroom. */
-  .lh-home{background:linear-gradient(145deg,rgba(255,250,246,.13),rgba(237,250,255,.13) 55%,rgba(255,245,251,.14)),url("/lahooni_classroom_ready.webp.png") center center / 100% 100% no-repeat!important}
-  .lh-home:after{opacity:.15!important}.lh-stage:before{opacity:.28!important}
-  .lh-main-title{background-image:linear-gradient(110deg,#f06b70 3%,#ff9e47 25%,#9253d7 46%,#278fce 69%,#20a88c 94%)!important;filter:drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 1px rgba(44,82,112,.3))!important}
-  .lh-smalltitle{color:#7541b0!important;background:rgba(255,255,255,.92)!important}
-  .lh-subtitle{color:#285d93!important;background:rgba(255,255,255,.92)!important;font-weight:900!important}
-  .lh-motto{color:#824a9c!important;font-weight:900!important}.lh-intro{color:#234f68!important;text-shadow:0 1px 3px #fff!important;font-weight:800!important}
-  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.75)!important;backdrop-filter:blur(4px)!important;border-color:#fff!important}
-  .lh-brand strong{color:#165477!important}.lh-brand small{color:#356b87!important}.lh-top-pill{color:#8448a2!important}
-  .lh-card,.lh-card.teacher,.lh-card.student{backdrop-filter:none!important;border-color:#fff!important}
-  .lh-card{background:linear-gradient(145deg,rgba(115,202,251,.88),rgba(194,231,255,.88))!important}
-  .lh-card.teacher{background:linear-gradient(145deg,rgba(255,151,150,.88),rgba(255,206,178,.89))!important}
-  .lh-card.student{background:linear-gradient(145deg,rgba(112,222,174,.88),rgba(192,245,207,.89))!important}
-  .lh-card:before{opacity:.27!important}.lh-card-copy h2{color:#164965!important}.lh-card-copy small,.lh-card-copy p{color:#285a75!important}
-  .lh-card-icon{background:rgba(255,255,255,.9)!important}.lh-enter{background:rgba(255,255,255,.95)!important;color:#164e72!important}
-  .lh-features{background:rgba(255,255,255,.75)!important;backdrop-filter:blur(3px)!important}
-  /* Soften the classroom photo while keeping the colorful portal tiles crisp. */
-  .lh-home{background:linear-gradient(145deg,rgba(255,250,247,.43),rgba(239,250,255,.44) 55%,rgba(255,245,251,.43)),url("/lahooni_classroom_ready.webp.png") center center / 100% 100% no-repeat!important}
-  @media(max-width:690px){.lh-home{background-size:auto,auto,auto,auto 76vh,auto;background-position:center,center,center,center top,center}}
-  @media(max-width:690px){.lh-main-title{font-size:clamp(43px,10vw,66px);letter-spacing:-1px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:255px;border-radius:24px}.lh-roles{gap:14px;margin-top:22px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}}
-  `}</style>
+
+  /* Unified home art direction: watercolor glass, crisp content and natural classroom backdrop. */
+  .lh-home{color:#214b65;background:linear-gradient(115deg,rgba(255,247,244,.30),rgba(237,250,255,.31) 55%,rgba(251,242,253,.30)),url("/lahooni_classroom_ready.webp.png") center center / cover no-repeat,#e8f3f8;background-attachment:scroll}
+  .lh-home:after{z-index:-1;opacity:.48;background:radial-gradient(ellipse at 14% 14%,rgba(255,197,171,.32),transparent 43%),radial-gradient(ellipse at 85% 26%,rgba(154,222,255,.23),transparent 45%)}
+  .lh-frame{width:min(1510px,100%);padding-inline:clamp(15px,3.5vw,52px)}
+  .lh-top{min-height:76px}
+  .lh-brand,.lh-top-pill{background:rgba(255,255,255,.83);border:1.5px solid rgba(255,255,255,.96);color:#365d7a;box-shadow:0 8px 20px rgba(45,93,125,.17),inset 0 1px 0 #fff;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+  .lh-brand{padding:7px 12px;border-radius:20px}.lh-brand img{width:50px;height:50px;border-radius:14px;border:2px solid #fff;box-shadow:0 3px 9px #2c618744}
+  .lh-brand strong{font-size:20px;color:#17516f}.lh-brand small{color:#52768c}.lh-top-pill{padding:10px 19px;color:#8045a5;font-weight:900}
+  .lh-stage{padding:4px 0 12px}.lh-stage:before{opacity:.35;background:radial-gradient(ellipse,rgba(255,224,233,.56),rgba(181,222,249,.25) 49%,transparent 76%);filter:blur(24px)}
+  .lh-stars{height:29px;margin-bottom:2px}.lh-stars .star-main{color:#ffb44e;text-shadow:0 2px 0 #fff,0 5px 15px #a7794c66}.lh-stars .star-side{color:#4c9db8}
+  .lh-smalltitle{padding:4px 21px;font-size:16px;color:#7843ad;background:rgba(255,255,255,.93);border:1.5px solid #fff;box-shadow:0 5px 14px #457aa42b}
+  .lh-main-title{font-size:clamp(50px,6.4vw,94px);line-height:1.28;letter-spacing:-1.5px;background:linear-gradient(110deg,#ee7776 4%,#ff9e4f 24%,#9c65d7 45%,#338ed1 67%,#1aa993 95%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:1px #ffffffa8;filter:drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 2px #4b72917a)}
+  .lh-subtitle{padding:4px 24px;font-size:clamp(24px,2.8vw,38px);font-weight:900;color:#286295;background:rgba(255,255,255,.92);border:1.5px solid #fff;border-radius:20px;box-shadow:0 5px 15px #497ca12e;text-shadow:none}
+  .lh-motto{margin:10px 0 4px;font-size:17px;font-weight:900;color:#844d9e;text-shadow:0 1px 2px #fff}
+  .lh-intro{font-size:14px;font-weight:850;color:#244e65;text-shadow:0 1px 3px #fff}
+  .lh-roles{gap:17px;margin-top:16px}
+  .lh-card,.lh-card.teacher,.lh-card.student{min-height:238px;padding:14px 17px;border:2px solid rgba(255,255,255,.97);border-radius:25px;box-shadow:0 15px 30px rgba(48,94,126,.23),inset 0 2px 0 rgba(255,255,255,.86);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);color:#244f69;transition:transform .18s ease,box-shadow .18s ease}
+  .lh-card{--accent:#438fd1;--glow:#78c6f5;background:linear-gradient(140deg,rgba(151,213,252,.95),rgba(211,239,255,.95))}
+  .lh-card.teacher{--accent:#cf7189;--glow:#ffb0bd;background:linear-gradient(140deg,rgba(255,178,178,.95),rgba(255,223,203,.95))}
+  .lh-card.student{--accent:#389f87;--glow:#8ce6bd;background:linear-gradient(140deg,rgba(137,225,189,.95),rgba(207,248,221,.95))}
+  .lh-card:before{opacity:.78;background:radial-gradient(circle at 13% 10%,rgba(255,255,255,.69),transparent 46%),radial-gradient(circle at 93% 88%,var(--glow),transparent 58%)}
+  .lh-card-head{min-height:45px}.lh-card-number{font-size:16px;color:var(--accent);opacity:1}.lh-card-icon{width:45px;height:45px;background:rgba(255,255,255,.86);border:1.5px solid #fff;border-radius:14px;color:var(--accent);box-shadow:0 4px 12px #346a8c24}.lh-card-icon svg{width:31px;height:31px}
+  .lh-card-copy h2{font-size:clamp(28px,2.6vw,37px);margin:0 0 2px;color:#194c67;text-shadow:0 1px 0 #fff}
+  .lh-card-copy small{font-size:12px;font-weight:900;color:#2b6880}.lh-card-copy p{font-size:12px;font-weight:750;color:#365c70;margin-bottom:10px}
+  .lh-enter{padding:7px 10px;font-size:13px;font-weight:900;border:1.5px solid #fff;border-radius:13px;background:rgba(255,255,255,.95);color:#164d6d;box-shadow:0 4px 12px #275b7e2b}
+  .lh-enter b{width:27px;height:27px;color:#fff;background:var(--accent)}
+  .card-scene{inset:32px 0 60px;opacity:.34;filter:drop-shadow(0 4px 7px #32617d2c)}
+  .lh-card:hover,.lh-card:focus-visible{transform:translateY(-4px);box-shadow:0 19px 38px rgba(48,94,126,.27),0 0 19px #ffffff99}
+  .lh-features{margin-top:16px;background:rgba(255,255,255,.87);border:1.5px solid #fff;border-radius:22px;box-shadow:0 12px 25px #3165842b;backdrop-filter:blur(7px)}
+  .lh-feature{padding-block:15px}.lh-feature i{color:#bb8333;filter:drop-shadow(0 1px 2px #b98a3b44)}
+  .lh-feature strong{color:#24536c;font-size:13px}.lh-feature small{color:#4a7287;font-size:12px}.lh-foot{color:#456c80}
+  @media(max-width:1000px){.lh-roles{gap:12px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:235px;padding:13px}.lh-card-copy h2{font-size:30px}}
+  @media(max-width:690px){.lh-home{background:linear-gradient(115deg,rgba(255,248,245,.34),rgba(239,250,255,.32)),url("/lahooni_classroom_ready.webp.png") center top / auto 100vh no-repeat,#e8f3f8}.lh-top{min-height:70px}.lh-brand strong{font-size:15px}.lh-brand img{width:42px;height:42px}.lh-top-pill{padding:8px 11px}.lh-stage{padding:16px 0 12px}.lh-main-title{font-size:clamp(43px,10vw,65px);letter-spacing:-1px}.lh-motto{font-size:14px}.lh-intro{font-size:12px}.lh-roles{gap:12px;margin-top:15px}.lh-card,.lh-card.teacher,.lh-card.student{min-height:226px;padding:13px;border-radius:21px}.lh-card-copy h2{font-size:29px}.lh-features{margin-top:12px}}
+`}</style>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
     <section className="lh-stage" aria-label="بوابة أستاذ لحوني التعليمية"><div className="lh-book lh-stars" aria-hidden="true"><span className="star-side">✧</span><span className="star-main">✦</span><span className="star-side">✧</span></div><div className="lh-smalltitle">بوابة</div><h1 className="lh-main-title">أستاذ لحوني</h1><div className="lh-subtitle">التعليمية</div><p className="lh-motto">تعليم أكثر تنظيمًا · متابعة أكثر أثرًا</p><p className="lh-intro">منظومة تعليمية تجمع الإدارة والمعلم والطالب وولي الأمر في تجربة واحدة، لتطوير التعلم ومتابعة الإنجاز.</p></section>
