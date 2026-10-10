@@ -166,17 +166,51 @@ export async function GET(request: Request) {
   timetableHistory?.docs?.forEach((doc:any) => { const data=(doc.data()||{}) as HistoricalTimetable; addLessonsToHistory(data.lessons); });
 
   const expectedWeekdays = timetableWeekdays.size ? timetableWeekdays : new Set<number>(SCHOOL_WEEKDAYS);
-  // Counts shown in the app must match teacher-saved attendance exactly.
-  // Do not invent automatic present days that were never saved by the teacher.
-  const attendanceSource = "teacher_saved_attendance";
+  const attendanceSource = "teacher_saved_with_scheduled_default";
   const counts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: 0 };
-  let latestDate = "";
-  const automaticPresent = 0;
-  explicitEntries.forEach(entry => { counts[entry.status] += 1; counts.total += 1; if (entry.date > latestDate) latestDate = entry.date; });
   const today = riyadhDateInput(new Date());
-  // The teacher attendance page shows one selected day's roster counts. Expose the same
-  // cloud-saved day explicitly so web/mobile/app never compare a cumulative total to a daily total.
+  const startDate = "2026-08-23";
+  const recordedSlots = new Set<string>();
+  const historicalSlots = new Map<number, number[]>();
+  for (const [key, periods] of historicalPeriods) {
+    const [className, day] = key.split("|");
+    if (className !== studentClass) continue;
+    const weekday = Number(day);
+    historicalSlots.set(weekday, [...new Set([...(historicalSlots.get(weekday) || []), ...periods])]);
+  }
+  const currentSlots = new Map<number, number[]>();
+  timetableLessons.forEach(lesson => currentSlots.set(lesson.dayIndex, [...new Set([...(currentSlots.get(lesson.dayIndex) || []), lesson.period])]));
+  const slotsByDay = new Map<number, number[]>();
+  for (const weekday of SCHOOL_WEEKDAYS) {
+    const periods = currentSlots.get(weekday)?.length ? currentSlots.get(weekday)! : historicalSlots.get(weekday) || [];
+    if (periods.length) slotsByDay.set(weekday, periods);
+  }
   const attendanceEvents = explicitEntries.filter(entry=>entry.status!=="present").sort((a,b)=>b.date.localeCompare(a.date)||Number(a.period||0)-Number(b.period||0)).map(entry=>{ const weekday=dateObject(entry.date).getUTCDay(); const historical=historicalPeriods.get(`${entry.className||studentClass}|${weekday}`)||[]; const current=timetableLessons.filter(lesson=>lesson.dayIndex===weekday).map(lesson=>lesson.period); const candidates=[...new Set([...historical,...current])].sort((a,b)=>a-b); const timetablePeriod=entry.period||(candidates.length===1?candidates[0]:undefined); return {date:entry.date,status:entry.status,period:timetablePeriod||null}; });
+  let latestDate = "";
+  // Teacher edits take precedence over automatically calculated attendance, including older dates.
+  for (const entry of explicitEntries) {
+    const weekday = dateObject(entry.date).getUTCDay();
+    const periods = slotsByDay.get(weekday) || [];
+    const period = entry.period || (periods.length === 1 ? periods[0] : 0);
+    const slot = `${entry.date}|${period || "day"}`;
+    if (recordedSlots.has(slot)) continue;
+    recordedSlots.add(slot);
+    counts[entry.status]++; counts.total++;
+    if (entry.date > latestDate) latestDate = entry.date;
+  }
+  let automaticPresent = 0;
+  if (slotsByDay.size && today >= startDate) {
+    for (let cursor = dateObject(startDate); riyadhDateInput(cursor) <= today; cursor = new Date(cursor.getTime() + 86400000)) {
+      const date = riyadhDateInput(cursor);
+      const periods = slotsByDay.get(cursor.getUTCDay()) || [];
+      for (const period of periods) {
+        if (recordedSlots.has(`${date}|${period}`) || recordedSlots.has(`${date}|day`)) continue;
+        automaticPresent++;
+      }
+    }
+  }
+  counts.present += automaticPresent;
+  counts.total += automaticPresent;
   const latestEntry = latestDate ? explicitEntries.filter(entry=>entry.date===latestDate).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0] : undefined;
   const latestDayCounts = { present: 0, absent: 0, late: 0, excused: 0, escaped: 0, total: latestEntry ? 1 : 0 };
   if (latestEntry) latestDayCounts[latestEntry.status] = 1;
