@@ -93,7 +93,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <span><b>أستاذ لحوني</b><small>بوابة المعلم التعليمية</small></span>
         </Link>
         <div className="tss-side-profile" aria-label="هوية المعلم والمادة">
-          <div className="tss-side-profile-mark" aria-hidden="true"><img src="/icons/teacher-cartoon-avatar.svg" alt="" width="46" height="46" decoding="async" /></div>
+          <div className="tss-side-profile-mark" aria-hidden="true"><img src="/icons/teacher-avatar.png.png" alt="" width="46" height="46" decoding="async" /></div>
           <div className="tss-side-profile-copy"><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"مساحة المعلم التعليمية"}</small></div>
         </div>
         <nav className="tss-nav">{navGroups.map(group=><section className="tss-nav-group" key={group.title} aria-label={group.title}><div className="tss-nav-group-title">{group.title}</div>{group.tabs.map(tab=>{const active=pathname.startsWith(tab.href);return <Link prefetch={false} key={tab.href} href={tab.href} className={active?"active":""} aria-current={active?"page":undefined} onClick={()=>setMenuOpen(false)}><TabIcon type={tab.key}/><span><b>{tab.label}</b><small>{tab.note}</small></span>{tab.badge?<em className="tss-nav-badge">{tab.badge}</em>:null}</Link>})}</section>)}</nav>
@@ -102,7 +102,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       <button type="button" className="tss-backdrop" aria-label="إغلاق القائمة" onClick={()=>setMenuOpen(false)}/>
       <main className="tss-main">
         <header className="tss-head tss-head-reference">
-          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><img src="/icons/teacher-cartoon-avatar.svg" alt="" width="46" height="46" /></div><div><h1>أ. {cleanTeacherName}</h1><p>معلم {subjectName}</p></div></div>
+          <div className="tss-teacher-identity"><div className="tss-reference-avatar" aria-label="هوية المعلم"><img src="/icons/teacher-avatar.png.png" alt="" width="46" height="46" /></div><div><h1>أ. {cleanTeacherName}</h1><p>معلم {subjectName}</p></div></div>
           <div className="tss-reference-date"><span className="tss-date-icon">▣</span><div><strong>{todayLabel}</strong><small>بوابة المعلم التعليمية</small></div></div>
           <div className="tss-reference-actions"><button type="button" className="tss-mobile-menu" onClick={()=>setMenuOpen(v=>!v)}>القائمة</button></div>
         </header>
