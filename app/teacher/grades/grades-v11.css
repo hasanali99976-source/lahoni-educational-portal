@@ -40,3 +40,21 @@
 .teacher-student-shell .grades-v11 .gv11-gradebook .deduction-quick{display:none}.teacher-student-shell .grades-v11 .gv11-gradebook .empty{padding:20px}.teacher-student-shell .grades-v11 .gv11-gradebook>footer{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;font-size:11px;color:#456d89!important}
 @media(max-width:1100px){.teacher-student-shell .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.teacher-student-shell .grades-v11 .gv11-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.teacher-student-shell .grades-v11 .gv11-controlbar{flex-wrap:wrap}.teacher-student-shell .grades-v11 .gv11-gradebook table{min-width:1080px}}
 @media(max-width:650px){.teacher-student-shell .grades-v11 .gv11-section-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-student-shell .grades-v11 .gv11-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-student-shell .grades-v11 .gv11-controlbar{flex-direction:column;align-items:stretch}.teacher-student-shell .grades-v11 .gv11-class-control{display:grid;grid-template-columns:1fr}.teacher-student-shell .grades-v11 .gv11-class-control select,.teacher-student-shell .grades-v11 .gv11-class-control input{width:100%;min-width:0}.teacher-student-shell .grades-v11 .gv11-main-actions>*{flex:1}.teacher-student-shell .grades-v11 .gv11-gradebook th.name,.teacher-student-shell .grades-v11 .gv11-gradebook td.name{min-width:175px}.teacher-student-shell .grades-v11 .gv11-gradebook>footer{flex-direction:column}}
+
+/* Final isolated gradebook layout: no legacy dark strips, cropped unit titles or crushed student names. */
+.teacher-student-shell .grades-v11 .gv11-planbar,
+.teacher-student-shell .grades-v11 .gv11-controlbar,
+.teacher-student-shell .grades-v11 .gv11-gradebook{overflow:visible!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook{overflow:hidden!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook>header{background:rgba(235,247,255,.96)!important;color:#153c62!important;min-height:62px}
+.teacher-student-shell .grades-v11 .gv11-gradebook>header :is(h2,p,small,strong,b,span){color:#153c62!important;text-shadow:none!important;opacity:1!important}
+.teacher-student-shell .grades-v11 .gv11-section-tabs button{height:auto!important;min-height:90px!important;overflow:visible!important;align-content:center!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto!important}
+.teacher-student-shell .grades-v11 .gv11-section-tabs button>b{display:block!important;min-width:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.45!important;font-size:13px!important;overflow-wrap:break-word!important}
+.teacher-student-shell .grades-v11 .gv11-section-tabs button>span{display:block!important;min-width:0!important;white-space:normal!important;overflow:visible!important;line-height:1.5!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook td.name{width:290px!important;min-width:290px!important;max-width:none!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook th.name{width:290px!important;min-width:290px!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook td.name b{display:block!important;white-space:normal!important;line-height:1.6!important;overflow-wrap:normal!important;word-break:normal!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook td.name small{white-space:normal!important;line-height:1.45!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook table{table-layout:auto!important}
+.teacher-student-shell .grades-v11 .gv11-gradebook td{height:50px!important}
+@media(max-width:650px){.teacher-student-shell .grades-v11 .gv11-gradebook td.name,.teacher-student-shell .grades-v11 .gv11-gradebook th.name{width:195px!important;min-width:195px!important}}
