@@ -170,7 +170,20 @@ export default function HomePage(){
     .lh-features{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
   @media(max-width:390px){.lh-top-pill{font-size:9px}.lh-brand strong{font-size:13px}.lh-main-title{font-size:37px}.lh-card-copy h2{font-size:27px}}
-`}</style>
+`}
+  /* Homepage clarity and responsive height correction */
+  .lh-home{min-height:100dvh;overflow-x:hidden;overflow-y:visible;background:linear-gradient(180deg,rgba(4,21,32,.72),rgba(4,25,37,.82) 58%,rgba(3,18,29,.93)),url("/lahooni-home-new.png.png") center top / cover no-repeat fixed}
+  .lh-stage{padding-top:12px;padding-bottom:20px}
+  .lh-main-title,.lh-subtitle,.lh-motto,.lh-intro{position:relative;z-index:2}
+  .lh-card{background:linear-gradient(145deg,rgba(5,48,72,.94),rgba(3,27,43,.97));min-height:275px}
+  .lh-card.teacher{background:linear-gradient(145deg,rgba(87,50,31,.94),rgba(42,27,28,.97))}
+  .lh-card.student{background:linear-gradient(145deg,rgba(5,81,72,.94),rgba(2,39,43,.97))}
+  .lh-card-copy,.lh-card-head,.lh-enter{position:relative;z-index:2}
+  .lh-card-copy p,.lh-intro{color:#fff;opacity:1;text-shadow:0 2px 5px rgba(0,0,0,.55)}
+  .card-scene{opacity:.17}
+  .lh-features{background:rgba(3,24,37,.94)}
+  @media(max-width:690px){.lh-home{background:linear-gradient(180deg,rgba(4,21,32,.82),rgba(4,25,37,.89)),url("/lahooni-home-new.png.png") center top / auto 100vh no-repeat fixed}.lh-stage{padding:18px 0}.lh-roles{grid-template-columns:1fr}.lh-card{min-height:235px}.lh-card-copy p{font-size:12px}.lh-features{margin-bottom:18px}}
+</style>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
     <section className="lh-stage" aria-label="بوابة أستاذ لحوني التعليمية"><div className="lh-book lh-stars" aria-hidden="true"><span className="star-side">✧</span><span className="star-main">✦</span><span className="star-side">✧</span></div><div className="lh-smalltitle">بوابة</div><h1 className="lh-main-title">أستاذ لحوني</h1><div className="lh-subtitle">التعليمية</div><p className="lh-motto">تعليم أكثر تنظيمًا · متابعة أكثر أثرًا</p><p className="lh-intro">منظومة تعليمية تجمع الإدارة والمعلم والطالب وولي الأمر في تجربة واحدة، لتطوير التعلم ومتابعة الإنجاز.</p></section>
