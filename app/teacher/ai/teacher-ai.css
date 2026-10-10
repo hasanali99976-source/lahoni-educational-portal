@@ -139,3 +139,63 @@
  .teacher-ai-page .plan-students-table tr{break-inside:avoid!important}
  .teacher-ai-page .plan-students-table thead{display:table-header-group!important}
 }
+
+
+/* Premium academic report: clear hierarchy, purposeful color, compact register */
+.teacher-ai-page .generated-plan{direction:rtl;border-radius:18px!important;background:#fff!important;overflow:hidden}
+.teacher-ai-page .generated-plan>header{position:relative;display:flex;align-items:center;gap:16px;padding:24px 26px!important;border:0!important;background:linear-gradient(115deg,#123f60 0%,#136e89 58%,#168e82 100%)!important;color:white!important}
+.teacher-ai-page .generated-plan>header:before{content:"";position:absolute;right:0;top:0;bottom:0;width:7px;background:#f3bb53}
+.teacher-ai-page .generated-plan>header span{display:inline-block;padding:5px 12px;border-radius:30px;background:#ffffff29;color:#fff!important;font-size:12px;letter-spacing:.1px}
+.teacher-ai-page .generated-plan>header h2{color:#fff!important;font-size:clamp(20px,2vw,26px)!important;line-height:1.5;margin:9px 0 5px!important}
+.teacher-ai-page .generated-plan>header p{color:#e1f5f6!important;font-size:13px}
+.teacher-ai-page .generated-plan .plan-meta{gap:12px;margin:18px 22px 8px}
+.teacher-ai-page .generated-plan .plan-meta article{background:#f0f7fc!important;border:1px solid #c8e1ec!important;border-radius:12px;padding:13px 16px;box-shadow:none}
+.teacher-ai-page .generated-plan .plan-meta article:first-child{background:#e9f6f0!important;border-color:#c0e6d5!important}
+.teacher-ai-page .generated-plan .plan-meta b{color:#12567b!important;font-size:14px}
+.teacher-ai-page .generated-plan .plan-meta p{color:#35566a!important;font-size:13px;line-height:1.65}
+.teacher-ai-page .generated-plan>.ai-part-title,.teacher-ai-page .generated-plan .ai-part-title{margin:19px 22px 8px!important;border:0!important;border-right:6px solid #167e99!important;border-radius:8px!important;padding:10px 16px!important;background:linear-gradient(90deg,#f0f8fc,#d9eef7)!important;color:#124e70!important;font-size:17px!important;font-weight:900}
+.teacher-ai-page .generated-plan .ai-enrichment-section .ai-part-title{background:linear-gradient(90deg,#f1faf5,#d9f2e4)!important;border-right-color:#15856b!important;color:#126a53!important}
+.teacher-ai-page .generated-plan .plan-steps,.teacher-ai-page .generated-plan .plan-schedule{margin:12px 22px 16px!important}
+.teacher-ai-page .generated-plan .plan-steps{gap:9px}
+.teacher-ai-page .generated-plan .plan-steps>h3,.teacher-ai-page .generated-plan .plan-schedule>h3{margin:0 0 5px!important;font-size:14px!important;color:#135775!important}
+.teacher-ai-page .generated-plan .plan-steps article{display:grid;grid-template-columns:33px minmax(0,1fr);gap:12px;align-items:start;padding:12px 14px!important;border:1px solid #cfe3ec!important;border-right:4px solid #148a9b!important;border-radius:11px!important;background:#f8fcfe!important;box-shadow:none}
+.teacher-ai-page .generated-plan .plan-steps em{width:30px;height:30px;border-radius:9px;background:#176e91!important;font-size:14px}
+.teacher-ai-page .generated-plan .plan-steps article b{color:#164a67!important;font-size:14px}
+.teacher-ai-page .generated-plan .plan-steps article p{color:#385a6c!important;font-size:12px;line-height:1.7}
+.teacher-ai-page .generated-plan .plan-schedule{background:#f0f7fb!important;border:1px solid #cbdfe9!important;border-radius:12px;padding:12px 15px!important}
+.teacher-ai-page .generated-plan .plan-schedule span{grid-template-columns:85px 1fr;align-items:center;padding:8px 6px!important;font-size:12px}
+.teacher-ai-page .generated-plan .plan-schedule span b{color:#176a87!important}
+.teacher-ai-page .generated-plan .ai-enrichment-section{border:0;margin-top:10px;padding-top:0}
+.teacher-ai-page .generated-plan .ai-enrichment-section .plan-steps article{border-right-color:#1b9878!important;background:#f7fcf9!important}
+.teacher-ai-page .generated-plan .ai-enrichment-section .plan-steps em{background:#19826a!important}
+.teacher-ai-page .generated-plan .ai-report-student-register{margin:24px 22px!important;padding-top:16px;border-top:2px solid #bddae7}
+.teacher-ai-page .generated-plan .ai-report-student-register>h3{margin:0 0 12px!important;border:0!important;border-right:6px solid #167e99!important;background:#e4f2fa!important;color:#125474!important;font-size:16px!important}
+.teacher-ai-page .generated-plan .plan-students-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;direction:rtl;border:1px solid #bad6e5;border-radius:10px;overflow:hidden;font-size:12px}
+.teacher-ai-page .generated-plan .plan-students-table th{background:#166b88!important;color:#fff!important;font-weight:900!important;padding:10px!important;border-color:#35859d!important}
+.teacher-ai-page .generated-plan .plan-students-table td{background:#fff!important;color:#24465c!important;padding:8px 10px!important;border-color:#d6e7ef!important}
+.teacher-ai-page .generated-plan .plan-students-table tbody tr:nth-child(even) td{background:#f0f7fb!important}
+.teacher-ai-page .generated-plan .plan-students-table th:nth-child(1),.teacher-ai-page .generated-plan .plan-students-table td:nth-child(1){width:42px;text-align:center}
+.teacher-ai-page .generated-plan .plan-students-table th:nth-child(3),.teacher-ai-page .generated-plan .plan-students-table td:nth-child(3){width:25%}
+.teacher-ai-page .generated-plan .plan-students-table th:nth-child(4),.teacher-ai-page .generated-plan .plan-students-table td:nth-child(4){width:105px;text-align:center;font-weight:900}
+@media print{
+ @page{size:A4 portrait;margin:12mm}
+ html,body,.teacher-student-shell,.teacher-student-shell .tss-main,.teacher-student-shell .tss-content,.teacher-ai-page{background:#fff!important;background-image:none!important}
+ .teacher-ai-page .generated-plan{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .teacher-ai-page .generated-plan>header{padding:14px 17px!important;border-radius:0!important;break-inside:avoid}
+ .teacher-ai-page .generated-plan>header h2{font-size:18px!important}
+ .teacher-ai-page .generated-plan>header p{font-size:10px!important}
+ .teacher-ai-page .generated-plan .plan-meta{margin:12px 0 7px!important;gap:8px!important}
+ .teacher-ai-page .generated-plan .plan-meta article{padding:9px 11px!important}
+ .teacher-ai-page .generated-plan .ai-part-title{margin:12px 0 7px!important;padding:7px 11px!important;font-size:14px!important;break-after:avoid}
+ .teacher-ai-page .generated-plan .plan-steps,.teacher-ai-page .generated-plan .plan-schedule{margin:8px 0 10px!important;gap:6px!important}
+ .teacher-ai-page .generated-plan .plan-steps article{padding:7px 9px!important;break-inside:avoid}
+ .teacher-ai-page .generated-plan .plan-steps em{width:25px;height:25px}
+ .teacher-ai-page .generated-plan .plan-schedule{padding:8px 11px!important}
+ .teacher-ai-page .generated-plan .plan-schedule span{padding:5px!important}
+ .teacher-ai-page .generated-plan .ai-report-student-register{break-before:page!important;margin:0!important;padding:0!important;border:0!important}
+ .teacher-ai-page .generated-plan .plan-students-table{font-size:10px!important}
+ .teacher-ai-page .generated-plan .plan-students-table th{padding:7px!important;background:#166b88!important;color:white!important}
+ .teacher-ai-page .generated-plan .plan-students-table td{padding:5px 7px!important}
+ .teacher-ai-page .generated-plan .plan-students-table thead{display:table-header-group!important}
+ .teacher-ai-page .generated-plan .plan-students-table tr{break-inside:avoid!important}
+}
