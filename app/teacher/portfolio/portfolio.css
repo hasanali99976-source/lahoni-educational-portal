@@ -518,3 +518,40 @@
  .portfolio-page :is(.portfolio-command,.portfolio-library,.portfolio-settings){min-width:0}
  .portfolio-page :is(input,textarea,select){max-width:100%;min-width:0}
 }
+
+/* Compact colorful achievement navigation and streamlined builder */
+@media screen {
+.portfolio-page .portfolio-dashboard{gap:12px!important}
+.portfolio-page .portfolio-dashboard article{
+  min-height:104px!important;padding:14px 17px!important;border-radius:17px!important;
+  box-shadow:0 5px 16px rgba(22,78,110,.10)!important;
+  border:1px solid rgba(56,130,171,.16)!important;
+}
+.portfolio-page .portfolio-dashboard article:nth-child(4n+1){background:linear-gradient(125deg,#d5f6e9,#a8e7d2)!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n+2){background:linear-gradient(125deg,#d9edff,#b5d9fc)!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n+3){background:linear-gradient(125deg,#fff0c9,#f9d994)!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n){background:linear-gradient(125deg,#e9ddff,#d4bdf5)!important}
+.portfolio-page .portfolio-dashboard article:before{width:5px!important}
+.portfolio-page .portfolio-dashboard span{font-size:14px!important;color:#295269!important}
+.portfolio-page .portfolio-dashboard strong{font-size:25px!important;line-height:1.2!important;margin:6px 0!important;color:#13445d!important}
+.portfolio-page .portfolio-dashboard small{font-size:12px!important;color:#45677a!important}
+.portfolio-page .portfolio-hero{min-height:185px!important;padding:24px 30px!important;grid-template-columns:minmax(0,1fr) 150px!important}
+.portfolio-page .portfolio-hero h1{font-size:clamp(26px,3vw,39px)!important;line-height:1.3!important}
+.portfolio-page .portfolio-hero-score{min-height:125px!important;padding:14px!important;border-radius:18px!important}
+.portfolio-page .portfolio-hero-score strong{font-size:40px!important}
+.portfolio-page .achievement-builder>header{padding:16px 22px!important}
+.portfolio-page .achievement-builder>header h2{font-size:24px!important}
+.portfolio-page .achievement-builder form{padding:17px 20px!important;gap:11px!important}
+.portfolio-page .portfolio-command{padding:17px 21px!important}
+.portfolio-page .portfolio-command h2{font-size:23px!important}
+}
+@media screen and (max-width:700px){
+.portfolio-page .portfolio-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+.portfolio-page .portfolio-dashboard article{min-height:95px!important;padding:12px!important}
+.portfolio-page .portfolio-dashboard strong{font-size:21px!important}
+.portfolio-page .portfolio-hero{grid-template-columns:1fr!important;padding:19px!important}
+.portfolio-page .portfolio-hero h1{font-size:27px!important}
+.portfolio-page .portfolio-hero-score{min-height:90px!important}
+.portfolio-page .achievement-builder form{padding:14px!important}
+.portfolio-page .portfolio-command{padding:15px!important}
+}
