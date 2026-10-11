@@ -907,7 +907,7 @@ export default function PortfolioPage() {
           </div>
         </div>
         <section className="portfolio-print-cover print-page">
-          <div className="print-cover-brand">
+          <div className="print-cover-illustration" aria-hidden="true"><span className="print-cover-sun" /><span className="print-cover-arch print-cover-arch-one" /><span className="print-cover-arch print-cover-arch-two" /><span className="print-cover-book" /></div><div className="print-cover-brand">
             <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني" />
             <div><span>بوابة أستاذ لحوني التعليمية</span><small>سجل التوثيق والتميز المهني</small></div>
           </div>
@@ -936,7 +936,7 @@ export default function PortfolioPage() {
             <article><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجال مهني</span></article>
             <article><strong>{arabicNumber(summary.months)}</strong><span>أشهر موثقة</span></article>
           </div>
-          <div className="print-summary-visual"><span className="print-summary-mark">✦</span><div><b>رحلة التميّز المهني</b><small>من التخطيط إلى الممارسة، ومن الشاهد إلى الأثر</small></div><div className="print-summary-mini"><strong>{arabicNumber(achievements.length)}</strong><small>إنجازات موثقة</small></div></div>
+          <div className="print-report-visual"><span className="print-report-visual-orbit">✦</span><div><strong>رحلة إنجاز مهني موثقة</strong><small>ممارسات • مبادرات • شواهد • أثر</small></div></div><div className="print-summary-visual"><span className="print-summary-mark">✦</span><div><b>رحلة التميّز المهني</b><small>من التخطيط إلى الممارسة، ومن الشاهد إلى الأثر</small></div><div className="print-summary-mini"><strong>{arabicNumber(achievements.length)}</strong><small>إنجازات موثقة</small></div></div>
           <div className="print-impact-banner">
             <span>بصمة الإنجاز</span>
             <strong>{achievements.length ? `مسار مهني يبرز قوته في ${summary.topCategory}` : "مسار مهني قيد البناء"}</strong>
@@ -950,7 +950,7 @@ export default function PortfolioPage() {
 
         <section className="portfolio-print-index print-page">
           <header className="print-section-header"><span>٠٢</span><div><small>تنظيم تلقائي</small><h2>فهرس الإنجازات</h2></div></header>
-          <div className="print-design-label">سجل الإنجازات حسب التسلسل الزمني</div>
+          <div className="print-index-intro"><strong>فهرس الإنجازات المهنية</strong><span>مرتّب من الأقدم إلى الأحدث، مع رقم الصفحة لكل إنجاز</span></div><div className="print-design-label">سجل الإنجازات حسب التسلسل الزمني</div>
           <div className="print-index-table" role="table" aria-label="فهرس الإنجازات">
             <div className="print-index-table-head" role="row"><span>م</span><span>عنوان الإنجاز</span><span>المجال</span><span>التاريخ</span><span>الصفحة</span></div>
             {achievements.map((item, index) => (
