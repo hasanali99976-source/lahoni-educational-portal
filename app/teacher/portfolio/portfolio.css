@@ -276,6 +276,6 @@
 .print-index-chart-track{height:11px;background:#e5f0f0;border-radius:7px;overflow:hidden}.print-index-chart-fill{display:block;height:100%;background:#0b8091;border-radius:7px}
 .print-index-chart-color-1{background:#1ba99d}.print-index-chart-color-2{background:#c7a15e}.print-index-chart-color-3{background:#5a77bd}.print-index-chart-color-4{background:#b77c95}
 .print-index-chart-row b{font-size:10px;text-align:center}.print-index-dashboard-caption{font-size:9px!important;line-height:1.4!important}
-.portfolio-print-index .print-index-table-head,.portfolio-print-index .print-index-table-row{grid-template-columns:22px minmax(0,1fr) 85px 78px 32px!important;gap:7px!important;min-height:37px!important;padding:7px 8px!important}
-.portfolio-print-index .print-index-title{font-size:10px!important;line-height:1.4!important;max-height:2.8em;overflow:hidden}
-.portfolio-print-index .print-index-category,.portfolio-print-index .print-index-date{font-size:9px!important}
+
+
+
