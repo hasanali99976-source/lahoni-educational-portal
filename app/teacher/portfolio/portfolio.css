@@ -324,6 +324,84 @@
  .print-achievement-conclusion{min-height:25mm!important}
  .print-reflection-footer{padding:5mm!important}
 }
+
+/* 2026 reference edition: heritage illustration, bold teal chapter ribbons, real evidence galleries. */
+.portfolio-print-document .print-page{background:#f7fcfd url("/portfolio/report-heritage.svg") center center/100% 100% no-repeat!important;border-top:0!important;padding:17mm 15mm 13mm!important;gap:13px!important}
+.portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final){background:#f8fcfd url("/portfolio/report-heritage.svg") center center/100% 100% no-repeat!important}
+.portfolio-print-document .print-page .print-section-header{position:relative!important;min-height:58px!important;padding:8px 16px!important;border:0!important;border-radius:10px 0 0 10px!important;background:linear-gradient(95deg,#0c4569 0%,#0b6881 60%,#0db4b0 100%)!important;box-shadow:0 6px 12px #09516a24!important;flex-direction:row-reverse!important;justify-content:space-between!important}
+.portfolio-print-document .print-page .print-section-header>span{background:#fff!important;color:#0b6d84!important;border-radius:12px!important;width:46px!important;height:46px!important}
+.portfolio-print-document .print-page .print-section-header h2{color:white!important;font-size:24px!important}
+.portfolio-print-document .print-page .print-section-header small{color:#d5f3f4!important}
+.portfolio-print-document .print-page .print-section-header>div{flex:1!important}
+.portfolio-print-document .portfolio-print-cover{background:#f7fcfd url("/portfolio/report-heritage.svg") center/100% 100% no-repeat!important}
+.portfolio-print-document .portfolio-print-cover::before,.portfolio-print-document .portfolio-print-cover::after{content:none!important}
+.portfolio-print-document .print-cover-emblem{display:none!important}
+.portfolio-print-document .print-cover-brand{background:#ffffffdc!important;border-radius:13px!important;border:1px solid #c5e4e8!important;align-self:center!important}
+.portfolio-print-document .print-cover-center{background:#ffffffd9!important;border-radius:25px!important;padding:24px!important;gap:15px!important;flex:1!important}
+.portfolio-print-document .print-cover-center h1{font-size:60px!important;color:#0a3f60!important;line-height:1.25!important}
+.portfolio-print-document .print-cover-center p{font-size:16px!important;color:#245d75!important}
+.portfolio-print-document .print-cover-badges b{box-shadow:0 5px 14px #124e6425!important;border:0!important;background:#fff!important;padding:12px 17px!important}
+.portfolio-print-document .portfolio-print-cover dl{background:#fffffff2!important;padding:14px!important;border-radius:18px!important;box-shadow:0 10px 24px #0d4e6520!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.portfolio-print-document .portfolio-print-cover dl div{background:transparent!important;border:0!important;border-left:1px solid #d4e5e8!important;padding:8px!important}
+.portfolio-print-document .portfolio-print-cover dl div:last-child{border-left:0!important}
+.portfolio-print-document .portfolio-print-cover dl dd{font-size:13px!important;overflow-wrap:anywhere!important}
+.portfolio-print-document .print-cover-ribbon{background:#0d526c!important;color:white!important}
+.portfolio-print-document .print-cover-ribbon strong{color:white!important}
+.portfolio-print-document .portfolio-print-cover footer{color:#0b5570!important;font-weight:800!important}
+.portfolio-print-document .print-stat-grid article{background:#fffffff0!important;border:1px solid #d2e9ec!important;box-shadow:0 4px 14px #0e597013!important}
+.portfolio-print-document .print-narrative{background:#fffffff0!important;box-shadow:0 4px 16px #0c547018!important}
+.portfolio-print-document .print-index-list>div{background:#ffffffed!important;border-radius:9px!important;border-bottom:2px solid #d6e9ec!important}
+.portfolio-print-document .print-index-art{background:#ffffffeb!important}
+.portfolio-print-document .print-category-bars{background:#ffffffee!important}
+.portfolio-print-document .print-editorial-quote{background:#fffffff2!important}
+.portfolio-print-gallery .print-gallery-intro{background:#ffffffe8;padding:10px 16px!important;border-radius:9px!important;font-size:12px!important}
+.print-gallery-list{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+.print-gallery-entry{display:flex;flex-direction:column;gap:7px;min-height:0;flex:1;padding:10px 13px;background:#ffffffef;border:1px solid #d7e8e9;border-radius:13px;box-shadow:0 3px 14px #15475e17;overflow:hidden}
+.print-gallery-entry-head{display:flex;align-items:center;gap:10px}
+.print-gallery-entry-head b{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:9px;background:#0b9a9b;color:white;font-size:17px}
+.print-gallery-entry-head strong{font-size:16px;color:#0b4868;flex:1}
+.print-gallery-entry-head span{font-size:11px;color:#547a8b}
+.print-gallery-entry-detail{display:flex;gap:10px;align-items:center}
+.print-gallery-entry-detail>span{background:#e4f6f3;color:#0d7c7f;border-radius:14px;padding:4px 10px;font-size:11px;white-space:nowrap}
+.print-gallery-entry-detail p{font-size:11px!important;line-height:1.5!important;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.print-gallery-photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;min-height:0;flex:1;max-height:130px}
+.print-gallery-photo{display:flex;align-items:center;justify-content:center;min-height:0;background:#f1f7f8;border:1px solid #c7e0e4;border-radius:10px;overflow:hidden}
+.print-gallery-photo img{width:100%!important;height:100%!important;max-height:128px!important;object-fit:contain!important;display:block!important}
+.print-gallery-no-photo{display:flex;align-items:center;justify-content:center;min-height:70px;max-height:105px;background:#eaf5f5;border-radius:10px;color:#346c7c;font-size:12px;text-align:center;padding:10px}
+.print-gallery-impact{font-size:11px;color:#366478;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.print-gallery-impact strong{color:#0b6576}
+.portfolio-print-initiatives>h3{font-size:17px!important;color:#0c526e!important;padding:5px 0!important}
+.print-initiatives-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.print-initiatives-tiles article{min-height:108px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:9px;text-align:center;padding:12px 7px;background:#fffffff0;border:1px solid #d3e7eb;border-radius:13px}
+.print-initiatives-tiles b{width:35px;height:35px;display:grid;place-items:center;border-radius:10px;background:#0a8195;color:white}
+.print-initiatives-tiles article:nth-child(2) b{background:#13a89a}
+.print-initiatives-tiles article:nth-child(3) b{background:#c69d4d}
+.print-initiatives-tiles article:nth-child(4) b{background:#775cb1}
+.print-initiatives-tiles strong{font-size:12px;color:#0b526a}
+.print-initiatives-tiles span{font-size:11px;color:#668b98}
+.print-initiatives-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.print-initiatives-metrics article{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 8px;border-radius:13px;background:#eaf6fa;border:1px solid #d6e9ed}
+.print-initiatives-metrics article:nth-child(2){background:#e8f7f0}
+.print-initiatives-metrics article:nth-child(3){background:#fff4e3}
+.print-initiatives-metrics article:nth-child(4){background:#f0eafd}
+.print-initiatives-metrics strong{font-size:28px;color:#0b7087}
+.print-initiatives-metrics span{font-size:12px;color:#527887}
+.print-initiatives-photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-height:145px}
+.print-initiatives-photos figure{margin:0;display:flex;flex-direction:column;gap:5px;padding:7px;background:#fff;border-radius:12px;border:1px solid #d5e6e9;overflow:hidden}
+.print-initiatives-photos img{width:100%;height:135px;object-fit:contain}
+.print-initiatives-photos figcaption{font-size:10px;color:#396f7c;text-align:center}
+.print-initiatives-note{margin-top:auto;padding:18px;background:#ffffffed;border-right:5px solid #0f9e9e;border-radius:12px}
+.print-initiatives-note strong{color:#0a5b74}
+.print-initiatives-note p{font-size:13px!important}
+.portfolio-print-reflection>article{background:#ffffffef!important}
+.portfolio-print-final{background:#f7fcfd url("/portfolio/report-heritage.svg") center/100% 100% no-repeat!important}
+.portfolio-print-final>h2,.portfolio-print-final .print-final-thanks{color:#0b4867!important}
+.portfolio-print-final>p,.portfolio-print-final .print-signatures{background:#ffffffeb!important;padding:13px!important;border-radius:13px!important}
+@media print{
+ .portfolio-print-document .print-page{background-color:#f7fcfd!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .print-gallery-photos{max-height:34mm!important}
+ .print-gallery-photo img{max-height:33mm!important}
+}
 @media print{
  @page{size:A4 portrait;margin:0}
  body{background:#fff!important}
