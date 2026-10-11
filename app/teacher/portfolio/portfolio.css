@@ -612,3 +612,51 @@
   .portfolio-page .print-page :is(h1,h2,h3,p,span,small,strong,time) {overflow-wrap:break-word!important}
   .portfolio-page .print-page :is(.print-achievement-content article,.print-evidence-reference) {break-inside:avoid!important}
 }
+
+
+/* Portfolio editorial edition — airy Arabic report with education-themed visual language. */
+.portfolio-page .portfolio-print-document .print-page{position:relative!important;background:#fff!important;color:#173e57!important;border:1px solid #d9e9ee!important}
+.portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::before{content:"";position:absolute;top:0;left:0;right:0;height:12px;background:linear-gradient(90deg,#0d4566,#12a6b2 75%,#e6bc69);z-index:1}
+.portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:"بوابة أستاذ لحوني التعليمية  •  ملف الإنجاز المهني";position:absolute;bottom:18px;right:45px;left:45px;border-top:1px solid #d9e9ee;padding-top:8px;text-align:right;font-size:10px;color:#698795;letter-spacing:.1px}
+.portfolio-page .print-design-label{display:flex;align-items:center;gap:10px;margin:15px 0 12px;color:#0d6780;font-weight:900;font-size:14px}
+.portfolio-page .print-design-label::before{content:"";width:8px;height:22px;border-radius:8px;background:linear-gradient(#efc777,#12a7aa)}
+.portfolio-page .portfolio-print-cover{overflow:hidden!important;background:linear-gradient(145deg,#f7fcff 0%,#fff 52%,#e9f7f6 100%)!important;border:1px solid #bcd9e4!important;border-top:14px solid #0b496b!important;justify-content:space-between!important}
+.portfolio-page .portfolio-print-cover::before{content:"";position:absolute;top:-90px;left:-90px;width:430px;height:390px;border-radius:50%;background:radial-gradient(circle,#d7f1f2 0%,#edf9f8 46%,transparent 72%);pointer-events:none}
+.portfolio-page .portfolio-print-cover::after{content:"";position:absolute;right:-80px;bottom:90px;width:290px;height:290px;border:2px solid #d5e9e6;border-radius:50%;pointer-events:none}
+.portfolio-page .print-cover-brand{position:relative;z-index:2;border-bottom:2px solid #c5e4e9!important;padding-bottom:20px!important}
+.portfolio-page .print-cover-brand span{color:#123e5a!important;font-weight:900!important}
+.portfolio-page .print-cover-brand small{color:#56798b!important}
+.portfolio-page .print-cover-center{position:relative;z-index:2;text-align:center!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:17px!important;flex:1!important;padding:36px 0!important}
+.portfolio-page .print-cover-center .print-cover-eyebrow{color:#956e26!important;background:#fff8e8!important;border:1px solid #ebd39c!important;padding:9px 24px!important;border-radius:30px!important}
+.portfolio-page .print-cover-center h1{font-size:clamp(42px,5.5vw,67px)!important;line-height:1.38!important;color:#0b4363!important;text-shadow:none!important;letter-spacing:0!important;margin:0!important}
+.portfolio-page .print-cover-center p{max-width:560px!important;color:#3c6478!important;font-size:17px!important;line-height:1.95!important}
+.portfolio-page .print-cover-badges{display:flex!important;gap:10px!important;justify-content:center!important;flex-wrap:wrap!important}
+.portfolio-page .print-cover-badges b{background:#fff!important;color:#145878!important;border:1px solid #c9e2e7!important;box-shadow:0 5px 15px #d6e9ec88!important}
+.portfolio-page .portfolio-print-cover dl{position:relative;z-index:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;margin-top:auto!important}
+.portfolio-page .portfolio-print-cover dl div{background:#fff!important;border:1px solid #c5dfe8!important;border-radius:14px!important;box-shadow:0 5px 15px #d4e5eb55!important}
+.portfolio-page .portfolio-print-cover dl dt{color:#6a8595!important}
+.portfolio-page .portfolio-print-cover dl dd{color:#123e5b!important;font-weight:900!important}
+.portfolio-page .portfolio-print-cover>footer{position:relative;z-index:2;color:#52788b!important;border-top:1px solid #c5e1e8!important}
+.portfolio-page .print-section-header{border-bottom:3px solid #159aab!important;padding-bottom:15px!important}
+.portfolio-page .print-section-header>span,.portfolio-page .print-achievement-number{background:linear-gradient(135deg,#0b4869,#14a5a8)!important;color:white!important}
+.portfolio-page .print-section-header h2{color:#0b4564!important;font-weight:900!important}
+.portfolio-page .print-stat-grid article{border-radius:17px!important;box-shadow:0 6px 16px #d6e9ec55!important}
+.portfolio-page .print-narrative{background:#f6fbfd!important;border:1px solid #d9e9ee!important;border-right:5px solid #0e98a4!important;border-radius:14px!important;padding:18px!important;box-shadow:0 5px 16px #e1edf155!important}
+.portfolio-page .print-narrative:nth-of-type(even){background:#f7fcf8!important}
+.portfolio-page .print-index-list>div{border:1px solid #d9e9ed!important;border-radius:12px!important;box-shadow:0 4px 12px #d8e7eb44!important}
+.portfolio-page .print-category-bars{padding:18px!important;background:#f7fbfd!important;border:1px solid #dbe9ee!important;border-radius:15px!important}
+.portfolio-page .portfolio-print-achievement>header{padding-bottom:17px!important;border-bottom:3px solid #13a2ab!important}
+.portfolio-page .print-achievement-image{display:block!important;max-height:340px!important;width:100%!important;object-fit:contain!important;border:1px solid #c7dfe6!important;border-radius:15px!important;background:#f6fafb!important;padding:8px!important;box-sizing:border-box!important}
+.portfolio-page .print-achievement-content article{border-radius:13px!important;box-shadow:0 3px 10px #dce9ed55!important}
+.portfolio-page .portfolio-print-reflection article{border-radius:16px!important;box-shadow:0 5px 18px #dce9ed66!important}
+.portfolio-page .portfolio-print-final{background:linear-gradient(145deg,#f7fcff,#fff 58%,#e9f7f5)!important;color:#173f58!important;border-top:14px solid #0b496b!important}
+.portfolio-page .portfolio-print-final :is(h2,h3,strong){color:#0c4665!important}
+.portfolio-page .portfolio-print-final p{color:#3e687c!important}
+.portfolio-page .print-signatures>div{background:#fff!important;border:1px solid #c8e3e9!important}
+@media print{
+ .portfolio-page .portfolio-print-cover,.portfolio-page .portfolio-print-final{background:#f8fcfd!important}
+ .portfolio-page .print-cover-center h1{font-size:36pt!important}
+ .portfolio-page .print-achievement-image{max-height:72mm!important}
+ .portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{bottom:9mm;right:16mm;left:16mm;font-size:7pt}
+ .portfolio-page .print-design-label{font-size:10pt!important;margin:3mm 0!important}
+}
