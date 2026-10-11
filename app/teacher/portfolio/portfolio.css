@@ -426,6 +426,38 @@
 .portfolio-print-document .print-page .print-initiatives-photos figure{background:#ffffff85!important;border-color:#c4e2e28c!important}
 .portfolio-print-document .print-page .print-initiatives-photos img{object-fit:contain!important}
 .portfolio-print-document .print-page .print-stat-grid article{padding:14px 7px!important}
+
+/* Correct the real PDF issue: do not stretch a single short achievement into a blank A4 page. */
+.portfolio-print-document .portfolio-print-gallery .print-gallery-list{flex:1!important;display:flex!important;flex-direction:column!important;gap:14px!important;min-height:0!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-entry{flex:1 1 0!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;min-height:0!important;padding:16px 18px!important;gap:13px!important;background:#ffffff91!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-entry-head strong{font-size:19px!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-entry-detail{flex:none!important;align-items:flex-start!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-entry-detail p{display:block!important;overflow:visible!important;-webkit-line-clamp:unset!important;font-size:13px!important;white-space:normal!important;line-height:1.7!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-photos{flex:1 1 auto!important;min-height:0!important;max-height:none!important;display:grid!important;align-items:stretch!important;gap:12px!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-photo{height:100%!important;min-height:0!important;max-height:none!important;display:flex!important;align-items:center!important;justify-content:center!important;background:#ffffff65!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-photo img{display:block!important;width:100%!important;height:100%!important;max-height:100%!important;max-width:100%!important;object-fit:contain!important;object-position:center!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-impact{flex:none!important;display:flex!important;gap:8px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.7!important;font-size:13px!important;background:#e7f5f4b3!important;border-right:4px solid #11999b!important;padding:12px!important;border-radius:7px!important}
+.portfolio-print-document .portfolio-print-gallery .print-gallery-impact strong{flex:none!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-entry{gap:19px!important;padding:22px!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-entry-head strong{font-size:23px!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-photos{min-height:350px!important;flex:1!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-photo img{max-height:100%!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-detail{font-size:15px!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-2 .print-gallery-entry{gap:9px!important;padding:13px 16px!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-2 .print-gallery-photos{flex:1!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-3 .print-gallery-entry{gap:5px!important;padding:9px 13px!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-3 .print-gallery-entry-head strong{font-size:15px!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-3 .print-gallery-entry-detail p{font-size:11px!important;line-height:1.4!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-3 .print-gallery-impact{font-size:10px!important;padding:6px!important;line-height:1.35!important}
+.portfolio-print-document .portfolio-print-gallery.gallery-count-3 .print-gallery-photos{gap:6px!important}
+.portfolio-print-document .portfolio-print-gallery .photo-count-1{grid-template-columns:1fr!important}
+.portfolio-print-document .portfolio-print-gallery .photo-count-2{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.portfolio-print-document .portfolio-print-gallery .photo-count-3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media print{
+ .portfolio-print-document .portfolio-print-gallery .print-gallery-photos{max-height:none!important}
+ .portfolio-print-document .portfolio-print-gallery .print-gallery-photo img{max-height:100%!important}
+ .portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-photos{min-height:90mm!important}
+}
 @media print{
  @page{size:A4 portrait;margin:0}
  body{background:#fff!important}
