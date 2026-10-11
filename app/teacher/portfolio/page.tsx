@@ -955,7 +955,7 @@ export default function PortfolioPage() {
             <div className="print-index-table-head" role="row"><span>م</span><span>عنوان الإنجاز</span><span>المجال</span><span>التاريخ</span><span>الصفحة</span></div>
             {achievements.map((item, index) => (
               <div className="print-index-table-row" role="row" key={item.id}>
-                <span>{arabicNumber(index + 1)}</span><strong>{item.title}</strong><span>{item.category}</span><time>{formatDate(item.date)}</time><b>{arabicNumber(index + 4)}</b>
+                <span className="print-index-no">{arabicNumber(index + 1)}</span><strong className="print-index-title">{item.title}</strong><span className="print-index-category">{item.category}</span><time className="print-index-date">{formatDate(item.date)}</time><b className="print-index-page">{arabicNumber(index + 4)}</b>
               </div>
             ))}
           </div>
