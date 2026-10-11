@@ -291,6 +291,39 @@
  .portfolio-preview-open .portfolio-preview-toolbar{flex-direction:column!important;padding:8px!important}
  .portfolio-preview-open .portfolio-print-document .print-page{zoom:calc((100vw - 12px) / 794)}
 }
+
+/* Editorial report layouts: meaningful page composition rather than isolated cards */
+.portfolio-print-document .print-page{gap:13px!important}
+.portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final){background:linear-gradient(180deg,#fff 0%,#fff 76%,#f3fafa 100%)!important}
+.portfolio-print-cover .print-cover-brand{border-bottom:3px solid #0f8995!important}
+.print-cover-ribbon{display:flex;align-items:center;justify-content:center;gap:13px;padding:13px 15px;border-top:1px solid #b6d9db;border-bottom:1px solid #b6d9db;background:#f1f8f8;color:#0b6074;border-radius:8px;flex-wrap:wrap}
+.print-cover-ribbon>span{background:#0d5670;color:white;padding:7px 13px;border-radius:8px;font-weight:900}
+.print-cover-ribbon strong{font-size:13px}
+.print-cover-ribbon i{color:#bc9852;font-style:normal}
+.print-editorial-quote{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;min-height:105px;margin-top:auto;padding:18px 32px;border-radius:16px;background:linear-gradient(105deg,#e8f5f4,#f6faf7);border:1px solid #d4e9e6;text-align:center}
+.print-editorial-quote>span{position:absolute;right:15px;top:0;font-size:48px;color:#bba060}
+.print-editorial-quote p{font-size:15px!important;font-weight:800;color:#0b5870!important}
+.print-editorial-quote strong{font-size:12px;color:#a07b39}
+.print-index-bottom{display:grid;grid-template-columns:125px 1fr;gap:18px;align-items:center;margin-top:auto;padding:18px;border-radius:15px;background:linear-gradient(110deg,#0b526e,#0b8c91);color:white}
+.print-index-bottom>div{display:flex;flex-direction:column;align-items:center;border-left:1px solid #ffffff70;padding-left:12px}
+.print-index-bottom strong{font-size:35px;color:#fff}
+.print-index-bottom span{font-size:11px;color:#d4f0f1}
+.print-index-bottom p{font-size:14px!important;color:white!important}
+.print-achievement-conclusion{margin-top:auto;min-height:108px;display:flex;flex-direction:column;justify-content:center;gap:10px;border-radius:15px;padding:18px 20px;background:linear-gradient(110deg,#e5f5f3,#f7fbf8);border-right:5px solid #0c9b9d}
+.print-achievement-conclusion>span{color:#0b6376;font-size:17px;font-weight:900}
+.print-achievement-conclusion p{font-size:14px!important}
+.print-reflection-footer{display:flex;flex-direction:column;justify-content:center;gap:11px;margin-top:auto;padding:23px 24px;background:linear-gradient(105deg,#0a4b6b,#0d9395);border-radius:15px;color:white}
+.print-reflection-footer strong{font-size:20px;color:#fff}
+.print-reflection-footer p{color:#fff!important;font-size:14px!important}
+.portfolio-print-reflection .print-strengths{background:#eaf7f6!important;color:#0b6577!important;border:1px solid #d0e6e5}
+.portfolio-print-reflection .print-strengths h3{color:#0b6577!important}
+.portfolio-print-reflection .print-strengths span{background:white!important}
+@media print{
+ .print-editorial-quote{min-height:27mm!important}
+ .print-index-bottom{padding:4mm!important}
+ .print-achievement-conclusion{min-height:25mm!important}
+ .print-reflection-footer{padding:5mm!important}
+}
 @media print{
  @page{size:A4 portrait;margin:0}
  body{background:#fff!important}
