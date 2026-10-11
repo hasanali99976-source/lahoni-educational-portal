@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db, storage } from "../../../lib/firebase";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { tenantCollection } from "../../../lib/teacher-tenant";
@@ -477,11 +476,19 @@ export default function PortfolioPage() {
     const uploaded: Array<{ name: string; url: string }> = [];
     try {
       for (const file of files) {
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-90);
-        const path = `portfolio/${encodeURIComponent(teacherId)}/${Date.now()}-${Math.random().toString(36).slice(2,9)}-${safeName}`;
-        const target = storageRef(storage, path);
-        await withTimeout(uploadBytes(target, file, { contentType: file.type || "application/octet-stream" }), 20000);
-        uploaded.push({ name: file.name, url: await withTimeout(getDownloadURL(target), 10000) });
+        const body = new FormData();
+        body.append("file", file);
+        const response = await withTimeout(fetch("/api/teacher/portfolio/upload", {
+          method: "POST",
+          body,
+          credentials: "same-origin",
+          cache: "no-store",
+        }), 30000);
+        const result = await response.json() as { ok?: boolean; message?: string; name?: string; url?: string };
+        if (!response.ok || !result.ok || !result.url) {
+          throw new Error(result.message || "تعذر رفع المرفق إلى التخزين السحابي.");
+        }
+        uploaded.push({ name: result.name || file.name, url: result.url });
       }
       setDraft((current) => ({
         ...current, attachments: [...(current.attachments || []), ...uploaded],
@@ -493,7 +500,8 @@ export default function PortfolioPage() {
       if (uploaded.length) setDraft((current) => ({ ...current, attachments: [...(current.attachments || []), ...uploaded] }));
       const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
       const timedOut = error instanceof Error && error.message === "timeout";
-      const reason = timedOut ? "انتهت مهلة الرفع (٢٠ ثانية). تحقق من اتصال الشبكة أو إعدادات التخزين."
+      const serverMessage = error instanceof Error && !timedOut ? error.message : "";
+      const reason = timedOut ? "انتهت مهلة الرفع (٣٠ ثانية). تحقق من اتصال الشبكة أو إعدادات التخزين."
         : code.includes("unauthorized") || code.includes("unauthenticated") ? "صلاحيات التخزين لا تسمح لحساب المعلم بالرفع."
         : code.includes("quota") ? "تجاوز التخزين الحصة المسموحة."
         : code.includes("bucket-not-found") ? "لم يتم العثور على مساحة التخزين المحددة."
