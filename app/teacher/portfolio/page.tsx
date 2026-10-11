@@ -901,26 +901,21 @@ export default function PortfolioPage() {
         <section className="portfolio-print-cover print-page">
           <div className="print-cover-brand">
             <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني" />
-            <div><span>بوابة أستاذ لحوني التعليمية</span><small>مشروع ملف الإنجاز الذكي للمعلم</small></div>
+            <div><span>بوابة أستاذ لحوني التعليمية</span><small>سجل التوثيق والتميز المهني</small></div>
           </div>
           <div className="print-cover-center">
-            <div className="print-cover-seal">
-              <span>سجل مهني</span>
-              <strong>إنجاز</strong>
-              <small>{arabicNumber(achievements.length)} أثر موثق</small>
-            </div>
-            <span className="print-cover-eyebrow">إنجازات تصنع أثرًا</span>
-            <h1>ملف الإنجاز المهني للمعلم</h1>
-            <p>قصة مهنية موثقة تجمع المبادرات والممارسات والشواهد والأثر التعليمي في مشروع واحد متكامل.</p>
-            <div className="print-cover-badges"><b>ابتكار</b><b>أثر</b><b>تطوير</b><b>توثيق</b></div>
+            <span className="print-cover-eyebrow">الملف المهني للعام الدراسي {form.academicYear}</span>
+            <h1>ملف الإنجاز<br/>المهني للمعلم</h1>
+            <p>توثيق المبادرات والممارسات والشواهد التعليمية، وقياس الأثر المهني في سجل متكامل.</p>
+            <div className="print-cover-badges"><b>توثيق</b><b>تطوير</b><b>أثر</b><b>ابتكار</b></div>
           </div>
           <dl>
             <div><dt>اسم المعلم</dt><dd>{session?.teacherName || "—"}</dd></div>
-            <div><dt>المادة</dt><dd>{subject.label}</dd></div>
+            <div><dt>المادة الدراسية</dt><dd>{subject.label}</dd></div>
             <div><dt>المدرسة</dt><dd>{form.school || "—"}</dd></div>
             <div><dt>العام الدراسي</dt><dd>{form.academicYear || "—"}</dd></div>
           </dl>
-          <footer>أُنشئ ونُظّم إلكترونيًا عبر بوابة أستاذ لحوني التعليمية</footer>
+          <footer>بوابة أستاذ لحوني التعليمية | سجل إنجازات المعلم</footer>
         </section>
 
         <section className="portfolio-print-overview print-page">
@@ -936,14 +931,14 @@ export default function PortfolioPage() {
             <strong>{achievements.length ? `مسار مهني يبرز قوته في ${summary.topCategory}` : "مسار مهني قيد البناء"}</strong>
             <small>كل إنجاز موثق يتحول تلقائيًا إلى صفحة أثر داخل هذا الملف.</small>
           </div>
-          <article className="print-narrative"><h3>النبذة المهنية</h3><p>{generated.professionalSummary}</p></article>
+          <div className="print-design-label">الرؤية المهنية والتوثيق</div><article className="print-narrative"><h3>النبذة المهنية</h3><p>{generated.professionalSummary}</p></article>
           <article className="print-narrative"><h3>الأهداف المهنية والتعليمية</h3><p>{generated.goals}</p></article>
           <article className="print-narrative"><h3>ملخص المبادرات والإنجازات</h3><p>{generated.initiatives}</p></article>
         </section>
 
         <section className="portfolio-print-index print-page">
           <header className="print-section-header"><span>٠٢</span><div><small>تنظيم تلقائي</small><h2>فهرس الإنجازات</h2></div></header>
-          <div className="print-index-list">
+          <div className="print-design-label">سجل الإنجازات حسب التسلسل الزمني</div><div className="print-index-list">
             {achievements.map((item, index) => (
               <div key={item.id}><span>{arabicNumber(index + 1)}</span><strong>{item.title}</strong><small>{item.category}</small><time>{formatDate(item.date)}</time></div>
             ))}
@@ -951,7 +946,7 @@ export default function PortfolioPage() {
           <div className="print-category-map">
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => <span key={category}>{category}<b>{arabicNumber(count)}</b></span>)}
           </div>
-          <div className="print-category-bars">
+          <div className="print-design-label">توزيع الإنجازات على المجالات المهنية</div><div className="print-category-bars">
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => {
               const width = Math.max(18, Math.round((count / Math.max(1, achievements.length)) * 100));
               return <div key={category}><span>{category}</span><i><b style={{ width: `${width}%` }} /></i><strong>{arabicNumber(count)}</strong></div>;
@@ -971,7 +966,7 @@ export default function PortfolioPage() {
               <img className="print-achievement-image" key={`${attachment.url}-${imageIndex}`} src={attachment.url} alt={`شاهد ${item.title}: ${attachment.name}`} loading="eager" />
             ))}
             <div className="print-achievement-tags">{(item.tags || []).map((tag) => <span key={tag}>{tag}</span>)}</div>
-            <div className="print-achievement-content">
+            <div className="print-design-label">بطاقة توثيق الإنجاز</div><div className="print-achievement-content">
               <article><h3>وصف الإنجاز</h3><p>{item.description}</p></article>
               <article><h3>الهدف</h3><p>{item.objective}</p></article>
               <article><h3>دوري في الإنجاز</h3><p>{item.role}</p></article>
@@ -991,7 +986,7 @@ export default function PortfolioPage() {
 
         <section className="portfolio-print-reflection print-page">
           <header className="print-section-header"><span>٠٣</span><div><small>قراءة ذكية للمسار</small><h2>التأمل والتطوير المهني</h2></div></header>
-          <article><h3>التأمل المهني</h3><p>{generated.reflection}</p></article>
+          <div className="print-design-label">قراءة تحليلية للممارسات المهنية</div><article><h3>التأمل المهني</h3><p>{generated.reflection}</p></article>
           <article><h3>خطة التطوير القادمة</h3><p>{generated.developmentPlan}</p></article>
           <div className="print-strengths">
             <h3>مؤشرات القوة في الملف</h3>
