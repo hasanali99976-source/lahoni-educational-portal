@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
+import { db, storage } from "../../../lib/firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { getSubjectConfig } from "../../../lib/subject-config";
 import { tenantCollection } from "../../../lib/teacher-tenant";
@@ -17,6 +18,7 @@ type Evidence = {
   description: string;
   fileName: string;
   fileData: string;
+  attachments?: Array<{ name: string; url: string }>;
   objective?: string;
   impact?: string;
   role?: string;
@@ -47,6 +49,7 @@ type AchievementDraft = {
   url: string;
   fileName: string;
   fileData: string;
+  attachments: Array<{ name: string; url: string }>;
 };
 
 const emptyForm: PortfolioForm = {
@@ -89,6 +92,7 @@ function emptyDraft(): AchievementDraft {
     url: "",
     fileName: "",
     fileData: "",
+    attachments: [],
   };
 }
 
@@ -385,7 +389,7 @@ export default function PortfolioPage() {
       result[item.category] = (result[item.category] || 0) + 1;
       return result;
     }, {});
-    const files = achievements.filter((item) => item.fileData || item.fileName).length;
+    const files = achievements.reduce((total, item) => total + (item.attachments?.length || (item.fileData || item.fileName ? 1 : 0)), 0);
     const links = achievements.filter((item) => item.url.trim()).length;
     const topCategory = (Object.entries(categories) as Array<[string, number]>).sort((a, b) => b[1] - a[1])[0]?.[0] || "الإنجاز المهني";
     const months = new Set(achievements.map((item) => item.date.slice(0, 7)).filter(Boolean)).size;
@@ -458,28 +462,33 @@ export default function PortfolioPage() {
   }
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []);
     event.target.value = "";
-    if (!file) return;
-    if (file.size > 6 * 1024 * 1024) {
-      setMessage("حجم الملف كبير جدًا. اختر ملفًا أقل من ٦ ميجابايت.");
-      return;
+    if (!files.length) return;
+    if (!teacherId) { setMessage("سجل الدخول إلى حساب المعلم أولًا."); return; }
+    if (files.some((file) => file.size > 10 * 1024 * 1024)) {
+      setMessage("كل مرفق يجب ألا يتجاوز ١٠ ميجابايت."); return;
     }
     setLoadingFile(true);
+    const uploaded: Array<{ name: string; url: string }> = [];
     try {
-      if (file.type.startsWith("image/")) {
-        const fileData = await compressImage(file);
-        setDraft((current) => ({ ...current, fileName: file.name, fileData }));
-        setMessage("تم تجهيز صورة الشاهد وضغطها تلقائيًا للطباعة.");
-      } else {
-        setDraft((current) => ({ ...current, fileName: file.name, fileData: "" }));
-        setMessage("تم تسجيل اسم الملف. أضف رابط الشاهد ليظهر في النسخة الإلكترونية.");
+      for (const file of files) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-90);
+        const path = `portfolio/${encodeURIComponent(teacherId)}/${Date.now()}-${Math.random().toString(36).slice(2,9)}-${safeName}`;
+        const target = storageRef(storage, path);
+        await uploadBytes(target, file, { contentType: file.type || "application/octet-stream" });
+        uploaded.push({ name: file.name, url: await getDownloadURL(target) });
       }
+      setDraft((current) => ({
+        ...current, attachments: [...(current.attachments || []), ...uploaded],
+        fileName: current.fileName || uploaded[0]?.name || "",
+        fileData: "",
+      }));
+      setMessage(`تم رفع ${uploaded.length} مرفق إلى التخزين السحابي. اضغط إضافة الإنجاز لحفظ الروابط داخل الملف.`);
     } catch {
-      setMessage("تعذر قراءة الملف. جرّب صورة بصيغة JPG أو PNG.");
-    } finally {
-      setLoadingFile(false);
-    }
+      if (uploaded.length) setDraft((current) => ({ ...current, attachments: [...(current.attachments || []), ...uploaded] }));
+      setMessage("تعذر رفع بعض المرفقات إلى Firebase Storage. تحقق من صلاحيات التخزين أو اتصال الشبكة؛ لم يتم الادعاء بحفظ الملفات التي فشل رفعها.");
+    } finally { setLoadingFile(false); }
   }
 
   async function submitAchievement(event: FormEvent<HTMLFormElement>) {
@@ -499,6 +508,7 @@ export default function PortfolioPage() {
       description: smart.description,
       fileName: draft.fileName,
       fileData: draft.fileData,
+      attachments: draft.attachments || [],
       objective: smart.objective,
       impact: smart.impact,
       role: smart.role,
@@ -526,6 +536,7 @@ export default function PortfolioPage() {
       url: item.url,
       fileName: item.fileName,
       fileData: item.fileData,
+      attachments: item.attachments || [],
     });
     addPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     setMessage("عدّل البيانات ثم اضغط تحديث الإنجاز.");
@@ -731,9 +742,10 @@ export default function PortfolioPage() {
             <input dir="ltr" value={draft.url} onChange={(event) => updateDraft("url", event.target.value)} placeholder="https://" />
           </label>
           <label className="builder-upload">
-            <span>{loadingFile ? "جارٍ تجهيز الشاهد..." : draft.fileName || "إرفاق صورة أو ملف"}</span>
-            <input hidden type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" onChange={handleFile} disabled={loadingFile} />
+            <span>{loadingFile ? "جارٍ رفع المرفقات..." : `إرفاق صور وملفات متعددة (${draft.attachments?.length || 0})`}</span>
+            <input hidden type="file" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" onChange={handleFile} disabled={loadingFile} />
           </label>
+          {draft.attachments?.length > 0 && <div className="portfolio-uploaded-list">{draft.attachments.map((item, index) => <span key={index}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.name}</a><button type="button" onClick={() => setDraft((current) => ({ ...current, attachments: current.attachments.filter((_, i) => i !== index) }))}>×</button></span>)}</div>}
           {draft.fileData.startsWith("data:image/") && (
             <div className="draft-preview">
               <img src={draft.fileData} alt="معاينة الشاهد" />
