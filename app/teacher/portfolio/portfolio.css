@@ -555,3 +555,26 @@
 .portfolio-page .achievement-builder form{padding:14px!important}
 .portfolio-page .portfolio-command{padding:15px!important}
 }
+
+/* Compact achievement entry fields: keep title, category and date on one row. */
+@media screen and (min-width:701px){
+ .portfolio-page .achievement-builder form{
+  display:grid!important;grid-template-columns:minmax(0,2fr) minmax(170px,1fr) minmax(170px,1fr)!important;
+  gap:12px 16px!important;align-items:end!important;padding:16px 20px!important;
+ }
+ .portfolio-page .achievement-builder form .builder-title{grid-column:auto!important}
+ .portfolio-page .achievement-builder form .builder-note{grid-column:1/-1!important}
+ .portfolio-page .achievement-builder form .builder-note textarea{min-height:68px!important;height:68px!important}
+ .portfolio-page .achievement-builder form label{gap:5px!important}
+ .portfolio-page .achievement-builder form :is(input,select){min-height:43px!important;padding:8px 11px!important}
+ .portfolio-page .achievement-builder form .builder-upload{min-height:43px!important}
+ .portfolio-page .achievement-builder form .builder-actions{grid-column:1/-1!important;display:flex!important;width:auto!important;justify-content:flex-start!important}
+ .portfolio-page .achievement-builder form .builder-actions button{width:auto!important;min-height:43px!important}
+}
+@media screen and (max-width:700px){
+ .portfolio-page .achievement-builder form{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:10px!important}
+ .portfolio-page .achievement-builder form .builder-title,.portfolio-page .achievement-builder form .builder-note,.portfolio-page .achievement-builder form .builder-actions{grid-column:1/-1!important}
+ .portfolio-page .achievement-builder form .builder-note textarea{min-height:72px!important}
+ .portfolio-page .achievement-builder form :is(input,select){min-height:43px!important;padding:8px!important}
+ .portfolio-page .achievement-builder form .builder-actions button{min-height:44px!important}
+}
