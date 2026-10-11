@@ -660,3 +660,44 @@
  .portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{bottom:9mm;right:16mm;left:16mm;font-size:7pt}
  .portfolio-page .print-design-label{font-size:10pt!important;margin:3mm 0!important}
 }
+
+
+/* Reference-matched illustrated report edition; scoped to PDF pages. */
+.portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:none!important;display:none!important}
+.portfolio-page .portfolio-print-document .print-page{overflow:hidden!important}
+.portfolio-page .portfolio-print-cover{background:linear-gradient(135deg,#fff 0%,#f2faff 68%,#e6f5f2 100%)!important}
+.portfolio-page .portfolio-print-cover::before{top:auto!important;left:auto!important;right:-85px!important;bottom:-100px!important;width:440px!important;height:440px!important;background:radial-gradient(circle,#cce8e6 0%,#f4fcf9 47%,transparent 71%)!important}
+.portfolio-page .print-cover-illustration{position:absolute;inset:14% 0 auto;z-index:0;display:flex;justify-content:space-between;padding:0 10%;font-size:66px;color:#d4b46f;opacity:.34;pointer-events:none}
+.portfolio-page .print-cover-illustration span:nth-child(2){font-size:130px;color:#74b8bb}
+.portfolio-page .print-cover-center h1{font-size:54px!important;line-height:1.55!important;max-width:550px!important;position:relative!important}
+.portfolio-page .print-cover-center p{font-size:18px!important;font-weight:500!important}
+.portfolio-page .print-cover-brand{background:linear-gradient(90deg,#f0f8fb,#fff)!important;border-radius:16px!important;padding:12px 18px!important}
+.portfolio-page .portfolio-print-cover dl div{background:#f6fbfd!important;border-bottom:3px solid #159fa9!important}
+.portfolio-page .print-summary-visual{height:105px;border-radius:18px;margin:18px 0;background:linear-gradient(100deg,#d7eff0,#f5fbfc 54%,#e7f3e9);display:flex;align-items:center;justify-content:center;gap:30px;color:#125a77}
+.portfolio-page .print-summary-visual>span{font-size:70px;color:#d1a65c}
+.portfolio-page .print-summary-visual div{display:flex;flex-direction:column;gap:7px}
+.portfolio-page .print-summary-visual b{font-size:22px}
+.portfolio-page .print-summary-visual small{font-size:13px;color:#64899a}
+.portfolio-page .print-index-art{height:155px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin:18px 0;border-radius:18px;background:linear-gradient(110deg,#eaf7fa,#f8fbf6);border:1px solid #d0e8e8;color:#0b4d6c;text-align:center}
+.portfolio-page .print-index-art>span{font-size:32px;color:#d0aa63}
+.portfolio-page .print-index-art strong{font-size:22px;line-height:1.5}
+.portfolio-page .print-index-art small{color:#5b8595;font-size:12px}
+.portfolio-page .print-development-roadmap{margin:22px 0;padding:20px;border-radius:18px;background:#f0f8fb;border:1px solid #d3e9ec}
+.portfolio-page .print-development-roadmap h3{color:#0b5270;font-size:18px;margin:0 0 17px}
+.portfolio-page .print-development-roadmap>div{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.portfolio-page .print-development-roadmap span{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:16px 5px;border-radius:12px;background:white;color:#0e8a9c;font-weight:900;font-size:21px}
+.portfolio-page .print-development-roadmap b{color:#21566e;font-size:12px}
+.portfolio-page .print-final-thanks{font-size:72px!important;font-weight:900;color:#0e6077!important;margin:0 auto 12px;line-height:1.3;text-align:center}
+.portfolio-page .portfolio-print-final{background:linear-gradient(160deg,#fff 20%,#f2fafb 75%,#e5f4ee)!important}
+.portfolio-page .print-achievement-image{object-fit:contain!important;max-height:310px!important;width:100%!important}
+.portfolio-page .portfolio-print-achievement{background:#fff!important}
+.portfolio-page .portfolio-print-achievement>header{background:linear-gradient(90deg,#f3fafc,#fff)!important;border-radius:14px;padding:12px!important}
+@media print{
+ .portfolio-page .print-cover-center h1{font-size:37pt!important}
+ .portfolio-page .print-summary-visual{height:27mm!important}
+ .portfolio-page .print-index-art{height:37mm!important}
+ .portfolio-page .print-development-roadmap{padding:4mm!important;margin:4mm 0!important}
+ .portfolio-page .print-final-thanks{font-size:42pt!important}
+ .portfolio-page .print-achievement-image{max-height:75mm!important}
+ .portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:none!important}
+}
