@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import { getSubjectConfig } from "../../../lib/subject-config";
-import { tenantCollection } from "../../../lib/teacher-tenant";
 import "./portfolio.css";
 
 type Evidence = {
@@ -333,7 +330,6 @@ export default function PortfolioPage() {
       } catch {}
     }
 
-    const ref = doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile");
     let cancelled = false;
     let refreshing = false;
 
@@ -341,10 +337,12 @@ export default function PortfolioPage() {
       if (cancelled || refreshing) return;
       refreshing = true;
       try {
-        const snap = await getDoc(ref);
+        const response = await fetch(`/api/teacher/portfolio/data?subjectKey=${encodeURIComponent(subjectKey)}`, { credentials: "same-origin", cache: "no-store" });
+        if (!response.ok) throw new Error("portfolio_cloud_unavailable");
+        const payload = await response.json() as { ok?: boolean; data?: Partial<PortfolioForm> | null };
         if (cancelled) return;
-        if (snap.exists()) {
-          const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
+        if (payload.ok && payload.data) {
+          const cloudForm = normalizeForm(payload.data);
           let latestLocal = localForm;
           try { const saved = localStorage.getItem(localKey); if (saved) latestLocal = normalizeForm(JSON.parse(saved) as Partial<PortfolioForm>); } catch {}
           const localIsNewer = !!latestLocal?.updatedAt && String(latestLocal.updatedAt) > String(cloudForm.updatedAt || "");
@@ -440,31 +438,39 @@ export default function PortfolioPage() {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  async function persist(next: PortfolioForm, successMessage: string) {
-    if (!teacherId || !localKey) return;
+  async function persist(next: PortfolioForm, successMessage: string, deletedIds: string[] = []) {
+    if (!teacherId || !localKey) return false;
     setSaving(true);
     const syncedNext: PortfolioForm = { ...next, updatedAt: new Date().toISOString() };
     const fullCopySaved = saveLocal(localKey, syncedNext);
     setForm(syncedNext);
-    const cloudEvidence = syncedNext.evidence.map((item) => ({
-      ...item,
-      fileData: "",
-    }));
     try {
-      await withTimeout(setDoc(
-        doc(db, tenantCollection(teacherId, subjectKey as any, "portfolio"), "profile"),
-        {
-          ...syncedNext,
-          evidence: cloudEvidence,
-          teacherId,
-          teacherName: session?.teacherName || "",
+      const response = await withTimeout(fetch("/api/teacher/portfolio/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify({
           subjectKey,
-        },
-        { merge: true },
-      ));
-      setMessage(`${successMessage} وتمت مزامنته فورًا بين الويب والتطبيق.${fullCopySaved ? "" : " لم تُحفظ صورة الشاهد على الجهاز لضيق المساحة؛ احتفظ بالرابط الأصلي."}`);
-    } catch {
-      setMessage(`${successMessage}${fullCopySaved ? " وحُفظ مؤقتًا على هذا الجهاز" : "، لكن مساحة الجهاز لم تكفِ لحفظ صورة الشاهد"}. ستعود المزامنة تلقائيًا عند توفر الشبكة.`);
+          deletedIds,
+          form: { ...syncedNext, evidence: syncedNext.evidence.map((item) => ({ ...item, fileData: "" })) },
+        }),
+      }), 20000);
+      const result = await response.json() as { ok?: boolean; message?: string; data?: Partial<PortfolioForm> };
+      if (!response.ok || !result.ok || !result.data) throw new Error(result.message || "فشل الحفظ السحابي");
+      const cloud = normalizeForm(result.data);
+      const confirmed: PortfolioForm = {
+        ...cloud,
+        evidence: mergeCloudWithDeviceFiles(cloud.evidence, syncedNext.evidence),
+      };
+      saveLocal(localKey, confirmed);
+      setForm(confirmed);
+      setMessage(`${successMessage}، وتم التأكد من حفظه في السحابة.`);
+      return true;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "تعذر الاتصال";
+      setMessage(`لم يكتمل الحفظ السحابي: ${reason}. ${fullCopySaved ? "التعديل موجود مؤقتًا على هذا الجهاز؛ لا تمسح بيانات المتصفح." : "تعذر حفظ نسخة محلية أيضًا."} لن نحذف المرفقات القديمة.`);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -570,7 +576,7 @@ export default function PortfolioPage() {
 
   async function deleteAchievement(id: string) {
     const next = { ...form, evidence: form.evidence.filter((item) => item.id !== id) };
-    await persist(next, "تم حذف الإنجاز من الملف");
+    await persist(next, "تم حذف الإنجاز من الملف", [id]);
     if (editingId === id) {
       setEditingId("");
       setDraft(emptyDraft());
