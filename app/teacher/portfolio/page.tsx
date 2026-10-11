@@ -950,9 +950,13 @@ export default function PortfolioPage() {
 
         <section className="portfolio-print-index print-page">
           <header className="print-section-header"><span>٠٢</span><div><small>تنظيم تلقائي</small><h2>فهرس الإنجازات</h2></div></header>
-          <div className="print-design-label">سجل الإنجازات حسب التسلسل الزمني</div><div className="print-index-list">
+          <div className="print-design-label">سجل الإنجازات حسب التسلسل الزمني</div>
+          <div className="print-index-table" role="table" aria-label="فهرس الإنجازات">
+            <div className="print-index-table-head" role="row"><span>م</span><span>عنوان الإنجاز</span><span>المجال</span><span>التاريخ</span><span>الصفحة</span></div>
             {achievements.map((item, index) => (
-              <div key={item.id}><span>{arabicNumber(index + 1)}</span><strong>{item.title}</strong><small>{item.category}</small><time>{formatDate(item.date)}</time></div>
+              <div className="print-index-table-row" role="row" key={item.id}>
+                <span>{arabicNumber(index + 1)}</span><strong>{item.title}</strong><span>{item.category}</span><time>{formatDate(item.date)}</time><b>{arabicNumber(index + 4)}</b>
+              </div>
             ))}
           </div>
           <div className="print-category-map">
@@ -983,7 +987,7 @@ export default function PortfolioPage() {
               <div className="print-single-meta"><span>◈ {item.category}</span><span>◷ {formatDate(item.date)}</span></div>
               <div className="print-single-description"><strong>وصف الإنجاز</strong><p>{item.description || item.objective || "إنجاز مهني موثق ضمن سجل المعلم."}</p></div>
               <div className="print-single-evidence">
-                <div className="print-single-evidence-label"><strong>شواهد الإنجاز</strong><span>{photos.length ? `${arabicNumber(photos.length)} صورة موثقة` : "توثيق وصفي"}</span></div>
+                <div className="print-single-evidence-label"><strong>الشواهد المصورة</strong><span>{photos.length ? `${arabicNumber(photos.length)} صورة موثقة` : "توثيق وصفي"}</span></div>
                 {photos.length ? <div className={`print-single-images print-single-images-${Math.min(photos.length, 4)}`}>
                   {photos.slice(0, 4).map((photo, photoIndex) => <figure key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /><figcaption>{photo.name || `شاهد ${arabicNumber(photoIndex + 1)}`}</figcaption></figure>)}
                 </div> : <div className="print-single-empty-evidence">لا توجد صور مرفقة لهذا الإنجاز. {item.url ? "يوجد رابط شاهد إلكتروني مسجل." : ""}</div>}
