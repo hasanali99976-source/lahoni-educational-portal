@@ -109,6 +109,7 @@ function normalizeEvidence(item: Partial<Evidence>, index: number): Evidence {
     description: String(item.description || smart.description),
     fileName: String(item.fileName || ""),
     fileData: String(item.fileData || ""),
+    attachments: Array.isArray(item.attachments) ? item.attachments : [],
     objective: String(item.objective || smart.objective),
     impact: String(item.impact || smart.impact),
     role: String(item.role || smart.role),
