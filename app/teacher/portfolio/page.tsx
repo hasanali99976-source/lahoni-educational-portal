@@ -387,7 +387,7 @@ export default function PortfolioPage() {
   }, [form, loaded, localKey]);
 
   const achievements = useMemo(
-    () => form.evidence.filter((item) => item.title.trim()).sort((a, b) => (b.date || "").localeCompare(a.date || "")),
+    () => form.evidence.filter((item) => item.title.trim()).sort((a, b) => { const first = a.date || a.createdAt?.slice(0, 10) || "9999-12-31"; const second = b.date || b.createdAt?.slice(0, 10) || "9999-12-31"; return first.localeCompare(second) || (a.createdAt || "").localeCompare(b.createdAt || ""); }),
     [form.evidence],
   );
 
