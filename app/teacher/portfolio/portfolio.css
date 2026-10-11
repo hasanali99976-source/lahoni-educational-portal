@@ -230,3 +230,45 @@
 .print-development-roadmap>div{display:flex;justify-content:space-between;gap:8px}.print-development-roadmap span{padding:8px;background:#e9f3ee;border-radius:6px;font-size:10px}
 .print-reflection-footer{margin-top:auto}.portfolio-print-final{align-items:center;justify-content:space-between!important;text-align:center;background:linear-gradient(140deg,#faf6ed,#fff 55%,#eaf5ef)!important}
 @media print{.portfolio-print-document{display:block!important}.portfolio-preview-toolbar,.no-print{display:none!important}.portfolio-print-document .print-page{margin:0!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}@page{size:A4;margin:0}}
+
+
+/* Visual edition: actual editorial illustration and coherent art direction. */
+.portfolio-print-document .print-page{isolation:isolate;background-color:#f5f9f9!important;background-image:radial-gradient(ellipse at 100% 5%,#d9eff0 0,transparent 40%),linear-gradient(160deg,#f4f9fb 0%,#fff 48%,#e8f2f1 100%)!important}
+.portfolio-print-document .print-page:before{height:5mm!important;background:linear-gradient(90deg,#bda06d,#e7d7b8 23%,#fff 48%,#0d8590)!important}
+.portfolio-print-document .print-page:after{height:9mm!important;background:linear-gradient(95deg,#083e5e 0%,#0c6880 50%,#0ea4a1 85%,#d4b47a 100%)!important;clip-path:polygon(0 30%,40% 45%,70% 5%,100% 0,100% 100%,0 100%)}
+.portfolio-print-document .print-page .print-section-header{background:linear-gradient(100deg,#0a405f,#0b8090)!important;box-shadow:0 5px 12px #0d617c1b!important}
+.portfolio-print-document .print-page .print-section-header h2{font-size:21px!important}
+.portfolio-print-document .print-page .print-section-header>span{background:#16a1a5!important}
+.portfolio-print-document .portfolio-print-cover{background:linear-gradient(130deg,#e6f4f7 0%,#fff 44%,#f0f5f0 100%)!important}
+.portfolio-print-cover .print-cover-illustration{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
+.print-cover-sun{position:absolute;top:25mm;left:15mm;width:65mm;height:65mm;border-radius:50%;background:radial-gradient(circle,#ffe6af99 0%,#f5d9a744 40%,transparent 70%)}
+.print-cover-arch{position:absolute;bottom:10mm;left:-9mm;width:57mm;height:108mm;border:13mm solid #0c6a79;border-bottom:0;border-radius:50% 50% 0 0;opacity:.13;transform:rotate(-12deg)}
+.print-cover-arch-two{left:auto;right:-12mm;bottom:17mm;width:35mm;height:79mm;border-color:#bda071;opacity:.18;transform:rotate(13deg)}
+.print-cover-book{position:absolute;bottom:28mm;right:13mm;width:70mm;height:22mm;border-radius:50%;background:radial-gradient(ellipse,#ba987533,transparent 70%)}
+.portfolio-print-cover .print-cover-center{position:relative;z-index:1;gap:17px!important}
+.portfolio-print-cover .print-cover-center h1{font-size:46px!important;line-height:1.27!important;color:#0a4261!important}
+.portfolio-print-cover .print-cover-center p{font-size:14px!important;color:#29586b!important}
+.portfolio-print-cover .print-cover-brand{background:#ffffffcc!important;border:1px solid #d5e6e6!important;border-radius:10px!important;max-width:160mm;margin:0 auto!important}
+.portfolio-print-cover .print-cover-emblem{background:#f0f9f8!important;border:3px double #bd9d62!important}
+.portfolio-print-cover dl{box-shadow:0 10px 30px #0b4a5912!important}
+.portfolio-print-document .print-report-visual{display:flex;align-items:center;gap:18px;padding:14px 19px;background:linear-gradient(110deg,#0a4766,#0b7b8a);border-radius:12px;min-height:75px;color:#fff}
+.portfolio-print-document .print-report-visual-orbit{display:grid;place-items:center;flex:none;width:49px;height:49px;border:1px solid #c9e8df;border-radius:50%;color:#e5c47f;font-size:28px}
+.portfolio-print-document .print-report-visual div{display:flex;flex-direction:column;gap:7px}
+.portfolio-print-document .print-report-visual strong{font-size:16px;color:#fff}
+.portfolio-print-document .print-report-visual small{font-size:11px;color:#d9f1f2}
+.portfolio-print-document .print-index-intro{display:flex;flex-direction:column;gap:7px;background:#ffffffc9;padding:14px 18px;border-right:4px solid #12a2a4;border-radius:7px}
+.portfolio-print-document .print-index-intro strong{font-size:16px;color:#0b4966}
+.portfolio-print-document .print-index-intro span{font-size:11px;color:#487080}
+.portfolio-print-document .print-index-table{max-height:105mm!important}
+.portfolio-print-document .print-index-table-head,.portfolio-print-document .print-index-table-row{grid-template-columns:26px minmax(0,2.5fr) minmax(0,1fr) 76px 36px!important;min-height:32px!important}
+.portfolio-print-document .print-index-table-row>*{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.portfolio-print-document .print-index-table-row strong{white-space:normal;overflow-wrap:anywhere}
+.portfolio-print-document .print-single-images{max-height:102mm!important}
+.portfolio-print-document .print-single-images-1{max-height:100mm!important}
+.portfolio-print-document .print-single-images figure{background:#fff!important;border:1px solid #d0e3e4!important;padding:9px!important}
+.portfolio-print-document .print-single-images img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;min-height:0!important}
+.portfolio-print-document .print-single-description,.portfolio-print-document .print-single-impact{background:#ffffffdf!important;border:1px solid #d8e6e3!important;border-right:4px solid #0c99a0!important}
+.portfolio-print-document .print-single-heading{background:#ffffffed!important;border-right:4px solid #d0ad71!important}
+.portfolio-print-document .print-single-ordinal{background:#0a6380!important}
+.portfolio-print-document .print-stat-grid article,.portfolio-print-document .print-initiatives-metrics article{background:#ffffffdd!important;border:1px solid #d7e5e5!important}
+.portfolio-print-document .print-page .print-reflection-footer{margin-top:14px!important}
