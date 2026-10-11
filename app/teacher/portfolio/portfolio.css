@@ -473,3 +473,64 @@
  .portfolio-print-document .portfolio-print-gallery .print-gallery-photo img{max-height:100%!important}
  .portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-photos{min-height:90mm!important}
 }
+
+
+/* Accessible Arabic typography and contrast for both report preview and exported A4. */
+.portfolio-page .portfolio-print-document,
+.portfolio-page .portfolio-print-document .print-page,
+.portfolio-page .portfolio-print-document .print-page *{
+  font-family:"Tahoma","Arial",sans-serif!important;
+  letter-spacing:normal!important;
+}
+.portfolio-page .portfolio-print-document .print-page{color:#113d56!important}
+.portfolio-page .portfolio-print-document .print-page h1,
+.portfolio-page .portfolio-print-document .print-page h2,
+.portfolio-page .portfolio-print-document .print-page h3,
+.portfolio-page .portfolio-print-document .print-page strong,
+.portfolio-page .portfolio-print-document .print-page b{
+  font-weight:800!important;
+  text-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .print-page p,
+.portfolio-page .portfolio-print-document .print-page li,
+.portfolio-page .portfolio-print-document .print-page time,
+.portfolio-page .portfolio-print-document .print-page small{
+  line-height:1.8!important;
+  text-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-entry,
+.portfolio-page .portfolio-print-document .print-page .print-narrative,
+.portfolio-page .portfolio-print-document .print-page .print-index-list>div,
+.portfolio-page .portfolio-print-document .print-page .print-editorial-quote,
+.portfolio-page .portfolio-print-document .print-page .print-category-bars,
+.portfolio-page .portfolio-print-document .print-page .print-initiatives-note,
+.portfolio-page .portfolio-print-document .print-page .print-initiatives-tiles article,
+.portfolio-page .portfolio-print-document .print-page .print-initiatives-metrics article,
+.portfolio-page .portfolio-print-document .print-page .print-stat-grid article,
+.portfolio-page .portfolio-print-document .print-page .print-gallery-intro,
+.portfolio-page .portfolio-print-document .print-page .print-reflection-footer,
+.portfolio-page .portfolio-print-document .print-page .print-development-roadmap{
+  background-color:rgba(255,255,255,.93)!important;
+  border-color:rgba(174,209,216,.8)!important;
+}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-entry-detail p,
+.portfolio-page .portfolio-print-document .print-page .print-gallery-impact,
+.portfolio-page .portfolio-print-document .print-page .print-gallery-no-photo,
+.portfolio-page .portfolio-print-document .print-page .print-narrative p,
+.portfolio-page .portfolio-print-document .print-page .print-index-list small,
+.portfolio-page .portfolio-print-document .print-page .print-index-list time,
+.portfolio-page .portfolio-print-document .print-page .print-initiatives-note p{
+  color:#244e62!important;
+}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-entry-detail p{font-size:12px!important;line-height:1.7!important}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-impact{font-size:12px!important;line-height:1.7!important}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-entry-head span{color:#365e70!important;font-size:12px!important}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-entry-head strong{color:#0a3f5d!important}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-impact{background:#e9f6f2!important}
+.portfolio-page .portfolio-print-document .print-page .print-gallery-photo{background:rgba(255,255,255,.85)!important}
+.portfolio-page .portfolio-print-document .print-page .print-cover-center{background:rgba(255,255,255,.89)!important}
+.portfolio-page .portfolio-print-document .print-page .print-cover-center h1{color:#073e5c!important}
+@media print{
+ .portfolio-page .portfolio-print-document .print-page,
+ .portfolio-page .portfolio-print-document .print-page *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
