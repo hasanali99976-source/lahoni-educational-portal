@@ -95,6 +95,12 @@ function emptyDraft(): AchievementDraft {
   };
 }
 
+function imageAttachments(item: Evidence) {
+  return (item.attachments || []).filter((attachment) =>
+    /\.(jpe?g|png|webp|gif)(?:$|[?#])/i.test(attachment.name || attachment.url)
+  );
+}
+
 function normalizeEvidence(item: Partial<Evidence>, index: number): Evidence {
   const title = String(item.title || "");
   const category = String(item.category || inferCategory(title, String(item.description || "")) || "إنجاز مهني");
@@ -626,6 +632,20 @@ export default function PortfolioPage() {
       }
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
 
+      // The PDF canvas must wait until private, authenticated evidence images are loaded.
+      const printImages = Array.from(document.querySelectorAll<HTMLImageElement>("#portfolio-print-preview .print-page img"));
+      await Promise.all(printImages.map(async (img) => {
+        if (img.complete && img.naturalWidth > 0) return;
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            const done = () => resolve();
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+            if (img.complete) resolve();
+          }),
+          new Promise<void>((resolve) => window.setTimeout(resolve, 12000)),
+        ]);
+      }));
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
@@ -947,6 +967,9 @@ export default function PortfolioPage() {
               <div className="print-achievement-stamp"><span>أثر</span><strong>موثّق</strong></div>
             </header>
             {item.fileData.startsWith("data:image/") && <img className="print-achievement-image" src={item.fileData} alt={item.title} />}
+            {imageAttachments(item).map((attachment, imageIndex) => (
+              <img className="print-achievement-image" key={`${attachment.url}-${imageIndex}`} src={attachment.url} alt={`شاهد ${item.title}: ${attachment.name}`} loading="eager" />
+            ))}
             <div className="print-achievement-tags">{(item.tags || []).map((tag) => <span key={tag}>{tag}</span>)}</div>
             <div className="print-achievement-content">
               <article><h3>وصف الإنجاز</h3><p>{item.description}</p></article>
