@@ -959,17 +959,25 @@ export default function PortfolioPage() {
               </div>
             ))}
           </div>
-          <div className="print-category-map">
-            {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => <span key={category}>{category}<b>{arabicNumber(count)}</b></span>)}
+          <div className="print-index-dashboard">
+            <div className="print-index-dashboard-title"><strong>الإنجاز بالأرقام</strong><span>إحصاءات مستمدة من الإنجازات المسجلة</span></div>
+            <div className="print-index-metrics">
+              <article><strong>{arabicNumber(achievements.length)}</strong><span>إنجازات موثقة</span></article>
+              <article><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجالات مهنية</span></article>
+              <article><strong>{arabicNumber(summary.months)}</strong><span>أشهر نشاط</span></article>
+            </div>
+            <div className="print-index-chart" aria-label="توزيع الإنجازات على المجالات المهنية">
+              {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count], index) => {
+                const width = Math.max(5, Math.round((count / Math.max(1, achievements.length)) * 100));
+                return <div className="print-index-chart-row" key={category}>
+                  <span className="print-index-chart-label">{category}</span>
+                  <div className="print-index-chart-track"><i className={`print-index-chart-fill print-index-chart-color-${index % 5}`} style={{ width: `${width}%` }} /></div>
+                  <b>{arabicNumber(count)}</b>
+                </div>;
+              })}
+            </div>
+            <p className="print-index-dashboard-caption">تُعرض الإنجازات وفق ترتيب تواريخها، وتبدأ صفحات الشواهد بعد الفهرس مباشرة.</p>
           </div>
-          <div className="print-index-art"><span>✦</span><strong>التوثيق يصنع فرقًا</strong><small>كل إنجاز شاهد على ممارسة مهنية مؤثرة</small><div className="print-index-steps"><b>تخطيط</b><b>تنفيذ</b><b>توثيق</b><b>أثر</b></div></div>
-          <div className="print-design-label">توزيع الإنجازات على المجالات المهنية</div><div className="print-chart-heading"><strong>مخطط توزيع الإنجازات</strong><span>بيانات فعلية من سجل المعلم</span></div><div className="print-category-bars">
-            {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => {
-              const width = Math.max(18, Math.round((count / Math.max(1, achievements.length)) * 100));
-              return <div key={category}><span>{category}</span><i><b style={{ width: `${width}%` }} /></i><strong>{arabicNumber(count)}</strong></div>;
-            })}
-          </div>
-          <div className="print-index-insight"><strong>{arabicNumber(achievements.length)}</strong><span>إجمالي الإنجازات</span><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجالات مهنية</span><strong>{arabicNumber(summary.months)}</strong><span>أشهر موثقة</span></div><div className="print-index-bottom"><div><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز في هذا السجل</span></div><p>هذا الفهرس يربط الإنجازات بصفحات التوثيق والشواهد المصورة؛ لتسهيل مراجعة الممارسات المهنية وقياس أثرها.</p></div>
         </section>
 
         {achievements.map((item, index) => {
