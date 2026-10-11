@@ -266,22 +266,16 @@
 @media print{@page{size:A4;margin:0}.portfolio-print-document{display:block!important}.portfolio-preview-toolbar,.no-print{display:none!important}.portfolio-print-document .print-page{margin:0!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
 
 
-/* Index V4: fixed geometry, no oversized inherited type or multiline dates. */
-.portfolio-print-document .portfolio-print-index .print-index-table{display:block!important;flex:none!important;overflow:hidden!important;width:100%!important;border:1px solid #c8dadd!important;border-radius:7px!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-head,.portfolio-print-document .portfolio-print-index .print-index-table-row{display:grid!important;grid-template-columns:24px minmax(0,1fr) 92px 85px 34px!important;align-items:center!important;column-gap:7px!important;min-height:35px!important;height:auto!important;padding:7px 9px!important;line-height:1.4!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row{background:#fff!important;border-bottom:1px solid #dbe6e6!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row:nth-child(2n){background:#eaf3f2!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-head{background:#cce4e7!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-head>span{font-size:10px!important;line-height:1.4!important;white-space:nowrap!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row .print-index-title{font-size:10px!important;font-weight:700!important;line-height:1.5!important;display:block!important;min-width:0!important;max-height:3em!important;overflow:hidden!important;white-space:normal!important;overflow-wrap:anywhere!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row .print-index-category{font-size:9px!important;line-height:1.5!important;overflow-wrap:anywhere!important;min-width:0!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row .print-index-date{font-size:9px!important;line-height:1.5!important;text-align:center!important;white-space:normal!important;word-break:normal!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row .print-index-no,.portfolio-print-document .portfolio-print-index .print-index-table-row .print-index-page{font-size:11px!important;text-align:center!important;font-weight:900!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row>*{margin:0!important;padding:0!important}
-.portfolio-print-document .portfolio-print-index .print-index-table-row time{font-variant-numeric:tabular-nums!important}
-.portfolio-print-document .portfolio-print-index .print-category-map{gap:4px!important}
-.portfolio-print-document .portfolio-print-index .print-index-art{min-height:40px!important}
-.portfolio-print-document .portfolio-print-index .print-index-bottom{min-height:45px!important}
-.portfolio-print-document .portfolio-print-index .print-category-bars{gap:4px!important;padding:7px!important}
-.portfolio-print-document .portfolio-print-index .print-category-bars>div{font-size:9px!important}
-.portfolio-print-document .print-page{font-synthesis:none!important}
+
+.print-index-dashboard{display:flex;flex-direction:column;gap:10px;padding:12px;background:linear-gradient(125deg,#e4f3f1,#fff 60%,#e4f0f7);border:1px solid #c8dedd;border-radius:10px;overflow:hidden}
+.print-index-dashboard-title{display:flex;justify-content:space-between;align-items:center}.print-index-dashboard-title strong{font-size:14px;color:#0b5068}.print-index-dashboard-title span{font-size:9px;color:#557985}
+.print-index-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.print-index-metrics article{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d7e5e1;border-radius:8px;padding:9px}
+.print-index-metrics article:nth-child(2){background:#e8f5f4}.print-index-metrics article:nth-child(3){background:#f7efdd}.print-index-metrics strong{font-size:22px;color:#0b808c}.print-index-metrics span{font-size:10px;color:#386473}
+.print-index-chart{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 17px;background:#fff;border-radius:8px;padding:12px}
+.print-index-chart-row{display:grid;grid-template-columns:80px minmax(0,1fr) 20px;align-items:center;gap:6px;min-width:0}.print-index-chart-label{font-size:9px;color:#24566a;overflow-wrap:anywhere}
+.print-index-chart-track{height:11px;background:#e5f0f0;border-radius:7px;overflow:hidden}.print-index-chart-fill{display:block;height:100%;background:#0b8091;border-radius:7px}
+.print-index-chart-color-1{background:#1ba99d}.print-index-chart-color-2{background:#c7a15e}.print-index-chart-color-3{background:#5a77bd}.print-index-chart-color-4{background:#b77c95}
+.print-index-chart-row b{font-size:10px;text-align:center}.print-index-dashboard-caption{font-size:9px!important;line-height:1.4!important}
+.portfolio-print-index .print-index-table-head,.portfolio-print-index .print-index-table-row{grid-template-columns:22px minmax(0,1fr) 85px 78px 32px!important;gap:7px!important;min-height:37px!important;padding:7px 8px!important}
+.portfolio-print-index .print-index-title{font-size:10px!important;line-height:1.4!important;max-height:2.8em;overflow:hidden}
+.portfolio-print-index .print-index-category,.portfolio-print-index .print-index-date{font-size:9px!important}
