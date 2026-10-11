@@ -691,3 +691,241 @@
   max-height:112mm!important;
  }
 }
+
+
+/* Approved professional portfolio design — October 2026. The selectors intentionally
+   supersede the older experimental themes without changing teacher data. */
+.portfolio-page .portfolio-print-document .print-page{
+  --report-ink:#103a55;--report-teal:#147f89;--report-gold:#b78a43;
+  background:#faf6ed!important;
+  background-image:linear-gradient(145deg,rgba(247,239,223,.35),rgba(255,255,255,.78))!important;
+  color:#163b51!important;
+  border:1px solid #e1d7c4!important;
+  padding:15mm 15mm 13mm!important;
+  gap:11px!important;
+  font-family:"Cairo","Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important;
+  box-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .print-page *{
+  font-family:"Cairo","Tajawal","Segoe UI",Tahoma,Arial,sans-serif!important;
+  box-sizing:border-box!important;
+  letter-spacing:0!important;
+  text-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .print-page::before{
+  content:""!important;position:absolute!important;top:0!important;right:0!important;
+  width:100%!important;height:8mm!important;border-radius:0!important;
+  background:linear-gradient(90deg,#b58b4d 0%,#e7d2a4 14%,#faf6ed 32%,#167f8a 100%)!important;
+  opacity:1!important;pointer-events:none!important;
+}
+.portfolio-page .portfolio-print-document .print-page::after{
+  content:""!important;position:absolute!important;bottom:0!important;left:0!important;
+  width:100%!important;height:7mm!important;border-radius:0!important;
+  background:linear-gradient(90deg,#0b405f,#0e7d88 58%,#cda25c)!important;
+  opacity:1!important;pointer-events:none!important;
+}
+.portfolio-page .portfolio-print-document .print-page .print-section-header{
+  min-height:56px!important;flex:none!important;padding:8px 14px!important;
+  border-radius:4px 13px 4px 13px!important;border:0!important;
+  background:linear-gradient(100deg,#073e60,#0e7084 70%,#199da0)!important;
+  box-shadow:none!important;gap:12px!important;
+}
+.portfolio-page .portfolio-print-document .print-page .print-section-header h2{font-size:21px!important;line-height:1.4!important;color:#fff!important}
+.portfolio-page .portfolio-print-document .print-page .print-section-header small{font-size:11px!important;color:#e9f6f4!important}
+.portfolio-page .portfolio-print-document .print-page .print-section-header>span{
+  border-radius:7px!important;background:#c49a53!important;color:#fff!important;
+  width:42px!important;height:42px!important;font-size:19px!important;
+}
+.portfolio-page .portfolio-print-document .print-page p{
+  font-size:12px!important;line-height:1.65!important;color:#254a5e!important;
+  overflow-wrap:anywhere!important;
+}
+.portfolio-page .portfolio-print-document .print-page h3{color:#0b4563!important;line-height:1.45!important}
+.portfolio-page .portfolio-print-document .print-page .print-design-label{
+  color:#0b5972!important;border-color:#d4ae6d!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover{
+  background:linear-gradient(150deg,#fbf7ee,#fff 42%,#f0f7f4)!important;
+  justify-content:space-between!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-brand{
+  background:transparent!important;border:0!important;align-self:center!important;
+  border-bottom:1px solid #dfc99c!important;border-radius:0!important;
+  padding:12px 24px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-center{
+  background:transparent!important;border:0!important;border-radius:0!important;
+  padding:18px 14px!important;flex:1!important;justify-content:center!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-center h1{
+  color:#0a3e60!important;font-size:49px!important;line-height:1.22!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-center p{
+  font-size:15px!important;max-width:510px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-emblem{
+  display:flex!important;width:112px!important;height:112px!important;
+  margin:8px auto!important;box-shadow:0 0 0 6px #e9e2d2!important;
+  background:#fdf9f0!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-emblem strong{font-size:25px!important}
+.portfolio-page .portfolio-print-document .portfolio-print-cover dl{
+  background:#fffdf7!important;border:1px solid #d9c5a4!important;
+  box-shadow:none!important;border-radius:9px!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover dl div{
+  background:transparent!important;border:0!important;
+  border-left:1px solid #e3d8c8!important;padding:7px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-ribbon{
+  background:#0b4a68!important;border-radius:8px!important;color:#fff!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-cover .print-cover-badges b{
+  background:#fffaf0!important;color:#0b5671!important;border:1px solid #eadabf!important;
+  border-radius:10px!important;box-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-overview .print-stat-grid article,
+.portfolio-page .portfolio-print-document .portfolio-print-initiatives .print-initiatives-metrics article{
+  background:#fffdf8!important;border:1px solid #e5d8c3!important;
+  border-radius:10px!important;box-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-overview .print-stat-grid strong,
+.portfolio-page .portfolio-print-document .portfolio-print-initiatives .print-initiatives-metrics strong{
+  color:#0a6d7d!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-overview .print-summary-visual,
+.portfolio-page .portfolio-print-document .portfolio-print-overview .print-impact-banner{
+  background:linear-gradient(100deg,#e8f3ef,#fdf7e9)!important;
+  border:1px solid #d7c6a4!important;color:#0b4b66!important;
+  border-radius:9px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-overview .print-impact-banner strong,
+.portfolio-page .portfolio-print-document .portfolio-print-overview .print-impact-banner small{color:#0b4b66!important}
+.portfolio-page .portfolio-print-document .print-narrative,
+.portfolio-page .portfolio-print-document .print-editorial-quote,
+.portfolio-page .portfolio-print-document .print-index-art,
+.portfolio-page .portfolio-print-document .print-category-bars,
+.portfolio-page .portfolio-print-document .print-initiatives-note,
+.portfolio-page .portfolio-print-document .portfolio-print-reflection>article,
+.portfolio-page .portfolio-print-document .print-development-roadmap{
+  background:#fffdf8!important;border:1px solid #e6dac5!important;
+  border-radius:9px!important;box-shadow:none!important;
+}
+.portfolio-page .portfolio-print-document .print-index-table{
+  display:flex!important;flex-direction:column!important;gap:0!important;
+  border:1px solid #d7e0df!important;border-radius:8px!important;
+  overflow:hidden!important;background:#fffdf9!important;
+}
+.portfolio-page .portfolio-print-document .print-index-table-head,
+.portfolio-page .portfolio-print-document .print-index-table-row{
+  display:grid!important;grid-template-columns:30px minmax(0,2.8fr) minmax(0,1fr) 86px 45px!important;
+  align-items:center!important;gap:5px!important;min-height:35px!important;
+  padding:6px 9px!important;border-bottom:1px solid #dce5e4!important;
+  font-size:10px!important;color:#19485c!important;
+}
+.portfolio-page .portfolio-print-document .print-index-table-head{
+  background:#dfe9e8!important;color:#0b405d!important;font-weight:900!important;
+}
+.portfolio-page .portfolio-print-document .print-index-table-row:nth-child(odd){background:#f2f8f5!important}
+.portfolio-page .portfolio-print-document .print-index-table-row strong{
+  color:#0b4b67!important;font-size:10px!important;line-height:1.4!important;
+}
+.portfolio-page .portfolio-print-document .print-index-table-row time{
+  font-size:9px!important;color:#315e6d!important;
+}
+.portfolio-page .portfolio-print-document .print-index-table-row>span:first-child,
+.portfolio-page .portfolio-print-document .print-index-table-row>b{
+  text-align:center!important;color:#0b8190!important;
+}
+.portfolio-page .portfolio-print-document .print-index-bottom{
+  background:#0d506b!important;border-radius:8px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement{
+  gap:10px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-heading{
+  padding:10px 13px!important;background:#fffdf8!important;border:1px solid #e4d5ba!important;
+  border-right:4px solid #c59a54!important;border-radius:8px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-title h3{
+  font-size:20px!important;line-height:1.4!important;color:#0b405d!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-ordinal{
+  width:43px!important;height:43px!important;background:#b88d47!important;
+  font-size:19px!important;border-radius:7px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-meta span{
+  background:#e7f0ee!important;color:#0c536b!important;border:0!important;
+  font-size:11px!important;padding:5px 11px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-description,
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-impact{
+  background:#fffdf9!important;border:1px solid #e4d7c3!important;
+  border-right:4px solid #c29a57!important;border-radius:8px!important;
+  padding:10px 14px!important;flex:none!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-description strong,
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-impact strong{
+  color:#0a5671!important;font-size:14px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-description p,
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-impact p{
+  font-size:12px!important;line-height:1.55!important;color:#254b5b!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-evidence{
+  flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-evidence-label{
+  background:linear-gradient(95deg,#0c4a69,#0c8390)!important;
+  padding:6px 11px!important;border-radius:7px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-evidence-label strong{
+  color:#fff!important;font-size:13px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-images{
+  flex:1 1 auto!important;min-height:0!important;max-height:101mm!important;
+  display:grid!important;gap:9px!important;align-items:stretch!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-images figure{
+  min-width:0!important;min-height:0!important;margin:0!important;
+  background:#fffdf9!important;border:1px solid #e3d7c3!important;
+  border-radius:8px!important;box-shadow:none!important;
+  padding:8px!important;display:flex!important;flex-direction:column!important;
+  overflow:hidden!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-images img{
+  display:block!important;width:100%!important;height:100%!important;
+  min-height:0!important;min-width:0!important;max-width:100%!important;
+  max-height:100%!important;object-fit:contain!important;object-position:center!important;
+  flex:1 1 0!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-images figcaption{
+  flex:none!important;font-size:10px!important;color:#315b6d!important;
+  max-height:23px!important;line-height:1.4!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-footer{
+  color:#0b5670!important;border-color:#d6c8ac!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-initiatives .print-initiatives-tiles article{
+  background:#fffdf9!important;border:1px solid #e3d8c6!important;
+  box-shadow:none!important;border-radius:9px!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-initiatives .print-initiatives-photos figure{
+  background:#fffdf9!important;border:1px solid #e4d9c6!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-reflection .print-reflection-footer{
+  background:linear-gradient(100deg,#0b4665,#0b7f88)!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-reflection .print-reflection-footer p{color:#fff!important}
+.portfolio-page .portfolio-print-document .portfolio-print-final{
+  background:linear-gradient(150deg,#faf5ea,#fff 55%,#e9f4ef)!important;
+}
+@media print{
+ .portfolio-page .portfolio-print-document .print-page{
+  -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;
+ }
+ .portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-images{
+  max-height:101mm!important;
+ }
+}
