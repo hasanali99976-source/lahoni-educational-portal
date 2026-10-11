@@ -966,28 +966,31 @@ export default function PortfolioPage() {
           <div className="print-index-bottom"><div><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز في هذا السجل</span></div><p>هذا الفهرس يربط الإنجازات بصفحات التوثيق والشواهد المصورة؛ لتسهيل مراجعة الممارسات المهنية وقياس أثرها.</p></div>
         </section>
 
-        {Array.from({ length: Math.ceil(achievements.length / 3) }, (_, pageIndex) => (
-          <section className={`portfolio-print-gallery print-page gallery-count-${achievements.slice(pageIndex * 3, pageIndex * 3 + 3).length}`} key={`achievement-gallery-${pageIndex}`}>
-            <header className="print-section-header"><span>{arabicNumber(pageIndex + 1)}</span><div><small>سجل الممارسات والشواهد التعليمية</small><h2>إنجازاتي المهنية</h2></div></header>
-            <p className="print-gallery-intro">توثيق الإنجازات التعليمية بالأهداف والممارسات والأثر والشواهد الفعلية.</p>
-            <div className="print-gallery-list">
-              {achievements.slice(pageIndex * 3, pageIndex * 3 + 3).map((item, index) => {
-                const photos = [
-                  ...(item.fileData.startsWith("data:image/") ? [{ url: item.fileData, name: item.fileName || item.title }] : []),
-                  ...imageAttachments(item),
-                ];
-                return <article className="print-gallery-entry" key={item.id}>
-                  <div className="print-gallery-entry-head"><b>{arabicNumber(pageIndex * 3 + index + 1)}</b><strong>{item.title}</strong><span>{formatDate(item.date)}</span></div>
-                  <div className="print-gallery-entry-detail"><span>{item.category}</span><p>{item.description || item.objective || "إنجاز مهني موثق"}</p></div>
-                  {photos.length > 0 ? <div className={`print-gallery-photos photo-count-${Math.min(photos.length, 3)}`}>
-                    {photos.slice(0, 3).map((photo, photoIndex) => <div className="print-gallery-photo" key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /></div>)}
-                  </div> : <div className="print-gallery-no-photo">التوثيق الوصفي للإنجاز • {item.impact || item.objective || item.role || item.category}</div>}
-                  <div className="print-gallery-impact"><strong>الأثر:</strong> <span>{item.impact || item.objective || item.role || item.description || "لم يُحدد الأثر بعد."}</span></div>
-                </article>;
-              })}
-            </div>
-          </section>
-        ))}
+        {achievements.map((item, index) => {
+          const photos = [
+            ...(item.fileData.startsWith("data:image/") ? [{ url: item.fileData, name: item.fileName || item.title }] : []),
+            ...imageAttachments(item),
+          ];
+          return (
+            <section className="portfolio-print-single-achievement print-page" key={`achievement-page-${item.id}`}>
+              <header className="print-section-header"><span>{arabicNumber(index + 1)}</span><div><small>سجل الإنجازات المهنية | الشواهد والأثر</small><h2>إنجازاتي المهنية</h2></div></header>
+              <div className="print-single-heading">
+                <div className="print-single-ordinal">{arabicNumber(index + 1).padStart(2, "٠")}</div>
+                <div className="print-single-title"><span>الإنجاز رقم {arabicNumber(index + 1)}</span><h3>{item.title}</h3></div>
+              </div>
+              <div className="print-single-meta"><span>◈ {item.category}</span><span>◷ {formatDate(item.date)}</span></div>
+              <div className="print-single-description"><strong>وصف الإنجاز</strong><p>{item.description || item.objective || "إنجاز مهني موثق ضمن سجل المعلم."}</p></div>
+              <div className="print-single-evidence">
+                <div className="print-single-evidence-label"><strong>شواهد الإنجاز</strong><span>{photos.length ? `${arabicNumber(photos.length)} صورة موثقة` : "توثيق وصفي"}</span></div>
+                {photos.length ? <div className={`print-single-images print-single-images-${Math.min(photos.length, 4)}`}>
+                  {photos.slice(0, 4).map((photo, photoIndex) => <figure key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /><figcaption>{photo.name || `شاهد ${arabicNumber(photoIndex + 1)}`}</figcaption></figure>)}
+                </div> : <div className="print-single-empty-evidence">لا توجد صور مرفقة لهذا الإنجاز. {item.url ? "يوجد رابط شاهد إلكتروني مسجل." : ""}</div>}
+              </div>
+              <div className="print-single-impact"><strong>الأثر المهني والتعليمي</strong><p>{item.impact || item.objective || item.role || item.description || "لم يُحدد الأثر بعد."}</p></div>
+              <footer className="print-single-footer"><span>بوابة أستاذ لحوني التعليمية</span><span>سجل الإنجاز المهني • {arabicNumber(index + 1)} / {arabicNumber(achievements.length)}</span></footer>
+            </section>
+          );
+        })}
         <section className="portfolio-print-initiatives print-page">
           <header className="print-section-header"><span>✦</span><div><small>قراءة كمية ونوعية من الإنجازات الموثقة</small><h2>المبادرات والبرامج التعليمية</h2></div></header>
           <h3>أبرز المجالات المهنية</h3>
