@@ -1042,8 +1042,8 @@ export default function PortfolioPage() {
           <h2>إنجازات تصنع أثرًا مستدامًا</h2>
           <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
           <div className="print-signatures">
-            <div><small>اسم المعلم</small><strong>{form.signatureName || session?.teacherName || "—"}</strong><span>التوقيع: ____________________</span></div>
-            <div><small>المادة</small><strong>{subject.label}</strong><span>التاريخ: ____________________</span></div>
+            <div className="print-signature-card"><small>اسم المعلم</small><strong>{form.signatureName || session?.teacherName || "—"}</strong><span>التوقيع</span><i aria-hidden="true" /></div>
+            <div className="print-signature-card"><small>المادة الدراسية</small><strong>{subject.label}</strong><span>التاريخ</span><i aria-hidden="true" /></div>
           </div>
           {form.publicShareUrl && <a className="print-share-link" href={form.publicShareUrl}>{form.publicShareUrl}</a>}
           <footer>بوابة أستاذ لحوني التعليمية</footer>
