@@ -340,10 +340,12 @@ export default function PortfolioPage() {
         if (cancelled) return;
         if (snap.exists()) {
           const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
-          const localIsNewer = !!localForm?.updatedAt && String(localForm.updatedAt) > String(cloudForm.updatedAt || "");
-          const next: PortfolioForm = localIsNewer ? localForm! : {
+          let latestLocal = localForm;
+          try { const saved = localStorage.getItem(localKey); if (saved) latestLocal = normalizeForm(JSON.parse(saved) as Partial<PortfolioForm>); } catch {}
+          const localIsNewer = !!latestLocal?.updatedAt && String(latestLocal.updatedAt) > String(cloudForm.updatedAt || "");
+          const next: PortfolioForm = localIsNewer ? latestLocal! : {
             ...cloudForm,
-            evidence: mergeCloudWithDeviceFiles(cloudForm.evidence, localForm?.evidence || []),
+            evidence: mergeCloudWithDeviceFiles(cloudForm.evidence, latestLocal?.evidence || []),
           };
           setForm(next);
           saveLocal(localKey, next);
