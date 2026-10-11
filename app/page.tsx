@@ -187,7 +187,26 @@ export default function HomePage(){
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
     <section className="lh-stage" aria-label="بوابة أستاذ لحوني التعليمية"><div className="lh-book lh-stars" aria-hidden="true"><span className="star-side">✧</span><span className="star-main">✦</span><span className="star-side">✧</span></div><div className="lh-smalltitle">بوابة</div><h1 className="lh-main-title">أستاذ لحوني</h1><div className="lh-subtitle">التعليمية</div><p className="lh-motto">تعليم أكثر تنظيمًا · متابعة أكثر أثرًا</p><p className="lh-intro">منظومة تعليمية تجمع الإدارة والمعلم والطالب وولي الأمر في تجربة واحدة، لتطوير التعلم ومتابعة الإنجاز.</p></section>
-    <nav className="lh-roles" aria-label="بوابات الدخول">{portals.map(p=><Link key={p.href} href={p.href} className={`lh-card ${p.kind}`}><div className="lh-card-head"><span className="lh-card-icon"><RoleIcon kind={p.kind}/></span><span className="lh-card-number">{p.id}</span></div><CardScene kind={p.kind}/><div className="lh-card-copy"><small>{p.label}</small><h2>{p.title}</h2><p>{p.description}</p><span className="lh-enter">{p.button}<b aria-hidden="true">←</b></span></div></Link>)}</nav>
+    <nav className="lh-roles" aria-label="بوابات الدخول">{portals.map(p=><Link key={p.href} href={p.href} className={`lh-card ${p.kind}
+  /* Brighter mobile-friendly classroom palette */
+  .lh-home{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(243,250,255,.19) 48%,rgba(238,248,253,.24)),url("/lahooni-home-new.png.png") center top / cover no-repeat fixed;color:#133b55}
+  .lh-stage:before{opacity:.28}
+  .lh-intro{color:#153f57!important;text-shadow:0 1px 3px rgba(255,255,255,.9)!important}
+  .lh-motto{color:#7b398d;text-shadow:0 1px 2px white}
+  .lh-card,.lh-card.teacher,.lh-card.student{box-shadow:0 10px 28px rgba(32,76,103,.18),inset 0 1px rgba(255,255,255,.65);border:2px solid rgba(255,255,255,.94)}
+  .lh-card{background:linear-gradient(145deg,rgba(203,235,255,.95),rgba(133,203,246,.92));color:#134765}
+  .lh-card.teacher{background:linear-gradient(145deg,rgba(255,226,226,.95),rgba(251,169,184,.92));color:#73354a}
+  .lh-card.student{background:linear-gradient(145deg,rgba(210,250,235,.95),rgba(135,222,193,.92));color:#125b50}
+  .lh-card-copy h2{color:#123f58;text-shadow:0 1px 0 rgba(255,255,255,.7)}
+  .lh-card-copy p{color:#244c5d!important;text-shadow:none!important;font-weight:850}
+  .lh-card-copy small{color:#315b70}
+  .lh-enter{background:rgba(255,255,255,.94);color:#144d69;border-color:rgba(255,255,255,.95)}
+  .card-scene{opacity:.24}
+  .lh-features{background:rgba(255,255,255,.9);color:#17485f;border-color:rgba(255,255,255,.95)}
+  .lh-feature small{color:#426678}
+  .lh-foot{color:#244e64}
+  @media(max-width:690px){.lh-home{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(238,249,255,.22)),url("/lahooni-home-new.png.png") center top / auto 100vh no-repeat scroll}.lh-card{min-height:235px}.lh-card-copy h2{color:#16465c}}
+`}><div className="lh-card-head"><span className="lh-card-icon"><RoleIcon kind={p.kind}/></span><span className="lh-card-number">{p.id}</span></div><CardScene kind={p.kind}/><div className="lh-card-copy"><small>{p.label}</small><h2>{p.title}</h2><p>{p.description}</p><span className="lh-enter">{p.button}<b aria-hidden="true">←</b></span></div></Link>)}</nav>
     <section className="lh-features" aria-label="خدمات البوابة">{features.map(f=><div key={f.title} className="lh-feature"><i aria-hidden="true">{f.icon}</i><strong>{f.title}</strong><small>{f.sub}</small></div>)}</section>
     <footer className="lh-foot">بوابة أستاذ لحوني التعليمية · تجربة مدرسية مترابطة</footer>
   </div></main>;
