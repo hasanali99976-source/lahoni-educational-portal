@@ -586,3 +586,29 @@
   .portfolio-page .print-achievement-content p,.portfolio-page .print-narrative p {line-height:1.7!important;}
   .portfolio-page .print-page :is(article,.print-index-list>div,.print-evidence-reference) {break-inside:avoid!important;}
 }
+
+
+/* Formal A4 achievement report: restrained ink, stable spacing, RTL hierarchy. */
+@media print {
+  .portfolio-page .portfolio-print-document .print-page {
+    padding:16mm 17mm 15mm!important;
+    font-family:"Tahoma","Arial",sans-serif!important;
+    direction:rtl!important;
+    text-align:right!important;
+  }
+  .portfolio-page .portfolio-print-cover,
+  .portfolio-page .portfolio-print-final {
+    background:linear-gradient(155deg,#f4f8fc,#ffffff 52%,#f0f6f6)!important;
+    border-top:2.5mm solid #285e80!important;
+  }
+  .portfolio-page .print-section-header {margin-bottom:7mm!important;padding-bottom:4mm!important;border-bottom:.55mm solid #7396ac!important}
+  .portfolio-page .print-section-header h2 {font-size:17pt!important;line-height:1.4!important}
+  .portfolio-page .print-achievement-content {gap:3mm!important}
+  .portfolio-page .print-achievement-content article {padding:4mm 5mm!important;border-radius:2mm!important}
+  .portfolio-page .print-achievement-content p,.portfolio-page .print-narrative p {font-size:9.5pt!important;line-height:1.75!important;text-align:right!important}
+  .portfolio-page .print-achievement-image {max-height:88mm!important;object-fit:contain!important;margin-bottom:5mm!important}
+  .portfolio-page .print-index-list>div {padding:3.5mm 4mm!important}
+  .portfolio-page .portfolio-print-achievement>header h2 {font-size:18pt!important}
+  .portfolio-page .print-page :is(h1,h2,h3,p,span,small,strong,time) {overflow-wrap:break-word!important}
+  .portfolio-page .print-page :is(.print-achievement-content article,.print-evidence-reference) {break-inside:avoid!important}
+}
