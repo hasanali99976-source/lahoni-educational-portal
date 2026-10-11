@@ -903,6 +903,7 @@ export default function PortfolioPage() {
             <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني" />
             <div><span>بوابة أستاذ لحوني التعليمية</span><small>سجل التوثيق والتميز المهني</small></div>
           </div>
+          <div className="print-cover-illustration" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span></div>
           <div className="print-cover-center">
             <span className="print-cover-eyebrow">الملف المهني للعام الدراسي {form.academicYear}</span>
             <h1>ملف الإنجاز<br/>المهني للمعلم</h1>
@@ -926,6 +927,7 @@ export default function PortfolioPage() {
             <article><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجال مهني</span></article>
             <article><strong>{arabicNumber(summary.months)}</strong><span>أشهر موثقة</span></article>
           </div>
+          <div className="print-summary-visual" aria-hidden="true"><span>✦</span><div><b>رؤية تعليمية</b><small>تعليم • ابتكار • أثر</small></div></div>
           <div className="print-impact-banner">
             <span>بصمة الإنجاز</span>
             <strong>{achievements.length ? `مسار مهني يبرز قوته في ${summary.topCategory}` : "مسار مهني قيد البناء"}</strong>
@@ -946,6 +948,7 @@ export default function PortfolioPage() {
           <div className="print-category-map">
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => <span key={category}>{category}<b>{arabicNumber(count)}</b></span>)}
           </div>
+          <div className="print-index-art" aria-hidden="true"><span>✦</span><strong>توثيق العمل التعليمي<br/>يصنع أثرًا مستدامًا</strong><small>سجل الممارسات والمبادرات المهنية</small></div>
           <div className="print-design-label">توزيع الإنجازات على المجالات المهنية</div><div className="print-category-bars">
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => {
               const width = Math.max(18, Math.round((count / Math.max(1, achievements.length)) * 100));
@@ -988,6 +991,7 @@ export default function PortfolioPage() {
           <header className="print-section-header"><span>٠٣</span><div><small>قراءة ذكية للمسار</small><h2>التأمل والتطوير المهني</h2></div></header>
           <div className="print-design-label">قراءة تحليلية للممارسات المهنية</div><article><h3>التأمل المهني</h3><p>{generated.reflection}</p></article>
           <article><h3>خطة التطوير القادمة</h3><p>{generated.developmentPlan}</p></article>
+          <div className="print-development-roadmap"><h3>محاور النمو المهني</h3><div><span>٠١ <b>تطوير الممارسة</b></span><span>٠٢ <b>توثيق الشواهد</b></span><span>٠٣ <b>قياس الأثر</b></span></div></div>
           <div className="print-strengths">
             <h3>مؤشرات القوة في الملف</h3>
             <div>
@@ -998,6 +1002,7 @@ export default function PortfolioPage() {
 
         <section className="portfolio-print-final print-page">
           <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار البوابة" />
+          <div className="print-final-thanks">شكرًا</div>
           <span>اعتماد ملف الإنجاز</span>
           <h2>إنجازات تصنع أثرًا مستدامًا</h2>
           <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
