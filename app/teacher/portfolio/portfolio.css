@@ -470,5 +470,51 @@
 }
 
 
-/* Teacher integrated transparent theme */
-.portfolio-page{--portfolio-ink:#fff;--portfolio-muted:#dcebed;--portfolio-line:rgba(255,255,255,.24);--portfolio-surface:rgba(6,42,55,.20);--portfolio-soft:rgba(24,148,121,.14);color:#f5fbfc}.portfolio-hero,.achievement-builder,.portfolio-command,.portfolio-dashboard article,.portfolio-library,.portfolio-settings{background:rgba(6,42,55,.20)!important;border-color:rgba(255,255,255,.24)!important;box-shadow:none!important}.portfolio-hero{background:rgba(13,83,97,.34)!important}.portfolio-page :is(h1,h2,h3,b,strong){color:#fff!important}.portfolio-page :is(p,small,label){color:#dcebed!important}.portfolio-dashboard article:nth-child(4n+1){background:rgba(24,148,121,.18)!important}.portfolio-dashboard article:nth-child(4n+2){background:rgba(35,118,174,.18)!important}.portfolio-dashboard article:nth-child(4n+3){background:rgba(184,132,32,.18)!important}.portfolio-dashboard article:nth-child(4n){background:rgba(112,74,150,.18)!important}@media(max-width:700px){.portfolio-hero{grid-template-columns:1fr!important;min-height:0!important;padding:18px!important}.achievement-builder form{grid-template-columns:1fr!important;padding:14px!important}.portfolio-page{gap:10px}}
+/* Portfolio 2026: accessible, luminous editorial surfaces; screen only. */
+@media screen {
+.portfolio-page{
+  --portfolio-ink:#17374d;--portfolio-muted:#587184;
+  --portfolio-line:#d4e4ed;--portfolio-surface:#ffffff;
+  --portfolio-soft:#eef7fd;--portfolio-blue:#237bb8;
+  --portfolio-deep:#165779;--portfolio-gold:#eab65b;
+  color:#17374d!important;gap:22px;
+}
+.portfolio-page :is(.portfolio-hero,.achievement-builder,.portfolio-command,.portfolio-dashboard article,.portfolio-library,.portfolio-settings){
+  background:#fff!important;border:1px solid #d4e4ed!important;
+  box-shadow:0 12px 32px rgba(20,67,96,.11)!important;
+  backdrop-filter:none!important;
+}
+.portfolio-page .portfolio-hero{
+  background:linear-gradient(120deg,#e9f7ff 0%,#d8f0f6 55%,#f5f9ff 100%)!important;
+  border-color:#c9e5f0!important;color:#173f5a!important;
+}
+.portfolio-page .portfolio-hero:before,.portfolio-page .portfolio-hero:after{border-color:rgba(30,115,155,.12)}
+.portfolio-page .portfolio-kicker{background:#fff;border-color:#c9e2ed;color:#236a91}
+.portfolio-page .portfolio-hero h1{color:#164a69!important;text-shadow:none!important}
+.portfolio-page .portfolio-hero p{color:#466b7e!important;text-shadow:none!important}
+.portfolio-page .portfolio-status-row span{background:rgba(255,255,255,.9);color:#275e78}
+.portfolio-page .portfolio-hero-score{background:rgba(255,255,255,.85);color:#19516d}
+.portfolio-page :is(h1,h2,h3,b,strong){color:#173f59!important;text-shadow:none!important}
+.portfolio-page :is(p,small,label){color:#506b7b!important;text-shadow:none!important}
+.portfolio-page :is(input,textarea,select){
+  background:#fff!important;color:#17374d!important;border:1px solid #c7dce8!important;
+  box-shadow:none!important;opacity:1!important;
+}
+.portfolio-page :is(input,textarea)::placeholder{color:#718798!important;opacity:1}
+.portfolio-page :is(input,textarea,select):focus-visible{outline:3px solid rgba(35,123,184,.22);border-color:#237bb8!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n+1){background:#e8f8f2!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n+2){background:#e9f4ff!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n+3){background:#fff7e6!important}
+.portfolio-page .portfolio-dashboard article:nth-child(4n){background:#f3edff!important}
+.portfolio-page :is(.portfolio-dashboard article,.portfolio-command,.portfolio-library,.portfolio-settings,.achievement-builder){color:#17374d!important}
+.portfolio-page button:not(:disabled){opacity:1}
+.portfolio-page button:focus-visible{outline:3px solid #63b7e2;outline-offset:3px}
+.portfolio-page .portfolio-library{background:#f8fcff!important}
+}
+@media screen and (max-width:700px){
+ .portfolio-page{gap:14px;padding-inline:0;min-width:0}
+ .portfolio-page .portfolio-hero{grid-template-columns:1fr!important;min-height:0!important;padding:22px!important}
+ .portfolio-page .achievement-builder form{grid-template-columns:1fr!important;padding:16px!important}
+ .portfolio-page :is(.portfolio-command,.portfolio-library,.portfolio-settings){min-width:0}
+ .portfolio-page :is(input,textarea,select){max-width:100%;min-width:0}
+}
