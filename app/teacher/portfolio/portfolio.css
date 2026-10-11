@@ -175,7 +175,7 @@
 .portfolio-preview-toolbar button{border:1px solid #7fb6c4;border-radius:9px;padding:10px 18px;background:#fff;color:#10465f;font-weight:800}
 .portfolio-preview-toolbar .preview-print{background:#f1c978;color:#183e55}
 .portfolio-print-document .print-page{position:relative!important;box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0 auto 18px!important;padding:16mm 16mm 15mm!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;gap:15px!important;background:#fff!important;border:0!important;border-top:5mm solid #0b5471!important;box-shadow:0 8px 30px #25405220!important;color:#123f57!important;direction:rtl!important}
-.portfolio-print-document .print-page::before,.portfolio-print-document .print-page::after{content:none!important}
+.portfolio-print-document .print-page:not(.portfolio-print-cover)::before,.portfolio-print-document .print-page:not(.portfolio-print-cover)::after{content:none!important}
 .portfolio-print-document .print-page h1,.portfolio-print-document .print-page h2,.portfolio-print-document .print-page h3{color:#0c4a67!important;margin:0!important}
 .portfolio-print-document .print-page p{line-height:1.85!important;margin:0!important;color:#385e6d!important}
 .portfolio-print-document .print-page article{break-inside:avoid}
@@ -189,12 +189,19 @@
 .print-cover-brand div{display:flex;flex-direction:column;gap:5px}
 .print-cover-brand span{font-size:19px!important;font-weight:900!important;color:#124763!important}
 .print-cover-brand small{color:#648394!important}
-.portfolio-print-cover{background:linear-gradient(145deg,#fff 40%,#eaf8f8)!important;justify-content:space-between!important}
+.portfolio-print-cover{background:linear-gradient(145deg,#fff 40%,#eaf8f8)!important;justify-content:space-between!important;border-top:6mm solid #0c4c69!important}
+.portfolio-print-cover::before{content:"";position:absolute;top:28mm;right:-40mm;width:90mm;height:90mm;border:2px solid #e6f1f1;border-radius:50%;pointer-events:none}
+.portfolio-print-cover::after{content:"";position:absolute;bottom:29mm;left:-28mm;width:66mm;height:66mm;border:2px solid #e9f2ed;border-radius:50%;pointer-events:none}
+.print-cover-emblem{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;margin:15px auto 0;width:175px;height:175px;border-radius:50%;border:2px solid #e2bd70;background:radial-gradient(circle,#ffffff 48%,#e8f5f3 49%,#e8f5f3 62%,#fff 63%);box-shadow:0 0 0 12px #e8f5f0,0 0 0 14px #b7d9da;color:#0c5470;flex:none}
+.print-cover-emblem::before{content:"";position:absolute;inset:13px;border:1px dashed #b99653;border-radius:50%}
+.print-cover-emblem span{font-size:17px;color:#5e8391}
+.print-cover-emblem strong{font-size:39px;color:#0b5873}
+.print-cover-emblem small{font-size:13px;color:#9a793d;font-weight:900}
 .print-cover-illustration{display:none!important}
-.print-cover-center{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:22px!important}
+.print-cover-center{flex:0 1 auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:22px!important}
 .print-cover-eyebrow{background:#fff4d9!important;color:#8b6a2c!important;border-radius:99px!important;padding:10px 24px!important;font-weight:900!important}
-.print-cover-center h1{font-size:53px!important;line-height:1.45!important}
-.print-cover-center p{max-width:550px!important;font-size:17px!important}
+.print-cover-center h1{font-size:49px!important;line-height:1.32!important;letter-spacing:0!important}
+.print-cover-center p{max-width:550px!important;font-size:16px!important}
 .print-cover-badges{display:flex!important;gap:8px!important}
 .print-cover-badges b{padding:9px 15px!important;border-radius:20px!important;border:1px solid #c9e3e7!important;color:#0e6881!important;background:white!important}
 .portfolio-print-cover dl{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;margin:0!important}
@@ -207,7 +214,14 @@
 .print-stat-grid strong{font-size:29px!important;color:#0e7787!important}
 .print-stat-grid span{font-size:12px!important;color:#607e8a!important}
 .print-summary-visual,.print-index-art{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:12px!important;border-radius:15px!important;background:linear-gradient(105deg,#e6f5f6,#f7faf5)!important;text-align:center!important;min-height:105px!important}
-.print-summary-visual>span,.print-index-art>span{display:none!important}
+.print-summary-visual>span,.print-index-art>span{display:block!important;color:#d3a755!important;font-size:28px!important}
+.print-summary-visual{flex-direction:row!important;justify-content:space-around!important;min-height:126px!important}
+.print-summary-visual>div:nth-child(2){display:flex;flex-direction:column;gap:6px}
+.print-summary-mini{display:flex;flex-direction:column;align-items:center;padding:10px 22px;border-radius:12px;background:white}
+.print-summary-mini strong{font-size:30px;color:#0b6c82}
+.print-summary-mini small{font-size:11px}
+.print-index-steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.print-index-steps b{padding:7px 13px;border-radius:20px;background:#fff;border:1px solid #cbe5e5;color:#0c7280;font-size:12px}
 .print-summary-visual b,.print-index-art strong{font-size:20px!important;color:#0e5871!important}
 .print-summary-visual small,.print-index-art small{color:#638693!important}
 .print-impact-banner{padding:17px 20px!important;border-radius:14px!important;background:linear-gradient(100deg,#0b4b6d,#0c9696)!important;color:white!important;display:flex!important;flex-direction:column!important;gap:6px!important}
@@ -244,7 +258,7 @@
 .portfolio-print-achievement>footer{margin-top:auto!important;border-top:1px solid #dce8ed!important;padding-top:10px!important;text-align:center!important;font-size:11px!important;color:#7c929a!important}
 .print-evidence-heading{display:flex!important;justify-content:space-between!important;align-items:center!important;padding:14px 18px!important;background:#0b6278!important;color:white!important;border-radius:12px!important}
 .print-evidence-heading strong,.print-evidence-heading span{color:white!important}
-.print-evidence-photo-frame{height:170mm!important;min-height:0!important;width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;border:1px solid #cbdfe5!important;border-radius:14px!important;background:#fff!important;padding:12px!important}
+.print-evidence-photo-frame{height:163mm!important;min-height:0!important;width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;border:1px solid #cbdfe5!important;border-radius:14px!important;background:#fff!important;padding:12px!important}
 .print-evidence-photo-frame img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;aspect-ratio:auto!important;margin:auto!important;transform:none!important}
 .print-evidence-caption{padding:14px 18px!important;background:#edf8f7!important;border-right:4px solid #159da4!important;border-radius:12px!important}
 .print-evidence-caption strong{color:#0c697b!important}
@@ -260,6 +274,7 @@
 .print-strengths>div{display:flex!important;gap:10px!important;flex-wrap:wrap!important}
 .portfolio-print-final{justify-content:center!important;align-items:center!important;text-align:center!important;gap:25px!important;background:linear-gradient(155deg,#fff,#edf9f8)!important}
 .portfolio-print-final>img{width:100px!important;height:100px!important;object-fit:contain!important;border-radius:15px!important}
+.print-final-seal{width:105px;height:105px;border-radius:50%;display:grid;place-items:center;background:#eaf7f5;border:2px solid #d6b56e;box-shadow:0 0 0 10px #f4faf9;color:#c19b51;font-size:52px}
 .print-final-thanks{font-size:65px!important;color:#0c7184!important;font-weight:900!important}
 .portfolio-print-final>span{color:#ac873e!important}
 .portfolio-print-final>h2{font-size:31px!important}
