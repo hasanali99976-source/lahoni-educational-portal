@@ -466,3 +466,10 @@
  .portfolio-print-document .print-page{margin:0!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important}
  .portfolio-print-document .print-page:last-child{break-after:auto!important}
 }
+
+/* Final PDF cascade override: legacy 34mm thumbnail limit must not shrink evidence. */
+@media print{
+ .portfolio-print-document .portfolio-print-gallery .print-gallery-photos{max-height:none!important}
+ .portfolio-print-document .portfolio-print-gallery .print-gallery-photo img{max-height:100%!important}
+ .portfolio-print-document .portfolio-print-gallery.gallery-count-1 .print-gallery-photos{min-height:90mm!important}
+}
