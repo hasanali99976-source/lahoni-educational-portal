@@ -960,49 +960,51 @@ export default function PortfolioPage() {
           <div className="print-index-bottom"><div><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز في هذا السجل</span></div><p>هذا الفهرس يربط الإنجازات بصفحات التوثيق والشواهد المصورة؛ لتسهيل مراجعة الممارسات المهنية وقياس أثرها.</p></div>
         </section>
 
-        {achievements.map((item, index) => (
-          <section className="portfolio-print-achievement print-page" key={item.id}>
-            <header>
-              <div className="print-achievement-number">{arabicNumber(index + 1)}</div>
-              <div><span>{item.category}</span><h2>{item.title}</h2><time>{formatDate(item.date)}</time></div>
-              <div className="print-achievement-stamp"><span>أثر</span><strong>موثّق</strong></div>
-            </header>
-            <div className="print-achievement-tags">{(item.tags || []).map((tag) => <span key={tag}>{tag}</span>)}</div>
-            <div className="print-design-label">بطاقة توثيق الإنجاز</div><div className="print-achievement-content">
-              <article><h3>وصف الإنجاز</h3><p>{item.description}</p></article>
-              <article><h3>الهدف</h3><p>{item.objective}</p></article>
-              <article><h3>دوري في الإنجاز</h3><p>{item.role}</p></article>
-              <article><h3>الفئة المستفيدة</h3><p>{item.beneficiaries}</p></article>
-              <article className="impact"><h3>الأثر المهني والتعليمي</h3><p>{item.impact}</p></article>
+        {Array.from({ length: Math.ceil(achievements.length / 3) }, (_, pageIndex) => (
+          <section className="portfolio-print-gallery print-page" key={`achievement-gallery-${pageIndex}`}>
+            <header className="print-section-header"><span>{arabicNumber(pageIndex + 1)}</span><div><small>سجل الممارسات والشواهد التعليمية</small><h2>إنجازاتي المهنية</h2></div></header>
+            <p className="print-gallery-intro">توثيق الإنجازات التعليمية بالأهداف والممارسات والأثر والشواهد الفعلية.</p>
+            <div className="print-gallery-list">
+              {achievements.slice(pageIndex * 3, pageIndex * 3 + 3).map((item, index) => {
+                const photos = [
+                  ...(item.fileData.startsWith("data:image/") ? [{ url: item.fileData, name: item.fileName || item.title }] : []),
+                  ...imageAttachments(item),
+                ];
+                return <article className="print-gallery-entry" key={item.id}>
+                  <div className="print-gallery-entry-head"><b>{arabicNumber(pageIndex * 3 + index + 1)}</b><strong>{item.title}</strong><span>{formatDate(item.date)}</span></div>
+                  <div className="print-gallery-entry-detail"><span>{item.category}</span><p>{item.description || item.objective || "إنجاز مهني موثق"}</p></div>
+                  {photos.length > 0 ? <div className="print-gallery-photos">
+                    {photos.slice(0, 3).map((photo, photoIndex) => <div className="print-gallery-photo" key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /></div>)}
+                  </div> : <div className="print-gallery-no-photo">التوثيق الوصفي للإنجاز • {item.impact || item.objective || item.role || item.category}</div>}
+                  <div className="print-gallery-impact"><strong>الأثر:</strong> {item.impact || item.objective || item.role || item.description || "لم يُحدد الأثر بعد."}</div>
+                </article>;
+              })}
             </div>
-            {(item.url && !imageAttachments(item).length && !item.fileData.startsWith("data:image/")) && (
-              <div className="print-evidence-reference">
-                <strong>الشاهد:</strong>
-                <span>رابط الشاهد الإلكتروني</span>
-                {item.url && <a href={item.url}>{item.url}</a>}
-              </div>
-            )}
-            <div className="print-achievement-conclusion"><span>خلاصة الأثر</span><p>{item.impact || item.description || "تم توثيق هذا الإنجاز ضمن سجل الممارسات المهنية."}</p></div>
-            <footer>بوابة أستاذ لحوني التعليمية — ملف الإنجاز المهني</footer>
           </section>
         ))}
-        {achievements.flatMap((item, achievementIndex) => {
-          const pictures = [
-            ...(item.fileData.startsWith("data:image/") ? [{ url: item.fileData, name: item.fileName || item.title }] : []),
-            ...imageAttachments(item),
-          ];
-          return pictures.map((picture, imageIndex) => (
-            <section className="portfolio-print-evidence print-page" key={`evidence-${item.id}-${imageIndex}`}>
-              <header className="print-section-header"><span>{arabicNumber(achievementIndex + 1)}</span><div><small>الشواهد المصورة • {item.category}</small><h2>{item.title}</h2></div></header>
-              <div className="print-evidence-heading"><strong>الشاهد المصوّر {arabicNumber(imageIndex + 1)}</strong><span>توثيق بصري للإنجاز</span></div>
-              <div className="print-evidence-photo-frame">
-                <img src={picture.url} alt={`شاهد ${item.title}`} loading="eager" />
-              </div>
-              <div className="print-evidence-caption"><strong>دلالة الشاهد</strong><p>{item.description || item.title}</p></div>
-              <div className="print-evidence-meta"><span>المجال: {item.category}</span><span>التاريخ: {formatDate(item.date)}</span></div>
-            </section>
-          ));
-        })}
+        <section className="portfolio-print-initiatives print-page">
+          <header className="print-section-header"><span>✦</span><div><small>قراءة كمية ونوعية من الإنجازات الموثقة</small><h2>المبادرات والبرامج التعليمية</h2></div></header>
+          <h3>أبرز المجالات المهنية</h3>
+          <div className="print-initiatives-tiles">
+            {(Object.entries(summary.categories) as Array<[string, number]>).slice(0, 4).map(([category, count], index) =>
+              <article key={category}><b>{arabicNumber(index + 1)}</b><strong>{category}</strong><span>{arabicNumber(count)} إنجاز</span></article>
+            )}
+          </div>
+          <h3>مؤشرات الملف الفعلية</h3>
+          <div className="print-initiatives-metrics">
+            <article><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز موثق</span></article>
+            <article><strong>{arabicNumber(summary.files)}</strong><span>مرفق</span></article>
+            <article><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجال مهني</span></article>
+            <article><strong>{arabicNumber(summary.months)}</strong><span>أشهر نشاط</span></article>
+          </div>
+          <h3>نماذج من شواهد المبادرات</h3>
+          <div className="print-initiatives-photos">
+            {achievements.flatMap((item) => imageAttachments(item).map((photo) => ({ ...photo, title: item.title }))).slice(0, 3).map((photo, index) =>
+              <figure key={`${photo.url}-${index}`}><img src={photo.url} alt={photo.title} loading="eager" /><figcaption>{photo.title}</figcaption></figure>
+            )}
+          </div>
+          <div className="print-initiatives-note"><strong>ملخص المبادرات</strong><p>{generated.initiatives}</p></div>
+        </section>
 
         <section className="portfolio-print-reflection print-page">
           <header className="print-section-header"><span>٠٣</span><div><small>قراءة ذكية للمسار</small><h2>التأمل والتطوير المهني</h2></div></header>
