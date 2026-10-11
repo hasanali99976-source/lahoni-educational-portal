@@ -165,560 +165,122 @@
   .portfolio-settings>summary{align-items:flex-start;flex-wrap:wrap;padding:17px}.portfolio-settings>summary small{order:3;width:100%;margin:0}.portfolio-settings-grid{grid-template-columns:1fr;padding:17px}.portfolio-settings-grid .wide{grid-column:auto}.save-settings{width:calc(100% - 34px);margin:0 17px 17px}
 }
 
+
+/* CLEAN PORTFOLIO REPORT V2 — single authoritative stylesheet for preview and PDF */
+.portfolio-print-document{display:none!important;direction:rtl;font-family:inherit;color:#123e55}
+.portfolio-preview-open .portfolio-print-document{display:block!important;position:fixed!important;inset:0!important;z-index:99999!important;overflow:auto!important;background:#e7edf1!important;padding:88px 15px 35px!important}
+.portfolio-preview-toolbar{display:none}
+.portfolio-preview-open .portfolio-preview-toolbar{position:fixed;top:0;left:0;right:0;z-index:100000;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#103f5b;color:white;padding:12px 24px}
+.portfolio-preview-toolbar>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.portfolio-preview-toolbar button{border:1px solid #7fb6c4;border-radius:9px;padding:10px 18px;background:#fff;color:#10465f;font-weight:800}
+.portfolio-preview-toolbar .preview-print{background:#f1c978;color:#183e55}
+.portfolio-print-document .print-page{position:relative!important;box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0 auto 18px!important;padding:16mm 16mm 15mm!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;gap:15px!important;background:#fff!important;border:0!important;border-top:5mm solid #0b5471!important;box-shadow:0 8px 30px #25405220!important;color:#123f57!important;direction:rtl!important}
+.portfolio-print-document .print-page::before,.portfolio-print-document .print-page::after{content:none!important}
+.portfolio-print-document .print-page h1,.portfolio-print-document .print-page h2,.portfolio-print-document .print-page h3{color:#0c4a67!important;margin:0!important}
+.portfolio-print-document .print-page p{line-height:1.85!important;margin:0!important;color:#385e6d!important}
+.portfolio-print-document .print-page article{break-inside:avoid}
+.print-section-header{display:flex!important;align-items:center!important;gap:15px!important;padding:8px 0 14px!important;border-bottom:2px solid #149da7!important}
+.print-section-header>span,.print-achievement-number{display:grid!important;place-items:center!important;flex:none!important;width:52px!important;height:52px!important;border-radius:14px!important;background:#0d8297!important;color:#fff!important;font-size:22px!important;font-weight:900!important}
+.print-section-header small{color:#6a8794!important}
+.print-section-header h2{font-size:27px!important}
+.print-design-label{font-size:15px!important;font-weight:900!important;color:#0c7284!important;margin:4px 0!important}
+.print-cover-brand{display:flex!important;align-items:center!important;gap:14px!important;padding:12px!important;border-bottom:1px solid #d5e7e9!important}
+.print-cover-brand img{width:70px!important;height:70px!important;object-fit:contain!important;border-radius:12px!important}
+.print-cover-brand div{display:flex;flex-direction:column;gap:5px}
+.print-cover-brand span{font-size:19px!important;font-weight:900!important;color:#124763!important}
+.print-cover-brand small{color:#648394!important}
+.portfolio-print-cover{background:linear-gradient(145deg,#fff 40%,#eaf8f8)!important;justify-content:space-between!important}
+.print-cover-illustration{display:none!important}
+.print-cover-center{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:22px!important}
+.print-cover-eyebrow{background:#fff4d9!important;color:#8b6a2c!important;border-radius:99px!important;padding:10px 24px!important;font-weight:900!important}
+.print-cover-center h1{font-size:53px!important;line-height:1.45!important}
+.print-cover-center p{max-width:550px!important;font-size:17px!important}
+.print-cover-badges{display:flex!important;gap:8px!important}
+.print-cover-badges b{padding:9px 15px!important;border-radius:20px!important;border:1px solid #c9e3e7!important;color:#0e6881!important;background:white!important}
+.portfolio-print-cover dl{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;margin:0!important}
+.portfolio-print-cover dl div{padding:13px!important;background:#f0f8fa!important;border-radius:12px!important;border-bottom:3px solid #17a1a6!important}
+.portfolio-print-cover dt{font-size:12px!important;color:#6c8b97!important}
+.portfolio-print-cover dd{font-size:17px!important;font-weight:900!important;color:#12445d!important;margin:6px 0 0!important}
+.portfolio-print-cover footer{font-size:12px;color:#7c929c;text-align:center}
+.print-stat-grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:10px!important}
+.print-stat-grid article{display:flex!important;flex-direction:column!important;align-items:center!important;gap:7px!important;padding:20px 8px!important;background:#eef8fa!important;border:1px solid #d8ebee!important;border-radius:14px!important}
+.print-stat-grid strong{font-size:29px!important;color:#0e7787!important}
+.print-stat-grid span{font-size:12px!important;color:#607e8a!important}
+.print-summary-visual,.print-index-art{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:12px!important;border-radius:15px!important;background:linear-gradient(105deg,#e6f5f6,#f7faf5)!important;text-align:center!important;min-height:105px!important}
+.print-summary-visual>span,.print-index-art>span{display:none!important}
+.print-summary-visual b,.print-index-art strong{font-size:20px!important;color:#0e5871!important}
+.print-summary-visual small,.print-index-art small{color:#638693!important}
+.print-impact-banner{padding:17px 20px!important;border-radius:14px!important;background:linear-gradient(100deg,#0b4b6d,#0c9696)!important;color:white!important;display:flex!important;flex-direction:column!important;gap:6px!important}
+.print-impact-banner *{color:white!important}
+.print-narrative,.portfolio-print-reflection>article{padding:16px 20px!important;background:#f4fafb!important;border:1px solid #d8e9ed!important;border-right:4px solid #13a3a6!important;border-radius:13px!important}
+.print-narrative h3,.portfolio-print-reflection article h3{font-size:16px!important;margin-bottom:8px!important}
+.print-narrative p,.portfolio-print-reflection article p{font-size:14px!important}
+.print-index-list{display:flex!important;flex-direction:column!important;gap:9px!important}
+.print-index-list>div{display:grid!important;grid-template-columns:35px 1fr 125px 90px!important;align-items:center!important;gap:12px!important;padding:11px!important;background:#f6fafb!important;border:1px solid #dce9ec!important;border-radius:12px!important}
+.print-index-list>div>span{display:grid;place-items:center;background:#0e8292;color:#fff;border-radius:9px;width:31px;height:31px;font-weight:900}
+.print-index-list strong{font-size:14px;color:#16475e}
+.print-index-list small,.print-index-list time{color:#6c8792;font-size:12px}
+.print-category-map{display:flex!important;gap:8px!important;flex-wrap:wrap!important}
+.print-category-map span,.print-strengths span{background:#e9f7f7!important;color:#116b79!important;padding:8px 13px!important;border-radius:20px!important}
+.print-category-map b,.print-strengths b{margin:0 8px}
+.print-category-bars{padding:17px!important;background:#f5fafb!important;border-radius:14px!important}
+.print-category-bars>div{display:grid!important;grid-template-columns:135px 1fr 25px!important;gap:12px!important;align-items:center!important;margin:9px 0!important}
+.print-category-bars i{display:block!important;height:12px!important;background:#e0ebee!important;border-radius:8px!important;overflow:hidden!important}
+.print-category-bars i b{display:block!important;height:100%!important;background:#0a9b9e!important;border-radius:8px!important}
+.portfolio-print-achievement>header{display:flex!important;align-items:center!important;gap:16px!important;border-bottom:2px solid #0f9fa6!important;padding:10px!important;background:#f5fafb!important;border-radius:12px!important}
+.portfolio-print-achievement>header>div:nth-child(2){flex:1!important}
+.portfolio-print-achievement>header h2{font-size:25px!important}
+.portfolio-print-achievement>header span,.portfolio-print-achievement>header time{color:#64848f!important}
+.print-achievement-stamp{border:1px solid #d9b968!important;border-radius:50%!important;width:72px!important;height:72px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;color:#98712c!important}
+.print-achievement-stamp strong{color:#9a702c!important}
+.print-achievement-tags{display:flex!important;gap:7px!important;flex-wrap:wrap!important}
+.print-achievement-tags span{padding:6px 10px!important;background:#eaf7f8!important;color:#0b7382!important;border-radius:20px!important}
+.print-achievement-content{display:grid!important;grid-template-columns:1fr 1fr!important;gap:11px!important}
+.print-achievement-content article{padding:15px!important;background:#f5fafb!important;border:1px solid #d9e9ec!important;border-radius:13px!important}
+.print-achievement-content article.impact{grid-column:1/-1!important;background:#e8f7f1!important}
+.print-achievement-content h3{font-size:15px!important;margin-bottom:8px!important}
+.print-achievement-content p{font-size:13px!important}
+.print-evidence-reference{padding:12px!important;border:1px dashed #bdd8e0!important;border-radius:11px!important;color:#4d7585!important}
+.portfolio-print-achievement>footer{margin-top:auto!important;border-top:1px solid #dce8ed!important;padding-top:10px!important;text-align:center!important;font-size:11px!important;color:#7c929a!important}
+.print-evidence-heading{display:flex!important;justify-content:space-between!important;align-items:center!important;padding:14px 18px!important;background:#0b6278!important;color:white!important;border-radius:12px!important}
+.print-evidence-heading strong,.print-evidence-heading span{color:white!important}
+.print-evidence-photo-frame{height:170mm!important;min-height:0!important;width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;border:1px solid #cbdfe5!important;border-radius:14px!important;background:#fff!important;padding:12px!important}
+.print-evidence-photo-frame img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;aspect-ratio:auto!important;margin:auto!important;transform:none!important}
+.print-evidence-caption{padding:14px 18px!important;background:#edf8f7!important;border-right:4px solid #159da4!important;border-radius:12px!important}
+.print-evidence-caption strong{color:#0c697b!important}
+.print-evidence-caption p{font-size:13px!important}
+.print-evidence-meta{display:flex!important;justify-content:space-between!important;gap:10px!important;color:#62808e!important;font-size:12px!important}
+.print-development-roadmap{padding:18px!important;background:#f0f8fa!important;border-radius:14px!important}
+.print-development-roadmap h3{font-size:18px!important;margin-bottom:12px!important}
+.print-development-roadmap>div{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:10px!important}
+.print-development-roadmap span{display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important;background:white!important;padding:18px 10px!important;border-radius:12px!important;color:#0e8a96!important;font-weight:900!important}
+.print-development-roadmap b{font-size:12px!important;color:#285b6e!important}
+.print-strengths{background:linear-gradient(100deg,#0b4a69,#0d8e8d)!important;padding:18px!important;border-radius:14px!important;color:#fff!important}
+.print-strengths h3{color:white!important;margin-bottom:12px!important}
+.print-strengths>div{display:flex!important;gap:10px!important;flex-wrap:wrap!important}
+.portfolio-print-final{justify-content:center!important;align-items:center!important;text-align:center!important;gap:25px!important;background:linear-gradient(155deg,#fff,#edf9f8)!important}
+.portfolio-print-final>img{width:100px!important;height:100px!important;object-fit:contain!important;border-radius:15px!important}
+.print-final-thanks{font-size:65px!important;color:#0c7184!important;font-weight:900!important}
+.portfolio-print-final>span{color:#ac873e!important}
+.portfolio-print-final>h2{font-size:31px!important}
+.portfolio-print-final>p{max-width:560px!important}
+.print-signatures{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;width:100%!important;margin-top:25px!important}
+.print-signatures>div{padding:25px 14px!important;border:1px solid #d2e6e9!important;border-radius:14px!important;background:white!important;display:flex!important;flex-direction:column!important;gap:13px!important}
+.print-signatures small{color:#698897!important}
+.print-signatures strong{color:#114c67!important}
+.portfolio-print-final footer{font-size:12px;color:#6f8b98}
+.portfolio-pdf-exporting .portfolio-print-document{display:block!important;position:absolute!important;top:0!important;left:0!important;z-index:-1!important;visibility:visible!important;padding:0!important;background:#fff!important}
+.portfolio-pdf-exporting .portfolio-print-document .print-page{margin:0!important;box-shadow:none!important}
+@media(max-width:850px){
+ .portfolio-preview-open .portfolio-print-document{padding:105px 5px 20px!important}
+ .portfolio-preview-open .portfolio-preview-toolbar{flex-direction:column!important;padding:8px!important}
+ .portfolio-preview-open .portfolio-print-document .print-page{zoom:calc((100vw - 12px) / 794)}
+}
 @media print{
-  @page{size:A4 portrait;margin:0}
-  html,body{margin:0!important;padding:0!important;background:#fff!important}
-  body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  .no-print,.teacher-sidebar,.teacher-menu-button,.teacher-mobile-header,.teacher-welcome-strip,.teacher-subject-switcher,.teacher-header,.mobile-bottom-nav{display:none!important}
-  .print-only{display:block!important}
-  .teacher-shell,.teacher-main,.teacher-content,.portfolio-page{display:block!important;width:auto!important;max-width:none!important;margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important}
-  .portfolio-print-document{font-family:inherit;color:#142f40;background:#fff}
-  .print-page{position:relative;width:210mm;min-height:297mm;margin:0;padding:15mm 16mm 14mm;overflow:hidden;break-after:page;page-break-after:always;background:#fff}
-  .print-page:last-child{break-after:auto;page-break-after:auto}
-  .portfolio-print-cover{display:flex!important;flex-direction:column;color:#fff;background:
-    radial-gradient(circle at 15% 12%,rgba(255,255,255,.16),transparent 27%),
-    radial-gradient(circle at 90% 88%,rgba(55,220,201,.27),transparent 33%),
-    linear-gradient(140deg,#071c35 0%,#0f4770 54%,#127e80 100%)!important}
-  .portfolio-print-cover:before{content:"";position:absolute;inset:9mm;border:1px solid rgba(255,255,255,.24);border-radius:7mm}
-  .print-cover-brand{position:relative;display:flex;align-items:center;gap:5mm;padding:5mm 0;border-bottom:1px solid rgba(255,255,255,.20)}
-  .print-cover-brand img{width:23mm;height:23mm;border-radius:6mm;object-fit:cover;border:1.2mm solid rgba(255,255,255,.9)}
-  .print-cover-brand span{display:block;font-size:17pt;font-weight:950}.print-cover-brand small{display:block;margin-top:2mm;color:#d7f4f2;font-size:9pt}
-  .print-cover-center{position:relative;display:grid;place-items:center;align-content:center;flex:1;text-align:center;padding:15mm 6mm}
-  .print-cover-center>span{padding:2.5mm 5mm;border:1px solid rgba(255,255,255,.30);border-radius:99mm;background:rgba(255,255,255,.10);font-size:10pt;font-weight:850}
-  .print-cover-center h1{max-width:155mm;margin:7mm 0 4mm;font-size:31pt;line-height:1.3}.print-cover-center p{max-width:145mm;margin:0;color:#dceff1;font-size:13pt;line-height:1.8}
-  .portfolio-print-cover dl{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin:0 0 13mm}
-  .portfolio-print-cover dl div{padding:4mm;border:1px solid rgba(255,255,255,.18);border-radius:4mm;background:rgba(255,255,255,.10)}
-  .portfolio-print-cover dt{font-size:8pt;color:#cce7eb}.portfolio-print-cover dd{margin:1.4mm 0 0;font-size:12pt;font-weight:900}
-  .portfolio-print-cover>footer{position:relative;padding-top:4mm;border-top:1px solid rgba(255,255,255,.18);text-align:center;color:#cce7eb;font-size:8pt}
-
-  .print-section-header{display:flex;align-items:center;gap:5mm;margin-bottom:9mm;padding-bottom:5mm;border-bottom:1.2mm solid #127a82}
-  .print-section-header>span{width:15mm;height:15mm;display:grid;place-items:center;border-radius:5mm;color:#fff;background:linear-gradient(135deg,#0d4770,#128987);font-size:14pt;font-weight:950}
-  .print-section-header small{display:block;color:#4d7683;font-size:8pt}.print-section-header h2{margin:1mm 0 0;font-size:22pt;color:#10364d}
-  .print-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin-bottom:8mm}
-  .print-stat-grid article{padding:5mm 3mm;text-align:center;border:1px solid #d6e5e9;border-radius:4mm;background:#f2f8f8}
-  .print-stat-grid strong{display:block;font-size:23pt;color:#0b6174}.print-stat-grid span{font-size:8pt;color:#577482}
-  .print-narrative{margin:0 0 5mm;padding:5mm 6mm;border-right:1.4mm solid #159092;border-radius:3mm;background:#f6fafb}
-  .print-narrative h3,.portfolio-print-reflection article h3,.print-achievement-content h3{margin:0 0 2.5mm;color:#0d6573;font-size:13pt}
-  .print-narrative p,.portfolio-print-reflection article p,.print-achievement-content p{margin:0;font-size:10.5pt;line-height:1.95;text-align:justify}
-
-  .print-index-list{display:grid;gap:2.3mm}
-  .print-index-list>div{display:grid;grid-template-columns:11mm 1fr 38mm 35mm;align-items:center;gap:3mm;padding:3mm 3.5mm;border:1px solid #dbe7eb;border-radius:3mm;background:#fbfdfd}
-  .print-index-list>div>span{width:9mm;height:9mm;display:grid;place-items:center;border-radius:2.5mm;color:#fff;background:#146e7d;font-weight:900}
-  .print-index-list strong{font-size:10pt}.print-index-list small,.print-index-list time{font-size:8pt;color:#607b88}
-  .print-category-map,.print-strengths>div{display:flex;flex-wrap:wrap;gap:2.5mm;margin-top:8mm}
-  .print-category-map span,.print-strengths span{display:flex;align-items:center;gap:3mm;padding:2.5mm 3.5mm;border-radius:99mm;background:#eaf4f4;color:#285769;font-size:8.5pt;font-weight:850}
-  .print-category-map b,.print-strengths b{width:7mm;height:7mm;display:grid;place-items:center;border-radius:50%;color:#fff;background:#127a82}
-
-  .portfolio-print-achievement{display:flex!important;flex-direction:column}
-  .portfolio-print-achievement>header{display:grid;grid-template-columns:18mm 1fr;align-items:center;gap:5mm;margin-bottom:7mm;padding-bottom:5mm;border-bottom:1.2mm solid #147983}
-  .print-achievement-number{width:18mm;height:18mm;display:grid;place-items:center;border-radius:6mm;color:#fff;background:linear-gradient(135deg,#0b3d65,#16918e);font-size:18pt;font-weight:950}
-  .portfolio-print-achievement>header span{display:inline-block;margin-bottom:1mm;color:#147b83;font-size:9pt;font-weight:900}
-  .portfolio-print-achievement>header h2{margin:0 0 1.5mm;font-size:21pt;line-height:1.35;color:#11364b}.portfolio-print-achievement>header time{color:#6b818d;font-size:8.5pt}
-  .print-achievement-image{display:block;width:100%;max-height:105mm;margin:0 auto 6mm;border:1px solid #d9e5e8;border-radius:4mm;object-fit:contain;background:#f5f8f9}
-  .print-achievement-content{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm}
-  .print-achievement-content article{padding:4mm 4.5mm;border:1px solid #dce8eb;border-radius:3.5mm;background:#fbfdfd;break-inside:avoid}
-  .print-achievement-content article.impact{grid-column:1/-1;border-color:#b9ded9;background:#eff9f6}
-  .print-achievement-content h3{font-size:11pt}.print-achievement-content p{font-size:9.5pt;line-height:1.75}
-  .print-evidence-reference{display:flex;align-items:flex-start;flex-wrap:wrap;gap:2mm 4mm;margin-top:5mm;padding:3.5mm 4mm;border:1px dashed #9ebfc6;border-radius:3mm;color:#405e6d;font-size:8pt;background:#f8fbfb;word-break:break-all}
-  .print-evidence-reference a{width:100%;color:#126f7a;text-decoration:none}
-  .portfolio-print-achievement>footer{margin-top:auto;padding-top:5mm;border-top:1px solid #e0e9ec;text-align:center;color:#78909b;font-size:7pt}
-
-  .portfolio-print-reflection article{margin-bottom:7mm;padding:7mm;border:1px solid #d5e4e8;border-radius:5mm;background:#f8fbfc}
-  .portfolio-print-reflection article p{font-size:11pt;line-height:2.05}
-  .print-strengths{margin-top:9mm;padding:6mm;border-radius:5mm;color:#fff;background:linear-gradient(135deg,#103d60,#157e80)}
-  .print-strengths h3{margin:0;color:#fff}.print-strengths span{background:rgba(255,255,255,.13);color:#fff}.print-strengths b{background:#f1bd52;color:#15394e}
-
-  .portfolio-print-final{display:flex!important;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;background:
-    radial-gradient(circle at 50% 20%,rgba(255,255,255,.15),transparent 28%),
-    linear-gradient(145deg,#0b2744,#0b6373 70%,#148c80)!important}
-  .portfolio-print-final:before{content:"";position:absolute;inset:11mm;border:1px solid rgba(255,255,255,.24);border-radius:7mm}
-  .portfolio-print-final>img{position:relative;width:34mm;height:34mm;border-radius:10mm;border:2mm solid rgba(255,255,255,.92);box-shadow:0 5mm 12mm rgba(0,0,0,.16)}
-  .portfolio-print-final>span{position:relative;margin-top:9mm;color:#ffe3a0;font-size:11pt;font-weight:900}.portfolio-print-final>h2{position:relative;margin:4mm 0;font-size:27pt}.portfolio-print-final>p{position:relative;max-width:145mm;margin:0;color:#d9eff0;font-size:12pt;line-height:1.9}
-  .print-signatures{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:6mm;width:100%;margin-top:18mm}
-  .print-signatures>div{display:grid;gap:3mm;padding:7mm;border:1px solid rgba(255,255,255,.20);border-radius:5mm;background:rgba(255,255,255,.10)}
-  .print-signatures small{color:#c9e7e9}.print-signatures strong{font-size:14pt}.print-signatures span{margin-top:7mm;color:#e4f1f2}
-  .print-share-link{position:relative;max-width:165mm;margin-top:8mm;color:#fff3c5;font-size:8pt;word-break:break-all}
-  .portfolio-print-final>footer{position:absolute;right:16mm;left:16mm;bottom:14mm;padding-top:4mm;border-top:1px solid rgba(255,255,255,.18);color:#cae4e6;font-size:8pt}
-}
-
-/* v48: keep the dedicated portfolio A4 document above legacy global print rules */
-@media print{
-  .print-header,.print-footer{display:none!important}
-  .portfolio-page .portfolio-print-document .print-page{
-    position:relative!important;
-    display:block!important;
-    width:210mm!important;
-    min-width:210mm!important;
-    max-width:210mm!important;
-    min-height:297mm!important;
-    margin:0!important;
-    padding:15mm 16mm 14mm!important;
-    overflow:hidden!important;
-    break-after:page!important;
-    page-break-after:always!important;
-  }
-  .portfolio-page .portfolio-print-document .print-page:last-child{
-    break-after:auto!important;
-    page-break-after:auto!important;
-  }
-  .portfolio-page .portfolio-print-cover,
-  .portfolio-page .portfolio-print-final{
-    position:relative!important;
-    display:flex!important;
-    color:#fff!important;
-  }
-  .portfolio-page .portfolio-print-cover h1,
-  .portfolio-page .portfolio-print-cover h2,
-  .portfolio-page .portfolio-print-cover h3,
-  .portfolio-page .portfolio-print-cover p,
-  .portfolio-page .portfolio-print-cover span,
-  .portfolio-page .portfolio-print-cover strong,
-  .portfolio-page .portfolio-print-cover small,
-  .portfolio-page .portfolio-print-cover dt,
-  .portfolio-page .portfolio-print-cover dd,
-  .portfolio-page .portfolio-print-cover footer,
-  .portfolio-page .portfolio-print-final h1,
-  .portfolio-page .portfolio-print-final h2,
-  .portfolio-page .portfolio-print-final h3,
-  .portfolio-page .portfolio-print-final p,
-  .portfolio-page .portfolio-print-final span,
-  .portfolio-page .portfolio-print-final strong,
-  .portfolio-page .portfolio-print-final small,
-  .portfolio-page .portfolio-print-final footer{
-    color:#fff!important;
-  }
-  .portfolio-page .portfolio-print-cover .print-cover-brand small,
-  .portfolio-page .portfolio-print-cover>footer,
-  .portfolio-page .portfolio-print-final>p,
-  .portfolio-page .portfolio-print-final>footer{color:#d6ecef!important}
-  .portfolio-page .portfolio-print-final>span,
-  .portfolio-page .portfolio-print-final .print-share-link{color:#ffe3a0!important}
-  .portfolio-page .print-section-header>span,
-  .portfolio-page .print-achievement-number{color:#fff!important}
-  .portfolio-page .print-section-header h2,
-  .portfolio-page .portfolio-print-achievement>header h2{color:#10364d!important}
-  .portfolio-page .print-section-header small,
-  .portfolio-page .portfolio-print-achievement>header time{color:#607b88!important}
-  .portfolio-page .print-stat-grid strong{color:#0b6174!important}
-  .portfolio-page .print-stat-grid span{color:#577482!important}
-  .portfolio-page .print-narrative h3,
-  .portfolio-page .portfolio-print-reflection article h3,
-  .portfolio-page .print-achievement-content h3{color:#0d6573!important}
-  .portfolio-page .print-achievement-content p,
-  .portfolio-page .print-narrative p,
-  .portfolio-page .portfolio-print-reflection article p{color:#142f40!important}
-  .portfolio-page .print-achievement-image{height:auto!important;max-height:105mm!important}
-}
-
-
-/* v50: visible premium portfolio preview and reliable native printing */
-.portfolio-preview-open .portfolio-print-document{
-  display:block!important;
-  position:fixed!important;
-  inset:0!important;
-  z-index:999999!important;
-  overflow:auto!important;
-  padding:86px 14px 34px!important;
-  background:
-    radial-gradient(circle at 12% 8%,rgba(28,139,145,.14),transparent 24%),
-    radial-gradient(circle at 88% 22%,rgba(240,184,74,.18),transparent 25%),
-    linear-gradient(145deg,#dfe9ed,#f6f8f9 45%,#dbe8e8)!important;
-  color:#142f40;
-}
-.portfolio-preview-toolbar{
-  position:fixed;
-  top:0;
-  right:0;
-  left:0;
-  z-index:1000000;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  min-height:70px;
-  padding:10px clamp(14px,4vw,42px);
-  color:#fff;
-  background:linear-gradient(115deg,#071f38,#0e6075 58%,#128a7c);
-  box-shadow:0 10px 34px rgba(7,31,56,.25);
-  outline:none;
-}
-.portfolio-preview-toolbar>div:first-child{display:grid;gap:2px}.portfolio-preview-toolbar span{color:#ffe09a;font-size:12px;font-weight:900}.portfolio-preview-toolbar strong{font-size:16px}
-.portfolio-preview-toolbar>div:last-child{display:flex;gap:9px}
-.portfolio-preview-toolbar button{min-height:44px;border:0;border-radius:13px;padding:9px 16px;font-weight:950}
-.portfolio-preview-toolbar .preview-back{color:#17384b;background:#eef5f6}.portfolio-preview-toolbar .preview-print{color:#102f43;background:linear-gradient(135deg,#ffe7a3,#efb641);box-shadow:0 8px 20px rgba(0,0,0,.18)}
-.portfolio-preview-open .print-page{
-  position:relative;
-  width:min(860px,calc(100vw - 28px));
-  min-height:1100px;
-  margin:18px auto;
-  padding:58px 64px 52px;
-  overflow:hidden;
-  background:#fff;
-  border-radius:5px;
-  box-shadow:0 24px 70px rgba(18,52,69,.20);
-}
-.portfolio-preview-open .portfolio-print-cover,
-.portfolio-preview-open .portfolio-print-final{display:flex!important;flex-direction:column;color:#fff;background:radial-gradient(circle at 13% 12%,rgba(255,255,255,.18),transparent 27%),radial-gradient(circle at 88% 87%,rgba(44,226,195,.30),transparent 33%),linear-gradient(140deg,#061a31 0%,#0b4f75 55%,#118879 100%)!important}
-.portfolio-preview-open .portfolio-print-cover:before,.portfolio-preview-open .portfolio-print-final:before{content:"";position:absolute;inset:32px;border:1px solid rgba(255,255,255,.25);border-radius:24px}
-.portfolio-preview-open .print-cover-brand{position:relative;display:flex;align-items:center;gap:18px;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.22)}
-.portfolio-preview-open .print-cover-brand img{width:86px;height:86px;border-radius:23px;object-fit:cover;border:5px solid rgba(255,255,255,.92);box-shadow:0 12px 28px rgba(0,0,0,.18)}
-.portfolio-preview-open .print-cover-brand span{display:block;color:#fff;font-size:24px;font-weight:950}.portfolio-preview-open .print-cover-brand small{display:block;margin-top:5px;color:#d8eff0}
-.portfolio-preview-open .print-cover-center{position:relative;display:grid;place-items:center;align-content:center;flex:1;text-align:center;padding:50px 20px}
-.print-cover-seal{position:relative;display:grid;place-items:center;align-content:center;width:190px;height:190px;margin-bottom:28px;border:1px solid rgba(255,255,255,.32);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,.05));box-shadow:0 0 0 14px rgba(255,255,255,.05),0 24px 55px rgba(0,0,0,.18)}
-.print-cover-seal:before,.print-cover-seal:after{content:"";position:absolute;border-radius:50%;border:1px dashed rgba(255,226,157,.58)}.print-cover-seal:before{inset:13px}.print-cover-seal:after{inset:25px}
-.print-cover-seal span,.print-cover-seal small,.print-cover-seal strong{position:relative;z-index:1}.print-cover-seal span{color:#d8eff1;font-size:13px}.print-cover-seal strong{margin:3px 0;color:#ffe19a;font-size:48px;line-height:1;font-weight:950}.print-cover-seal small{color:#fff;font-weight:900}
-.portfolio-preview-open .print-cover-eyebrow{display:inline-flex;padding:8px 16px;border:1px solid rgba(255,255,255,.30);border-radius:999px;color:#ffe5a2;background:rgba(255,255,255,.09);font-weight:900}
-.portfolio-preview-open .print-cover-center h1{max-width:640px;margin:20px 0 12px;color:#fff;font-size:46px;line-height:1.28}.portfolio-preview-open .print-cover-center p{max-width:650px;margin:0;color:#dceff1;font-size:18px;line-height:1.9}
-.print-cover-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:24px}.print-cover-badges b{padding:8px 13px;border-radius:999px;color:#fff;background:rgba(255,255,255,.12);font-size:12px}
-.portfolio-preview-open .portfolio-print-cover dl{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 32px}.portfolio-preview-open .portfolio-print-cover dl div{padding:16px;border:1px solid rgba(255,255,255,.20);border-radius:15px;background:rgba(255,255,255,.10)}
-.portfolio-preview-open .portfolio-print-cover dt{color:#cbe8eb;font-size:12px}.portfolio-preview-open .portfolio-print-cover dd{margin:6px 0 0;color:#fff;font-size:17px;font-weight:950}.portfolio-preview-open .portfolio-print-cover>footer{position:relative;padding-top:15px;border-top:1px solid rgba(255,255,255,.18);text-align:center;color:#d3e9eb;font-size:12px}
-.portfolio-preview-open .print-section-header{display:flex;align-items:center;gap:18px;margin-bottom:32px;padding-bottom:18px;border-bottom:4px solid #137c82}.portfolio-preview-open .print-section-header>span{width:58px;height:58px;display:grid;place-items:center;border-radius:19px;color:#fff;background:linear-gradient(135deg,#0b4169,#15928b);font-size:20px;font-weight:950}.portfolio-preview-open .print-section-header small{display:block;color:#5c7885}.portfolio-preview-open .print-section-header h2{margin:3px 0 0;color:#10364d;font-size:34px}
-.portfolio-preview-open .print-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}.portfolio-preview-open .print-stat-grid article{padding:19px 12px;text-align:center;border:1px solid #d3e4e8;border-radius:16px;background:linear-gradient(145deg,#f8fbfb,#edf6f6)}.portfolio-preview-open .print-stat-grid strong{display:block;color:#0b6174;font-size:36px}.portfolio-preview-open .print-stat-grid span{color:#587581;font-size:12px}
-.print-impact-banner{display:grid;gap:4px;margin:0 0 24px;padding:20px 22px;border-radius:18px;color:#fff;background:linear-gradient(120deg,#0b395d,#0e7e82 70%,#15967e);box-shadow:0 14px 34px rgba(13,102,111,.20)}.print-impact-banner span{color:#ffe09b;font-size:12px;font-weight:900}.print-impact-banner strong{font-size:20px}.print-impact-banner small{color:#d9eff0}
-.portfolio-preview-open .print-narrative{margin:0 0 15px;padding:20px 22px;border-right:6px solid #159092;border-radius:14px;background:#f5fafb}.portfolio-preview-open .print-narrative h3,.portfolio-preview-open .portfolio-print-reflection article h3,.portfolio-preview-open .print-achievement-content h3{margin:0 0 9px;color:#0d6573}.portfolio-preview-open .print-narrative p,.portfolio-preview-open .portfolio-print-reflection article p,.portfolio-preview-open .print-achievement-content p{margin:0;line-height:1.95;text-align:justify}
-.portfolio-preview-open .print-index-list{display:grid;gap:9px}.portfolio-preview-open .print-index-list>div{display:grid;grid-template-columns:42px 1fr 150px 130px;align-items:center;gap:11px;padding:12px 14px;border:1px solid #dbe7eb;border-radius:12px;background:#fbfdfd}.portfolio-preview-open .print-index-list>div>span{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;color:#fff;background:#146e7d;font-weight:900}.portfolio-preview-open .print-index-list small,.portfolio-preview-open .print-index-list time{color:#607b88;font-size:12px}
-.portfolio-preview-open .print-category-map,.portfolio-preview-open .print-strengths>div{display:flex;flex-wrap:wrap;gap:9px;margin-top:25px}.portfolio-preview-open .print-category-map span,.portfolio-preview-open .print-strengths span{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:999px;background:#eaf4f4;color:#285769;font-size:12px;font-weight:900}.portfolio-preview-open .print-category-map b,.portfolio-preview-open .print-strengths b{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;color:#fff;background:#127a82}
-.print-category-bars{display:grid;gap:10px;margin-top:24px;padding:20px;border:1px solid #dce8eb;border-radius:16px;background:#f8fbfb}.print-category-bars>div{display:grid;grid-template-columns:145px 1fr 30px;align-items:center;gap:11px}.print-category-bars span{color:#34596c;font-size:12px;font-weight:900}.print-category-bars i{height:9px;overflow:hidden;border-radius:999px;background:#dce9eb}.print-category-bars i b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#147084,#19a382)}.print-category-bars strong{color:#0d6472;text-align:center}
-.portfolio-preview-open .portfolio-print-achievement{display:flex!important;flex-direction:column}.portfolio-preview-open .portfolio-print-achievement>header{display:grid;grid-template-columns:72px 1fr auto;align-items:center;gap:18px;margin-bottom:25px;padding-bottom:18px;border-bottom:4px solid #147983}.portfolio-preview-open .print-achievement-number{width:68px;height:68px;display:grid;place-items:center;border-radius:22px;color:#fff;background:linear-gradient(135deg,#0b3d65,#16918e);font-size:26px;font-weight:950}.portfolio-preview-open .portfolio-print-achievement>header span{display:inline-block;margin-bottom:5px;color:#147b83;font-weight:900}.portfolio-preview-open .portfolio-print-achievement>header h2{margin:0 0 5px;color:#11364b;font-size:31px;line-height:1.35}.portfolio-preview-open .portfolio-print-achievement>header time{color:#6b818d;font-size:12px}
-.print-achievement-stamp{display:grid!important;place-items:center!important;align-content:center!important;width:88px;height:88px;border:2px solid #d5a53d;border-radius:50%;transform:rotate(-7deg);background:#fff9e9!important;box-shadow:inset 0 0 0 5px #fff,0 8px 18px rgba(117,81,14,.12)}.print-achievement-stamp span{margin:0!important;color:#9b6c16!important;font-size:11px!important}.print-achievement-stamp strong{color:#8e6012;font-size:18px}
-.portfolio-preview-open .print-achievement-image{display:block;width:100%;max-height:430px;margin:0 auto 18px;border:1px solid #d9e5e8;border-radius:18px;object-fit:contain;background:#f5f8f9}.print-achievement-tags{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 18px}.print-achievement-tags span{padding:7px 10px;border-radius:999px;color:#146b76;background:#e9f5f3;font-size:11px;font-weight:900}
-.portfolio-preview-open .print-achievement-content{display:grid;grid-template-columns:1fr 1fr;gap:13px}.portfolio-preview-open .print-achievement-content article{padding:17px 18px;border:1px solid #dce8eb;border-radius:15px;background:#fbfdfd}.portfolio-preview-open .print-achievement-content article.impact{grid-column:1/-1;border-color:#b9ded9;background:#eff9f6}.portfolio-preview-open .print-evidence-reference{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px 15px;margin-top:18px;padding:14px 16px;border:1px dashed #9ebfc6;border-radius:13px;color:#405e6d;background:#f8fbfb;word-break:break-all}.portfolio-preview-open .print-evidence-reference a{width:100%;color:#126f7a;text-decoration:none}.portfolio-preview-open .portfolio-print-achievement>footer{margin-top:auto;padding-top:20px;border-top:1px solid #e0e9ec;text-align:center;color:#78909b;font-size:11px}
-.portfolio-preview-open .portfolio-print-reflection article{margin-bottom:20px;padding:24px;border:1px solid #d5e4e8;border-radius:18px;background:#f8fbfc}.portfolio-preview-open .print-strengths{margin-top:28px;padding:22px;border-radius:18px;color:#fff;background:linear-gradient(135deg,#103d60,#157e80)}.portfolio-preview-open .print-strengths h3{margin:0;color:#fff}.portfolio-preview-open .print-strengths span{background:rgba(255,255,255,.13);color:#fff}.portfolio-preview-open .print-strengths b{background:#f1bd52;color:#15394e}
-.portfolio-preview-open .portfolio-print-final{align-items:center;justify-content:center;text-align:center}.portfolio-preview-open .portfolio-print-final>img{position:relative;width:128px;height:128px;border-radius:36px;border:8px solid rgba(255,255,255,.92);box-shadow:0 18px 40px rgba(0,0,0,.18)}.portfolio-preview-open .portfolio-print-final>span{position:relative;margin-top:32px;color:#ffe3a0;font-weight:900}.portfolio-preview-open .portfolio-print-final>h2{position:relative;margin:14px 0;color:#fff;font-size:42px}.portfolio-preview-open .portfolio-print-final>p{position:relative;max-width:650px;margin:0;color:#d9eff0;font-size:18px;line-height:1.9}.portfolio-preview-open .print-signatures{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:18px;width:100%;margin-top:54px}.portfolio-preview-open .print-signatures>div{display:grid;gap:10px;padding:24px;border:1px solid rgba(255,255,255,.20);border-radius:18px;background:rgba(255,255,255,.10)}.portfolio-preview-open .print-signatures small{color:#c9e7e9}.portfolio-preview-open .print-signatures strong{color:#fff;font-size:19px}.portfolio-preview-open .print-signatures span{margin-top:20px;color:#e4f1f2}.portfolio-preview-open .portfolio-print-final>footer{position:absolute;right:58px;left:58px;bottom:48px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);color:#cae4e6}
-@media(max-width:720px){.portfolio-preview-toolbar{align-items:stretch;flex-direction:column;padding:9px 12px}.portfolio-preview-toolbar>div:last-child{display:grid;grid-template-columns:1fr 1fr}.portfolio-preview-open .portfolio-print-document{padding-top:126px!important}.portfolio-preview-open .print-page{min-height:auto;padding:30px 20px}.portfolio-preview-open .print-cover-brand img{width:64px;height:64px}.portfolio-preview-open .print-cover-brand span{font-size:18px}.print-cover-seal{width:145px;height:145px}.print-cover-seal strong{font-size:37px}.portfolio-preview-open .print-cover-center h1{font-size:32px}.portfolio-preview-open .print-cover-center p{font-size:15px}.portfolio-preview-open .portfolio-print-cover dl,.portfolio-preview-open .print-stat-grid,.portfolio-preview-open .print-achievement-content,.portfolio-preview-open .print-signatures{grid-template-columns:1fr 1fr}.portfolio-preview-open .print-index-list>div{grid-template-columns:38px 1fr}.portfolio-preview-open .print-index-list small,.portfolio-preview-open .print-index-list time{grid-column:2}.print-category-bars>div{grid-template-columns:110px 1fr 25px}.portfolio-preview-open .portfolio-print-achievement>header{grid-template-columns:58px 1fr}.portfolio-preview-open .print-achievement-number{width:54px;height:54px}.print-achievement-stamp{display:none!important}.portfolio-preview-open .portfolio-print-achievement>header h2{font-size:24px}}
-
-@media print{
-  html.portfolio-print-active .portfolio-print-document,
-  .portfolio-page .portfolio-print-document{
-    display:block!important;
-    position:static!important;
-    visibility:visible!important;
-    opacity:1!important;
-  }
-  .portfolio-page .portfolio-print-document *{visibility:visible!important;opacity:1!important}
-  .portfolio-preview-toolbar{display:none!important}
-  .print-cover-seal{width:43mm;height:43mm;margin:0 auto 7mm;border:1px solid rgba(255,255,255,.34);border-radius:50%;box-shadow:0 0 0 4mm rgba(255,255,255,.05)}
-  .print-cover-seal:before{inset:3mm}.print-cover-seal:after{inset:6mm}.print-cover-seal strong{font-size:31pt}.print-cover-seal span,.print-cover-seal small{font-size:8pt}
-  .print-cover-eyebrow{display:inline-flex!important;padding:2.3mm 4mm;border:1px solid rgba(255,255,255,.30);border-radius:99mm;color:#ffe4a0!important;background:rgba(255,255,255,.09);font-size:9pt;font-weight:900}
-  .print-cover-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:2mm;margin-top:6mm}.print-cover-badges b{padding:2mm 3.2mm;border-radius:99mm;color:#fff!important;background:rgba(255,255,255,.12);font-size:7.5pt}
-  .print-impact-banner{display:grid;gap:1mm;margin:0 0 5mm;padding:5mm 6mm;border-radius:4mm;color:#fff!important;background:linear-gradient(120deg,#0b395d,#0e7e82 70%,#15967e)!important}.print-impact-banner span{color:#ffe09b!important;font-size:8pt}.print-impact-banner strong{color:#fff!important;font-size:13pt}.print-impact-banner small{color:#d9eff0!important;font-size:8pt}
-  .print-category-bars{display:grid;gap:2mm;margin-top:5mm;padding:4.5mm;border:1px solid #dce8eb;border-radius:4mm;background:#f8fbfb}.print-category-bars>div{display:grid;grid-template-columns:38mm 1fr 8mm;align-items:center;gap:3mm}.print-category-bars span{color:#34596c!important;font-size:8pt;font-weight:900}.print-category-bars i{height:2.5mm;overflow:hidden;border-radius:99mm;background:#dce9eb}.print-category-bars i b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#147084,#19a382)!important}.print-category-bars strong{color:#0d6472!important;text-align:center}
-  .portfolio-print-achievement>header{grid-template-columns:18mm 1fr 22mm!important}.print-achievement-stamp{display:grid!important;place-items:center!important;align-content:center!important;width:21mm;height:21mm;border:.6mm solid #c9952e;border-radius:50%;transform:rotate(-7deg);background:#fff9e9!important}.print-achievement-stamp span{margin:0!important;color:#9b6c16!important;font-size:7pt!important}.print-achievement-stamp strong{color:#8e6012!important;font-size:11pt}
-  .print-achievement-tags{display:flex;flex-wrap:wrap;gap:1.5mm;margin:0 0 4mm}.print-achievement-tags span{padding:1.6mm 2.5mm;border-radius:99mm;color:#146b76!important;background:#e9f5f3!important;font-size:7pt;font-weight:900}
-}
-
-
-/* v72: unified mobile/web portfolio and one-sheet A4 output */
-@media (max-width:680px){
-  .portfolio-page{width:100%;max-width:100%;padding:8px 7px 96px!important;overflow-x:hidden}
-  .portfolio-hero,.achievement-builder,.portfolio-command,.portfolio-library,.portfolio-settings{border-radius:18px!important}
-  .achievement-builder form,.portfolio-settings-grid{grid-template-columns:1fr!important}
-  .builder-title,.builder-note,.builder-actions,.portfolio-settings-grid .wide{grid-column:1!important}
-  .builder-actions,.portfolio-command-actions{display:grid!important;grid-template-columns:1fr!important;width:100%}
-  .builder-actions button,.portfolio-command-actions button,.save-settings{width:100%;min-height:49px!important}
-  .achievement-card footer{align-items:stretch!important;gap:10px!important}
-  .achievement-card footer>div{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%}
-  .achievement-card footer button{min-height:44px!important}
-  .portfolio-preview-open{padding:0!important;background:#e8eef1!important}
-  .portfolio-preview-open .portfolio-print-document{display:block!important;width:100%!important;padding:82px 5px 18px!important;overflow-x:hidden!important}
-  .portfolio-preview-toolbar{position:fixed!important;top:0!important;right:0!important;left:0!important;z-index:9999!important;display:grid!important;grid-template-columns:1fr!important;gap:7px!important;padding:8px max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left))!important;border-radius:0!important}
-  .portfolio-preview-toolbar>div:last-child{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important}
-  .portfolio-preview-toolbar button{min-width:0!important;min-height:46px!important;padding:8px 6px!important;font-size:12px!important}
-  .portfolio-preview-open .print-page{width:calc(100vw - 10px)!important;min-width:0!important;max-width:calc(100vw - 10px)!important;min-height:calc((100vw - 10px) * 1.4142)!important;height:auto!important;margin:7px auto!important;padding:5.5vw 5vw!important;border-radius:4px!important;box-shadow:0 5px 18px rgba(18,48,64,.14)!important;overflow:hidden!important}
-  .portfolio-preview-open .print-page h1{font-size:clamp(20px,7vw,32px)!important}
-  .portfolio-preview-open .print-page h2{font-size:clamp(17px,5.5vw,26px)!important}
-  .portfolio-preview-open .print-page p{font-size:clamp(10px,3.1vw,14px)!important}
-}
-
-@media print{
-  @page{size:A4 portrait;margin:0}
-  html,body{width:210mm!important;min-width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}
-  .portfolio-page .portfolio-print-document .print-page{
-    box-sizing:border-box!important;
-    width:210mm!important;
-    min-width:210mm!important;
-    max-width:210mm!important;
-    height:297mm!important;
-    min-height:297mm!important;
-    max-height:297mm!important;
-    margin:0!important;
-    overflow:hidden!important;
-    break-inside:avoid-page!important;
-    page-break-inside:avoid!important;
-    break-after:page!important;
-    page-break-after:always!important;
-  }
-  .portfolio-page .portfolio-print-document .print-page:last-child{break-after:auto!important;page-break-after:auto!important}
-  .portfolio-page .portfolio-print-achievement{padding:11mm 13mm 10mm!important}
-  .portfolio-page .portfolio-print-achievement>header{margin-bottom:5mm!important;padding-bottom:3.5mm!important}
-  .portfolio-page .portfolio-print-achievement .print-achievement-image{max-height:78mm!important;margin-bottom:4mm!important}
-  .portfolio-page .portfolio-print-achievement .print-achievement-content{gap:2.5mm!important}
-  .portfolio-page .portfolio-print-achievement .print-achievement-content article{padding:3mm 3.5mm!important}
-  .portfolio-page .portfolio-print-achievement .print-achievement-content p{font-size:8.8pt!important;line-height:1.55!important}
-  .portfolio-page .portfolio-print-achievement .print-evidence-reference{margin-top:3mm!important;padding:2.5mm 3mm!important}
-}
-
-.portfolio-pdf-exporting .portfolio-print-document .print-page{
-  box-sizing:border-box!important;
-  width:794px!important;
-  min-width:794px!important;
-  max-width:794px!important;
-  height:1123px!important;
-  min-height:1123px!important;
-  max-height:1123px!important;
-  overflow:hidden!important;
-}
-
-
-/* Unified portfolio screen theme — print rules above are preserved. */
-@media screen {
-.portfolio-page{--portfolio-ink:#163f58;--portfolio-muted:#4d7084;--portfolio-line:#bedbe9;--portfolio-surface:#fff;--portfolio-soft:#eaf6ff;--portfolio-blue:#187cb6;--portfolio-deep:#125275;--portfolio-gold:#e6a94c;color:#163f58!important;gap:12px!important}
-.portfolio-page :is(.portfolio-hero,.achievement-builder,.portfolio-command,.portfolio-library,.portfolio-settings){border:1px solid #bcdde9!important;border-radius:17px!important;box-shadow:0 5px 18px rgba(25,90,128,.09)!important;backdrop-filter:none!important}
-.portfolio-page .portfolio-hero{grid-template-columns:minmax(0,1fr) 135px!important;min-height:0!important;padding:17px 23px!important;gap:15px!important;background:linear-gradient(115deg,#e2f5ff,#d5f5ed)!important;color:#164662!important}
-.portfolio-page .portfolio-hero h1{font-size:clamp(23px,2.6vw,34px)!important;line-height:1.35!important;margin:6px 0!important;color:#164c6d!important;text-shadow:none!important}
-.portfolio-page .portfolio-hero p{font-size:14px!important;line-height:1.55!important;color:#426d82!important}
-.portfolio-page .portfolio-kicker{padding:4px 10px!important;background:#fff!important;color:#1875a3!important;border-color:#b8dfec!important}
-.portfolio-page .portfolio-status-row{margin-top:10px!important;gap:5px!important}
-.portfolio-page .portfolio-status-row span{padding:4px 8px!important;background:#fff!important;color:#236582!important;font-size:11px!important}
-.portfolio-page .portfolio-hero-score{min-height:105px!important;padding:10px!important;border-radius:15px!important;background:#fff!important;color:#195471!important;backdrop-filter:none!important}
-.portfolio-page .portfolio-hero-score strong{font-size:35px!important;color:#146b91!important}
-.portfolio-page .portfolio-hero-score small{color:#54768a!important}
-.portfolio-page :is(.achievement-builder,.portfolio-command,.portfolio-library,.portfolio-settings){background:#fff!important;color:#17455e!important}
-.portfolio-page .achievement-builder>header{padding:12px 18px!important;background:linear-gradient(110deg,#e2f4ff,#edfbf7)!important;gap:10px!important}
-.portfolio-page .achievement-builder>header h2{font-size:21px!important;margin:2px 0!important;color:#144b69!important}
-.portfolio-page .achievement-builder>header p{font-size:12px!important;line-height:1.5!important}
-.portfolio-page .smart-orb{width:44px!important;height:44px!important;border-radius:13px!important;font-size:22px!important;animation:none!important}
-.portfolio-page .achievement-builder form{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(140px,1fr) minmax(140px,1fr)!important;gap:9px 12px!important;align-items:end!important;padding:13px 17px!important}
-.portfolio-page .achievement-builder form .builder-title{grid-column:auto!important}
-.portfolio-page .achievement-builder form .builder-note{grid-column:1/-1!important}
-.portfolio-page .achievement-builder form label{gap:4px!important;font-size:13px!important}
-.portfolio-page .achievement-builder form label>span{font-size:12px!important}
-.portfolio-page :is(input,select,textarea){background:#f8fcff!important;color:#173f58!important;border:1px solid #b9d9e8!important;box-shadow:none!important;opacity:1!important}
-.portfolio-page :is(input,textarea)::placeholder{color:#6b879a!important;opacity:1!important}
-.portfolio-page .achievement-builder form :is(input,select){min-height:39px!important;padding:7px 10px!important;border-radius:10px!important}
-.portfolio-page .achievement-builder form .builder-note textarea{height:60px!important;min-height:60px!important;padding:9px!important}
-.portfolio-page .achievement-builder form .builder-upload{min-height:40px!important;padding:8px!important}
-.portfolio-page .achievement-builder form .builder-actions{grid-column:1/-1!important;display:flex!important;justify-content:flex-start!important;gap:8px!important;width:auto!important}
-.portfolio-page .builder-actions button,.portfolio-page .portfolio-command-actions button,.portfolio-page .save-settings{min-height:40px!important;padding:8px 13px!important;width:auto!important;border-radius:10px!important}
-.portfolio-page .builder-actions .primary,.portfolio-page .print-portfolio-button{background:linear-gradient(120deg,#1978c4,#12a4a3)!important;color:#fff!important}
-.portfolio-page .portfolio-command{padding:13px 18px!important;gap:12px!important;background:linear-gradient(110deg,#e9f7ff,#eefbf5)!important}
-.portfolio-page .portfolio-command h2{font-size:20px!important;margin:2px 0!important;color:#174a68!important}
-.portfolio-page .portfolio-command p{font-size:12px!important}
-.portfolio-page .portfolio-dashboard{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important}
-.portfolio-page .portfolio-dashboard article{min-height:87px!important;padding:11px 13px!important;border:1px solid #c4dfeb!important;border-radius:14px!important;box-shadow:0 4px 13px rgba(26,91,125,.08)!important}
-.portfolio-page .portfolio-dashboard article:nth-child(4n+1){background:linear-gradient(120deg,#b8efda,#e3fbef)!important}
-.portfolio-page .portfolio-dashboard article:nth-child(4n+2){background:linear-gradient(120deg,#b7dcff,#e5f3ff)!important}
-.portfolio-page .portfolio-dashboard article:nth-child(4n+3){background:linear-gradient(120deg,#ffe0a4,#fff4d8)!important}
-.portfolio-page .portfolio-dashboard article:nth-child(4n){background:linear-gradient(120deg,#d9c6ff,#f1eaff)!important}
-.portfolio-page .portfolio-dashboard span{font-size:12px!important;color:#2d5b73!important}
-.portfolio-page .portfolio-dashboard strong{font-size:23px!important;line-height:1.15!important;margin:4px 0!important;color:#153e57!important}
-.portfolio-page .portfolio-dashboard small{font-size:11px!important;color:#45697d!important}
-.portfolio-page .portfolio-library{padding:15px 17px!important}
-.portfolio-page .portfolio-library>header{margin-bottom:10px!important}
-.portfolio-page .portfolio-empty{min-height:100px!important;padding:17px!important;background:#f0f9ff!important}
-.portfolio-page .portfolio-settings{padding:15px!important}
-.portfolio-page :is(h1,h2,h3,b,strong){text-shadow:none!important}
-.portfolio-page button:focus-visible,.portfolio-page :is(input,textarea,select):focus-visible{outline:3px solid #83cbed!important;outline-offset:2px!important}
-}
-@media screen and (max-width:700px){
-.portfolio-page{gap:10px!important}
-.portfolio-page .portfolio-hero{grid-template-columns:1fr!important;padding:14px!important}
-.portfolio-page .portfolio-hero h1{font-size:24px!important}
-.portfolio-page .portfolio-hero-score{min-height:75px!important}
-.portfolio-page .achievement-builder>header{padding:11px!important}
-.portfolio-page .achievement-builder form{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:11px!important;gap:8px!important}
-.portfolio-page .achievement-builder form :is(.builder-title,.builder-note,.builder-actions,.draft-preview){grid-column:1/-1!important}
-.portfolio-page .portfolio-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
-.portfolio-page .portfolio-dashboard article{min-height:83px!important;padding:10px!important}
-.portfolio-page .portfolio-command{padding:12px!important;flex-direction:column!important;align-items:stretch!important}
-.portfolio-page .portfolio-command-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-.portfolio-page .portfolio-command-actions button{min-width:0!important;width:100%!important}
-.portfolio-page .portfolio-library{padding:12px!important}
-}
-
-
-/* Light, editorial A4 report: override the old dark ink-heavy print palette. */
-@media print {
-  .portfolio-page .portfolio-print-document { color:#173b56!important;background:#fff!important;direction:rtl!important; }
-  .portfolio-page .portfolio-print-document .print-page {background:#fff!important;color:#173b56!important;padding:14mm 15mm!important;box-shadow:none!important;}
-  .portfolio-page .portfolio-print-cover,
-  .portfolio-page .portfolio-print-final {
-    color:#17415f!important;
-    background:linear-gradient(160deg,#eff9ff 0%,#ffffff 50%,#e9faf3 100%)!important;
-    border-top:4mm solid #2496cc!important;
-  }
-  .portfolio-page .portfolio-print-cover:before,
-  .portfolio-page .portfolio-print-final:before {border:1px solid #d1e9f4!important;}
-  .portfolio-page .portfolio-print-cover :is(h1,h2,h3,strong,span,dd),
-  .portfolio-page .portfolio-print-final :is(h1,h2,h3,strong,span) {color:#14567e!important;text-shadow:none!important;}
-  .portfolio-page .portfolio-print-cover :is(p,small,dt,footer),
-  .portfolio-page .portfolio-print-final :is(p,small,footer) {color:#426d82!important;text-shadow:none!important;}
-  .portfolio-page .print-cover-brand {border-bottom:1px solid #c5e6f2!important;}
-  .portfolio-page .print-cover-brand img,.portfolio-page .portfolio-print-final>img {border-color:#fff!important;box-shadow:0 2mm 6mm #bcdbe8!important;}
-  .portfolio-page .print-cover-center>span {background:#dff4ff!important;border-color:#b7e4f5!important;color:#17688e!important;}
-  .portfolio-page .portfolio-print-cover dl div {background:#fff!important;border:1px solid #c8e7f2!important;}
-  .portfolio-page .portfolio-print-cover>footer,
-  .portfolio-page .portfolio-print-final>footer {border-top:1px solid #c9e4ef!important;}
-  .portfolio-page .print-signatures>div {background:#fff!important;border:1px solid #c8e7f2!important;}
-  .portfolio-page .print-signatures :is(strong,span,small) {color:#315f78!important;}
-  .portfolio-page .portfolio-print-final>span,.portfolio-page .portfolio-print-final .print-share-link {color:#157da2!important;}
-  .portfolio-page .print-section-header {border-bottom:1mm solid #42b8cf!important;margin-bottom:6mm!important;}
-  .portfolio-page .print-section-header>span {background:#228fd0!important;color:#fff!important;border-radius:4mm!important;}
-  .portfolio-page .print-section-header h2 {font-size:19pt!important;color:#165a7f!important;}
-  .portfolio-page .print-stat-grid article:nth-child(4n+1) {background:#e7f6ff!important;border-color:#c5e6fa!important;}
-  .portfolio-page .print-stat-grid article:nth-child(4n+2) {background:#e8fbf3!important;border-color:#c5eadb!important;}
-  .portfolio-page .print-stat-grid article:nth-child(4n+3) {background:#fff5e4!important;border-color:#f2dfbd!important;}
-  .portfolio-page .print-stat-grid article:nth-child(4n) {background:#f2ecff!important;border-color:#dfd2fa!important;}
-  .portfolio-page .print-narrative {background:#f1f9ff!important;border-right-color:#3ba4d4!important;}
-  .portfolio-page .print-index-list>div:nth-child(odd) {background:#f0f8ff!important;}
-  .portfolio-page .print-index-list>div:nth-child(even) {background:#f3fcf7!important;}
-  .portfolio-page .print-index-list>div>span,.portfolio-page .print-category-map b {background:#2698c7!important;}
-  .portfolio-page .portfolio-print-achievement>header {border-bottom-color:#54b5d2!important;margin-bottom:5mm!important;}
-  .portfolio-page .print-achievement-number {background:#238fc8!important;color:#fff!important;}
-  .portfolio-page .print-achievement-content article {background:#f8fcff!important;border-color:#d5e9f2!important;}
-  .portfolio-page .print-achievement-content article:nth-child(even) {background:#f5fbf7!important;}
-  .portfolio-page .print-achievement-content article.impact {background:#eaf9f1!important;border-color:#bfe6d3!important;}
-  .portfolio-page .portfolio-print-reflection article {background:#f5faff!important;border-color:#d3e9f3!important;}
-  .portfolio-page .print-strengths {background:#e8f8f3!important;color:#155b6a!important;border:1px solid #c4e8de!important;}
-  .portfolio-page .print-strengths h3,.portfolio-page .print-strengths span {color:#155b6a!important;}
-  .portfolio-page .print-strengths span {background:#fff!important;border:1px solid #d4e9e7!important;}
-  .portfolio-page .print-strengths b {background:#28a3b1!important;color:#fff!important;}
-  .portfolio-page .print-achievement-content p,.portfolio-page .print-narrative p {line-height:1.7!important;}
-  .portfolio-page .print-page :is(article,.print-index-list>div,.print-evidence-reference) {break-inside:avoid!important;}
-}
-
-
-/* Formal A4 achievement report: restrained ink, stable spacing, RTL hierarchy. */
-@media print {
-  .portfolio-page .portfolio-print-document .print-page {
-    padding:16mm 17mm 15mm!important;
-    font-family:"Tahoma","Arial",sans-serif!important;
-    direction:rtl!important;
-    text-align:right!important;
-  }
-  .portfolio-page .portfolio-print-cover,
-  .portfolio-page .portfolio-print-final {
-    background:linear-gradient(155deg,#f4f8fc,#ffffff 52%,#f0f6f6)!important;
-    border-top:2.5mm solid #285e80!important;
-  }
-  .portfolio-page .print-section-header {margin-bottom:7mm!important;padding-bottom:4mm!important;border-bottom:.55mm solid #7396ac!important}
-  .portfolio-page .print-section-header h2 {font-size:17pt!important;line-height:1.4!important}
-  .portfolio-page .print-achievement-content {gap:3mm!important}
-  .portfolio-page .print-achievement-content article {padding:4mm 5mm!important;border-radius:2mm!important}
-  .portfolio-page .print-achievement-content p,.portfolio-page .print-narrative p {font-size:9.5pt!important;line-height:1.75!important;text-align:right!important}
-  .portfolio-page .print-achievement-image {max-height:88mm!important;object-fit:contain!important;margin-bottom:5mm!important}
-  .portfolio-page .print-index-list>div {padding:3.5mm 4mm!important}
-  .portfolio-page .portfolio-print-achievement>header h2 {font-size:18pt!important}
-  .portfolio-page .print-page :is(h1,h2,h3,p,span,small,strong,time) {overflow-wrap:break-word!important}
-  .portfolio-page .print-page :is(.print-achievement-content article,.print-evidence-reference) {break-inside:avoid!important}
-}
-
-
-/* Portfolio editorial edition — airy Arabic report with education-themed visual language. */
-.portfolio-page .portfolio-print-document .print-page{position:relative!important;background:#fff!important;color:#173e57!important;border:1px solid #d9e9ee!important}
-.portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::before{content:"";position:absolute;top:0;left:0;right:0;height:12px;background:linear-gradient(90deg,#0d4566,#12a6b2 75%,#e6bc69);z-index:1}
-.portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:"بوابة أستاذ لحوني التعليمية  •  ملف الإنجاز المهني";position:absolute;bottom:18px;right:45px;left:45px;border-top:1px solid #d9e9ee;padding-top:8px;text-align:right;font-size:10px;color:#698795;letter-spacing:.1px}
-.portfolio-page .print-design-label{display:flex;align-items:center;gap:10px;margin:15px 0 12px;color:#0d6780;font-weight:900;font-size:14px}
-.portfolio-page .print-design-label::before{content:"";width:8px;height:22px;border-radius:8px;background:linear-gradient(#efc777,#12a7aa)}
-.portfolio-page .portfolio-print-cover{overflow:hidden!important;background:linear-gradient(145deg,#f7fcff 0%,#fff 52%,#e9f7f6 100%)!important;border:1px solid #bcd9e4!important;border-top:14px solid #0b496b!important;justify-content:space-between!important}
-.portfolio-page .portfolio-print-cover::before{content:"";position:absolute;top:-90px;left:-90px;width:430px;height:390px;border-radius:50%;background:radial-gradient(circle,#d7f1f2 0%,#edf9f8 46%,transparent 72%);pointer-events:none}
-.portfolio-page .portfolio-print-cover::after{content:"";position:absolute;right:-80px;bottom:90px;width:290px;height:290px;border:2px solid #d5e9e6;border-radius:50%;pointer-events:none}
-.portfolio-page .print-cover-brand{position:relative;z-index:2;border-bottom:2px solid #c5e4e9!important;padding-bottom:20px!important}
-.portfolio-page .print-cover-brand span{color:#123e5a!important;font-weight:900!important}
-.portfolio-page .print-cover-brand small{color:#56798b!important}
-.portfolio-page .print-cover-center{position:relative;z-index:2;text-align:center!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:17px!important;flex:1!important;padding:36px 0!important}
-.portfolio-page .print-cover-center .print-cover-eyebrow{color:#956e26!important;background:#fff8e8!important;border:1px solid #ebd39c!important;padding:9px 24px!important;border-radius:30px!important}
-.portfolio-page .print-cover-center h1{font-size:clamp(42px,5.5vw,67px)!important;line-height:1.38!important;color:#0b4363!important;text-shadow:none!important;letter-spacing:0!important;margin:0!important}
-.portfolio-page .print-cover-center p{max-width:560px!important;color:#3c6478!important;font-size:17px!important;line-height:1.95!important}
-.portfolio-page .print-cover-badges{display:flex!important;gap:10px!important;justify-content:center!important;flex-wrap:wrap!important}
-.portfolio-page .print-cover-badges b{background:#fff!important;color:#145878!important;border:1px solid #c9e2e7!important;box-shadow:0 5px 15px #d6e9ec88!important}
-.portfolio-page .portfolio-print-cover dl{position:relative;z-index:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;margin-top:auto!important}
-.portfolio-page .portfolio-print-cover dl div{background:#fff!important;border:1px solid #c5dfe8!important;border-radius:14px!important;box-shadow:0 5px 15px #d4e5eb55!important}
-.portfolio-page .portfolio-print-cover dl dt{color:#6a8595!important}
-.portfolio-page .portfolio-print-cover dl dd{color:#123e5b!important;font-weight:900!important}
-.portfolio-page .portfolio-print-cover>footer{position:relative;z-index:2;color:#52788b!important;border-top:1px solid #c5e1e8!important}
-.portfolio-page .print-section-header{border-bottom:3px solid #159aab!important;padding-bottom:15px!important}
-.portfolio-page .print-section-header>span,.portfolio-page .print-achievement-number{background:linear-gradient(135deg,#0b4869,#14a5a8)!important;color:white!important}
-.portfolio-page .print-section-header h2{color:#0b4564!important;font-weight:900!important}
-.portfolio-page .print-stat-grid article{border-radius:17px!important;box-shadow:0 6px 16px #d6e9ec55!important}
-.portfolio-page .print-narrative{background:#f6fbfd!important;border:1px solid #d9e9ee!important;border-right:5px solid #0e98a4!important;border-radius:14px!important;padding:18px!important;box-shadow:0 5px 16px #e1edf155!important}
-.portfolio-page .print-narrative:nth-of-type(even){background:#f7fcf8!important}
-.portfolio-page .print-index-list>div{border:1px solid #d9e9ed!important;border-radius:12px!important;box-shadow:0 4px 12px #d8e7eb44!important}
-.portfolio-page .print-category-bars{padding:18px!important;background:#f7fbfd!important;border:1px solid #dbe9ee!important;border-radius:15px!important}
-.portfolio-page .portfolio-print-achievement>header{padding-bottom:17px!important;border-bottom:3px solid #13a2ab!important}
-.portfolio-page .print-achievement-image{display:block!important;max-height:340px!important;width:100%!important;object-fit:contain!important;border:1px solid #c7dfe6!important;border-radius:15px!important;background:#f6fafb!important;padding:8px!important;box-sizing:border-box!important}
-.portfolio-page .print-achievement-content article{border-radius:13px!important;box-shadow:0 3px 10px #dce9ed55!important}
-.portfolio-page .portfolio-print-reflection article{border-radius:16px!important;box-shadow:0 5px 18px #dce9ed66!important}
-.portfolio-page .portfolio-print-final{background:linear-gradient(145deg,#f7fcff,#fff 58%,#e9f7f5)!important;color:#173f58!important;border-top:14px solid #0b496b!important}
-.portfolio-page .portfolio-print-final :is(h2,h3,strong){color:#0c4665!important}
-.portfolio-page .portfolio-print-final p{color:#3e687c!important}
-.portfolio-page .print-signatures>div{background:#fff!important;border:1px solid #c8e3e9!important}
-@media print{
- .portfolio-page .portfolio-print-cover,.portfolio-page .portfolio-print-final{background:#f8fcfd!important}
- .portfolio-page .print-cover-center h1{font-size:36pt!important}
- .portfolio-page .print-achievement-image{max-height:72mm!important}
- .portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{bottom:9mm;right:16mm;left:16mm;font-size:7pt}
- .portfolio-page .print-design-label{font-size:10pt!important;margin:3mm 0!important}
-}
-
-
-/* Reference-matched illustrated report edition; scoped to PDF pages. */
-.portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:none!important;display:none!important}
-.portfolio-page .portfolio-print-document .print-page{overflow:hidden!important}
-.portfolio-page .portfolio-print-cover{background:linear-gradient(135deg,#fff 0%,#f2faff 68%,#e6f5f2 100%)!important}
-.portfolio-page .portfolio-print-cover::before{top:auto!important;left:auto!important;right:-85px!important;bottom:-100px!important;width:440px!important;height:440px!important;background:radial-gradient(circle,#cce8e6 0%,#f4fcf9 47%,transparent 71%)!important}
-.portfolio-page .print-cover-illustration{position:absolute;inset:14% 0 auto;z-index:0;display:flex;justify-content:space-between;padding:0 10%;font-size:66px;color:#d4b46f;opacity:.34;pointer-events:none}
-.portfolio-page .print-cover-illustration span:nth-child(2){font-size:130px;color:#74b8bb}
-.portfolio-page .print-cover-center h1{font-size:54px!important;line-height:1.55!important;max-width:550px!important;position:relative!important}
-.portfolio-page .print-cover-center p{font-size:18px!important;font-weight:500!important}
-.portfolio-page .print-cover-brand{background:linear-gradient(90deg,#f0f8fb,#fff)!important;border-radius:16px!important;padding:12px 18px!important}
-.portfolio-page .portfolio-print-cover dl div{background:#f6fbfd!important;border-bottom:3px solid #159fa9!important}
-.portfolio-page .print-summary-visual{height:105px;border-radius:18px;margin:18px 0;background:linear-gradient(100deg,#d7eff0,#f5fbfc 54%,#e7f3e9);display:flex;align-items:center;justify-content:center;gap:30px;color:#125a77}
-.portfolio-page .print-summary-visual>span{font-size:70px;color:#d1a65c}
-.portfolio-page .print-summary-visual div{display:flex;flex-direction:column;gap:7px}
-.portfolio-page .print-summary-visual b{font-size:22px}
-.portfolio-page .print-summary-visual small{font-size:13px;color:#64899a}
-.portfolio-page .print-index-art{height:155px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin:18px 0;border-radius:18px;background:linear-gradient(110deg,#eaf7fa,#f8fbf6);border:1px solid #d0e8e8;color:#0b4d6c;text-align:center}
-.portfolio-page .print-index-art>span{font-size:32px;color:#d0aa63}
-.portfolio-page .print-index-art strong{font-size:22px;line-height:1.5}
-.portfolio-page .print-index-art small{color:#5b8595;font-size:12px}
-.portfolio-page .print-development-roadmap{margin:22px 0;padding:20px;border-radius:18px;background:#f0f8fb;border:1px solid #d3e9ec}
-.portfolio-page .print-development-roadmap h3{color:#0b5270;font-size:18px;margin:0 0 17px}
-.portfolio-page .print-development-roadmap>div{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.portfolio-page .print-development-roadmap span{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:16px 5px;border-radius:12px;background:white;color:#0e8a9c;font-weight:900;font-size:21px}
-.portfolio-page .print-development-roadmap b{color:#21566e;font-size:12px}
-.portfolio-page .print-final-thanks{font-size:72px!important;font-weight:900;color:#0e6077!important;margin:0 auto 12px;line-height:1.3;text-align:center}
-.portfolio-page .portfolio-print-final{background:linear-gradient(160deg,#fff 20%,#f2fafb 75%,#e5f4ee)!important}
-.portfolio-page .print-achievement-image{object-fit:contain!important;max-height:310px!important;width:100%!important}
-.portfolio-page .portfolio-print-achievement{background:#fff!important}
-.portfolio-page .portfolio-print-achievement>header{background:linear-gradient(90deg,#f3fafc,#fff)!important;border-radius:14px;padding:12px!important}
-@media print{
- .portfolio-page .print-cover-center h1{font-size:37pt!important}
- .portfolio-page .print-summary-visual{height:27mm!important}
- .portfolio-page .print-index-art{height:37mm!important}
- .portfolio-page .print-development-roadmap{padding:4mm!important;margin:4mm 0!important}
- .portfolio-page .print-final-thanks{font-size:42pt!important}
- .portfolio-page .print-achievement-image{max-height:75mm!important}
- .portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:none!important}
-}
-
-
-/* Dedicated photographic evidence sheets — preserve every image's native proportions. */
-.portfolio-page .portfolio-print-evidence{display:flex!important;flex-direction:column!important;gap:15px!important;background:linear-gradient(165deg,#fff,#f8fcfd)!important}
-.portfolio-page .portfolio-print-evidence .print-section-header{flex-shrink:0!important}
-.portfolio-page .print-evidence-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-radius:13px;background:linear-gradient(100deg,#0c4c6a,#109e9f);color:white}
-.portfolio-page .print-evidence-heading strong{font-size:18px;color:white}
-.portfolio-page .print-evidence-heading span{font-size:13px;color:#d7f5f1}
-.portfolio-page .print-evidence-photo-frame{width:100%;height:550px;min-height:0;flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #c9e3e8;border-radius:16px;background:#fff;padding:14px;box-sizing:border-box}
-.portfolio-page .print-evidence-photo-frame img{display:block!important;max-width:100%!important;max-height:100%!important;width:auto!important;height:auto!important;object-fit:contain!important;object-position:center!important;border:0!important;padding:0!important;margin:auto!important;box-shadow:none!important;transform:none!important;aspect-ratio:auto!important}
-.portfolio-page .print-evidence-caption{padding:16px 20px;border-radius:14px;background:#eef8f7;border-right:5px solid #15a2a5}
-.portfolio-page .print-evidence-caption strong{font-size:16px;color:#0c6175}
-.portfolio-page .print-evidence-caption p{font-size:14px;line-height:1.75;color:#345d6c;margin:6px 0 0}
-.portfolio-page .print-evidence-meta{display:flex;justify-content:space-between;gap:12px;color:#527e8d;font-size:13px}
-@media print{
- .portfolio-page .portfolio-print-evidence{gap:3mm!important}
- .portfolio-page .print-evidence-photo-frame{height:160mm!important;padding:3mm!important}
- .portfolio-page .print-evidence-photo-frame img{max-height:100%!important;max-width:100%!important}
- .portfolio-page .print-evidence-heading{padding:3mm 4mm!important}
- .portfolio-page .print-evidence-caption{padding:3mm 4mm!important}
+ @page{size:A4 portrait;margin:0}
+ body{background:#fff!important}
+ .portfolio-page>.no-print,.portfolio-preview-toolbar{display:none!important}
+ .portfolio-print-document{display:block!important;position:static!important;padding:0!important}
+ .portfolio-print-document .print-page{margin:0!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important}
+ .portfolio-print-document .print-page:last-child{break-after:auto!important}
 }
