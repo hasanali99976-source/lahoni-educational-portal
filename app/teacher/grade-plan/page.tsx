@@ -37,7 +37,7 @@ function planLabel(value: unknown) {
 export default function GradePlanPage() {
   const session = useTeacherClient();
   const subjectId = String(session.subjectKey || "").trim().split("--")[0];
-  const { activePlan, history, loading, error } = useGradePlan(true);
+  const { activePlan, loading, error } = useGradePlan(true);
   const [editing, setEditing] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [mode, setMode] = useState<GradePlanMode>("units");
@@ -85,7 +85,7 @@ export default function GradePlanPage() {
     const checked = validateGradePlanDraft(draft);
     if (!subjectId) return setMessage("حدد المادة أولًا قبل اعتماد الخطة.");
     if (!checked.valid) return setMessage(checked.errors[0] || "أكمل توزيع الدرجات أولًا.");
-    if (!window.confirm(`اعتماد هذه النسخة كخطة درجات ${session.subject || "المادة الحالية"}؟ سيتم الاحتفاظ بالنسخ السابقة في سجل المادة.`)) return;
+    if (!window.confirm(`اعتماد هذه النسخة كخطة درجات ${session.subject || "المادة الحالية"}؟ ستحل الخطة الجديدة محل القديمة ولن تُحفظ نسخة سابقة.`)) return;
     setSaving(true); setMessage("");
     try {
       const response = await fetch("/api/teacher/grade-plan", { method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({ subjectId, plan:checked.draft }) });
@@ -121,7 +121,6 @@ export default function GradePlanPage() {
 
       {suggestionsOpen ? <section className="gpv9-suggestions"><header><small>مقترحات اختيارية</small><h2>اختر نقطة بداية فقط</h2><p>كل مقترح قابل للتعديل قبل الاعتماد.</p></header><div>{modes.map(item => <button type="button" key={item} onClick={() => chooseSuggestion(item)}><b>{GRADE_PLAN_MODE_LABELS[item]}</b><small>{planModeDescription(item)}</small><span>استخدام المقترح ←</span></button>)}</div></section> : null}
 
-      {history.length > 1 ? <details className="gpv9-history"><summary>عرض نسخ هذه المادة السابقة ({history.length})</summary><div>{history.map(plan => <span key={plan.id}><b>نسخة {plan.version}</b><small>{planLabel(plan.mode)}</small></span>)}</div></details> : null}
     </main>;
   }
 
