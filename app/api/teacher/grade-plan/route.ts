@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     const gradePlan = subjectId
       ? await readActiveGradePlanForSubject(session.userId, subjectId)
       : await readActiveGradePlanForSubject(session.userId, "");
-    const historyDocuments = await readGradePlanHistory(session.userId);
+    const historyDocuments: Awaited<ReturnType<typeof readGradePlanHistory>> = [];
     const history = historyDocuments
       .filter(entry => {
         if (!subjectId) return !cleanGradePlanSubject(entry.data.subjectId);
@@ -107,11 +107,15 @@ export async function POST(request: Request) {
     const version = Math.max(0, Number(configSnapshot.data()?.versionNumber || 0)) + 1;
     const batch = database.batch();
 
-    if (currentPlanId && currentPlanId !== planId) {
-      batch.set(database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(currentPlanId), {
-        status: "archived",
-        archivedAt: now,
-      }, { merge: true });
+    // Keep only the currently approved plan for this teacher and subject.
+    // Do not modify student scores, assessments, attendance, or other subjects.
+    const previousVersions = await database.collection(`${root}/${VERSIONS_COLLECTION}`)
+      .where("subjectId", "==", subjectId).get();
+    for (const previous of previousVersions.docs) {
+      if (previous.id !== planId) batch.delete(previous.ref);
+    }
+    if (currentPlanId && currentPlanId !== planId && !previousVersions.docs.some(doc => doc.id === currentPlanId)) {
+      batch.delete(database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(currentPlanId));
     }
 
     const versionRef = database.collection(`${root}/${VERSIONS_COLLECTION}`).doc(planId);
