@@ -534,3 +534,42 @@
  .portfolio-page .portfolio-print-document .print-page,
  .portfolio-page .portfolio-print-document .print-page *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
+
+/* One achievement per A4: editorial report based on the approved illustrated reference. */
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement{
+  gap:13px!important;
+  font-family:"Noto Naskh Arabic","Tahoma","Arial",sans-serif!important;
+}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement *{font-family:"Noto Naskh Arabic","Tahoma","Arial",sans-serif!important}
+.portfolio-print-single-achievement .print-single-heading{display:flex;align-items:center;gap:15px;padding:10px 15px;background:linear-gradient(95deg,#ffffffeb,#e5f5f5d9);border-radius:14px;border-right:5px solid #0b99a1}
+.portfolio-print-single-achievement .print-single-ordinal{flex:none;display:grid;place-items:center;width:51px;height:51px;border-radius:13px;background:#0c4b6c;color:#fff;font-size:23px;font-weight:900}
+.portfolio-print-single-achievement .print-single-title{min-width:0}
+.portfolio-print-single-achievement .print-single-title>span{font-size:12px;color:#0c7e8c;font-weight:800}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-title h3{font-size:23px!important;line-height:1.45!important;color:#083e5a!important;overflow-wrap:anywhere}
+.portfolio-print-single-achievement .print-single-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.portfolio-print-single-achievement .print-single-meta span{padding:7px 14px;background:#ffffffed;border-radius:30px;color:#0b657c;font-size:13px;font-weight:800;border:1px solid #c9e4e8}
+.portfolio-print-single-achievement .print-single-description{padding:13px 17px;border-radius:12px;background:#ffffffed;border-right:3px solid #d4a75d}
+.portfolio-print-single-achievement .print-single-description strong,.portfolio-print-single-achievement .print-single-evidence-label strong,.portfolio-print-single-achievement .print-single-impact strong{font-size:17px;color:#0b5471}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-description p{font-size:14px!important;line-height:1.75!important;color:#274e63!important}
+.portfolio-print-single-achievement .print-single-evidence{flex:1;display:flex;flex-direction:column;min-height:0;gap:9px}
+.portfolio-print-single-achievement .print-single-evidence-label{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#0c5975ed;border-radius:9px;color:white}
+.portfolio-print-single-achievement .print-single-evidence-label strong{color:white!important}
+.portfolio-print-single-achievement .print-single-evidence-label span{font-size:11px;color:#d4f2f4}
+.portfolio-print-single-achievement .print-single-images{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:12px}
+.portfolio-print-single-achievement .print-single-images-1{grid-template-columns:1fr;grid-template-rows:1fr}
+.portfolio-print-single-achievement .print-single-images-2{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr}
+.portfolio-print-single-achievement .print-single-images-3{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+.portfolio-print-single-achievement .print-single-images-3 figure:first-child{grid-row:span 2}
+.portfolio-print-single-achievement .print-single-images figure{min-height:0;margin:0;padding:9px;display:flex;flex-direction:column;gap:6px;background:#ffffffdf;border:1px solid #c3dfe4;border-radius:13px;overflow:hidden}
+.portfolio-print-single-achievement .print-single-images img{display:block;flex:1;min-height:0;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain!important;object-position:center}
+.portfolio-print-single-achievement .print-single-images figcaption{font-size:11px;color:#285b70;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;text-align:center}
+.portfolio-print-single-achievement .print-single-empty-evidence{flex:1;display:flex;align-items:center;justify-content:center;padding:25px;text-align:center;background:#ffffffc9;border:1px dashed #90c5ce;border-radius:12px;color:#366d7c}
+.portfolio-print-single-achievement .print-single-impact{flex:none;padding:14px 18px;background:#e9f6f1f5;border-right:5px solid #0c9d99;border-radius:11px}
+.portfolio-page .portfolio-print-document .portfolio-print-single-achievement .print-single-impact p{font-size:14px!important;line-height:1.7!important;color:#17495c!important}
+.portfolio-print-single-achievement .print-single-footer{flex:none;display:flex;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid #bdd9dc;font-size:11px;font-weight:800;color:#0c5570}
+.portfolio-page .portfolio-print-document .portfolio-print-reflection .print-reflection-footer p{color:#ffffff!important}
+.portfolio-page .portfolio-print-document .portfolio-print-reflection .print-reflection-footer{background:linear-gradient(105deg,#0b4b6b,#0b8d94)!important}
+@media print{
+ .portfolio-print-single-achievement .print-single-images figure{break-inside:avoid!important}
+ .portfolio-print-single-achievement .print-single-images img{object-fit:contain!important}
+}
