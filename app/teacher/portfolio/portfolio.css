@@ -272,3 +272,34 @@
 .portfolio-print-document .print-single-ordinal{background:#0a6380!important}
 .portfolio-print-document .print-stat-grid article,.portfolio-print-document .print-initiatives-metrics article{background:#ffffffdd!important;border:1px solid #d7e5e5!important}
 .portfolio-print-document .print-page .print-reflection-footer{margin-top:14px!important}
+
+
+/* Correct the verified screenshot defects: table collision, invisible background, signatures. */
+.portfolio-print-document .print-page{background:#eef7f8!important;background-image:linear-gradient(120deg,#e8f4f6 0%,#ffffff 44%,#f5f0e4 100%)!important;isolation:isolate!important}
+.portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final){background-image:radial-gradient(ellipse at 2% 78%,#d7e9e6 0%,transparent 34%),radial-gradient(ellipse at 95% 12%,#e2f2f7 0%,transparent 38%),linear-gradient(125deg,#f2f9fb,#fff 55%,#f4f1e9)!important}
+.portfolio-print-document .portfolio-print-index .print-index-table{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:minmax(0,auto)!important;max-height:none!important;min-height:0!important;overflow:visible!important;gap:0!important;flex:none!important;border:1px solid #c7d9db!important;background:#fff!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-head,.portfolio-print-document .portfolio-print-index .print-index-table-row{display:grid!important;grid-template-columns:27px minmax(0,2.6fr) minmax(0,1.15fr) 85px 38px!important;grid-template-rows:auto!important;min-height:42px!important;height:auto!important;max-height:none!important;align-items:center!important;gap:9px!important;padding:9px 10px!important;overflow:visible!important;line-height:1.45!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-head{background:#d7e8e9!important;font-size:11px!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-row{font-size:10px!important;break-inside:avoid!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-row>*{display:block!important;min-width:0!important;max-width:100%!important;height:auto!important;max-height:none!important;overflow-wrap:anywhere!important;word-break:normal!important;white-space:normal!important;line-height:1.5!important;align-self:center!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-row strong{font-size:10px!important;font-weight:700!important;display:block!important;-webkit-line-clamp:unset!important;-webkit-box-orient:initial!important;overflow:visible!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-row time{font-size:10px!important;direction:rtl!important;text-align:center!important}
+.portfolio-print-document .portfolio-print-index .print-index-table-row>b{text-align:center!important}
+.portfolio-print-document .portfolio-print-index .print-category-map{gap:5px!important}
+.portfolio-print-document .portfolio-print-index .print-category-map span{font-size:9px!important;padding:5px 7px!important}
+.portfolio-print-document .portfolio-print-index .print-index-art{min-height:50px!important;padding:7px!important}
+.portfolio-print-document .portfolio-print-index .print-category-bars{gap:5px!important;padding:9px!important}
+.portfolio-print-document .portfolio-print-final{justify-content:flex-start!important;align-items:center!important;gap:20px!important;padding-top:24mm!important;background:radial-gradient(ellipse at 80% 12%,#d6ebeb,transparent 40%),linear-gradient(140deg,#f0f8f9,#fff 53%,#f2eee3)!important}
+.portfolio-print-document .portfolio-print-final>img{display:block!important;width:72px!important;height:72px!important;max-width:72px!important;max-height:72px!important;object-fit:contain!important;flex:none!important;margin:0 auto!important;border-radius:12px!important}
+.portfolio-print-document .portfolio-print-final .print-final-seal{display:grid!important;place-items:center!important;width:70px!important;height:70px!important;flex:none!important;border:2px solid #c8a76a!important;border-radius:50%!important;background:#e7f3f0!important;color:#0a7280!important;font-size:30px!important;margin:0 auto!important}
+.portfolio-print-document .portfolio-print-final .print-final-thanks{font-size:19px!important;color:#b58b4c!important;font-weight:800!important}
+.portfolio-print-document .portfolio-print-final>span{display:block!important;font-size:13px!important;color:#0a7082!important;font-weight:700!important}
+.portfolio-print-document .portfolio-print-final h2{font-size:27px!important;color:#0a425f!important;line-height:1.5!important;text-align:center!important}
+.portfolio-print-document .portfolio-print-final>p{font-size:13px!important;line-height:1.85!important;max-width:150mm!important;text-align:center!important;color:#2d5263!important}
+.portfolio-print-document .portfolio-print-final .print-signatures{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;width:100%!important;margin-top:18px!important;padding:0!important;align-items:stretch!important}
+.portfolio-print-document .portfolio-print-final .print-signature-card{display:flex!important;flex-direction:column!important;gap:11px!important;align-items:stretch!important;min-width:0!important;min-height:108px!important;padding:15px!important;border:1px solid #d4e1de!important;border-radius:9px!important;background:#ffffffec!important;text-align:right!important;overflow:hidden!important}
+.portfolio-print-document .portfolio-print-final .print-signature-card small{display:block!important;font-size:11px!important;color:#52717e!important}
+.portfolio-print-document .portfolio-print-final .print-signature-card strong{display:block!important;font-size:14px!important;line-height:1.6!important;color:#0b4864!important;overflow-wrap:anywhere!important}
+.portfolio-print-document .portfolio-print-final .print-signature-card span{display:block!important;margin-top:auto!important;font-size:11px!important;color:#52717e!important}
+.portfolio-print-document .portfolio-print-final .print-signature-card i{display:block!important;width:100%!important;height:1px!important;border-bottom:1px solid #a8c6c6!important}
+.portfolio-print-document .portfolio-print-final>footer{margin-top:auto!important;margin-bottom:8px!important;color:#0a5c74!important;font-size:11px!important}
