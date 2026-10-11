@@ -916,6 +916,7 @@ export default function PortfolioPage() {
             <div><dt>المدرسة</dt><dd>{form.school || "—"}</dd></div>
             <div><dt>العام الدراسي</dt><dd>{form.academicYear || "—"}</dd></div>
           </dl>
+          <div className="print-cover-ribbon"><span>الرؤية</span><strong>إنجاز يُوثّق</strong><i>◆</i><strong>أثر يُقاس</strong><i>◆</i><strong>خبرة تُشارك</strong></div>
           <footer>بوابة أستاذ لحوني التعليمية | سجل إنجازات المعلم</footer>
         </section>
 
@@ -936,6 +937,7 @@ export default function PortfolioPage() {
           <div className="print-design-label">الرؤية المهنية والتوثيق</div><article className="print-narrative"><h3>النبذة المهنية</h3><p>{generated.professionalSummary}</p></article>
           <article className="print-narrative"><h3>الأهداف المهنية والتعليمية</h3><p>{generated.goals}</p></article>
           <article className="print-narrative"><h3>ملخص المبادرات والإنجازات</h3><p>{generated.initiatives}</p></article>
+          <div className="print-editorial-quote"><span>❝</span><p>كل ممارسة تعليمية موثّقة خطوة نحو تطوير مستمر وأثر ملموس في بيئة التعلم.</p><strong>رسالة الملف المهني</strong></div>
         </section>
 
         <section className="portfolio-print-index print-page">
@@ -955,6 +957,7 @@ export default function PortfolioPage() {
               return <div key={category}><span>{category}</span><i><b style={{ width: `${width}%` }} /></i><strong>{arabicNumber(count)}</strong></div>;
             })}
           </div>
+          <div className="print-index-bottom"><div><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز في هذا السجل</span></div><p>هذا الفهرس يربط الإنجازات بصفحات التوثيق والشواهد المصورة؛ لتسهيل مراجعة الممارسات المهنية وقياس أثرها.</p></div>
         </section>
 
         {achievements.map((item, index) => (
@@ -979,6 +982,7 @@ export default function PortfolioPage() {
                 {item.url && <a href={item.url}>{item.url}</a>}
               </div>
             )}
+            <div className="print-achievement-conclusion"><span>خلاصة الأثر</span><p>{item.impact || item.description || "تم توثيق هذا الإنجاز ضمن سجل الممارسات المهنية."}</p></div>
             <footer>بوابة أستاذ لحوني التعليمية — ملف الإنجاز المهني</footer>
           </section>
         ))}
@@ -1011,6 +1015,7 @@ export default function PortfolioPage() {
               {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => <span key={category}>{category}<b>{arabicNumber(count)}</b></span>)}
             </div>
           </div>
+          <div className="print-reflection-footer"><strong>من التوثيق إلى التحسين</strong><p>تُستخدم هذه القراءة لتحديد أولويات التطوير المهني، واستمرار توثيق الشواهد وقياس الأثر.</p></div>
         </section>
 
         <section className="portfolio-print-final print-page">
