@@ -701,3 +701,24 @@
  .portfolio-page .print-achievement-image{max-height:75mm!important}
  .portfolio-page .portfolio-print-document .print-page:not(.portfolio-print-cover):not(.portfolio-print-final)::after{content:none!important}
 }
+
+
+/* Dedicated photographic evidence sheets — preserve every image's native proportions. */
+.portfolio-page .portfolio-print-evidence{display:flex!important;flex-direction:column!important;gap:15px!important;background:linear-gradient(165deg,#fff,#f8fcfd)!important}
+.portfolio-page .portfolio-print-evidence .print-section-header{flex-shrink:0!important}
+.portfolio-page .print-evidence-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-radius:13px;background:linear-gradient(100deg,#0c4c6a,#109e9f);color:white}
+.portfolio-page .print-evidence-heading strong{font-size:18px;color:white}
+.portfolio-page .print-evidence-heading span{font-size:13px;color:#d7f5f1}
+.portfolio-page .print-evidence-photo-frame{width:100%;height:550px;min-height:0;flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #c9e3e8;border-radius:16px;background:#fff;padding:14px;box-sizing:border-box}
+.portfolio-page .print-evidence-photo-frame img{display:block!important;max-width:100%!important;max-height:100%!important;width:auto!important;height:auto!important;object-fit:contain!important;object-position:center!important;border:0!important;padding:0!important;margin:auto!important;box-shadow:none!important;transform:none!important;aspect-ratio:auto!important}
+.portfolio-page .print-evidence-caption{padding:16px 20px;border-radius:14px;background:#eef8f7;border-right:5px solid #15a2a5}
+.portfolio-page .print-evidence-caption strong{font-size:16px;color:#0c6175}
+.portfolio-page .print-evidence-caption p{font-size:14px;line-height:1.75;color:#345d6c;margin:6px 0 0}
+.portfolio-page .print-evidence-meta{display:flex;justify-content:space-between;gap:12px;color:#527e8d;font-size:13px}
+@media print{
+ .portfolio-page .portfolio-print-evidence{gap:3mm!important}
+ .portfolio-page .print-evidence-photo-frame{height:160mm!important;padding:3mm!important}
+ .portfolio-page .print-evidence-photo-frame img{max-height:100%!important;max-width:100%!important}
+ .portfolio-page .print-evidence-heading{padding:3mm 4mm!important}
+ .portfolio-page .print-evidence-caption{padding:3mm 4mm!important}
+}
