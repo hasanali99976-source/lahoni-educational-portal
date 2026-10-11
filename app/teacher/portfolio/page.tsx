@@ -963,13 +963,13 @@ export default function PortfolioPage() {
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => <span key={category}>{category}<b>{arabicNumber(count)}</b></span>)}
           </div>
           <div className="print-index-art"><span>✦</span><strong>التوثيق يصنع فرقًا</strong><small>كل إنجاز شاهد على ممارسة مهنية مؤثرة</small><div className="print-index-steps"><b>تخطيط</b><b>تنفيذ</b><b>توثيق</b><b>أثر</b></div></div>
-          <div className="print-design-label">توزيع الإنجازات على المجالات المهنية</div><div className="print-category-bars">
+          <div className="print-design-label">توزيع الإنجازات على المجالات المهنية</div><div className="print-chart-heading"><strong>مخطط توزيع الإنجازات</strong><span>بيانات فعلية من سجل المعلم</span></div><div className="print-category-bars">
             {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count]) => {
               const width = Math.max(18, Math.round((count / Math.max(1, achievements.length)) * 100));
               return <div key={category}><span>{category}</span><i><b style={{ width: `${width}%` }} /></i><strong>{arabicNumber(count)}</strong></div>;
             })}
           </div>
-          <div className="print-index-bottom"><div><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز في هذا السجل</span></div><p>هذا الفهرس يربط الإنجازات بصفحات التوثيق والشواهد المصورة؛ لتسهيل مراجعة الممارسات المهنية وقياس أثرها.</p></div>
+          <div className="print-index-insight"><strong>{arabicNumber(achievements.length)}</strong><span>إجمالي الإنجازات</span><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجالات مهنية</span><strong>{arabicNumber(summary.months)}</strong><span>أشهر موثقة</span></div><div className="print-index-bottom"><div><strong>{arabicNumber(achievements.length)}</strong><span>إنجاز في هذا السجل</span></div><p>هذا الفهرس يربط الإنجازات بصفحات التوثيق والشواهد المصورة؛ لتسهيل مراجعة الممارسات المهنية وقياس أثرها.</p></div>
         </section>
 
         {achievements.map((item, index) => {
@@ -1041,7 +1041,7 @@ export default function PortfolioPage() {
           <span>اعتماد ملف الإنجاز</span>
           <h2>إنجازات تصنع أثرًا مستدامًا</h2>
           <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
-          <div className="print-signatures">
+          <div className="print-approval-head"><div className="print-portal-stamp" aria-label="ختم تعريفي لبوابة أستاذ لحوني، وليس اعتمادًا رسميًا"><img src="/icons/ostadh-lahooni-192.jpg" alt="" /><strong>بوابة أستاذ لحوني</strong><small>ختم تعريفي للملف</small></div><div className="print-approval-note"><strong>صفحة التوثيق والاعتماد</strong><span>التوقيع والتاريخ يُستكملان عند اعتماد الملف من المعلم.</span></div></div><div className="print-signatures">
             <div className="print-signature-card"><small>اسم المعلم</small><strong>{form.signatureName || session?.teacherName || "—"}</strong><span>التوقيع</span><i aria-hidden="true" /></div>
             <div className="print-signature-card"><small>المادة الدراسية</small><strong>{subject.label}</strong><span>التاريخ</span><i aria-hidden="true" /></div>
           </div>
