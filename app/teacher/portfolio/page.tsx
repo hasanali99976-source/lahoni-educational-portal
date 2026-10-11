@@ -340,7 +340,8 @@ export default function PortfolioPage() {
         if (cancelled) return;
         if (snap.exists()) {
           const cloudForm = normalizeForm(snap.data() as Partial<PortfolioForm>);
-          const next: PortfolioForm = {
+          const localIsNewer = !!localForm?.updatedAt && String(localForm.updatedAt) > String(cloudForm.updatedAt || "");
+          const next: PortfolioForm = localIsNewer ? localForm! : {
             ...cloudForm,
             evidence: mergeCloudWithDeviceFiles(cloudForm.evidence, localForm?.evidence || []),
           };
@@ -438,7 +439,7 @@ export default function PortfolioPage() {
     const syncedNext: PortfolioForm = { ...next, updatedAt: new Date().toISOString() };
     const fullCopySaved = saveLocal(localKey, syncedNext);
     setForm(syncedNext);
-    const cloudEvidence = syncedNext.evidence.slice(0, 40).map((item) => ({
+    const cloudEvidence = syncedNext.evidence.map((item) => ({
       ...item,
       fileData: "",
     }));
@@ -488,7 +489,7 @@ export default function PortfolioPage() {
       setMessage(`تم رفع ${uploaded.length} مرفق إلى التخزين السحابي. اضغط إضافة الإنجاز لحفظ الروابط داخل الملف.`);
     } catch {
       if (uploaded.length) setDraft((current) => ({ ...current, attachments: [...(current.attachments || []), ...uploaded] }));
-      setMessage("تعذر رفع بعض المرفقات إلى Firebase Storage. تحقق من صلاحيات التخزين أو اتصال الشبكة؛ لم يتم الادعاء بحفظ الملفات التي فشل رفعها.");
+      setMessage("تعذر رفع بعض المرفقات إلى التخزين السحابي. قد تكون صلاحيات Firebase Storage غير مفعّلة لهذا الحساب؛ المرفقات التي نجح رفعها باقية، ولم تُحفظ الملفات المرفوضة.");
     } finally { setLoadingFile(false); }
   }
 
