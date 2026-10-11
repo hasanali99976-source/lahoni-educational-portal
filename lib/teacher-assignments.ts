@@ -1,5 +1,5 @@
 import { getSubjectConfig } from "./subject-config";
-import { arabicNumber, gradeLabel, gradeNumber, normalizeArabic, sectionNumber } from "./school-roster";
+import { arabicNumber, gradeLabel, gradeNumber, normalizeArabic, schoolStage, sectionNumber } from "./school-roster";
 
 export type TeacherAssignment = {
   id: string;
@@ -53,7 +53,7 @@ export function normalizeAssignments(value: unknown, fallbackSubjectIds: unknown
       .trim()
       .split("--")[0];
     const subjectLabel = String(row.subjectLabel || fromId?.subjectLabel || "").trim();
-    const stage = row.stage==="middle"||fromId?.stage==="middle"?"middle":"secondary";
+    const stage = row.stage==="middle"||row.stage==="secondary" ? row.stage : fromId?.stage==="middle" ? "middle" : schoolStage("", String(row.grade || row.className || row.class || fromId?.grade || ""));
     const className = String(row.className || row.class || "").trim();
     const rawGrade = String(row.grade || fromId?.grade || className || "").trim();
     const parsedGrade = gradeNumber(rawGrade || className);
