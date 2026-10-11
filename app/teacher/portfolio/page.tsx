@@ -961,7 +961,7 @@ export default function PortfolioPage() {
         </section>
 
         {Array.from({ length: Math.ceil(achievements.length / 3) }, (_, pageIndex) => (
-          <section className="portfolio-print-gallery print-page" key={`achievement-gallery-${pageIndex}`}>
+          <section className={`portfolio-print-gallery print-page gallery-count-${achievements.slice(pageIndex * 3, pageIndex * 3 + 3).length}`} key={`achievement-gallery-${pageIndex}`}>
             <header className="print-section-header"><span>{arabicNumber(pageIndex + 1)}</span><div><small>سجل الممارسات والشواهد التعليمية</small><h2>إنجازاتي المهنية</h2></div></header>
             <p className="print-gallery-intro">توثيق الإنجازات التعليمية بالأهداف والممارسات والأثر والشواهد الفعلية.</p>
             <div className="print-gallery-list">
@@ -973,10 +973,10 @@ export default function PortfolioPage() {
                 return <article className="print-gallery-entry" key={item.id}>
                   <div className="print-gallery-entry-head"><b>{arabicNumber(pageIndex * 3 + index + 1)}</b><strong>{item.title}</strong><span>{formatDate(item.date)}</span></div>
                   <div className="print-gallery-entry-detail"><span>{item.category}</span><p>{item.description || item.objective || "إنجاز مهني موثق"}</p></div>
-                  {photos.length > 0 ? <div className="print-gallery-photos">
+                  {photos.length > 0 ? <div className={`print-gallery-photos photo-count-${Math.min(photos.length, 3)}`}>
                     {photos.slice(0, 3).map((photo, photoIndex) => <div className="print-gallery-photo" key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /></div>)}
                   </div> : <div className="print-gallery-no-photo">التوثيق الوصفي للإنجاز • {item.impact || item.objective || item.role || item.category}</div>}
-                  <div className="print-gallery-impact"><strong>الأثر:</strong> {item.impact || item.objective || item.role || item.description || "لم يُحدد الأثر بعد."}</div>
+                  <div className="print-gallery-impact"><strong>الأثر:</strong> <span>{item.impact || item.objective || item.role || item.description || "لم يُحدد الأثر بعد."}</span></div>
                 </article>;
               })}
             </div>
