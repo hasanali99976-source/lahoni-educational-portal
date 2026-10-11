@@ -480,8 +480,8 @@ export default function PortfolioPage() {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-90);
         const path = `portfolio/${encodeURIComponent(teacherId)}/${Date.now()}-${Math.random().toString(36).slice(2,9)}-${safeName}`;
         const target = storageRef(storage, path);
-        await uploadBytes(target, file, { contentType: file.type || "application/octet-stream" });
-        uploaded.push({ name: file.name, url: await getDownloadURL(target) });
+        await withTimeout(uploadBytes(target, file, { contentType: file.type || "application/octet-stream" }), 20000);
+        uploaded.push({ name: file.name, url: await withTimeout(getDownloadURL(target), 10000) });
       }
       setDraft((current) => ({
         ...current, attachments: [...(current.attachments || []), ...uploaded],
@@ -489,9 +489,17 @@ export default function PortfolioPage() {
         fileData: "",
       }));
       setMessage(`تم رفع ${uploaded.length} مرفق إلى التخزين السحابي. اضغط إضافة الإنجاز لحفظ الروابط داخل الملف.`);
-    } catch {
+    } catch (error) {
       if (uploaded.length) setDraft((current) => ({ ...current, attachments: [...(current.attachments || []), ...uploaded] }));
-      setMessage("تعذر رفع بعض المرفقات إلى التخزين السحابي. قد تكون صلاحيات Firebase Storage غير مفعّلة لهذا الحساب؛ المرفقات التي نجح رفعها باقية، ولم تُحفظ الملفات المرفوضة.");
+      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+      const timedOut = error instanceof Error && error.message === "timeout";
+      const reason = timedOut ? "انتهت مهلة الرفع (٢٠ ثانية). تحقق من اتصال الشبكة أو إعدادات التخزين."
+        : code.includes("unauthorized") || code.includes("unauthenticated") ? "صلاحيات التخزين لا تسمح لحساب المعلم بالرفع."
+        : code.includes("quota") ? "تجاوز التخزين الحصة المسموحة."
+        : code.includes("bucket-not-found") ? "لم يتم العثور على مساحة التخزين المحددة."
+        : code.includes("retry-limit-exceeded") ? "تعذر الاتصال بخدمة التخزين بعد محاولات متكررة."
+        : "تعذر رفع المرفق. راجع إعدادات Firebase Storage أو اتصال الشبكة.";
+      setMessage(`فشل رفع المرفق: ${reason}${code ? ` (رمز الخطأ: ${code})` : ""} المرفقات التي اكتمل رفعها باقية.`);
     } finally { setLoadingFile(false); }
   }
 
