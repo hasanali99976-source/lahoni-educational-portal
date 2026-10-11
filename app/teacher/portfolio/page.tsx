@@ -663,13 +663,15 @@ export default function PortfolioPage() {
         compress: true,
         putOnlyUsedFonts: true,
       });
-      const renderScale = Math.min(1.55, Math.max(1.2, window.devicePixelRatio || 1.25));
+      const renderScale = 1.6;
 
       for (let index = 0; index < pages.length; index += 1) {
         const pageElement = pages[index];
         setMessage(`جارٍ إنشاء ملف PDF — الصفحة ${arabicNumber(index + 1)} من ${arabicNumber(pages.length)}`);
         if (index > 0) pdf.addPage("a4", "portrait");
 
+        const pageWidth = Math.round(pageElement.getBoundingClientRect().width);
+        const pageHeight = Math.round(pageElement.getBoundingClientRect().height);
         const canvas = await html2canvas(pageElement, {
           backgroundColor: "#ffffff",
           scale: renderScale,
@@ -678,12 +680,12 @@ export default function PortfolioPage() {
           logging: false,
           scrollX: 0,
           scrollY: 0,
-          width: pageElement.scrollWidth,
-          height: pageElement.scrollHeight,
-          windowWidth: Math.max(document.documentElement.clientWidth, pageElement.scrollWidth),
-          windowHeight: Math.max(document.documentElement.clientHeight, pageElement.scrollHeight),
+          width: pageWidth,
+          height: pageHeight,
+          windowWidth: Math.max(document.documentElement.clientWidth, pageWidth),
+          windowHeight: Math.max(document.documentElement.clientHeight, pageHeight),
         });
-        const imageData = canvas.toDataURL("image/jpeg", 0.82);
+        const imageData = canvas.toDataURL("image/jpeg", 0.91);
         pdf.addImage(imageData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
         canvas.width = 1;
         canvas.height = 1;
