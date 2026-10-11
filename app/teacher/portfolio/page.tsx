@@ -813,6 +813,7 @@ export default function PortfolioPage() {
                 <div className="achievement-tags">{(item.tags || []).map((tag) => <span key={tag}>{tag}</span>)}</div>
                 <footer>
                   <span>{item.fileName || item.url ? "شاهد مرفق" : "موثق نصيًا"}</span>
+                  {item.attachments?.map((attachment, index) => <a key={index} href={attachment.url} target="_blank" rel="noopener noreferrer">{attachment.name}</a>)}
                   <div>
                     <button type="button" onClick={() => editAchievement(item)}>تعديل</button>
                     <button type="button" className="danger" onClick={() => deleteAchievement(item.id)}>حذف</button>
