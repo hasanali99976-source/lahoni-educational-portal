@@ -170,7 +170,6 @@ export default function HomePage(){
     .lh-features{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
   @media(max-width:390px){.lh-top-pill{font-size:9px}.lh-brand strong{font-size:13px}.lh-main-title{font-size:37px}.lh-card-copy h2{font-size:27px}}
-`}
   /* Homepage clarity and responsive height correction */
   .lh-home{min-height:100dvh;overflow-x:hidden;overflow-y:visible;background:linear-gradient(180deg,rgba(4,21,32,.72),rgba(4,25,37,.82) 58%,rgba(3,18,29,.93)),url("/lahooni-home-new.png.png") center top / cover no-repeat fixed}
   .lh-stage{padding-top:12px;padding-bottom:20px}
@@ -183,6 +182,7 @@ export default function HomePage(){
   .card-scene{opacity:.17}
   .lh-features{background:rgba(3,24,37,.94)}
   @media(max-width:690px){.lh-home{background:linear-gradient(180deg,rgba(4,21,32,.82),rgba(4,25,37,.89)),url("/lahooni-home-new.png.png") center top / auto 100vh no-repeat fixed}.lh-stage{padding:18px 0}.lh-roles{grid-template-columns:1fr}.lh-card{min-height:235px}.lh-card-copy p{font-size:12px}.lh-features{margin-bottom:18px}}
+`}
 </style>
   <div className="lh-frame">
     <header className="lh-top"><div className="lh-brand"><img src="/icons/lahooni-identity-320.jpg" alt="شعار أستاذ لحوني"/><div><strong>أستاذ لحوني</strong><small>المنصة التعليمية</small></div></div><span className="lh-top-pill"><span aria-hidden="true">✧</span> بوابتك التعليمية</span></header>
