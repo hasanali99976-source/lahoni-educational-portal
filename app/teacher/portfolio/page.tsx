@@ -889,7 +889,7 @@ export default function PortfolioPage() {
         <div className="portfolio-preview-toolbar no-print" tabIndex={-1}>
           <div>
             <span>معاينة ملف الإنجاز</span>
-            <strong>{arabicNumber(achievements.length + 4)} صفحات احترافية جاهزة</strong>
+            <strong>{arabicNumber(achievements.length + achievements.reduce((count, item) => count + imageAttachments(item).length + (item.fileData.startsWith("data:image/") ? 1 : 0), 0) + 4)} صفحات احترافية جاهزة</strong>
           </div>
           <div>
             <button type="button" className="preview-back" onClick={() => setPreviewOpen(false)}>العودة والتعديل</button>
@@ -964,10 +964,6 @@ export default function PortfolioPage() {
               <div><span>{item.category}</span><h2>{item.title}</h2><time>{formatDate(item.date)}</time></div>
               <div className="print-achievement-stamp"><span>أثر</span><strong>موثّق</strong></div>
             </header>
-            {item.fileData.startsWith("data:image/") && <img className="print-achievement-image" src={item.fileData} alt={item.title} />}
-            {imageAttachments(item).map((attachment, imageIndex) => (
-              <img className="print-achievement-image" key={`${attachment.url}-${imageIndex}`} src={attachment.url} alt={`شاهد ${item.title}: ${attachment.name}`} loading="eager" />
-            ))}
             <div className="print-achievement-tags">{(item.tags || []).map((tag) => <span key={tag}>{tag}</span>)}</div>
             <div className="print-design-label">بطاقة توثيق الإنجاز</div><div className="print-achievement-content">
               <article><h3>وصف الإنجاز</h3><p>{item.description}</p></article>
@@ -986,6 +982,23 @@ export default function PortfolioPage() {
             <footer>بوابة أستاذ لحوني التعليمية — ملف الإنجاز المهني</footer>
           </section>
         ))}
+        {achievements.flatMap((item, achievementIndex) => {
+          const pictures = [
+            ...(item.fileData.startsWith("data:image/") ? [{ url: item.fileData, name: item.fileName || item.title }] : []),
+            ...imageAttachments(item),
+          ];
+          return pictures.map((picture, imageIndex) => (
+            <section className="portfolio-print-evidence print-page" key={`evidence-${item.id}-${imageIndex}`}>
+              <header className="print-section-header"><span>{arabicNumber(achievementIndex + 1)}</span><div><small>الشواهد المصورة • {item.category}</small><h2>{item.title}</h2></div></header>
+              <div className="print-evidence-heading"><strong>الشاهد المصوّر {arabicNumber(imageIndex + 1)}</strong><span>توثيق بصري للإنجاز</span></div>
+              <div className="print-evidence-photo-frame">
+                <img src={picture.url} alt={`شاهد ${item.title}`} loading="eager" />
+              </div>
+              <div className="print-evidence-caption"><strong>وصف الشاهد</strong><p>{item.description || item.title}</p></div>
+              <div className="print-evidence-meta"><span>المجال: {item.category}</span><span>التاريخ: {formatDate(item.date)}</span></div>
+            </section>
+          ));
+        })}
 
         <section className="portfolio-print-reflection print-page">
           <header className="print-section-header"><span>٠٣</span><div><small>قراءة ذكية للمسار</small><h2>التأمل والتطوير المهني</h2></div></header>
