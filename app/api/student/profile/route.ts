@@ -63,7 +63,8 @@ export async function GET(request: Request) {
   const student = [...candidates].sort((a, b) => studentRichness((b.data() || {}) as Record<string, unknown>) - studentRichness((a.data() || {}) as Record<string, unknown>))[0]!;
   const studentData = student.data() as Record<string, unknown>;
   const studentClass = normalizeClass(studentData.class || studentData.className || `${String(studentData.grade || "")} ${String(studentData.section || "")}`);
-  const classMatchesStudent = (value: unknown) => normalizeClass(value) === studentClass && Boolean(studentClass);
+  const studentStage = /المتوسط|middle/i.test(String(studentData.stage || studentData.className || studentData.class || "")) ? "middle" : /الثانوي|secondary/i.test(String(studentData.stage || studentData.className || studentData.class || "")) ? "secondary" : "";
+  const classMatchesStudent = (value: unknown) => { const raw = String(value || ""); const lessonStage = /المتوسط|middle/i.test(raw) ? "middle" : /الثانوي|secondary/i.test(raw) ? "secondary" : ""; return Boolean(studentClass) && normalizeClass(value) === studentClass && !(studentStage && lessonStage && studentStage !== lessonStage); };
 
   const aliases = new Set<string>([access.studentId, student.id]);
   candidates.forEach(doc => {
