@@ -18,7 +18,7 @@ export default function TeacherLoginPage(){
      if(!r.ok){setError(d?.message||"اسم المعلم أو الرقم السري غير صحيح");return;}
      if(d?.teacherId)setGradePlanCurrentTeacher(d.teacherId);
      sessionStorage.setItem("lahooni:teacher-entry-complete","1");
-     window.location.replace("/teacher/dashboard");
+     window.location.replace(d?.isAbsenceOfficer ? "/daily-absence" : "/teacher/dashboard");
    }catch{setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.")}
    finally{setLoading(false)}
  }
