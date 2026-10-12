@@ -267,12 +267,12 @@
 
 
 
-.print-index-dashboard{display:flex;flex-direction:column;gap:9px;padding:13px;background:linear-gradient(125deg,#d9eff0,#fff 60%,#e4f0f7);border:1px solid #b7d6d7;border-right:5px solid #0b8996;border-radius:10px;overflow:hidden}
+.print-index-dashboard{display:flex;flex-direction:column;gap:7px;padding:10px 12px;background:linear-gradient(125deg,#d9eff0,#fff 60%,#e4f0f7);border:1px solid #b7d6d7;border-right:5px solid #0b8996;border-radius:10px;overflow:hidden}
 .print-index-dashboard-title{display:flex;justify-content:space-between;align-items:center}.print-index-dashboard-title strong{font-size:14px;color:#0b5068}.print-index-dashboard-title span{font-size:9px;color:#557985}
 .print-index-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.print-index-metrics article{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d7e5e1;border-radius:8px;padding:9px}
 .print-index-metrics article:nth-child(2){background:#e8f5f4}.print-index-metrics article:nth-child(3){background:#f7efdd}.print-index-metrics strong{font-size:22px;color:#0b808c}.print-index-metrics span{font-size:10px;color:#386473}
-.print-index-chart{display:flex;flex-direction:column;gap:7px;background:#fff;border-radius:8px;padding:10px 12px}
-.print-index-chart-row{display:grid;grid-template-columns:100px minmax(0,1fr) 20px;align-items:center;gap:9px;min-width:0}.print-index-chart-label{font-size:10px;line-height:1.35;color:#24566a;overflow-wrap:anywhere}
+.print-index-chart{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 15px;background:#fff;border-radius:8px;padding:10px 12px;align-content:start}
+.print-index-chart-row{display:grid;grid-template-columns:75px minmax(0,1fr) 18px;align-items:center;gap:6px;min-width:0;min-height:31px}.print-index-chart-label{font-size:9px;line-height:1.35;color:#24566a;overflow-wrap:anywhere}
 .print-index-chart-track{height:11px;background:#e5f0f0;border-radius:7px;overflow:hidden}.print-index-chart-fill{display:block;height:100%;background:#0b8091;border-radius:7px}
 .print-index-chart-color-1{background:#1ba99d}.print-index-chart-color-2{background:#c7a15e}.print-index-chart-color-3{background:#5a77bd}.print-index-chart-color-4{background:#b77c95}
 .print-index-chart-row b{font-size:10px;text-align:center}.print-index-dashboard-caption{font-size:9px!important;line-height:1.4!important}
