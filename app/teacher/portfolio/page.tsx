@@ -918,11 +918,12 @@ export default function PortfolioPage() {
             <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني" />
             <div><span>بوابة أستاذ لحوني التعليمية</span><small>سجل التوثيق والتميز المهني</small></div>
           </div>
-          <div className="print-cover-emblem" aria-hidden="true"><span>ملف</span><strong>إنجاز</strong><small>التميّز المهني</small></div>
-          <div className="print-cover-center">
+          <div className="print-cover-hero">
+            <div className="print-cover-hero-kicker"><span>✦</span> سجل التميّز والتوثيق المهني <span>✦</span></div>
+            <div className="print-cover-hero-symbol" aria-hidden="true"><span>✦</span><strong>إنجاز</strong><small>وأثر</small></div>
             <span className="print-cover-eyebrow">الملف المهني للعام الدراسي {form.academicYear}</span>
             <h1>ملف الإنجاز<br/>المهني للمعلم</h1>
-            <p>توثيق المبادرات والممارسات والشواهد التعليمية، وقياس الأثر المهني في سجل متكامل.</p>
+            <p>رحلة مهنية موثّقة تجمع المبادرات والممارسات التعليمية والشواهد، وتُبرز أثرها في تطوير التعلم.</p>
             <div className="print-cover-badges"><b><span>▤</span>توثيق</b><b><span>⚙</span>تطوير</b><b><span>▥</span>أثر</b><b><span>✧</span>ابتكار</b></div>
           </div>
           <dl>
