@@ -325,3 +325,31 @@
 .portfolio-print-cover .print-cover-badges{gap:10px!important;justify-content:center!important}
 .portfolio-print-cover .print-cover-badges b{min-width:70px!important;padding:9px!important}
 .portfolio-print-cover dl,.portfolio-print-cover .print-cover-ribbon,.portfolio-print-cover footer{flex-shrink:0!important}
+
+/* 2026 cover redesign: one dedicated hero, no stacked circular emblem. */
+.portfolio-print-document .portfolio-print-cover{position:relative;display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:5mm!important;padding:13mm 14mm!important;background:linear-gradient(160deg,#e5f4f4 0%,#ffffff 46%,#f8f2e7 100%)!important;overflow:hidden!important}
+.portfolio-print-cover:before{content:"";position:absolute;top:0;right:0;left:0;height:9mm;background:linear-gradient(90deg,#083f5b 0%,#087e8b 63%,#c7a268 100%);z-index:1}
+.portfolio-print-cover:after{content:"";position:absolute;bottom:0;right:0;left:0;height:5mm;background:linear-gradient(90deg,#c7a268,#008d95,#063e58);z-index:1}
+.portfolio-print-cover .print-cover-illustration{z-index:0!important;opacity:.45!important}
+.portfolio-print-cover .print-cover-brand{display:flex!important;align-items:center!important;justify-content:center!important;align-self:center!important;gap:13px!important;min-height:22mm!important;max-width:155mm!important;padding:11px 24px!important;margin-top:8mm!important;background:#ffffffef!important;border:1px solid #cbdedc!important;border-radius:12px!important;box-shadow:0 7px 24px #06455c13!important;z-index:2}
+.portfolio-print-cover .print-cover-brand span{font-size:15px!important;line-height:1.6!important;color:#073d59!important}
+.portfolio-print-cover .print-cover-brand small{font-size:11px!important}
+.portfolio-print-cover .print-cover-hero{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:13px!important;min-height:0!important;max-width:100%!important;padding:4mm 7mm!important;text-align:center!important;position:relative!important;z-index:2!important}
+.portfolio-print-cover .print-cover-hero-kicker{color:#087a84!important;font-size:12px!important;font-weight:800!important;letter-spacing:0!important}
+.portfolio-print-cover .print-cover-hero-kicker span{color:#c39d5c!important;margin:0 9px!important}
+.portfolio-print-cover .print-cover-hero-symbol{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:0!important;width:110px!important;height:110px!important;min-height:110px!important;flex:none!important;overflow:hidden!important;border-radius:50%!important;border:3px double #c6a367!important;background:linear-gradient(140deg,#ffffff,#dff3f1)!important;box-shadow:0 0 0 7px #0a7c8514,0 9px 22px #063f581c!important}
+.portfolio-print-cover .print-cover-hero-symbol span{font-size:17px!important;line-height:1.4!important;color:#bf9756!important}
+.portfolio-print-cover .print-cover-hero-symbol strong{font-size:27px!important;line-height:1.4!important;color:#06455d!important}
+.portfolio-print-cover .print-cover-hero-symbol small{font-size:13px!important;line-height:1.4!important;color:#087f87!important}
+.portfolio-print-cover .print-cover-hero .print-cover-eyebrow{display:block!important;margin:0!important;font-size:11px!important;line-height:1.6!important;padding:6px 17px!important}
+.portfolio-print-cover .print-cover-hero h1{font-family:"Noto Sans Arabic","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif!important;font-size:36px!important;font-weight:900!important;line-height:1.48!important;color:#083d55!important;margin:0!important;max-width:150mm!important}
+.portfolio-print-cover .print-cover-hero p{font-size:12px!important;line-height:1.9!important;color:#315d6a!important;margin:0!important;max-width:145mm!important}
+.portfolio-print-cover .print-cover-hero .print-cover-badges{display:flex!important;gap:10px!important;flex-wrap:nowrap!important;margin-top:4mm!important}
+.portfolio-print-cover .print-cover-hero .print-cover-badges b{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:69px!important;padding:8px 12px!important;border-radius:10px!important;border:1px solid #bedcda!important;background:#ffffffed!important;color:#075c71!important;box-shadow:0 3px 10px #06435b12!important}
+.portfolio-print-cover .print-cover-hero .print-cover-badges span{font-size:19px!important}
+.portfolio-print-cover dl{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch!important;gap:0!important;width:100%!important;min-height:30mm!important;flex:none!important;margin:0!important;padding:9px 4px!important;border:1px solid #d8c59e!important;border-radius:12px!important;background:#ffffffef!important;box-shadow:0 8px 22px #06455b12!important;z-index:2!important}
+.portfolio-print-cover dl>div{min-width:0!important;padding:5px 8px!important}
+.portfolio-print-cover dl dt{font-size:10px!important;line-height:1.6!important}
+.portfolio-print-cover dl dd{font-size:11px!important;line-height:1.6!important;overflow-wrap:anywhere!important}
+.portfolio-print-cover .print-cover-ribbon{flex:none!important;min-height:13mm!important;padding:9px!important;z-index:2!important}
+.portfolio-print-cover footer{flex:none!important;font-size:9px!important;z-index:2!important}
