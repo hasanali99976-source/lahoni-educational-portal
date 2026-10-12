@@ -221,6 +221,28 @@
 }
 }
 
+/* Refined compact achievement entry panel: screen only, does not touch PDF. */
+@media screen{
+.portfolio-page .achievement-builder{max-width:100%;border:1px solid #c6e1e0;border-radius:16px;background:#fff;box-shadow:0 5px 18px #073e5b12}
+.portfolio-page .achievement-builder>header{min-height:0;padding:10px 16px;border-bottom:1px solid #cce4e2;background:linear-gradient(105deg,#e1f5f2 0%,#f1faff 53%,#fdf7e9 100%)}
+.portfolio-page .achievement-builder>header span{color:#087b88;font-size:11px;font-weight:900}
+.portfolio-page .achievement-builder>header h2{font-family:"Noto Sans Arabic","IBM Plex Sans Arabic",Tahoma,Arial,sans-serif;font-size:20px;line-height:1.4;margin:2px 0;color:#073e59;font-weight:900}
+.portfolio-page .achievement-builder>header p{font-size:11px;line-height:1.5;color:#4e7888}
+.portfolio-page .achievement-builder .smart-orb{width:38px;height:38px;flex-basis:38px;border-radius:11px;font-size:20px;background:linear-gradient(145deg,#087b9a,#20ae9c)}
+.portfolio-page .achievement-builder form{grid-template-columns:2fr 1fr 1fr;gap:8px 11px;padding:12px 16px;background:linear-gradient(160deg,#fff,#fbfefe)}
+.portfolio-page .achievement-builder label{gap:4px;color:#124d64;font-weight:850}
+.portfolio-page .achievement-builder label>span{font-size:11px;font-weight:900}
+.portfolio-page .achievement-builder input,.portfolio-page .achievement-builder select,.portfolio-page .achievement-builder textarea{min-height:36px;padding:7px 10px;font-family:"Noto Sans Arabic","IBM Plex Sans Arabic",Tahoma,Arial,sans-serif;font-size:12px;font-weight:650;line-height:1.5;border:1px solid #c9dfe3;border-radius:9px;background:#f8fcfc;color:#123f57}
+.portfolio-page .achievement-builder input:focus,.portfolio-page .achievement-builder select:focus,.portfolio-page .achievement-builder textarea:focus{background:#fff;border-color:#008e9a}
+.portfolio-page .achievement-builder .builder-title input{font-size:13px;font-weight:750}
+.portfolio-page .achievement-builder .builder-note textarea{min-height:53px;resize:vertical}
+.portfolio-page .achievement-builder .builder-upload{min-height:36px;padding:6px 9px;border-radius:9px;font-size:11px;color:#087b89!important;background:#e4f5f3}
+.portfolio-page .achievement-builder .builder-actions{padding-top:2px}
+.portfolio-page .achievement-builder .builder-actions button{min-height:36px;padding:7px 13px;border-radius:9px;font-size:12px;box-shadow:none}
+.portfolio-page .achievement-builder .builder-actions .primary{background:linear-gradient(105deg,#0a6a95,#16a49b);color:#fff}
+@media(max-width:680px){.portfolio-page .achievement-builder form{grid-template-columns:1fr;padding:12px}.portfolio-page .achievement-builder>header{padding:12px}.portfolio-page .achievement-builder .builder-title,.portfolio-page .achievement-builder .builder-note{grid-column:1/-1}.portfolio-page .achievement-builder .builder-actions button{width:100%}}
+}
+
 /* Portfolio editorial report 2026. One canonical print layout, no legacy report overrides. */
 .portfolio-print-document{display:none!important;direction:rtl;color:#123c57;font-family:"Noto Naskh Arabic","Noto Sans Arabic",Tahoma,Arial,sans-serif}
 .portfolio-preview-open .portfolio-print-document{display:block!important;position:fixed;inset:0;z-index:99999;overflow:auto;background:#cbd8dc;padding:76px 12px 25px}
