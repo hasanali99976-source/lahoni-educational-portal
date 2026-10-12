@@ -239,6 +239,13 @@ function formatDate(value: string) {
   }
 }
 
+function formatIndexDate(value: string) {
+  if (!value) return "—";
+  const parsed = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat("ar-SA-u-ca-gregory", { day: "2-digit", month: "2-digit", year: "numeric" }).format(parsed);
+}
+
 function arabicNumber(value: number) {
   return new Intl.NumberFormat("ar-SA").format(value);
 }
@@ -955,7 +962,7 @@ export default function PortfolioPage() {
             <div className="print-index-table-head" role="row"><span>م</span><span>عنوان الإنجاز</span><span>المجال</span><span>التاريخ</span><span>الصفحة</span></div>
             {achievements.map((item, index) => (
               <div className="print-index-table-row" role="row" key={item.id}>
-                <span className="print-index-no">{arabicNumber(index + 1)}</span><strong className="print-index-title">{item.title}</strong><span className="print-index-category">{item.category}</span><time className="print-index-date">{formatDate(item.date)}</time><b className="print-index-page">{arabicNumber(index + 4)}</b>
+                <span className="print-index-no">{arabicNumber(index + 1)}</span><strong className="print-index-title">{item.title}</strong><span className="print-index-category">{item.category}</span><time className="print-index-date" dateTime={item.date}>{formatIndexDate(item.date)}</time><b className="print-index-page">{arabicNumber(index + 4)}</b>
               </div>
             ))}
           </div>
@@ -1045,7 +1052,7 @@ export default function PortfolioPage() {
 
         <section className="portfolio-print-final print-page">
           <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار البوابة" />
-          <div className="print-final-seal" aria-hidden="true">✦</div><div className="print-final-thanks">شكرًا</div>
+          <div className="print-final-seal" aria-hidden="true">✦</div><div className="print-final-thanks">شكرًا وعرفانًا</div><div className="print-final-decor" aria-hidden="true"><span>✦</span><span>▤</span><span>✧</span></div>
           <span>اعتماد ملف الإنجاز</span>
           <h2>إنجازات تصنع أثرًا مستدامًا</h2>
           <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
