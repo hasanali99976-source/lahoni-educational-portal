@@ -307,3 +307,21 @@
 
 /* Cover hierarchy: decorative arcs must never overlap text or badge panels. */
 .portfolio-print-cover .print-cover-illustration{z-index:0;opacity:.8}.portfolio-print-cover>.print-cover-brand,.portfolio-print-cover>.print-cover-emblem,.portfolio-print-cover>.print-cover-center,.portfolio-print-cover>dl,.portfolio-print-cover>.print-cover-ribbon,.portfolio-print-cover>footer{position:relative;z-index:2}.portfolio-print-cover .print-cover-center p{max-width:137mm;margin:0 auto;line-height:2;font-size:12px!important;color:#24576b}.portfolio-print-cover .print-cover-badges{position:relative;z-index:3;justify-content:center;flex-wrap:wrap}.portfolio-print-cover .print-cover-badges b{min-width:74px}.portfolio-print-cover .print-cover-emblem span,.portfolio-print-cover .print-cover-emblem small{font-size:11px;line-height:1.5}.portfolio-print-cover .print-cover-emblem strong{font-size:27px;line-height:1.35}.portfolio-print-cover .print-cover-eyebrow{position:relative;z-index:2}.portfolio-print-final .print-issue-date{font-size:13px;color:#0b6174;font-weight:800;line-height:1.7}.portfolio-print-final .print-portal-stamp{gap:2px;padding:16px}.portfolio-print-final .print-portal-stamp strong{font-size:9px;line-height:1.45}.portfolio-print-final .print-portal-stamp small{font-size:7px;line-height:1.4}
+
+/* Clean A4 cover composition: remove cramped emblem and restore visual hierarchy. */
+.portfolio-print-document .portfolio-print-cover{background:linear-gradient(155deg,#e6f5f5 0%,#fffdf7 54%,#eaf5f3 100%)!important;justify-content:space-between;gap:7mm;padding:15mm 16mm!important}
+.portfolio-print-cover .print-cover-illustration{z-index:0!important;opacity:.6!important}
+.portfolio-print-cover .print-cover-arch{bottom:-125mm!important;left:-122mm!important;opacity:.3!important}
+.portfolio-print-cover .print-cover-arch-two{bottom:-135mm!important;right:-126mm!important;opacity:.22!important}
+.portfolio-print-cover .print-cover-brand{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;width:auto!important;max-width:150mm!important;min-height:23mm!important;padding:12px 18px!important;margin:0 auto!important;border-radius:16px!important;background:#ffffffee!important;border:1px solid #d9e7e6!important}
+.portfolio-print-cover .print-cover-brand img{width:48px!important;height:48px!important;object-fit:contain!important;flex-shrink:0!important}
+.portfolio-print-cover .print-cover-emblem{width:132px!important;height:132px!important;min-height:132px!important;max-height:132px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;padding:18px!important;overflow:hidden!important;flex-shrink:0!important;line-height:1.4!important}
+.portfolio-print-cover .print-cover-emblem span{font-size:12px!important;line-height:1.5!important;display:block!important}
+.portfolio-print-cover .print-cover-emblem strong{font-size:30px!important;line-height:1.35!important;display:block!important}
+.portfolio-print-cover .print-cover-emblem small{font-size:12px!important;line-height:1.5!important;display:block!important;max-width:100%!important}
+.portfolio-print-cover .print-cover-center{flex:1 1 auto!important;min-height:85mm!important;max-height:130mm!important;gap:15px!important;padding:9mm 6mm!important;justify-content:center!important}
+.portfolio-print-cover .print-cover-center h1{font-size:40px!important;line-height:1.55!important;max-width:145mm!important;margin:0 auto!important}
+.portfolio-print-cover .print-cover-center p{font-size:12px!important;line-height:1.95!important;max-width:140mm!important;margin:0 auto!important}
+.portfolio-print-cover .print-cover-badges{gap:10px!important;justify-content:center!important}
+.portfolio-print-cover .print-cover-badges b{min-width:70px!important;padding:9px!important}
+.portfolio-print-cover dl,.portfolio-print-cover .print-cover-ribbon,.portfolio-print-cover footer{flex-shrink:0!important}
