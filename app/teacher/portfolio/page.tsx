@@ -1004,7 +1004,7 @@ export default function PortfolioPage() {
               <div className="print-single-evidence">
                 <div className="print-single-evidence-label"><strong>الشواهد المصورة</strong><span>{photos.length ? `${arabicNumber(photos.length)} صورة موثقة` : "توثيق وصفي"}</span></div>
                 {photos.length ? <div className={`print-single-images print-single-images-${Math.min(photos.length, 4)}`}>
-                  {photos.slice(0, 4).map((photo, photoIndex) => <figure key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /><figcaption>{photo.name || `شاهد ${arabicNumber(photoIndex + 1)}`}</figcaption></figure>)}
+                  {photos.slice(0, 4).map((photo, photoIndex) => <figure key={`${photo.url}-${photoIndex}`}><img src={photo.url} alt={`شاهد ${item.title}`} loading="eager" /></figure>)}
                 </div> : <div className="print-single-empty-evidence">لا توجد صور مرفقة لهذا الإنجاز. {item.url ? "يوجد رابط شاهد إلكتروني مسجل." : ""}</div>}
               </div>
               <div className="print-single-impact"><strong>الأثر المهني والتعليمي</strong><p>{item.impact || item.objective || item.role || item.description || "لم يُحدد الأثر بعد."}</p></div>
@@ -1030,7 +1030,7 @@ export default function PortfolioPage() {
           <h3>نماذج من شواهد المبادرات</h3>
           <div className="print-initiatives-photos">
             {achievements.flatMap((item) => imageAttachments(item).map((photo) => ({ ...photo, title: item.title }))).slice(0, 3).map((photo, index) =>
-              <figure key={`${photo.url}-${index}`}><img src={photo.url} alt={photo.title} loading="eager" /><figcaption>{photo.title}</figcaption></figure>
+              <figure key={`${photo.url}-${index}`}><img src={photo.url} alt={photo.title} loading="eager" /></figure>
             )}
           </div>
           <div className="print-initiatives-note"><strong>ملخص المبادرات</strong><p>{generated.initiatives}</p></div>
@@ -1052,7 +1052,7 @@ export default function PortfolioPage() {
 
         <section className="portfolio-print-final print-page">
           <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار البوابة" />
-          <div className="print-final-seal" aria-hidden="true">✦</div><div className="print-final-thanks">شكرًا وعرفانًا</div><div className="print-final-decor" aria-hidden="true"><span>✦</span><span>▤</span><span>✧</span></div>
+          <div className="print-final-seal" aria-hidden="true">✦</div><div className="print-final-thanks">شكرًا وعرفانًا</div><div className="print-final-decor" aria-hidden="true"><span>✦</span><span>▤</span><span>✧</span></div><div className="print-final-motto">التوثيق يصنع ذاكرة الإنجاز، والأثر يصنع المستقبل</div>
           <span>اعتماد ملف الإنجاز</span>
           <h2>إنجازات تصنع أثرًا مستدامًا</h2>
           <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
