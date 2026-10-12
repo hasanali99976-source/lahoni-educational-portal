@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminDb } from "../../../lib/server/firebase-admin";
 import { createSessionToken, findUserByUsername, PORTAL_SESSION_COOKIE, SESSION_MAX_AGE, type PortalUser } from "../../../lib/server/portal-auth";
 import { findLegacyTeacherByCredentials } from "../../../lib/server/legacy-teacher-auth";
 import { verifyPassword } from "../../../lib/server/password";
@@ -28,14 +29,16 @@ export async function POST(request: Request) {
     if (!user || user.role !== "teacher" || !user.active || !user.updatedAt) {
       return NextResponse.json({ ok: false, message: "اسم المعلم أو الرقم السري غير صحيح" }, { status: 401 });
     }
-    if (!Array.isArray(user.subjectIds) || user.subjectIds.length === 0) {
+    const absenceSettings = await adminDb().collection("portalV2Settings").doc("secondaryDailyAbsence").get();
+    const isAbsenceOfficer = absenceSettings.data()?.teacherId === user.id;
+    if ((!Array.isArray(user.subjectIds) || user.subjectIds.length === 0) && !isAbsenceOfficer) {
       return NextResponse.json({ ok: false, message: "لم تُربط مادة بحساب المعلم بعد. راجع إدارة البوابة." }, { status: 403 });
     }
 
-    const subjectId = user.subjectIds[0];
+    const subjectId = user.subjectIds?.[0] || (isAbsenceOfficer ? "daily-absence" : "");
     const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
     const response = NextResponse.json(
-      { ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId },
+      { ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId, isAbsenceOfficer },
       { headers: { "Cache-Control": "no-store" } },
     );
 
