@@ -1056,9 +1056,9 @@ export default function PortfolioPage() {
           <span>اعتماد ملف الإنجاز</span>
           <h2>إنجازات تصنع أثرًا مستدامًا</h2>
           <p>يقدم هذا الملف قصة مهنية متكاملة للإنجازات والشواهد والأثر، جرى بناؤها وتصنيفها وترتيبها إلكترونيًا لتظهر قيمة العمل التعليمي بوضوح وقوة.</p>
-          <div className="print-approval-head"><div className="print-portal-stamp" aria-label="ختم تعريفي لبوابة أستاذ لحوني، وليس اعتمادًا رسميًا"><img src="/icons/ostadh-lahooni-192.jpg" alt="" /><strong>بوابة أستاذ لحوني</strong><small>ختم تعريفي للملف</small></div><div className="print-approval-note"><strong>صفحة التوثيق والاعتماد</strong><span>التوقيع والتاريخ يُستكملان عند اعتماد الملف من المعلم.</span></div></div><div className="print-signatures">
+          <div className="print-approval-head"><div className="print-portal-stamp" aria-label="ختم تعريفي لبوابة أستاذ لحوني، وليس اعتمادًا رسميًا"><img src="/icons/ostadh-lahooni-192.jpg" alt="" /><strong>بوابة أستاذ لحوني</strong><small>ختم تعريفي للملف</small></div><div className="print-approval-note"><strong>صفحة التوثيق والاعتماد</strong><span>تاريخ إصدار الملف: {new Intl.DateTimeFormat("ar-SA-u-ca-gregory", { day: "numeric", month: "long", year: "numeric" }).format(new Date())}</span></div></div><div className="print-signatures">
             <div className="print-signature-card"><small>اسم المعلم</small><strong>{form.signatureName || session?.teacherName || "—"}</strong><span>التوقيع</span><i aria-hidden="true" /></div>
-            <div className="print-signature-card"><small>المادة الدراسية</small><strong>{subject.label}</strong><span>التاريخ</span><i aria-hidden="true" /></div>
+            <div className="print-signature-card"><small>المادة الدراسية</small><strong>{subject.label}</strong><span>تاريخ إصدار الملف</span><strong className="print-issue-date">{new Intl.DateTimeFormat("ar-SA-u-ca-gregory", { day: "numeric", month: "long", year: "numeric" }).format(new Date())}</strong></div>
           </div>
           {form.publicShareUrl && <a className="print-share-link" href={form.publicShareUrl}>{form.publicShareUrl}</a>}
           <footer>بوابة أستاذ لحوني التعليمية</footer>
