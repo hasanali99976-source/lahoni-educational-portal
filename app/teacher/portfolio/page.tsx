@@ -649,7 +649,7 @@ export default function PortfolioPage() {
             img.addEventListener("error", done, { once: true });
             if (img.complete) resolve();
           }),
-          new Promise<void>((resolve) => window.setTimeout(resolve, 12000)),
+          new Promise<void>((resolve) => window.setTimeout(resolve, 3500)),
         ]);
       }));
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
@@ -663,7 +663,7 @@ export default function PortfolioPage() {
         compress: true,
         putOnlyUsedFonts: true,
       });
-      const renderScale = 1.6;
+      const renderScale = 1.2;
 
       for (let index = 0; index < pages.length; index += 1) {
         const pageElement = pages[index];
@@ -685,11 +685,11 @@ export default function PortfolioPage() {
           windowWidth: Math.max(document.documentElement.clientWidth, pageWidth),
           windowHeight: Math.max(document.documentElement.clientHeight, pageHeight),
         });
-        const imageData = canvas.toDataURL("image/jpeg", 0.91);
+        const imageData = canvas.toDataURL("image/jpeg", 0.84);
         pdf.addImage(imageData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
         canvas.width = 1;
         canvas.height = 1;
-        await new Promise<void>((resolve) => window.setTimeout(resolve, 25));
+        
       }
 
       if (nativeWindow.OstadhApp?.saveBase64) {
