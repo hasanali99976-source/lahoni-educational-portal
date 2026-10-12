@@ -907,7 +907,7 @@ export default function PortfolioPage() {
           </div>
         </div>
         <section className="portfolio-print-cover print-page">
-          <div className="print-cover-illustration" aria-hidden="true"><span className="print-cover-sun" /><span className="print-cover-arch print-cover-arch-one" /><span className="print-cover-arch print-cover-arch-two" /><span className="print-cover-book" /></div><div className="print-cover-brand">
+          <div className="print-cover-illustration" aria-hidden="true"><span className="print-cover-sun" /><span className="print-cover-arch print-cover-arch-one" /><span className="print-cover-arch print-cover-arch-two" /><span className="print-cover-book" /><span className="print-cover-school">🏫</span><span className="print-cover-feather">✒</span><span className="print-cover-leaf">❧</span></div><div className="print-cover-brand">
             <img src="/icons/ostadh-lahooni-192.jpg" alt="شعار بوابة أستاذ لحوني" />
             <div><span>بوابة أستاذ لحوني التعليمية</span><small>سجل التوثيق والتميز المهني</small></div>
           </div>
@@ -916,7 +916,7 @@ export default function PortfolioPage() {
             <span className="print-cover-eyebrow">الملف المهني للعام الدراسي {form.academicYear}</span>
             <h1>ملف الإنجاز<br/>المهني للمعلم</h1>
             <p>توثيق المبادرات والممارسات والشواهد التعليمية، وقياس الأثر المهني في سجل متكامل.</p>
-            <div className="print-cover-badges"><b>توثيق</b><b>تطوير</b><b>أثر</b><b>ابتكار</b></div>
+            <div className="print-cover-badges"><b><span>▤</span>توثيق</b><b><span>⚙</span>تطوير</b><b><span>▥</span>أثر</b><b><span>✧</span>ابتكار</b></div>
           </div>
           <dl>
             <div><dt>اسم المعلم</dt><dd>{session?.teacherName || "—"}</dd></div>
@@ -960,13 +960,13 @@ export default function PortfolioPage() {
             ))}
           </div>
           <div className="print-index-dashboard">
-            <div className="print-index-dashboard-title"><strong>الإنجاز بالأرقام</strong><span>إحصاءات مستمدة من الإنجازات المسجلة</span></div>
+            <div className="print-index-dashboard-title"><strong>▥ إحصاءات الإنجازات</strong><span>بيانات مباشرة من السجل</span></div>
             <div className="print-index-metrics">
               <article><strong>{arabicNumber(achievements.length)}</strong><span>إنجازات موثقة</span></article>
               <article><strong>{arabicNumber(Object.keys(summary.categories).length)}</strong><span>مجالات مهنية</span></article>
               <article><strong>{arabicNumber(summary.months)}</strong><span>أشهر نشاط</span></article>
             </div>
-            <div className="print-index-chart" aria-label="توزيع الإنجازات على المجالات المهنية">
+            <div className="print-index-chart" aria-label="توزيع الإنجازات على المجالات المهنية"><div className="print-index-chart-heading">◉ توزيع الإنجازات حسب المجالات</div>
               {(Object.entries(summary.categories) as Array<[string, number]>).map(([category, count], index) => {
                 const width = Math.max(5, Math.round((count / Math.max(1, achievements.length)) * 100));
                 return <div className="print-index-chart-row" key={category}>
