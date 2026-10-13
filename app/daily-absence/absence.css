@@ -298,3 +298,15 @@
 .absence-modern .absence-control-strip{background:linear-gradient(110deg,#e9f5ff,#f3efff 55%,#fff3db)!important}
 .absence-modern .absence-panel{background:linear-gradient(180deg,#fff,#f9fcff)!important}
 .absence-modern .roster-v2-row:focus-within{outline:2px solid #59a8d0;outline-offset:-2px}
+
+/* Attendance roster note affordance and formal layout refinement */
+@media(min-width:1050px){
+.absence-modern .roster-v2-row{grid-template-columns:minmax(0,1.5fr) minmax(135px,1fr) 42px!important}
+.absence-modern .roster-v2-note{width:38px!important;height:30px!important;min-height:30px!important;background:#eaf4fc!important;border:1px solid #b7d7ec!important;border-radius:7px!important;cursor:text!important;color:#1a5c83!important;font-size:11px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23145e88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z'/%3E%3C/svg%3E")!important;background-size:17px!important;background-position:center!important;background-repeat:no-repeat!important}
+.absence-modern .roster-v2-note:not(:placeholder-shown),.absence-modern .roster-v2-note:focus{width:145px!important;background-image:none!important;background-color:#fff!important;text-align:right!important;box-shadow:0 0 0 2px #b7e3f7!important}
+.absence-modern .roster-v2-note:focus::placeholder{font-size:11px!important}
+.absence-modern .roster-v2-note:not(:focus)::placeholder{color:transparent!important}
+}
+.absence-modern .absence-hero-v4{overflow:visible!important}
+.absence-modern .absence-roster-heading{background:linear-gradient(110deg,#d9edfa,#e9e4fa,#fff0d7)!important}
+.absence-modern .roster-v2-status button:focus-visible,.absence-modern .absence-class-compact button:focus-visible{outline:3px solid #ffb74d!important;outline-offset:2px!important}
