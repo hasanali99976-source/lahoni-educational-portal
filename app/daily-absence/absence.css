@@ -347,3 +347,29 @@
 .absence-modern .roster-v2-status button.selected.absent{background:#ffdbe0!important;border-color:#e66b7b!important}
 @media(max-width:1050px){.absence-modern .absence-dashboard-top{grid-template-columns:1fr}.absence-modern .absence-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.absence-modern .absence-date-card{min-height:65px}}
 @media(max-width:550px){.absence-modern .absence-dashboard-metrics{gap:7px}.absence-modern .absence-metric-card{padding:10px;min-height:75px;gap:5px}.absence-modern .absence-metric-card strong{font-size:23px}.absence-modern .metric-icon{width:36px;height:36px;font-size:20px}.absence-modern .absence-hero.absence-hero-v4{padding:12px!important;min-height:105px!important}.absence-modern .absence-date-card{padding:10px}}
+
+
+/* Compact attendance insights: equal content height, no empty tall panels */
+.absence-modern .absence-insights-columns{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;align-items:start!important}
+.absence-modern .absence-insights-block{min-height:0!important;height:auto!important;padding:12px!important;border:1px solid #d5e6f1!important;background:linear-gradient(160deg,#fff,#f5faff)!important;box-shadow:0 3px 12px #124d7410!important}
+.absence-modern .absence-insight-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;padding:8px 11px;background:linear-gradient(100deg,#e1f1ff,#f0eaff)!important;border-radius:9px}
+.absence-modern .absence-insight-heading h3{margin:0!important;font-size:14px!important;color:#124d72!important}
+.absence-modern .absence-insight-heading>span{font-size:11px;font-weight:800;color:#52768e;background:white;border-radius:7px;padding:4px 8px}
+.absence-modern .absence-empty-stat{display:flex!important;align-items:center!important;justify-content:center!important;min-height:57px!important;height:auto!important;padding:12px!important;border:1px dashed #c8deec!important;border-radius:9px!important;background:#f8fcff!important;font-size:12px!important;color:#6b879b!important}
+.absence-modern .absence-ranking-head,.absence-modern .absence-ranking-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 80px;align-items:center;gap:9px}
+.absence-modern .absence-ranking-head{padding:7px 10px;background:#e8f3fc;color:#4d738c;font-size:11px;font-weight:900;border-radius:8px}
+.absence-modern .absence-ranking-row{padding:7px 10px;border-bottom:1px solid #e4edf5;font-size:12px;min-height:42px}
+.absence-modern .absence-ranking-row:nth-child(odd){background:#f5faff}
+.absence-modern .absence-ranking-person{display:flex;align-items:center;gap:8px;min-width:0}
+.absence-modern .absence-ranking-person em{display:grid;place-items:center;width:23px;height:23px;flex:none;background:#d9edff;color:#14618c;border-radius:7px;font-style:normal;font-size:11px;font-weight:900}
+.absence-modern .absence-ranking-person b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#153f5c}
+.absence-modern .absence-ranking-grade{color:#58788d;font-size:11px}
+.absence-modern .absence-ranking-days{position:relative;justify-self:start}
+.absence-modern .absence-ranking-days summary{cursor:pointer;list-style:none;padding:5px 8px;background:#ffe9ec;color:#b12d45;border-radius:7px;font-size:11px;font-weight:900;white-space:nowrap}
+.absence-modern .absence-ranking-days summary::-webkit-details-marker{display:none}
+.absence-modern .absence-ranking-days[open]>div{position:absolute;z-index:5;left:0;top:calc(100% + 5px);width:200px;max-height:175px;overflow:auto;padding:8px;border:1px solid #c9deec;border-radius:9px;background:#fff;box-shadow:0 9px 25px #164e7530;display:grid;gap:5px}
+.absence-modern .absence-ranking-days[open]>div span{font-size:11px;padding:4px;background:#f0f7ff;border-radius:5px}
+.absence-modern .absence-summary-grid{gap:10px!important}
+.absence-modern .absence-summary-card{min-height:85px!important;padding:12px!important}
+@media(max-width:850px){.absence-modern .absence-insights-columns{grid-template-columns:1fr!important}}
+@media(max-width:420px){.absence-modern .absence-ranking-head,.absence-modern .absence-ranking-row{grid-template-columns:minmax(0,1fr) 76px 58px;gap:5px}.absence-modern .absence-ranking-person b{font-size:11px}.absence-modern .absence-ranking-grade{font-size:10px}}
