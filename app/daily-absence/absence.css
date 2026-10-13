@@ -184,3 +184,25 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse 58% 40% at 1%
 .absence-modern .absence-leader-rank,.absence-modern .absence-ranking-person em{background:#cce9fc;color:#075684}
 .absence-modern .absence-empty-stat{background:linear-gradient(135deg,#fff,#f2faff);border-color:#a9d7f0;color:#4b7997}
 @media(max-width:540px){.absence-modern .absence-insights-title h2{font-size:17px}.absence-modern .absence-summary-card{min-height:102px;padding:11px}.absence-modern .absence-summary-card>b{font-size:28px}.absence-modern .absence-insights-block{padding:9px}}
+
+/* Lively, readable roster styling. No behavioral changes. */
+.absence-modern .absence-roster-heading{position:relative;overflow:hidden;border:1px solid #b6d8ed;background:linear-gradient(105deg,#d4edff 0%,#eee8ff 53%,#ffefd1 100%);box-shadow:0 5px 15px #2c6a8a10}
+.absence-modern .absence-roster-heading::before{content:"✦";position:absolute;left:18%;top:-18px;font-size:75px;color:#fff;opacity:.28;pointer-events:none}
+.absence-modern .absence-roster-heading strong{color:#084e7a;font-size:16px}
+.absence-modern .absence-roster-counter{background:linear-gradient(120deg,#fff,#e8f5ff);color:#075b90;box-shadow:0 2px 7px #16517c12}
+.absence-modern .roster-v2{position:relative;background:linear-gradient(125deg,#eaf6ff 0%,#f7fbff 49%,#fff6e9 100%);border-color:#b6d8e9;box-shadow:0 8px 22px #19567912;gap:3px 12px}
+.absence-modern .roster-v2-row{min-height:40px;background:linear-gradient(100deg,#fff,#fafdff);border:1px solid #d6e8f3;box-shadow:0 1px 3px #235d800a;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+.absence-modern .roster-v2-row:nth-child(4n),.absence-modern .roster-v2-row:nth-child(4n + 1){background:linear-gradient(100deg,#e8f5ff,#f4f9ff)}
+.absence-modern .roster-v2-row.is-absent{background:linear-gradient(100deg,#ffe4e9,#fff6f7);border-color:#f0acb9}
+@media(hover:hover){.absence-modern .roster-v2-row:hover{background:#e0f2ff;border-color:#8fc5e6;transform:translateY(-1px)}.absence-modern .roster-v2-row.is-absent:hover{background:#ffe1e7}}
+.absence-modern .roster-v2-index{background:linear-gradient(145deg,#c4e6ff,#e4f3ff);color:#075a93;border:1px solid #c2e0f4}
+.absence-modern .roster-v2-status button{box-shadow:0 1px 3px #1d54720d;transition:background .15s ease,transform .15s ease}
+.absence-modern .roster-v2-status button.selected.present{background:linear-gradient(120deg,#bdf1d5,#ddfbea);box-shadow:inset 0 0 0 1px #0d9e63}
+.absence-modern .roster-v2-status button.selected.absent{background:linear-gradient(120deg,#ffb8c6,#ffe0e6);box-shadow:inset 0 0 0 1px #d94b64}
+.absence-modern .roster-v2-note{background:linear-gradient(135deg,#f2f7fc,#e3edf7);border-color:#cfdfeb}
+.absence-modern .roster-v2-note:focus{background:#fff;box-shadow:0 4px 12px #17648e20}
+.absence-modern .absence-action-strip{padding:7px 3px}
+.absence-modern .absence-action-strip button{box-shadow:0 3px 9px #174f7312;transition:transform .15s ease,filter .15s ease}
+@media(hover:hover){.absence-modern .absence-action-strip button:hover{transform:translateY(-1px);filter:saturate(1.12)}}
+@media(max-width:540px){.absence-modern .roster-v2{gap:2px}.absence-modern .roster-v2-row{min-height:38px}.absence-modern .absence-roster-heading strong{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.absence-modern .roster-v2-row,.absence-modern .roster-v2-status button,.absence-modern .absence-action-strip button{transition:none}}
