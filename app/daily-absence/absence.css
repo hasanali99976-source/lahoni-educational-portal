@@ -225,3 +225,12 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse 58% 40% at 1%
 @media(hover:hover){.absence-modern .absence-grade-tabs button:hover,.absence-modern .absence-class-compact button:hover{transform:translateY(-1px);border-color:#0789bd}}
 @media(max-width:540px){.absence-modern .absence-hero-v4{background-position:center,left center;background-size:cover,auto 100%;min-height:145px}.absence-modern .absence-grade-tabs button{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.absence-modern .absence-grade-tabs button,.absence-modern .absence-class-compact button{transition:none}}
+
+/* Real scalable classroom illustration — replaces the oversize window sketch. */
+.absence-modern .absence-hero-v4{min-height:260px;background-color:#e8f5fd;background-image:linear-gradient(90deg,rgba(214,239,250,.02) 0%,rgba(225,243,252,.12) 32%,rgba(242,249,253,.77) 52%,rgba(255,255,255,.97) 69%,rgba(255,239,201,.96) 100%),url("/images/absence-classroom-scene.svg");background-repeat:no-repeat,no-repeat;background-size:100% 100%,auto 100%;background-position:center,left center;border:1px solid #b6dceb;border-top:5px solid #0788aa;box-shadow:0 12px 28px #13577720}
+.absence-modern .absence-hero-v4::before{content:"";position:absolute;inset:0;background:none;opacity:0}
+.absence-modern .absence-hero-copy{flex:1;text-align:right}
+.absence-modern .absence-hero-copy h1{font-size:clamp(27px,3.2vw,43px);line-height:1.24}
+.absence-modern .absence-brand-school,.absence-modern .absence-brand-portal{box-shadow:0 5px 16px #0d55701c;background:#ffffffef}
+@media(max-width:900px){.absence-modern .absence-hero-v4{min-height:205px;background-size:100% 100%,auto 100%;background-image:linear-gradient(90deg,rgba(229,245,252,.12),rgba(255,255,255,.94) 58%,rgba(255,238,204,.97)),url("/images/absence-classroom-scene.svg")}}
+@media(max-width:540px){.absence-modern .absence-hero-v4{min-height:150px;padding:12px;background-size:100% 100%,auto 100%;background-position:center,left center}.absence-modern .absence-hero-copy h1{font-size:21px}.absence-modern .absence-hero-eyebrow{font-size:10px}.absence-modern .absence-hero-copy p{font-size:10px}}
