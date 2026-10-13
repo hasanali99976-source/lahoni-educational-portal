@@ -151,3 +151,36 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse 58% 40% at 1%
 .absence-modern .absence-insights-title{background:linear-gradient(100deg,#d9eeff,#eee8ff 57%,#fff0d5)}
 @media(max-width:540px){.absence-modern .absence-hero-v4{min-height:135px}.absence-modern .absence-hero-v4::after{display:none}.absence-modern .absence-panel{backdrop-filter:none}}
 @media(prefers-reduced-motion:reduce){.absence-modern .absence-metric-card{transition:none}}
+
+/* Vibrant, readable analytics section: layered color without obscuring data */
+.absence-modern .absence-insights{background:linear-gradient(140deg,rgba(229,246,255,.98),rgba(246,241,255,.96) 47%,rgba(255,247,226,.98));border:1px solid #b9daed;box-shadow:0 12px 34px #12678a17;position:relative;isolation:isolate}
+.absence-modern .absence-insights::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 7% 17%,#a6dffa80,transparent 32%),radial-gradient(circle at 90% 77%,#ffe4aa90,transparent 33%),repeating-linear-gradient(135deg,transparent 0 65px,#ffffff75 66px 68px);opacity:.7}
+.absence-modern .absence-insights-title{background:linear-gradient(100deg,#b9e4fb,#dcd5fa 55%,#ffe0a4);border:1px solid #c4dbea;box-shadow:0 3px 12px #165a8210;padding:15px 19px}
+.absence-modern .absence-insights-title h2{color:#073e65;font-size:21px}
+.absence-modern .absence-summary-grid{gap:12px}
+.absence-modern .absence-summary-card{position:relative;overflow:hidden;min-height:123px;border:1px solid #a7d7f1;background:linear-gradient(120deg,#cfeeff,#f1f9ff);box-shadow:0 6px 17px #14648c12;padding:16px 17px}
+.absence-modern .absence-summary-card::after{content:"";position:absolute;width:115px;height:115px;border:15px solid #ffffff60;border-radius:50%;left:-48px;bottom:-66px;pointer-events:none}
+.absence-modern .absence-summary-card.grade-2{background:linear-gradient(120deg,#e1d4ff,#f7f2ff);border-color:#d1baf5}
+.absence-modern .absence-summary-card.grade-3{background:linear-gradient(120deg,#ffe4ad,#fff9ec);border-color:#f2cf89}
+.absence-modern .absence-summary-card.grade-total{background:linear-gradient(120deg,#ffd7e2,#fff3f6);border-color:#f1b6c7}
+.absence-modern .absence-summary-card strong{font-size:16px;color:#073e65}
+.absence-modern .absence-summary-card>b{font-size:36px;color:#073e65;line-height:1.05}
+.absence-modern .absence-summary-card span,.absence-modern .absence-summary-card small{color:#52758d}
+.absence-modern .absence-chart-card{background:linear-gradient(155deg,#fff,#f0f9ff);border:1px solid #b5dcef;box-shadow:0 7px 20px #0b5b8010}
+.absence-modern .absence-chart-card:nth-child(2){background:linear-gradient(155deg,#fff,#f7f0ff);border-color:#d5c5ed}
+.absence-modern .absence-chart-heading{background:#ffffffb5;border-radius:9px;padding:10px 12px;border-bottom:0}
+.absence-modern .absence-grade-chart-track{height:20px;background:#dcebf4;box-shadow:inset 0 2px 4px #1b678512}
+.absence-modern .absence-grade-chart-row>b{background:#d6edfb;color:#07527d;font-size:14px}
+.absence-modern .absence-donut{box-shadow:0 6px 24px #2b739021}
+.absence-modern .absence-insights-columns{gap:15px}
+.absence-modern .absence-insights-block{background:linear-gradient(145deg,#dff2ff,#f8fcff 76%);border:1px solid #abd5ed;box-shadow:0 7px 22px #175b8510;padding:14px}
+.absence-modern .absence-insights-block:last-child{background:linear-gradient(145deg,#fff0d8,#fffaf2 76%);border-color:#edcd99}
+.absence-modern .absence-insight-heading{background:linear-gradient(90deg,#fff,#e7f4ff);border:1px solid #d1e7f5;padding:12px}
+.absence-modern .absence-insights-block:last-child .absence-insight-heading{background:linear-gradient(90deg,#fff,#fff2d9);border-color:#f0dcb9}
+.absence-modern .absence-insight-heading h3{color:#064b73;font-size:16px}
+.absence-modern .absence-ranking-head{color:#376a88;background:#ffffff94;border-radius:7px;padding:9px}
+.absence-modern .absence-leader,.absence-modern .absence-ranking-row{background:#fff;border-color:#d1e5f0;box-shadow:0 2px 6px #10578009}
+.absence-modern .absence-ranking-row:nth-child(even),.absence-modern .absence-leader:nth-child(even){background:#f0f8ff}
+.absence-modern .absence-leader-rank,.absence-modern .absence-ranking-person em{background:#cce9fc;color:#075684}
+.absence-modern .absence-empty-stat{background:linear-gradient(135deg,#fff,#f2faff);border-color:#a9d7f0;color:#4b7997}
+@media(max-width:540px){.absence-modern .absence-insights-title h2{font-size:17px}.absence-modern .absence-summary-card{min-height:102px;padding:11px}.absence-modern .absence-summary-card>b{font-size:28px}.absence-modern .absence-insights-block{padding:9px}}
