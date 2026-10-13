@@ -284,3 +284,15 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse at 4% 5%,#c7e
 .absence-modern .absence-logout-button:focus-visible{outline:3px solid #edbb48;outline-offset:2px}
 @media(max-width:850px){.absence-modern .absence-hero.absence-hero-v4{height:clamp(155px,25vw,230px)!important;background-size:cover!important;background-position:center!important}}
 @media(max-width:540px){.absence-modern{padding:7px 8px 20px!important}.absence-modern .absence-hero.absence-hero-v4{height:145px!important;background-size:cover!important;background-position:center!important}.absence-modern .absence-logout-button{font-size:12px;min-height:36px}}
+
+/* Lightweight entry greeting: CSS only, no remote assets. */
+.absence-modern .absence-welcome-toast{position:relative;display:flex;align-items:center;gap:12px;max-width:100%;margin:0 0 12px;padding:13px 16px;border:1px solid #a7d5ec;border-right:5px solid #0788b4;border-radius:15px;background:linear-gradient(110deg,#e5f5ff 0%,#fff 57%,#fff2d5 100%);box-shadow:0 6px 20px #07578016;animation:absenceWelcomeIn .35s ease-out}
+.absence-modern .absence-welcome-toast .absence-welcome-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:13px;background:#d4ecfa;color:#0476ac;font-size:25px}
+.absence-modern .absence-welcome-toast>div{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.absence-modern .absence-welcome-toast strong{font-size:16px;font-weight:900;color:#06466d;line-height:1.6}
+.absence-modern .absence-welcome-toast small{font-size:12px;font-weight:600;color:#5b7e96;line-height:1.6}
+.absence-modern .absence-welcome-toast button{display:grid;place-items:center;flex:0 0 35px;width:35px;height:35px;border:1px solid #c6e0ee;border-radius:10px;background:#fff;color:#11527b;cursor:pointer;font-family:inherit;font-size:19px}
+.absence-modern .absence-welcome-toast button:hover{background:#dff3ff}
+@keyframes absenceWelcomeIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:550px){.absence-modern .absence-welcome-toast{padding:10px;gap:7px}.absence-modern .absence-welcome-toast strong{font-size:13px}.absence-modern .absence-welcome-toast small{font-size:11px}.absence-modern .absence-welcome-toast .absence-welcome-icon{flex-basis:30px;width:30px;height:30px;font-size:17px}.absence-modern .absence-welcome-toast button{flex-basis:29px;width:29px;height:29px}}
+@media(prefers-reduced-motion:reduce){.absence-modern .absence-welcome-toast{animation:none}}
