@@ -277,3 +277,24 @@
 .absence-modern .absence-insights-block{border:1px solid #dce7ee!important;border-radius:11px!important;background:#fbfdff!important}
 @media(max-width:750px){.absence-modern{padding:8px}.absence-modern .absence-hero.absence-hero-v4{grid-template-columns:46px minmax(0,1fr) 46px;gap:8px;min-height:78px!important;padding:10px!important}.absence-modern .absence-hero-v4 .absence-brand-school,.absence-modern .absence-hero-v4 .absence-brand-portal{width:44px;height:44px}.absence-modern .absence-hero-v4 img{width:39px;height:39px}.absence-modern .absence-hero-v4 .absence-hero-eyebrow{font-size:9px}.absence-modern .absence-hero-v4 h1{font-size:19px!important}.absence-modern .absence-hero-v4 p{font-size:10px!important}.absence-modern .absence-panel{padding:8px!important}.absence-modern .absence-grade-tabs button{font-size:11px!important;padding:5px 9px!important}.absence-modern .roster-v2-head{display:none!important}.absence-modern .roster-v2-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;padding:9px!important}.absence-modern .roster-v2-person{grid-column:1/-1}.absence-modern .roster-v2-status{grid-column:1}.absence-modern .roster-v2-note{grid-column:2;width:100%!important}.absence-modern .absence-date-inline{width:100%}}
 @media(prefers-reduced-motion:reduce){.absence-modern *{animation:none!important;transition:none!important}}
+
+/* Approved Saudi teacher attendance dashboard: compact two-column roster */
+@media(min-width:1050px){
+.absence-modern .roster-v2{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 12px!important;padding:9px!important;border-radius:15px!important;background:#eaf4fb!important}
+.absence-modern .roster-v2-head{display:none!important}
+.absence-modern .roster-v2-row{display:grid!important;grid-template-columns:minmax(0,1.5fr) minmax(135px,1fr) 36px!important;gap:7px!important;min-width:0!important;min-height:40px!important;padding:5px 9px!important;margin:2px 0!important;border:1px solid #dceaf5!important;border-radius:9px!important;background:#fff!important}
+.absence-modern .roster-v2-row:nth-child(4n+2),.absence-modern .roster-v2-row:nth-child(4n+3){background:#f5faff!important}
+.absence-modern .roster-v2-row.is-absent{background:#fff0f1!important;border-color:#f1b7c0!important}
+.absence-modern .roster-v2-person{min-width:0!important;gap:6px!important}
+.absence-modern .roster-v2-person strong{font-size:11.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.absence-modern .roster-v2-status{gap:4px!important}
+.absence-modern .roster-v2-status button{flex:1;min-width:0!important;min-height:27px!important;padding:3px 5px!important;font-size:11px!important}
+.absence-modern .roster-v2-note{width:33px!important;height:28px!important;min-height:28px!important;padding:4px!important;font-size:10px!important;text-align:center;transition:width .15s!important}
+.absence-modern .roster-v2-note::placeholder{font-size:0}
+.absence-modern .roster-v2-note::placeholder{content:"✎"}
+.absence-modern .roster-v2-note:focus{width:150px!important;position:relative;z-index:2;text-align:right}
+}
+.absence-modern .absence-hero-v4{background:linear-gradient(105deg,#d5efff 0%,#f4f8fc 53%,#fff1d2 100%)!important;border:1px solid #c2e1f3!important;box-shadow:0 6px 18px #164e7512!important}
+.absence-modern .absence-control-strip{background:linear-gradient(110deg,#e9f5ff,#f3efff 55%,#fff3db)!important}
+.absence-modern .absence-panel{background:linear-gradient(180deg,#fff,#f9fcff)!important}
+.absence-modern .roster-v2-row:focus-within{outline:2px solid #59a8d0;outline-offset:-2px}
