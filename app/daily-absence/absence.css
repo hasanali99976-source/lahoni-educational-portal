@@ -1,389 +1,109 @@
 
-.absence-modern{--ab-ink:#073b60;--ab-blue:#1584cf;--ab-purple:#8c59d8;--ab-gold:#f0ad38;color:var(--ab-ink)}
-.absence-modern .absence-hero{min-height:104px!important;padding:18px 26px!important;border-radius:22px!important}
-.absence-modern .absence-hero h1{font-size:clamp(24px,3vw,36px)!important;margin:0 0 5px!important;letter-spacing:-.5px}
-.absence-modern .absence-hero p{margin:0!important}
-.absence-modern .absence-hero-art{font-size:25px!important}
-.absence-modern .absence-panel{padding:18px!important;margin-top:14px!important;border-radius:20px!important;box-shadow:0 6px 24px rgba(15,73,118,.06)}
-.absence-modern .absence-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
-.absence-modern .absence-filters{flex:1 1 550px;min-width:0}
-.absence-modern .absence-class-picker{width:100%;display:block}
-.absence-modern .absence-class-picker>span{display:block;font-size:16px;font-weight:900;margin-bottom:9px}
-.absence-modern .absence-grade-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.absence-modern .absence-grade-tabs button{border:2px solid transparent;background:#e7f4ff;color:#075f9c;border-radius:12px;padding:10px 8px;font:900 17px Tajawal,Arial,sans-serif;cursor:pointer;transition:.15s}
-.absence-modern .absence-grade-tabs button.grade-2{background:#f0e9ff;color:#633ca7}
-.absence-modern .absence-grade-tabs button.grade-3{background:#fff0d3;color:#915b00}
-.absence-modern .absence-grade-tabs button.active{border-color:currentColor;box-shadow:inset 0 -3px currentColor}
-.absence-modern .absence-grade-tabs small{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:2px}
-.absence-modern .absence-class-compact{display:flex;gap:7px;flex-wrap:wrap;padding:10px 0 0}
-.absence-modern .absence-class-compact button{padding:7px 12px!important;border:1px solid #bfd8ea;border-radius:10px;background:#fff;color:#164d72;font:800 14px Tajawal,Arial,sans-serif;cursor:pointer;min-height:36px}
-.absence-modern .absence-class-compact button.selected{background:#087db9;color:#fff;border-color:#087db9}
-.absence-modern .absence-stats{display:flex!important;gap:8px!important;flex-wrap:wrap!important;align-items:center}
-.absence-modern .absence-stats>div{padding:9px 14px!important;border-radius:12px!important;font-size:14px!important;min-width:112px!important}
-.absence-modern .absence-stats strong{font-size:23px!important}
-.absence-modern .absence-actions{gap:8px!important;flex-wrap:wrap}
-.absence-modern .absence-actions button{padding:9px 14px!important;border-radius:10px!important;font-size:14px!important}
-.absence-modern .absence-table{overflow:hidden;border:1px solid #d6e7f2;border-radius:14px}
-.absence-modern .absence-table-head{padding:10px 14px!important;background:#dcefff!important;font-size:15px!important;font-weight:900}
-.absence-modern .absence-student{min-height:49px!important;padding:5px 12px!important;gap:10px!important;border-bottom:1px solid #e4edf5}
-.absence-modern .absence-student:nth-child(odd){background:#f5faff}
-.absence-modern .absence-student-name{font-size:15px!important;font-weight:900}
-.absence-modern .absence-student-name b{width:26px!important;height:26px!important;font-size:12px!important}
-.absence-modern .absence-choices{gap:6px!important}
-.absence-modern .absence-choices button{min-height:35px!important;padding:5px 12px!important;border-radius:9px!important;font-size:14px!important}
-.absence-modern .absence-note{height:36px!important;min-height:36px!important;border-radius:9px!important;font-size:13px!important}
-.absence-modern .absence-insights>h2{font-size:22px!important;margin-bottom:5px!important}
-.absence-modern .absence-insights>h3{font-size:19px!important;margin:17px 0 9px!important}
-.absence-modern .absence-ranking{gap:10px!important}
-.absence-modern .absence-ranking article{border:1px solid #d5e4f2!important;border-radius:14px!important;padding:12px!important;min-width:0}
-.absence-modern .absence-ranking article:nth-child(1){background:#e9f5ff!important}
-.absence-modern .absence-ranking article:nth-child(2){background:#f1eaff!important}
-.absence-modern .absence-ranking article:nth-child(3){background:#fff3dd!important}
-.absence-modern .absence-ranking article h3{font-size:17px!important;margin:0 0 8px!important}
-.absence-modern .absence-ranking article p{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0!important;padding:7px 2px!important;border-bottom:1px solid rgba(31,87,129,.12);font-size:13px!important}
-.absence-modern .absence-ranking article p:last-child{border-bottom:0}
-.absence-modern .absence-ranking article p strong{white-space:nowrap;font-size:13px!important;color:#be294c}
-.absence-modern .absence-ranking article p small{display:block;font-size:11px!important;color:#547590;line-height:1.5}
-@media(max-width:700px){.absence-modern .absence-grade-tabs button{font-size:13px;padding:8px 3px}.absence-modern .absence-class-compact button{font-size:12px!important}.absence-modern .absence-student{flex-wrap:wrap!important}.absence-modern .absence-student-name{flex:1 1 100%}.absence-modern .absence-note{max-width:100%}.absence-modern .absence-ranking{display:grid!important;grid-template-columns:1fr!important}}
-
-.absence-modern .absence-roster-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(100deg,#dff1ff,#f0f8ff);padding:12px 16px;border:1px solid #cce4f5;border-radius:14px 14px 0 0}
-.absence-modern .absence-roster-heading strong{font-size:18px;font-weight:900;display:block}.absence-modern .absence-roster-heading small{display:block;font-size:12px;color:#577b94;margin-top:3px}
-.absence-modern .absence-roster-counter{background:#087cb8;color:#fff;padding:6px 13px;border-radius:25px;font-size:13px;font-weight:900;white-space:nowrap}
-.absence-modern .absence-table{border-radius:0 0 14px 14px!important}
-.absence-modern .absence-table-head,.absence-modern .absence-student{display:grid!important;grid-template-columns:minmax(240px,1.7fr) minmax(210px,1fr) minmax(170px,1fr)!important;align-items:center!important;column-gap:14px!important}
-.absence-modern .absence-table-head{padding:9px 16px!important}
-.absence-modern .absence-student{padding:6px 16px!important;min-height:53px!important}
-.absence-modern .absence-student.marked-absent{background:#fff0f1!important;box-shadow:inset -4px 0 #f06577}
-.absence-modern .absence-student-name{display:flex;align-items:center;gap:10px}
-.absence-modern .absence-choices{display:flex;justify-content:flex-start}
-.absence-modern .absence-choices button{flex:1;max-width:132px;font-weight:900!important}
-.absence-modern .absence-note{width:100%!important;box-sizing:border-box}
-.absence-modern .absence-insights-title{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
-.absence-modern .absence-insights-title h2{font-size:23px!important;margin:0 0 3px!important}
-.absence-modern .absence-insights-title p{font-size:13px;color:#547791;margin:0 0 12px}
-.absence-modern .absence-insights-title>span{background:#f1eaff;border-radius:24px;padding:8px 12px;font-size:12px;font-weight:900}
-.absence-modern .absence-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:7px 0 18px}
-.absence-modern .absence-summary-card{position:relative;border-radius:16px;border:1px solid #b9dff7;background:#e8f5ff;padding:13px 16px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px}
-.absence-modern .absence-summary-card.grade-2{background:#f0e8ff;border-color:#d7c5fa}.absence-modern .absence-summary-card.grade-3{background:#fff1d9;border-color:#f5d89e}.absence-modern .absence-summary-card.grade-total{background:#ffe8ec;border-color:#f9c5cf}
-.absence-modern .absence-summary-card strong{font-size:16px;display:block}.absence-modern .absence-summary-card span,.absence-modern .absence-summary-card small{font-size:12px;color:#56778a}
-.absence-modern .absence-summary-card>b{font-size:32px;color:#0c537c;line-height:1}.absence-modern .absence-summary-card small{grid-column:1/-1}
-.absence-modern .absence-insights-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.absence-modern .absence-insights-block{border:1px solid #d6e7f3;border-radius:15px;padding:13px;background:#fbfdff;min-width:0}
-.absence-modern .absence-insights-block h3{font-size:17px!important;margin:0 0 10px!important;border-bottom:2px solid #e4eef8;padding-bottom:9px}
-.absence-modern .absence-leader{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #e4edf4;font-size:13px}
-.absence-modern .absence-leader:last-child{border-bottom:0}
-.absence-modern .absence-leader-rank{background:#dcefff;color:#075b91;width:25px;height:25px;border-radius:8px;display:grid;place-items:center;font-weight:900;flex-shrink:0}
-.absence-modern .absence-leader-name{font-weight:800;flex:1;min-width:0}
-.absence-modern .absence-leader-name small{display:block;font-weight:400;font-size:11px;color:#64839b;line-height:1.5}
-.absence-modern .absence-leader-track{width:75px;height:8px;background:#e7eff6;border-radius:10px;overflow:hidden;flex-shrink:0}
-.absence-modern .absence-leader-track i{display:block;height:100%;background:linear-gradient(90deg,#34b4da,#0874b7);border-radius:10px}
-.absence-modern .absence-leader>strong{background:#ffe8eb;color:#b42e4a;border-radius:9px;padding:5px 8px;white-space:nowrap;font-size:12px}
-.absence-modern .absence-empty-stat{text-align:center;padding:30px 8px;color:#6c8a9d;font-weight:700}
-@media(max-width:900px){.absence-modern .absence-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.absence-modern .absence-insights-columns{grid-template-columns:1fr}.absence-modern .absence-table-head,.absence-modern .absence-student{grid-template-columns:minmax(170px,1.5fr) minmax(170px,1fr) minmax(140px,1fr)!important;gap:7px!important}}
-@media(max-width:600px){.absence-modern .absence-table-head{display:none!important}.absence-modern .absence-student{display:flex!important;flex-wrap:wrap;gap:8px!important;padding:10px!important}.absence-modern .absence-student-name{flex:1 1 100%!important}.absence-modern .absence-choices{flex:1 1 100%;width:100%}.absence-modern .absence-choices button{max-width:none}.absence-modern .absence-note{flex:1 1 100%;max-width:none!important}.absence-modern .absence-summary-card{padding:10px}.absence-modern .absence-summary-card strong{font-size:13px}.absence-modern .absence-summary-card>b{font-size:25px}.absence-modern .absence-leader-track{width:40px}}
-
-/* Unified compact colorful attendance layout: presentation only; no new data reads */
-.absence-modern{background:linear-gradient(145deg,#eaf7ff 0%,#f4f0ff 48%,#fff7e9 100%)!important;padding:14px!important;border-radius:24px}
-.absence-modern .absence-panel{background:linear-gradient(135deg,#fff 0%,#f9fcff 100%)!important;border:2px solid #c7e4f4!important;box-shadow:0 8px 24px rgba(8,87,137,.08)!important}
-.absence-modern .absence-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:12px!important}
-.absence-modern .absence-filters{flex:auto!important;min-width:0!important}
-.absence-modern .absence-class-picker>span{margin-bottom:5px!important}
-.absence-modern .absence-grade-tabs button{padding:6px 8px!important;font-size:15px!important;border-radius:10px!important}
-.absence-modern .absence-grade-tabs small{font-size:11px!important;margin-top:0!important}
-.absence-modern .absence-class-compact{padding:6px 0 0!important;gap:5px!important}
-.absence-modern .absence-class-compact button{min-height:31px!important;padding:4px 10px!important;font-size:12px!important;border-radius:8px!important}
-.absence-modern .absence-stats{justify-content:flex-start!important}
-.absence-modern .absence-stats>div{padding:7px 10px!important;min-width:90px!important;font-size:12px!important}
-.absence-modern .absence-stats strong{font-size:19px!important}
-.absence-modern .absence-actions{margin-top:7px!important}
-.absence-modern .absence-roster-heading{background:linear-gradient(95deg,#cdeaff,#e9ddff,#fff0cc)!important;border-color:#add7ed!important}
-.absence-modern .absence-table{border:2px solid #a8d6ee!important;box-shadow:0 5px 14px rgba(9,87,137,.06)}
-.absence-modern .absence-table-head{background:#bce3fa!important;color:#06466e!important}
-.absence-modern .absence-student{border-bottom:1px solid #cfe4f3!important}
-.absence-modern .absence-student:nth-child(2n){background:#eaf5ff!important}
-.absence-modern .absence-student:nth-child(2n+1){background:#fff9ee!important}
-.absence-modern .absence-student.marked-absent{background:#ffe7ec!important}
-.absence-modern .absence-choices button.is-present{background:#b7f1d3!important;color:#08623d!important;border:2px solid #2bbd77!important}
-.absence-modern .absence-choices button.is-absent{background:#ffd1db!important;color:#aa1d43!important;border:2px solid #ef6484!important}
-.absence-modern .absence-insights{border-top:5px solid #9edc7d!important}
-.absence-modern .absence-insights-title{background:linear-gradient(90deg,#e3f4ff,#f1e8ff);padding:12px 14px;border-radius:13px;margin-bottom:12px}
-.absence-modern .absence-summary-card{border-width:2px!important;box-shadow:0 3px 0 rgba(14,89,135,.06);padding:11px 13px!important}
-.absence-modern .absence-summary-card>b{font-size:29px!important}
-.absence-modern .absence-insights-block:first-child{background:#eff9ff!important;border:2px solid #b7dff7!important}
-.absence-modern .absence-insights-block:last-child{background:#fff7ec!important;border:2px solid #f3d6a5!important}
-.absence-modern .absence-insights-block h3{background:rgba(255,255,255,.8);padding:10px!important;border-radius:9px}
-.absence-modern .absence-leader{background:rgba(255,255,255,.7);margin:3px 0;padding:7px!important;border-radius:9px;border:1px solid rgba(96,157,194,.14)}
-.absence-modern .absence-empty-stat{background:#fff;border:1px dashed #9ac9df;border-radius:12px;padding:18px!important}
-@media(max-width:1050px){.absence-modern .absence-toolbar{grid-template-columns:1fr!important}.absence-modern .absence-stats{justify-content:flex-start!important}}
-@media(max-width:600px){.absence-modern{padding:7px!important}.absence-modern .absence-panel{padding:10px!important}.absence-modern .absence-grade-tabs button{font-size:12px!important}.absence-modern .absence-summary-grid{gap:6px!important}.absence-modern .absence-insights-title>span{display:none}}
-
-/* Compact single-flow controls: no added queries or state effects */
-.absence-modern .absence-control-strip{display:flex;flex-direction:column;gap:9px;background:linear-gradient(115deg,#e7f5ff,#f3edff 65%,#fff4dd);padding:11px 14px;border:1px solid #c7e0f1;border-radius:15px}
-.absence-modern .absence-picker-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.absence-modern .absence-picker-line>strong{font-size:15px;white-space:nowrap}
-.absence-modern .absence-grade-tabs{display:flex!important;gap:6px!important;flex-wrap:wrap}
-.absence-modern .absence-grade-tabs button{padding:6px 16px!important;min-height:34px!important;font-size:14px!important;border:1px solid #b6d6e9!important;border-radius:9px!important;background:#fff!important;box-shadow:none!important}
-.absence-modern .absence-grade-tabs button.active.grade-1{background:#0b79b6!important;color:white!important;border-color:#0b79b6!important}
-.absence-modern .absence-grade-tabs button.active.grade-2{background:#8054c2!important;color:white!important;border-color:#8054c2!important}
-.absence-modern .absence-grade-tabs button.active.grade-3{background:#d19127!important;color:white!important;border-color:#d19127!important}
-.absence-modern .absence-class-compact{padding:0!important;display:flex!important;gap:5px!important}
-.absence-modern .absence-class-compact button{min-height:31px!important;padding:4px 11px!important}
-.absence-modern .absence-control-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #c9ddea;padding-top:9px}
-.absence-modern .absence-date-control{display:flex;align-items:center;gap:7px;font-size:13px!important;white-space:nowrap}
-.absence-modern .absence-date-control input{height:35px!important;padding:4px 8px!important;border-radius:9px!important;max-width:160px}
-.absence-modern .absence-control-footer .absence-stats{display:flex!important;gap:5px!important}
-.absence-modern .absence-control-footer .absence-stats>div{padding:5px 9px!important;min-width:0!important;border-radius:9px!important;font-size:12px!important;gap:6px!important}
-.absence-modern .absence-control-footer .absence-stats strong{font-size:18px!important}
-.absence-modern .absence-date-inline{margin-right:auto;color:#67499d;font-size:12px;font-weight:900;white-space:normal}
-.absence-modern .absence-date-inline span{color:#24698d}
-.absence-modern .absence-action-strip{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;margin:8px 0!important;flex-wrap:wrap!important}
-.absence-modern .absence-action-strip .absence-auto-state{margin-left:auto;padding:7px 11px!important;font-size:12px!important;border-radius:9px!important}
-.absence-modern .absence-action-strip button{padding:7px 12px!important;font-size:12px!important;min-height:35px!important;border-radius:9px!important}
-@media(max-width:700px){.absence-modern .absence-control-strip{padding:9px}.absence-modern .absence-picker-line{gap:6px}.absence-modern .absence-grade-tabs{width:100%}.absence-modern .absence-grade-tabs button{flex:1;padding:6px 4px!important;font-size:12px!important}.absence-modern .absence-control-footer{gap:7px}.absence-modern .absence-date-inline{margin-right:0;width:100%}.absence-modern .absence-action-strip .absence-auto-state{width:100%;margin-left:0}}
-
-/* Compact, aligned attendance roster */
-.absence-modern .absence-table{border:1px solid #d9e6ef!important;border-radius:14px!important;background:#fff!important}
-.absence-modern .absence-table-head,.absence-modern .absence-student{display:grid!important;grid-template-columns:minmax(280px,1.8fr) minmax(185px,.85fr) minmax(190px,1fr)!important;gap:12px!important;align-items:center!important}
-.absence-modern .absence-table-head{padding:10px 14px!important;background:#e8f2fa!important;color:#164a70!important;font-size:13px!important}
-.absence-modern .absence-student{min-height:44px!important;padding:5px 14px!important;border-bottom:1px solid #e7edf2!important;box-shadow:none!important}
-.absence-modern .absence-student:last-child{border-bottom:0!important}
-.absence-modern .absence-student:nth-child(n){background:#fff!important}
-.absence-modern .absence-student:nth-child(2n+1){background:#f7fbff!important}
-.absence-modern .absence-student.marked-absent{background:#fff3f4!important;box-shadow:inset -3px 0 #e97886!important}
-.absence-modern .absence-student-name{font-size:13px!important;gap:9px!important;min-width:0!important}
-.absence-modern .absence-student-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.absence-modern .absence-student-name b{width:23px!important;height:23px!important;min-width:23px!important;font-size:11px!important;border-radius:7px!important}
-.absence-modern .absence-choices{display:flex!important;justify-content:center!important;gap:5px!important;width:100%!important}
-.absence-modern .absence-choices button{flex:1 1 0!important;max-width:104px!important;min-height:30px!important;padding:3px 7px!important;border-radius:8px!important;font-size:12px!important;border-width:1px!important;white-space:nowrap!important}
-.absence-modern .absence-choices button.is-present{background:#e3f7ed!important;color:#137348!important;border-color:#83d9ad!important}
-.absence-modern .absence-choices button.is-absent{background:#ffe8ed!important;color:#a32d4b!important;border-color:#ee9eaf!important}
-.absence-modern .absence-note{height:31px!important;min-height:31px!important;width:100%!important;max-width:none!important;padding:4px 10px!important;font-size:12px!important;border-radius:8px!important;background:#fff!important;border:1px solid #dbe5ee!important}
-.absence-modern .absence-note:focus{outline:2px solid #88c9ee!important;outline-offset:0}
-@media(max-width:760px){.absence-modern .absence-table-head{display:none!important}.absence-modern .absence-student{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;padding:10px 12px!important}.absence-modern .absence-student-name{flex:unset!important}.absence-modern .absence-student-name span{white-space:normal}.absence-modern .absence-choices{justify-content:stretch!important}.absence-modern .absence-choices button{max-width:none!important}.absence-modern .absence-note{flex:unset!important}}
-
-/* Consolidated roster layout; replaces previous scattered visual overrides */
-.absence-modern .absence-roster-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 6px;padding:9px 13px;background:linear-gradient(105deg,#d8f1ff,#f3eaff);border:1px solid #c4dff0;border-radius:11px}
-.absence-modern .absence-roster-heading strong{font-size:16px!important;color:#075580}
-.absence-modern .absence-roster-heading small{display:block;font-size:11px;color:#527a92}
-.absence-modern .absence-roster-counter{border-radius:9px;background:white;padding:5px 11px;color:#12628b;font-weight:900;white-space:nowrap}
-.absence-modern .absence-table{margin-top:6px!important;border:1px solid #b8d9ee!important;border-radius:13px!important;overflow:hidden;background:white;box-shadow:0 3px 10px #144d7210}
-.absence-modern .absence-table-head,.absence-modern .absence-student{display:grid!important;grid-template-columns:minmax(220px,1.65fr) minmax(180px,.8fr) minmax(180px,.95fr)!important;align-items:center!important;gap:10px!important;padding:6px 12px!important}
-.absence-modern .absence-table-head{background:#cdeaff!important;color:#075b8a!important;font-size:13px!important;min-height:37px!important}
-.absence-modern .absence-student{min-height:48px!important;border-top:1px solid #d8e8f2!important}
-.absence-modern .absence-student:nth-child(even){background:#f3f9ff!important}
-.absence-modern .absence-student:nth-child(odd){background:#fff!important}
-.absence-modern .absence-student.marked-absent{background:#fff0f1!important;box-shadow:inset -4px 0 #e75d6e}
-.absence-modern .absence-student-name{font-size:14px!important;display:flex!important;align-items:center!important;gap:9px!important;min-width:0}
-.absence-modern .absence-student-name b{width:25px!important;height:25px!important;flex:none!important;font-size:12px!important;background:#e1f1ff!important;color:#126398!important}
-.absence-modern .absence-choices{display:flex!important;gap:5px!important}
-.absence-modern .absence-choices button{min-height:33px!important;padding:5px 8px!important;border-radius:8px!important;font-size:13px!important;white-space:nowrap}
-.absence-modern .absence-choices button.is-absent{background:#ffd9df!important;color:#a61e37!important;border-color:#e45d74!important}
-.absence-modern .absence-choices button.is-present{background:#d7f7e4!important;color:#076b3a!important;border-color:#30ad6a!important}
-.absence-modern .absence-note{height:34px!important;min-height:34px!important;padding:5px 10px!important;border-radius:8px!important;font-size:12px!important}
-@media(max-width:760px){.absence-modern .absence-table-head{display:none!important}.absence-modern .absence-student{grid-template-columns:minmax(0,1fr) minmax(145px,.85fr)!important;gap:7px!important;padding:8px!important}.absence-modern .absence-student-name{grid-column:1/-1}.absence-modern .absence-note{grid-column:1}.absence-modern .absence-choices{grid-column:2;grid-row:2}.absence-modern .absence-choices button{padding:5px 3px!important;font-size:11px!important}}
-
- .absence-loading{background:linear-gradient(100deg,#e0f3ff,#f6eaff);border:1px solid #b9ddf5;border-radius:16px;padding:24px;text-align:center;font-weight:900;color:#14537b;min-height:90px}.absence-modern{font-family:Tajawal,Tahoma,Arial,sans-serif;min-height:100vh;background:#f1f8ff;color:#123a56;padding:20px max(12px,4vw)}.absence-hero{margin:14px 0 16px;border-radius:22px;background:linear-gradient(110deg,#bce8ff,#e8f8ff 58%,#fff0c7);padding:20px 30px;display:flex;align-items:center;gap:20px;box-shadow:0 5px 18px #2a7da020}.absence-hero h1{font-size:clamp(24px,3vw,38px);font-weight:950;margin:0 0 5px}.absence-hero p{margin:0;color:#506c7f}.absence-hero-icon{font-size:52px}.absence-hero-art{margin-right:auto;font-size:32px}.absence-panel{background:white;border:1px solid #d9eaf7;border-radius:20px;padding:18px 22px;margin-top:14px;box-shadow:0 5px 18px #22496b10}.absence-panel h2{font-size:21px;margin:0 0 12px;color:#0b577e}.absence-stats{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.absence-stats div{border-radius:13px;padding:10px 18px;background:#e5f3ff;display:flex;align-items:center;gap:12px;font-weight:800}.absence-stats div:nth-child(2){background:#e0f8e9;color:#09613a}.absence-stats div:nth-child(3){background:#ffe8e8;color:#a62828}.absence-stats strong{font-size:23px}.absence-dual-date{display:flex;gap:24px;flex-wrap:wrap;background:#f0f8ff;border-radius:12px;padding:10px 15px;font-weight:800;color:#195e88}.absence-dual-date span{color:#8556a1}.absence-ranking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.absence-ranking article{border-radius:15px;background:#e8f5ff;padding:10px}.absence-ranking article:nth-child(2){background:#f0eaff}.absence-ranking article:nth-child(3){background:#fff3dd}.absence-ranking h3{margin:0 0 6px;color:#155b87}.absence-ranking article p{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border-bottom:1px solid #ffffff99;padding-bottom:5px;margin:6px 0}.absence-ranking article strong{white-space:nowrap;color:#b12e47}.absence-ranking article small{display:block;color:#52748c;font-size:11px;margin-top:5px}.absence-class-picker{width:100%;font-weight:900}.absence-class-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:6px}.absence-grade{border-radius:11px;padding:8px;background:#e6f4ff}.absence-grade.grade-2{background:#f0e8ff}.absence-grade.grade-3{background:#fff2d9}.absence-grade>strong{display:block;margin-bottom:5px;font-size:14px;color:#164b79}.absence-grade>div{display:flex;flex-wrap:wrap;gap:4px}.absence-grade button{border:1px solid #b8d5eb;border-radius:8px;background:white;color:#1d527b;padding:5px 9px;font-size:12px;font:inherit;font-weight:800;cursor:pointer}.absence-grade button.selected{background:#087ab3;color:white;border-color:#087ab3;box-shadow:0 2px 7px #087ab344}.absence-grade.grade-2 button.selected{background:#7748bc;border-color:#7748bc}.absence-grade.grade-3 button.selected{background:#bc7818;border-color:#bc7818}.absence-report-settings{display:flex;gap:12px;flex-wrap:wrap;align-items:end;padding:12px 0}.absence-report-settings label{display:flex;flex-direction:column;gap:7px}.absence-report-modes{display:flex;gap:6px;width:100%}.absence-report-modes button{padding:10px 18px;border:1px solid #c4dce9;border-radius:11px;background:#f2f7fc;color:#235371;font:inherit;font-weight:900;cursor:pointer}.absence-report-modes button.active{background:#1677b9;color:white}.absence-generate-report{background:linear-gradient(110deg,#0a699c,#0a9e80)!important;color:white!important;border:0;border-radius:12px;padding:13px 24px;font:inherit;font-weight:900;cursor:pointer}.absence-generate-report:disabled{opacity:.45}.report-open-link{display:inline-block;background:linear-gradient(110deg,#096aab,#0aa78a);color:white!important;text-decoration:none;border-radius:12px;padding:13px 20px;font-weight:900;margin-top:8px}.absence-panel label{font-weight:800}.absence-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 12px}.absence-filters{display:flex;gap:12px;flex-wrap:wrap}.absence-filters label{display:flex;align-items:center;gap:8px}.absence-stats{margin:0!important}.absence-auto-state{font-weight:900;background:#e2f8eb;color:#087044;padding:11px 16px;border-radius:11px}.absence-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0}.absence-actions button{padding:11px 19px;border:0;border-radius:12px;font:inherit;font-weight:900;cursor:pointer}.absence-actions .absence-save{background:#079d65;color:white}.absence-actions .absence-reset{background:#eef0f3;color:#344455}.absence-actions .absence-report-link{background:#ffce57;color:#4d3700;margin-right:auto}.absence-actions .absence-print{background:#2775e7;color:white}.absence-note{width:100%;min-width:0;border:1px solid #d6e0e8;border-radius:9px;padding:9px 12px;font:inherit;background:white}.absence-choices button{transition:background .15s,transform .15s}.absence-choices button:active{transform:scale(.97)}.absence-panel input,.absence-panel select{border:1px solid #c9dce9;border-radius:10px;padding:9px 12px;background:white;font:inherit}.absence-table{margin-top:14px;border:1px solid #dcebf5;border-radius:15px;overflow:hidden}.absence-table-head,.absence-student{display:grid;grid-template-columns:minmax(200px,1.3fr) minmax(190px,.8fr) minmax(160px,1fr);align-items:center;gap:12px;padding:9px 18px}.absence-table-head{background:#dceeff;color:#125b91;font-weight:950}.absence-student{min-height:44px;border-top:1px solid #dceaf5;font-size:13px;transition:background .15s}.absence-student.marked-absent{background:#fff0f1!important;border-right:3px solid #e95670}.absence-student-name{font-size:13px}.absence-student-name b{width:24px!important;height:24px!important;border-radius:7px!important;font-size:11px}.absence-choices button{padding:5px 9px!important;font-size:12px!important}.absence-note{min-height:30px!important;padding:5px 9px!important;font-size:12px!important}.absence-student:nth-child(odd){background:#f6faff}.absence-student-name{display:flex;align-items:center;gap:12px;font-weight:850}.absence-student-name b{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#e0efff;color:#145d94}.absence-choices{display:flex;gap:8px}.absence-choices button{flex:1;cursor:pointer;border-radius:10px;padding:9px 12px;font:inherit;font-weight:900;border:1px solid #cbd6de;background:#f7f9fb;color:#557}.absence-choices button.is-present{background:#d9f7e6;border-color:#13a260;color:#08763f}.absence-choices button.is-absent{background:#ffe2e3;border-color:#e84b51;color:#ad1e27}.absence-panel>button,.absence-reports button{border:0;border-radius:11px;padding:11px 19px;font:inherit;font-weight:900;background:#0a9b67;color:white;cursor:pointer}.absence-reports button{background:#2479df}.absence-panel button:disabled{opacity:.5;cursor:not-allowed}@media(max-width:650px){.absence-class-groups{grid-template-columns:1fr}.absence-ranking{grid-template-columns:1fr}.absence-hero{padding:16px}.absence-hero-art{display:none}.absence-actions .absence-report-link{margin-right:0}.absence-toolbar{align-items:stretch}.absence-table-head,.absence-student{grid-template-columns:minmax(0,1fr);gap:6px;padding:10px}.absence-table-head span:last-child{display:none}.absence-choices{max-width:340px}.absence-student-name{font-size:14px}}@media print{.absence-hero,.absence-panel:not(.absence-reports){display:none}.absence-modern{background:white}.absence-reports button{display:none}} 
-
-/* Roster v2: independent component; legacy absence-table selectors do not apply. */
-.roster-v2{overflow:hidden;border:1px solid #c4d9ea;border-radius:14px;background:#fff;box-shadow:0 5px 18px #114b7612}
-.roster-v2-head,.roster-v2-row{display:grid;grid-template-columns:minmax(240px,1.8fr) minmax(190px,.75fr) minmax(170px,.8fr);gap:12px;align-items:center;padding:8px 13px}
-.roster-v2-head{background:linear-gradient(110deg,#d7edff,#e8e3ff);font-size:12px;font-weight:900;color:#155b83;min-height:37px}
-.roster-v2-row{min-height:48px;border-top:1px solid #dce9f3;background:#fff}
-.roster-v2-row:nth-child(odd){background:#f1f8ff}
-.roster-v2-row.is-absent{background:#fff0f2;border-inline-start:4px solid #e65770}
-.roster-v2-person{display:flex;align-items:center;gap:9px;min-width:0}
-.roster-v2-person strong{font-size:13px;font-weight:800;color:#174b69;line-height:1.5}
-.roster-v2-index{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:7px;background:#d7eaff;color:#155e90;font-size:11px;font-weight:900}
-.roster-v2-status{display:flex;gap:5px}
-.roster-v2-status button{flex:1;min-width:0;min-height:31px;border:1px solid #cbd9e4;border-radius:8px;background:#f8fafc;color:#52647b;font-size:12px;font-weight:800;cursor:pointer;padding:5px 8px}
-.roster-v2-status button.selected.present{background:#d5f6e4;border-color:#25ac6b;color:#087044}
-.roster-v2-status button.selected.absent{background:#ffdbe1;border-color:#e75b72;color:#a82340}
-.roster-v2-status button:disabled{opacity:.55;cursor:wait}
-.roster-v2-note{width:100%;min-width:0;min-height:32px!important;padding:5px 9px!important;border:1px solid #d1dfeb!important;border-radius:8px!important;background:#fff!important;font-size:12px!important}
-@media(max-width:700px){.roster-v2-head{display:none}.roster-v2-row{grid-template-columns:minmax(0,1fr) minmax(135px,.9fr);gap:7px;padding:9px}.roster-v2-person{grid-column:1/-1}.roster-v2-status{grid-column:1}.roster-v2-note{grid-column:2}.roster-v2-person strong{font-size:13px}}
-
-
-/* Compact attendance roster v3: single scoped override, no data or save changes. */
-.absence-modern .roster-v2{border-radius:12px;border-color:#b8d5e7}
-.absence-modern .roster-v2-head,.absence-modern .roster-v2-row{grid-template-columns:minmax(210px,1.8fr) minmax(150px,.64fr) minmax(145px,.72fr);gap:9px;padding:5px 11px}
-.absence-modern .roster-v2-head{min-height:30px;font-size:11px;background:linear-gradient(105deg,#cce9fa,#e7dcff)}
-.absence-modern .roster-v2-row{min-height:37px;border-top-color:#dce9f1}
-.absence-modern .roster-v2-row:nth-child(2n){background:#f0f8fd}
-.absence-modern .roster-v2-row.is-absent{background:#fff0f2}
-.absence-modern .roster-v2-person{gap:7px}
-.absence-modern .roster-v2-person strong{font-size:12px;line-height:1.3;font-weight:800}
-.absence-modern .roster-v2-index{width:20px;height:20px;font-size:10px;border-radius:6px}
-.absence-modern .roster-v2-status{gap:5px}
-.absence-modern .roster-v2-status button{min-height:27px;padding:3px 7px;font:800 11px Tajawal,Tahoma,Arial,sans-serif;border-radius:7px;transition:background .12s,border-color .12s}
-.absence-modern .roster-v2-status button.selected.present{background:#bff1d5;color:#08683d;border-color:#22b46c}
-.absence-modern .roster-v2-status button.selected.absent{background:#ffcdd7;color:#9e1936;border-color:#e74e6d}
-.absence-modern .roster-v2-note{height:27px!important;min-height:27px!important;padding:3px 8px!important;font-size:11px!important;border-radius:7px!important}
-@media(max-width:700px){.absence-modern .roster-v2-head{display:none}.absence-modern .roster-v2-row{grid-template-columns:minmax(0,1fr) minmax(120px,.85fr);gap:5px;padding:7px 9px}.absence-modern .roster-v2-person{grid-column:1/-1}.absence-modern .roster-v2-status{grid-column:1}.absence-modern .roster-v2-note{grid-column:2}.absence-modern .roster-v2-person strong{font-size:12px}}
-
-
-/* Teacher-first Saudi school attendance design. Single authoritative visual layer. */
-.absence-modern{--ab-ink:#17374e;--ab-blue:#17658a;--ab-purple:#765d9a;--ab-gold:#ba8c35;background:#f1f5f8;min-height:100vh;padding:12px 18px;color:#17374e;font-family:Tajawal,Tahoma,Arial,sans-serif}
-.absence-modern .absence-home-link{display:inline-flex;color:#42667b;text-decoration:none;font-size:12px;font-weight:700;margin:0 0 8px}
-.absence-modern .absence-home-link:hover{text-decoration:underline}
-.absence-modern .absence-hero.absence-hero-v4{display:grid!important;grid-template-columns:74px minmax(0,1fr) 74px;align-items:center;gap:16px;min-height:112px!important;padding:16px 23px!important;background:linear-gradient(115deg,#dceaf1 0%,#f7fafc 60%,#f4e9d4 100%)!important;border:1px solid #c7dce6!important;border-top:4px solid #14738a!important;border-radius:14px!important;box-shadow:0 4px 18px #1e547211!important}
-.absence-modern .absence-hero-v4 .absence-brand-school,.absence-modern .absence-hero-v4 .absence-brand-portal{display:grid;place-items:center;width:70px;height:70px;border-radius:12px;background:#fff;border:1px solid #cddfe8;box-shadow:0 2px 8px #1a52620e}
-.absence-modern .absence-hero-v4 img{display:block;width:62px;height:62px;object-fit:contain;border-radius:8px}
-.absence-modern .absence-hero-v4 .absence-hero-copy{text-align:right;min-width:0}
-.absence-modern .absence-hero-v4 .absence-hero-eyebrow{display:block;color:#4e7288;font-size:12px;font-weight:700;margin-bottom:4px}
-.absence-modern .absence-hero-v4 h1{font-size:clamp(23px,2.3vw,32px)!important;line-height:1.35!important;color:#064969!important;margin:0!important;font-weight:900!important}
-.absence-modern .absence-hero-v4 p{font-size:13px!important;color:#56798e!important;margin:3px 0 0!important}
-.absence-modern .absence-panel{margin-top:12px!important;padding:14px!important;border:1px solid #d5e3eb!important;border-radius:13px!important;background:#fff!important;box-shadow:0 3px 13px #1a52700a!important}
-.absence-modern .absence-control-strip{border-radius:11px!important;padding:11px 14px!important;background:#f7fafc!important;border:1px solid #d9e5ec!important}
-.absence-modern .absence-picker-line{display:flex;align-items:center;gap:14px!important;flex-wrap:wrap}
-.absence-modern .absence-picker-line>strong{font-size:13px!important;color:#234e69}
-.absence-modern .absence-grade-tabs{display:flex!important;grid-template-columns:none!important;gap:6px!important;flex-wrap:wrap}
-.absence-modern .absence-grade-tabs button{min-height:34px!important;padding:6px 16px!important;font-size:13px!important;border-radius:8px!important;background:#fff!important;color:#315e78!important;border:1px solid #c7dbe6!important;box-shadow:none!important;font-weight:800!important}
-.absence-modern .absence-grade-tabs button.active{background:#176b8f!important;color:#fff!important;border-color:#176b8f!important}
-.absence-modern .absence-class-compact{display:flex!important;flex-wrap:wrap;gap:6px!important;padding:9px 0 5px!important}
-.absence-modern .absence-class-compact button{min-width:43px!important;min-height:33px!important;padding:5px 13px!important;font-size:13px!important;border-radius:8px!important;background:white!important;color:#27516e!important;border:1px solid #cadde8!important;font-weight:800!important}
-.absence-modern .absence-class-compact button.selected{background:#d6ebf5!important;color:#07537a!important;border:2px solid #157da3!important}
-.absence-modern .absence-control-footer{display:flex!important;flex-wrap:wrap;align-items:center;gap:12px!important;margin-top:7px!important;padding-top:10px!important;border-top:1px solid #dce8ef}
-.absence-modern .absence-date-control{font-size:12px!important;font-weight:800!important}
-.absence-modern .absence-date-control input{border:1px solid #c7dce8!important;border-radius:8px!important;background:#fff!important}
-.absence-modern .absence-stats{display:flex!important;gap:7px!important;flex-wrap:wrap}
-.absence-modern .absence-stats>div{display:flex!important;align-items:center;gap:11px;border-radius:8px!important;padding:7px 12px!important;font-size:12px!important;background:#e7f0f7!important;color:#1a5878!important;border:1px solid #d3e3ed!important}
-.absence-modern .absence-stats>div.stat-present{background:#e3f5ea!important;color:#116c45!important;border-color:#c7e8d4!important}
-.absence-modern .absence-stats>div.stat-absent{background:#fff0f0!important;color:#ad3c48!important;border-color:#f0d6d9!important}
-.absence-modern .absence-stats strong{font-size:19px!important;font-weight:900!important}
-.absence-modern .absence-date-inline{font-size:12px!important;color:#486d85!important}
-.absence-modern .absence-action-strip{display:flex;flex-wrap:wrap;align-items:center;gap:7px!important;margin-top:9px!important}
-.absence-modern .absence-auto-state{margin-inline-end:auto;font-size:12px!important}
-.absence-modern .absence-action-strip button{min-height:34px!important;padding:7px 14px!important;font-size:12px!important;border-radius:8px!important;font-weight:800!important}
-.absence-modern .absence-roster-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px!important;padding:11px 14px!important;background:linear-gradient(100deg,#e4f0f6,#f3f7fa)!important;border:1px solid #cfdfeb!important;border-right:4px solid #157b99!important;border-radius:9px 9px 0 0!important}
-.absence-modern .absence-roster-heading strong{font-size:15px!important;color:#124f70!important}
-.absence-modern .absence-roster-heading small{display:block;font-size:11px!important;color:#607c8c!important;margin-top:3px}
-.absence-modern .absence-roster-counter{background:white!important;color:#135c7d!important;border:1px solid #d4e3ec!important;border-radius:8px!important;padding:5px 10px!important;font-size:12px!important}
-.absence-modern .roster-v2{border:1px solid #cfdee8!important;border-top:0!important;border-radius:0 0 10px 10px!important;overflow:hidden;background:white}
-.absence-modern .roster-v2-head,.absence-modern .roster-v2-row{display:grid!important;grid-template-columns:minmax(240px,1.8fr) minmax(190px,.8fr) minmax(170px,.85fr)!important;gap:10px!important;align-items:center!important;padding:7px 13px!important}
-.absence-modern .roster-v2-head{background:#e5eff5!important;min-height:33px!important;color:#315e76!important;font-size:12px!important;font-weight:800!important}
-.absence-modern .roster-v2-row{min-height:45px!important;border-top:1px solid #e1eaf0!important}
-.absence-modern .roster-v2-row:nth-child(2n){background:#f6f9fc!important}
-.absence-modern .roster-v2-row.is-absent{background:#fff1f2!important;box-shadow:inset -3px 0 #dc6973}
-.absence-modern .roster-v2-person{display:flex;align-items:center;gap:10px}
-.absence-modern .roster-v2-person strong{font-size:13px!important;font-weight:800!important;line-height:1.35!important}
-.absence-modern .roster-v2-index{display:grid;place-items:center;width:23px!important;height:23px!important;flex:none;border-radius:7px!important;background:#e3edf5!important;color:#245f82!important;font-size:11px!important}
-.absence-modern .roster-v2-status{display:flex;gap:6px!important;align-items:center}
-.absence-modern .roster-v2-status button{min-height:31px!important;padding:5px 10px!important;border-radius:7px!important;font:800 12px Tajawal,Tahoma,Arial,sans-serif!important;transition:background .12s,border-color .12s}
-.absence-modern .roster-v2-status button.selected.present{background:#d9f3e4!important;border-color:#3eae79!important;color:#07643a!important}
-.absence-modern .roster-v2-status button.selected.absent{background:#ffdde0!important;border-color:#dc6471!important;color:#a42d3c!important}
-.absence-modern .roster-v2-note{height:31px!important;min-height:31px!important;padding:5px 9px!important;font-size:12px!important;border-radius:7px!important;background:#fff!important}
-.absence-modern .absence-insights-title h2,.absence-modern .absence-reports h2{font-size:19px!important;color:#174c6a!important}
-.absence-modern .absence-summary-card{border-radius:11px!important}
-.absence-modern .absence-insights-block{border:1px solid #dce7ee!important;border-radius:11px!important;background:#fbfdff!important}
-@media(max-width:750px){.absence-modern{padding:8px}.absence-modern .absence-hero.absence-hero-v4{grid-template-columns:46px minmax(0,1fr) 46px;gap:8px;min-height:78px!important;padding:10px!important}.absence-modern .absence-hero-v4 .absence-brand-school,.absence-modern .absence-hero-v4 .absence-brand-portal{width:44px;height:44px}.absence-modern .absence-hero-v4 img{width:39px;height:39px}.absence-modern .absence-hero-v4 .absence-hero-eyebrow{font-size:9px}.absence-modern .absence-hero-v4 h1{font-size:19px!important}.absence-modern .absence-hero-v4 p{font-size:10px!important}.absence-modern .absence-panel{padding:8px!important}.absence-modern .absence-grade-tabs button{font-size:11px!important;padding:5px 9px!important}.absence-modern .roster-v2-head{display:none!important}.absence-modern .roster-v2-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;padding:9px!important}.absence-modern .roster-v2-person{grid-column:1/-1}.absence-modern .roster-v2-status{grid-column:1}.absence-modern .roster-v2-note{grid-column:2;width:100%!important}.absence-modern .absence-date-inline{width:100%}}
-@media(prefers-reduced-motion:reduce){.absence-modern *{animation:none!important;transition:none!important}}
-
-/* Approved Saudi teacher attendance dashboard: compact two-column roster */
-@media(min-width:1050px){
-.absence-modern .roster-v2{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 12px!important;padding:9px!important;border-radius:15px!important;background:#eaf4fb!important}
-.absence-modern .roster-v2-head{display:none!important}
-.absence-modern .roster-v2-row{display:grid!important;grid-template-columns:minmax(0,1.5fr) minmax(135px,1fr) 36px!important;gap:7px!important;min-width:0!important;min-height:40px!important;padding:5px 9px!important;margin:2px 0!important;border:1px solid #dceaf5!important;border-radius:9px!important;background:#fff!important}
-.absence-modern .roster-v2-row:nth-child(4n+2),.absence-modern .roster-v2-row:nth-child(4n+3){background:#f5faff!important}
-.absence-modern .roster-v2-row.is-absent{background:#fff0f1!important;border-color:#f1b7c0!important}
-.absence-modern .roster-v2-person{min-width:0!important;gap:6px!important}
-.absence-modern .roster-v2-person strong{font-size:11.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.absence-modern .roster-v2-status{gap:4px!important}
-.absence-modern .roster-v2-status button{flex:1;min-width:0!important;min-height:27px!important;padding:3px 5px!important;font-size:11px!important}
-.absence-modern .roster-v2-note{width:33px!important;height:28px!important;min-height:28px!important;padding:4px!important;font-size:10px!important;text-align:center;transition:width .15s!important}
-.absence-modern .roster-v2-note::placeholder{font-size:0}
-.absence-modern .roster-v2-note::placeholder{content:"✎"}
-.absence-modern .roster-v2-note:focus{width:150px!important;position:relative;z-index:2;text-align:right}
-}
-.absence-modern .absence-hero-v4{background:linear-gradient(105deg,#d5efff 0%,#f4f8fc 53%,#fff1d2 100%)!important;border:1px solid #c2e1f3!important;box-shadow:0 6px 18px #164e7512!important}
-.absence-modern .absence-control-strip{background:linear-gradient(110deg,#e9f5ff,#f3efff 55%,#fff3db)!important}
-.absence-modern .absence-panel{background:linear-gradient(180deg,#fff,#f9fcff)!important}
-.absence-modern .roster-v2-row:focus-within{outline:2px solid #59a8d0;outline-offset:-2px}
-
-/* Attendance roster note affordance and formal layout refinement */
-@media(min-width:1050px){
-.absence-modern .roster-v2-row{grid-template-columns:minmax(0,1.5fr) minmax(135px,1fr) 42px!important}
-.absence-modern .roster-v2-note{width:38px!important;height:30px!important;min-height:30px!important;background:#eaf4fc!important;border:1px solid #b7d7ec!important;border-radius:7px!important;cursor:text!important;color:#1a5c83!important;font-size:11px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23145e88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z'/%3E%3C/svg%3E")!important;background-size:17px!important;background-position:center!important;background-repeat:no-repeat!important}
-.absence-modern .roster-v2-note:not(:placeholder-shown),.absence-modern .roster-v2-note:focus{width:145px!important;background-image:none!important;background-color:#fff!important;text-align:right!important;box-shadow:0 0 0 2px #b7e3f7!important}
-.absence-modern .roster-v2-note:focus::placeholder{font-size:11px!important}
-.absence-modern .roster-v2-note:not(:focus)::placeholder{color:transparent!important}
-}
-.absence-modern .absence-hero-v4{overflow:visible!important}
-.absence-modern .absence-roster-heading{background:linear-gradient(110deg,#d9edfa,#e9e4fa,#fff0d7)!important}
-.absence-modern .roster-v2-status button:focus-visible,.absence-modern .absence-class-compact button:focus-visible{outline:3px solid #ffb74d!important;outline-offset:2px!important}
-
-/* 2026 school attendance visual system - consolidated dashboard layer */
-.absence-modern{background:radial-gradient(ellipse at 15% 0%,#d5efff 0,transparent 35%),linear-gradient(150deg,#eaf7ff,#f4f7fc 45%,#edf4fb)!important;color:#113c60!important}
-.absence-modern .absence-home-link{font-size:12px!important}
-.absence-modern .absence-hero.absence-hero-v4{position:relative;isolation:isolate;min-height:155px!important;padding:22px 34px!important;border:1px solid #c7e4f2!important;border-top:5px solid #0786aa!important;border-radius:22px!important;background:linear-gradient(100deg,rgba(219,241,255,.93),rgba(255,255,255,.86) 55%,rgba(255,237,196,.92))!important;box-shadow:0 12px 28px #155b8220!important;overflow:hidden!important}
-.absence-modern .absence-hero-v4:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.65;background:radial-gradient(circle at 24% 20%,#94d9f37a,transparent 28%),radial-gradient(circle at 72% 90%,#f3d9a07a,transparent 35%),repeating-linear-gradient(135deg,transparent 0 30px,#ffffff40 31px 32px);pointer-events:none}
-.absence-modern .absence-hero-v4 h1{font-size:clamp(25px,2.7vw,42px)!important;font-weight:900!important;letter-spacing:-.6px;color:#073f69!important}
-.absence-modern .absence-hero-v4 .absence-hero-eyebrow{color:#267597!important;font-weight:800!important}
-.absence-modern .absence-hero-v4 p{color:#577b96!important;font-size:14px!important}
-.absence-modern .absence-brand-school,.absence-modern .absence-brand-portal{background:#fff!important;border:2px solid #e2f0fa!important;border-radius:16px!important;box-shadow:0 5px 15px #0d54781a!important}
-.absence-modern .absence-panel{border:1px solid #cde6f6!important;border-radius:19px!important;box-shadow:0 8px 25px #115b8210!important}
-.absence-modern .absence-dashboard-top{display:grid;grid-template-columns:minmax(205px,.28fr) minmax(0,1fr);gap:12px;align-items:stretch}
-.absence-modern .absence-date-card{display:flex;align-items:center;gap:14px;padding:17px;border:1px solid #c4e2f4;border-radius:16px;background:linear-gradient(135deg,#fff,#e3f3ff);box-shadow:0 4px 12px #19608b0d}
-.absence-modern .absence-date-card>div{display:grid;gap:4px}
-.absence-modern .absence-date-card small{font-size:11px;color:#6c879b}
-.absence-modern .absence-date-card strong{font-size:14px;color:#0a4e7c}
-.absence-modern .absence-date-symbol{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:13px;background:#d6ecff;color:#0075b6;font-size:29px;font-weight:900}
-.absence-modern .absence-control-strip{margin:0!important;border-radius:16px!important;background:linear-gradient(105deg,#e3f3ff,#f0f0ff 55%,#fff1d7)!important;border:1px solid #cce2f3!important}
-.absence-modern .absence-dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:13px 0}
-.absence-modern .absence-metric-card{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:96px;padding:14px 18px;border:2px solid white;border-radius:17px;box-shadow:0 4px 14px #0e4b7012}
-.absence-modern .absence-metric-card>div{display:grid;gap:1px;text-align:right}
-.absence-modern .absence-metric-card small{font-size:12px;font-weight:800}
-.absence-modern .absence-metric-card strong{font-size:32px;font-weight:900;line-height:1.1}
-.absence-modern .absence-metric-card span:not(.metric-icon){font-size:11px}
-.absence-modern .metric-icon{display:grid;place-items:center;flex:none;width:55px;height:55px;border-radius:50%;font-size:28px;font-weight:900}
-.absence-modern .metric-students{background:linear-gradient(120deg,#f9fdff,#e3f2ff);color:#0a639b}.absence-modern .metric-students .metric-icon{background:#d1eaff}
-.absence-modern .metric-present{background:linear-gradient(120deg,#f9fffc,#dff8eb);color:#087f4e}.absence-modern .metric-present .metric-icon{background:#c3f0d9}
-.absence-modern .metric-absent{background:linear-gradient(120deg,#fffafa,#ffe7e9);color:#b12f43}.absence-modern .metric-absent .metric-icon{background:#ffd5db}
-.absence-modern .metric-note{background:linear-gradient(120deg,#fffdfa,#fff0d9);color:#99600c}.absence-modern .metric-note .metric-icon{background:#ffebc4}
-.absence-modern .absence-actions.absence-action-strip{margin:4px 0 10px!important;padding:4px 0!important}
-.absence-modern .absence-roster-heading{background:linear-gradient(100deg,#d5edff,#e7e7ff 55%,#fff0d7)!important;border-radius:14px 14px 0 0!important}
-.absence-modern .roster-v2{background:linear-gradient(145deg,#eaf6ff,#f0f5fb)!important}
-.absence-modern .roster-v2-row{box-shadow:0 1px 4px #164e750b!important}
-.absence-modern .roster-v2-status button.selected.present{background:#c8f4df!important;border-color:#1cba73!important}
-.absence-modern .roster-v2-status button.selected.absent{background:#ffdbe0!important;border-color:#e66b7b!important}
-@media(max-width:1050px){.absence-modern .absence-dashboard-top{grid-template-columns:1fr}.absence-modern .absence-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.absence-modern .absence-date-card{min-height:65px}}
-@media(max-width:550px){.absence-modern .absence-dashboard-metrics{gap:7px}.absence-modern .absence-metric-card{padding:10px;min-height:75px;gap:5px}.absence-modern .absence-metric-card strong{font-size:23px}.absence-modern .metric-icon{width:36px;height:36px;font-size:20px}.absence-modern .absence-hero.absence-hero-v4{padding:12px!important;min-height:105px!important}.absence-modern .absence-date-card{padding:10px}}
-
-
-/* Compact attendance insights: equal content height, no empty tall panels */
-.absence-modern .absence-insights-columns{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;align-items:start!important}
-.absence-modern .absence-insights-block{min-height:0!important;height:auto!important;padding:12px!important;border:1px solid #d5e6f1!important;background:linear-gradient(160deg,#fff,#f5faff)!important;box-shadow:0 3px 12px #124d7410!important}
-.absence-modern .absence-insight-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;padding:8px 11px;background:linear-gradient(100deg,#e1f1ff,#f0eaff)!important;border-radius:9px}
-.absence-modern .absence-insight-heading h3{margin:0!important;font-size:14px!important;color:#124d72!important}
-.absence-modern .absence-insight-heading>span{font-size:11px;font-weight:800;color:#52768e;background:white;border-radius:7px;padding:4px 8px}
-.absence-modern .absence-empty-stat{display:flex!important;align-items:center!important;justify-content:center!important;min-height:57px!important;height:auto!important;padding:12px!important;border:1px dashed #c8deec!important;border-radius:9px!important;background:#f8fcff!important;font-size:12px!important;color:#6b879b!important}
-.absence-modern .absence-ranking-head,.absence-modern .absence-ranking-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 80px;align-items:center;gap:9px}
-.absence-modern .absence-ranking-head{padding:7px 10px;background:#e8f3fc;color:#4d738c;font-size:11px;font-weight:900;border-radius:8px}
-.absence-modern .absence-ranking-row{padding:7px 10px;border-bottom:1px solid #e4edf5;font-size:12px;min-height:42px}
-.absence-modern .absence-ranking-row:nth-child(odd){background:#f5faff}
-.absence-modern .absence-ranking-person{display:flex;align-items:center;gap:8px;min-width:0}
-.absence-modern .absence-ranking-person em{display:grid;place-items:center;width:23px;height:23px;flex:none;background:#d9edff;color:#14618c;border-radius:7px;font-style:normal;font-size:11px;font-weight:900}
-.absence-modern .absence-ranking-person b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#153f5c}
-.absence-modern .absence-ranking-grade{color:#58788d;font-size:11px}
-.absence-modern .absence-ranking-days{position:relative;justify-self:start}
-.absence-modern .absence-ranking-days summary{cursor:pointer;list-style:none;padding:5px 8px;background:#ffe9ec;color:#b12d45;border-radius:7px;font-size:11px;font-weight:900;white-space:nowrap}
-.absence-modern .absence-ranking-days summary::-webkit-details-marker{display:none}
-.absence-modern .absence-ranking-days[open]>div{position:absolute;z-index:5;left:0;top:calc(100% + 5px);width:200px;max-height:175px;overflow:auto;padding:8px;border:1px solid #c9deec;border-radius:9px;background:#fff;box-shadow:0 9px 25px #164e7530;display:grid;gap:5px}
-.absence-modern .absence-ranking-days[open]>div span{font-size:11px;padding:4px;background:#f0f7ff;border-radius:5px}
-.absence-modern .absence-summary-grid{gap:10px!important}
-.absence-modern .absence-summary-card{min-height:85px!important;padding:12px!important}
-@media(max-width:850px){.absence-modern .absence-insights-columns{grid-template-columns:1fr!important}}
-@media(max-width:420px){.absence-modern .absence-ranking-head,.absence-modern .absence-ranking-row{grid-template-columns:minmax(0,1fr) 76px 58px;gap:5px}.absence-modern .absence-ranking-person b{font-size:11px}.absence-modern .absence-ranking-grade{font-size:10px}}
-
-
-/* Unified full-page visual theme (not only header cards) */
-html:has(.absence-modern),body:has(.absence-modern){background:#eaf5fd!important}
-body:has(.absence-modern){background-image:radial-gradient(circle at 8% 12%,#cceaff 0,transparent 32%),radial-gradient(circle at 92% 8%,#fff0d0 0,transparent 34%),linear-gradient(160deg,#eaf5fd,#f7fbff 46%,#e5f3fa)!important;background-attachment:fixed!important}
-.absence-modern{position:relative;isolation:isolate;min-height:100vh!important;padding:12px clamp(10px,1.6vw,25px) 28px!important;background:transparent!important}
-.absence-modern:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.32;background-image:linear-gradient(135deg,transparent 47%,#c6e4f5 48%,transparent 49%);background-size:48px 48px;mask-image:linear-gradient(#000,transparent 72%)}
-.absence-modern .absence-hero-v4{background:linear-gradient(90deg,rgba(212,239,253,.92),rgba(246,252,255,.94) 52%,rgba(255,238,202,.92))!important;min-height:148px!important;border:1px solid #b9dced!important;border-top:5px solid #0b8ba5!important;box-shadow:0 10px 24px #235d8017!important}
-.absence-modern .absence-hero-v4:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(130deg,transparent 0 46px,#ffffff30 47px 48px);border-radius:inherit}
-.absence-modern .absence-hero-v4>*{position:relative;z-index:1}
-.absence-modern .absence-panel,.absence-modern .absence-toolbar,.absence-modern .absence-insights{background:rgba(255,255,255,.86)!important;backdrop-filter:blur(8px);border:1px solid #cce2f2!important;box-shadow:0 7px 23px #15577e12!important}
-.absence-modern .absence-summary-card{box-shadow:0 4px 12px #225d8112!important}
-.absence-modern .absence-home-link{display:inline-flex;padding:7px 12px;margin-bottom:9px;border:1px solid #c9dfec;border-radius:9px;background:#ffffffba!important;color:#135878!important;font-size:13px!important;text-decoration:none!important}
-@media(max-width:700px){.absence-modern .absence-hero-v4{min-height:115px!important}.absence-modern{padding:8px!important}}
+/* Daily absence: single authoritative visual system. No data/network side effects. */
+html:has(.absence-modern),body:has(.absence-modern){background:#edf6fc}
+body:has(.absence-modern){background-image:radial-gradient(circle at 5% 5%,#c8e8fb,transparent 32%),radial-gradient(circle at 96% 9%,#fff0d5,transparent 34%),linear-gradient(150deg,#edf8ff,#f8fbff 50%,#eaf4fd);background-attachment:fixed}
+.absence-modern{--navy:#093e63;--blue:#087db8;--line:#cbdfee;--green:#0a9660;--red:#ca354e;direction:rtl;color:var(--navy);font-family:Tajawal,Arial,sans-serif;max-width:1640px;margin:auto;padding:12px 18px 36px;min-height:100vh}
+.absence-modern *{box-sizing:border-box}
+.absence-home-link{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 15px;color:var(--navy);text-decoration:none;font-weight:800;margin-bottom:10px}
+.absence-hero-v4{position:relative;display:flex;align-items:center;justify-content:space-between;gap:22px;min-height:176px;padding:22px 35px;border:1px solid #b8dceb;border-top:5px solid #087d9b;border-radius:20px;overflow:hidden;background:linear-gradient(105deg,#b9e3f7 0%,#e9f6fd 35%,#f9fcff 58%,#fff0cc 100%);box-shadow:0 10px 25px #174d7214}
+.absence-hero-v4:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.24;background:repeating-linear-gradient(135deg,transparent 0 58px,#fff 59px 61px)}
+.absence-hero-v4>*{position:relative;z-index:1}
+.absence-hero-copy{flex:1;text-align:right;padding-right:6px}
+.absence-hero-eyebrow{font-size:13px;font-weight:800;color:#307391}
+.absence-hero-copy h1{font-size:clamp(25px,3.2vw,42px);margin:8px 0 3px;line-height:1.2;color:#083f65}
+.absence-hero-copy p{margin:0;font-size:15px;color:#597c94}
+.absence-brand-school,.absence-brand-portal{display:grid;place-items:center;width:78px;height:78px;flex-shrink:0;background:#fff;border:1px solid #c6e2ef;border-radius:16px;box-shadow:0 5px 14px #144f7117}
+.absence-brand-school img,.absence-brand-portal img{max-width:65px;max-height:65px;object-fit:contain;border-radius:9px}
+.absence-panel{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:20px;background:#ffffffed;box-shadow:0 7px 20px #134a7210}
+.absence-dashboard-top{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:12px}
+.absence-control-strip{min-width:0;padding:13px 17px;border:1px solid #c8e0ee;border-radius:14px;background:linear-gradient(105deg,#e7f4ff,#f3efff 58%,#fff3dd)}
+.absence-picker-line{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.absence-picker-line>strong{font-size:14px;white-space:nowrap}
+.absence-grade-tabs,.absence-class-compact{display:flex;gap:6px;flex-wrap:wrap}
+.absence-grade-tabs button,.absence-class-compact button{cursor:pointer;border:1px solid #c5dced;border-radius:9px;background:#fff;color:#154e73;font:800 13px Tajawal,Arial,sans-serif;min-height:33px;padding:6px 14px}
+.absence-grade-tabs button.active,.absence-class-compact button.selected{background:#087db8;border-color:#087db8;color:#fff;box-shadow:0 2px 0 #06517d}
+.absence-class-compact{margin-top:9px}
+.absence-class-compact button{min-width:39px;padding:5px 10px}
+.absence-control-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #cbdfea;margin-top:11px;padding-top:10px}
+.absence-date-control{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px}
+.absence-date-control input{border:1px solid #c5dbea;border-radius:8px;background:#fff;padding:6px 8px;max-width:160px;font:700 13px Tajawal,Arial}
+.absence-stats{display:flex;gap:6px;flex-wrap:wrap}
+.absence-stats>div{display:flex;align-items:center;gap:7px;border-radius:9px;padding:7px 10px;background:#e6f2ff;color:#16557c;font-size:12px;font-weight:800}
+.absence-stats .stat-present{background:#e0f7ec;color:#086f4a}
+.absence-stats .stat-absent{background:#ffe9ec;color:#b92c47}
+.absence-stats strong{font-size:16px}
+.absence-date-inline{font-size:12px;color:#7150a3;font-weight:800;margin-right:auto}
+.absence-date-inline span{color:#3c7693}
+.absence-date-card{display:flex;align-items:center;gap:12px;border:1px solid #bcdcf0;border-radius:14px;background:linear-gradient(135deg,#eef9ff,#e2f2ff);padding:16px}
+.absence-date-symbol{display:grid;place-items:center;flex-shrink:0;width:48px;height:48px;border-radius:12px;background:#d3eaff;color:#0877b2;font-size:30px}
+.absence-date-card div{display:flex;flex-direction:column;gap:5px}
+.absence-date-card small{font-size:12px;color:#6d8ba3}
+.absence-date-card strong{font-size:14px}
+.absence-dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.absence-metric-card{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:14px;border:1px solid #d4e6f1;background:linear-gradient(120deg,#e7f4ff,#fff);min-width:0}
+.absence-metric-card .metric-icon{display:grid;place-items:center;width:49px;height:49px;border-radius:50%;font-size:25px;background:#cfe9ff;color:#0c74b2;flex-shrink:0}
+.absence-metric-card>div{display:flex;flex-direction:column;gap:1px}
+.absence-metric-card small{font-size:12px;font-weight:800}
+.absence-metric-card strong{font-size:29px;line-height:1.1}
+.absence-metric-card div>span{font-size:12px}
+.metric-present{background:linear-gradient(120deg,#dff9eb,#fff)}.metric-present .metric-icon{background:#b9efd3;color:#078f59}
+.metric-absent{background:linear-gradient(120deg,#ffe8ed,#fff)}.metric-absent .metric-icon{background:#ffd1dc;color:#b52c49}
+.metric-note{background:linear-gradient(120deg,#fff0d8,#fff)}.metric-note .metric-icon{background:#ffe4b1;color:#98600d}
+.absence-action-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+.absence-action-strip button,.absence-generate-report{cursor:pointer;border:1px solid #bad4e5;border-radius:9px;padding:9px 15px;background:#edf2f6;color:#174a6c;font:800 13px Tajawal,Arial}
+.absence-action-strip .absence-report-link,.absence-generate-report{background:#ffca56;border-color:#f2b735;color:#674008}
+.absence-action-strip .absence-print{background:#277ce7;border-color:#277ce7;color:white}
+.absence-auto-state{margin-left:auto;color:#08754b;background:#e3f8eb;padding:8px 12px;border-radius:9px;font-weight:800;font-size:12px}
+.absence-roster-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 15px;border:1px solid #bfddec;border-radius:13px 13px 0 0;background:linear-gradient(95deg,#dceeff,#eee5ff,#fff0d5)}
+.absence-roster-heading strong{font-size:15px}.absence-roster-heading small{display:block;color:#607f98;font-size:11px;margin-top:3px}
+.absence-roster-counter{background:#fff;padding:6px 11px;border:1px solid #c6dfeb;border-radius:8px;font-size:12px;font-weight:900;white-space:nowrap}
+.roster-v2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;padding:10px;border:1px solid #c6dfed;border-top:0;border-radius:0 0 14px 14px;background:#f3f9fd}
+.roster-v2-head{display:none}
+.roster-v2-row{display:grid;grid-template-columns:minmax(0,1fr) 190px 40px;align-items:center;gap:8px;min-height:39px;padding:3px 8px;background:#fff;border:1px solid #e0ebf4;border-radius:7px;margin-bottom:3px}
+.roster-v2-row:nth-child(4n),.roster-v2-row:nth-child(4n + 1){background:#eef6fc}
+.roster-v2-row.is-absent{background:#fff0f1;border-color:#f1c6ce}
+.roster-v2-person{display:flex;align-items:center;gap:7px;min-width:0}
+.roster-v2-person strong{font-size:12px;line-height:1.25;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster-v2-index{display:grid;place-items:center;flex-shrink:0;width:24px;height:24px;background:#dbeeff;border-radius:6px;color:#07578b;font-size:11px;font-weight:900}
+.roster-v2-status{display:flex;gap:5px;min-width:0}
+.roster-v2-status button{flex:1;min-width:0;cursor:pointer;border:1px solid #e2a4af;border-radius:6px;padding:4px 5px;min-height:27px;background:#fff8f8;color:#b32c43;font:800 11px Tajawal,Arial;white-space:nowrap}
+.roster-v2-status button:first-child{background:#effcf4;border-color:#8fd9b0;color:#078050}
+.roster-v2-status button.selected.present{background:#c9f3dc;border-color:#13aa6d;color:#04693d}
+.roster-v2-status button.selected.absent{background:#ffccd6;border-color:#dc4762;color:#a11b36}
+.roster-v2-status button:disabled{opacity:.5;cursor:wait}
+.roster-v2-note{width:36px;height:27px;min-width:0;border:1px solid #d3e2ec;border-radius:6px;padding:4px;background:#f4f7fa;color:#123e61;font:11px Tajawal,Arial;transition:width .18s ease}
+.roster-v2-note::placeholder{font-size:0}
+.roster-v2-note:focus{width:175px;position:relative;z-index:2;background:white;outline:2px solid #7ebee3}
+.absence-loading{padding:18px;text-align:center;background:#fff;border-radius:12px;margin-top:12px}
+.absence-insights-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:linear-gradient(100deg,#e5f3ff,#f1eaff);border-radius:12px;padding:11px 15px;margin-bottom:12px}
+.absence-insights-title h2{margin:0;font-size:19px}.absence-insights-title p{font-size:12px;margin:4px 0 0;color:#64839c}.absence-insights-title>span{background:#fff;border-radius:15px;padding:7px 11px;font-size:12px;font-weight:800}
+.absence-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:13px}
+.absence-summary-card{display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px;padding:13px;border:1px solid #b7dced;border-radius:13px;background:#e8f5ff}
+.absence-summary-card.grade-2{background:#f0e8ff;border-color:#d9c5f7}.absence-summary-card.grade-3{background:#fff2d9;border-color:#f4d49a}.absence-summary-card.grade-total{background:#ffe9ed;border-color:#f5c1cc}
+.absence-summary-card strong{display:block;font-size:14px}.absence-summary-card span,.absence-summary-card small{display:block;font-size:11px;color:#607f97}.absence-summary-card>b{font-size:28px}.absence-summary-card small{grid-column:1/-1}
+.absence-insights-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.absence-insights-block{min-width:0;border:1px solid #cce2f0;border-radius:14px;padding:12px;background:#eff8ff}
+.absence-insights-block:last-child{background:#fff8ed;border-color:#f1d8ad}
+.absence-insight-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border-radius:9px;padding:9px 12px;margin-bottom:9px}
+.absence-insight-heading h3{font-size:15px;margin:0}.absence-insight-heading>span{font-size:11px;color:#5d7f98}
+.absence-leader,.absence-ranking-row{display:flex;align-items:center;gap:8px;padding:8px;background:#fff;border:1px solid #e0eaf2;border-radius:8px;margin-bottom:5px;font-size:12px}
+.absence-leader-rank,.absence-ranking-person em{display:grid;place-items:center;width:23px;height:23px;flex-shrink:0;background:#dcefff;color:#075a8e;border-radius:7px;font-weight:900;font-style:normal}
+.absence-leader-name{flex:1;min-width:0;font-weight:800}
+.absence-leader-track{width:70px;height:7px;border-radius:6px;background:#e2ecf3;overflow:hidden}.absence-leader-track i{display:block;height:100%;background:#1487c0}
+.absence-leader>strong,.absence-ranking-days summary{background:#ffe8ed;color:#b42e49;padding:5px 7px;border-radius:7px;font-size:11px;white-space:nowrap}
+.absence-ranking-head,.absence-ranking-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 70px;gap:8px;align-items:center}
+.absence-ranking-head{padding:6px 12px;font-size:11px;color:#607e94;font-weight:900}
+.absence-ranking-person{display:flex;align-items:center;gap:8px;min-width:0}.absence-ranking-person b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.absence-ranking-grade{font-size:11px;color:#608099}
+.absence-ranking-days summary{cursor:pointer;list-style:none;text-align:center;font-weight:900}
+.absence-ranking-days>div{position:relative;padding:7px;font-size:11px}.absence-ranking-days>div span{display:block}
+.absence-empty-stat{padding:20px 10px;text-align:center;background:#fff;border:1px dashed #b2d5e9;border-radius:10px;color:#64839b;font-size:12px}
+.absence-reports h2{font-size:19px;margin:0 0 5px}.absence-reports p{font-size:12px;color:#607e94}
+.absence-report-settings,.absence-report-modes{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.absence-report-settings label{font-size:12px;font-weight:800}.absence-report-settings input,.absence-report-settings select{display:block;border:1px solid #cbdfea;border-radius:8px;background:#fff;padding:7px;margin-top:4px;font:13px Tajawal,Arial}
+.absence-report-modes button{cursor:pointer;background:#fff;border:1px solid #cbdfea;border-radius:8px;padding:8px;font:800 12px Tajawal,Arial}
+.absence-report-modes button.active{background:#dbeeff;border-color:#0c85bf}.absence-generate-report{margin-top:12px}
+@media(max-width:1100px){.absence-dashboard-top{grid-template-columns:1fr}.absence-date-card{padding:10px}.absence-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.roster-v2{grid-template-columns:1fr 1fr}.roster-v2-row{grid-template-columns:minmax(0,1fr) 160px 35px}.roster-v2-status button{font-size:10px}}
+@media(max-width:800px){.roster-v2{grid-template-columns:1fr}.absence-insights-columns{grid-template-columns:1fr}.absence-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.absence-date-inline{display:none}}
+@media(max-width:540px){.absence-modern{padding:8px}.absence-hero-v4{min-height:125px;padding:15px;gap:10px}.absence-brand-school,.absence-brand-portal{width:47px;height:47px;border-radius:10px}.absence-brand-school img,.absence-brand-portal img{max-width:39px;max-height:39px}.absence-hero-copy h1{font-size:22px}.absence-hero-eyebrow{font-size:10px}.absence-hero-copy p{font-size:11px}.absence-panel{padding:9px}.absence-control-strip{padding:10px}.absence-dashboard-metrics{gap:6px}.absence-metric-card{padding:9px;gap:7px}.absence-metric-card .metric-icon{width:35px;height:35px;font-size:19px}.absence-metric-card strong{font-size:22px}.absence-grade-tabs button{padding:6px 8px}.roster-v2{padding:5px}.roster-v2-row{grid-template-columns:minmax(0,1fr) 126px 29px;gap:4px;padding:4px}.roster-v2-person strong{font-size:11px}.roster-v2-index{width:19px;height:19px;font-size:10px}.roster-v2-status{gap:3px}.roster-v2-status button{font-size:10px;padding:3px 1px}.roster-v2-note{width:27px}.roster-v2-note:focus{width:130px}.absence-auto-state{width:100%;margin-left:0}}
+@media(prefers-reduced-motion:reduce){.absence-modern *{transition:none!important;animation:none!important}}
