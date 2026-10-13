@@ -107,3 +107,29 @@ body:has(.absence-modern){background-image:radial-gradient(circle at 5% 5%,#c8e8
 @media(max-width:800px){.roster-v2{grid-template-columns:1fr}.absence-insights-columns{grid-template-columns:1fr}.absence-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.absence-date-inline{display:none}}
 @media(max-width:540px){.absence-modern{padding:8px}.absence-hero-v4{min-height:125px;padding:15px;gap:10px}.absence-brand-school,.absence-brand-portal{width:47px;height:47px;border-radius:10px}.absence-brand-school img,.absence-brand-portal img{max-width:39px;max-height:39px}.absence-hero-copy h1{font-size:22px}.absence-hero-eyebrow{font-size:10px}.absence-hero-copy p{font-size:11px}.absence-panel{padding:9px}.absence-control-strip{padding:10px}.absence-dashboard-metrics{gap:6px}.absence-metric-card{padding:9px;gap:7px}.absence-metric-card .metric-icon{width:35px;height:35px;font-size:19px}.absence-metric-card strong{font-size:22px}.absence-grade-tabs button{padding:6px 8px}.roster-v2{padding:5px}.roster-v2-row{grid-template-columns:minmax(0,1fr) 126px 29px;gap:4px;padding:4px}.roster-v2-person strong{font-size:11px}.roster-v2-index{width:19px;height:19px;font-size:10px}.roster-v2-status{gap:3px}.roster-v2-status button{font-size:10px;padding:3px 1px}.roster-v2-note{width:27px}.roster-v2-note:focus{width:130px}.absence-auto-state{width:100%;margin-left:0}}
 @media(prefers-reduced-motion:reduce){.absence-modern *{transition:none!important;animation:none!important}}
+
+/* Analytics: chart cards and branded school background */
+.absence-modern .absence-insights{background:linear-gradient(155deg,#ffffffed,#eef8ffed 64%,#fff8ebed);position:relative;overflow:hidden}
+.absence-modern .absence-insights:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;background:radial-gradient(circle at 5% 5%,#a9daf5,transparent 30%),repeating-linear-gradient(135deg,transparent 0 45px,#cfe8f7 46px 47px)}
+.absence-modern .absence-insights>*{position:relative}
+.absence-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.absence-chart-card{background:#fff;border:1px solid #c7e0ee;border-radius:15px;padding:15px;box-shadow:0 4px 14px #1655770b;min-width:0}
+.absence-chart-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e0edf5;padding-bottom:10px;margin-bottom:13px}
+.absence-chart-heading strong{font-size:15px;color:#0a456e}.absence-chart-heading span{font-size:11px;color:#68879b}
+.absence-grade-chart{display:grid;gap:14px;padding:7px 0}
+.absence-grade-chart-row{display:grid;grid-template-columns:95px minmax(0,1fr) 35px;align-items:center;gap:10px;font-size:12px;font-weight:800}
+.absence-grade-chart-row>b{text-align:center;background:#e7f4fc;border-radius:7px;padding:5px}
+.absence-grade-chart-track{height:16px;background:#e9f1f6;border-radius:20px;overflow:hidden}
+.absence-grade-bar{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#087db8,#42b2e6);transition:width .25s}
+.absence-grade-bar.grade-2{background:linear-gradient(90deg,#8858c3,#ba93ec)}.absence-grade-bar.grade-3{background:linear-gradient(90deg,#d88d25,#f1c26c)}
+.absence-donut-layout{display:flex;justify-content:center;align-items:center;gap:26px;min-height:168px}
+.absence-donut{width:148px;height:148px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;box-shadow:0 4px 16px #17557718}
+.absence-donut>div{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.absence-donut strong{font-size:33px;color:#073e65}.absence-donut small{font-size:11px;color:#6a899c}
+.absence-donut-legend{display:grid;gap:10px;font-size:12px;font-weight:800}.absence-donut-legend span{display:flex;align-items:center;gap:7px}
+.absence-donut-legend i{width:11px;height:11px;display:inline-block;border-radius:4px}.absence-donut-legend small{max-width:220px;line-height:1.7;color:#7791a4;font-weight:500}
+.absence-modern .absence-insights-block{background:linear-gradient(140deg,#eef8ff,#fff);border-color:#c4e0ef}
+.absence-modern .absence-insights-block:last-child{background:linear-gradient(140deg,#fff8ed,#fff);border-color:#f1dab8}
+.absence-modern .absence-ranking-row{padding:6px 10px;margin-bottom:4px}
+@media(max-width:850px){.absence-chart-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.absence-donut-layout{gap:13px}.absence-donut{width:118px;height:118px}.absence-donut>div{width:83px;height:83px}.absence-donut strong{font-size:27px}.absence-grade-chart-row{grid-template-columns:75px minmax(0,1fr) 28px;gap:6px;font-size:11px}}
