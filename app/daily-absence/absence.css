@@ -265,3 +265,13 @@ body:has(.absence-modern){background-image:linear-gradient(180deg,rgba(238,248,2
 .absence-modern .absence-panel{background:rgba(255,255,255,.94)!important}
 @media(max-width:850px){body:has(.absence-modern){background-attachment:scroll!important}.absence-modern .absence-hero-v4{background-position:center,38% center!important;background-size:100% 100%,auto 100%!important;min-height:180px!important}}
 @media(max-width:540px){.absence-modern .absence-hero-v4{min-height:145px!important;background-image:linear-gradient(90deg,rgba(232,246,255,.70),rgba(255,255,255,.94) 62%,rgba(255,246,225,.96)),url("/images/daily-absence-background.png.png")!important;background-position:center,center!important;background-size:100% 100%,cover!important}.absence-modern .absence-hero-copy h1{font-size:21px!important}}
+
+/* Final artwork layout: uploaded banner already includes its own heading and logos.
+   Show it ONCE, in full, without duplicated HTML text or a second page copy. */
+html:has(.absence-modern),body:has(.absence-modern){background-color:#e9f5fd!important}
+body:has(.absence-modern){background-image:radial-gradient(ellipse at 4% 5%,#c7eafa,transparent 38%),radial-gradient(ellipse at 96% 10%,#fff0cf,transparent 40%),linear-gradient(180deg,#eef8ff,#f9fcff 60%,#edf7ff)!important;background-size:auto!important;background-repeat:no-repeat!important;background-attachment:scroll!important}
+.absence-modern .absence-hero.absence-hero-v4{display:block!important;position:relative!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:16/5!important;padding:0!important;margin:0 0 18px!important;border:0!important;border-radius:19px!important;overflow:hidden!important;background-color:#e9f5fb!important;background-image:url("/images/daily-absence-background.png.png")!important;background-repeat:no-repeat!important;background-size:contain!important;background-position:center center!important;box-shadow:0 8px 24px #164e7122!important}
+.absence-modern .absence-hero.absence-hero-v4::before,.absence-modern .absence-hero.absence-hero-v4::after{display:none!important}
+.absence-modern .absence-hero.absence-hero-v4>.absence-brand-school,.absence-modern .absence-hero.absence-hero-v4>.absence-brand-portal,.absence-modern .absence-hero.absence-hero-v4>.absence-hero-copy{display:none!important}
+@media(max-width:850px){.absence-modern .absence-hero.absence-hero-v4{aspect-ratio:16/6!important;border-radius:14px!important;background-size:contain!important}}
+@media(max-width:540px){.absence-modern .absence-hero.absence-hero-v4{aspect-ratio:16/8!important;background-size:contain!important;background-color:#eaf5fa!important;border-radius:11px!important}}
