@@ -133,3 +133,21 @@ body:has(.absence-modern){background-image:radial-gradient(circle at 5% 5%,#c8e8
 .absence-modern .absence-ranking-row{padding:6px 10px;margin-bottom:4px}
 @media(max-width:850px){.absence-chart-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.absence-donut-layout{gap:13px}.absence-donut{width:118px;height:118px}.absence-donut>div{width:83px;height:83px}.absence-donut strong{font-size:27px}.absence-grade-chart-row{grid-template-columns:75px minmax(0,1fr) 28px;gap:6px;font-size:11px}}
+
+/* Branded atmospheric background: school-blue, warm sunlight and quiet educational motifs. */
+html:has(.absence-modern),body:has(.absence-modern){min-height:100%;background-color:#e9f5fd}
+body:has(.absence-modern){background-image:radial-gradient(ellipse 58% 40% at 1% 4%,#b6e0f8 0%,transparent 74%),radial-gradient(ellipse 42% 37% at 99% 6%,#ffe6ad 0%,transparent 76%),radial-gradient(ellipse 54% 45% at 85% 94%,#d5ecfa 0%,transparent 78%),linear-gradient(135deg,#eaf7ff 0%,#f8fbff 51%,#e9f5fe 100%);background-attachment:fixed}
+.absence-modern{position:relative;isolation:isolate}
+.absence-modern::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.37;background-image:repeating-linear-gradient(135deg,transparent 0 88px,#b9dff3 89px,#b9dff3 90px,transparent 91px 177px),radial-gradient(circle at 9% 36%,#a6d8f2 0 4px,transparent 5px),radial-gradient(circle at 93% 67%,#f0d58f 0 4px,transparent 5px);background-size:auto,170px 170px,210px 210px}
+.absence-modern .absence-hero-v4{min-height:205px;background:linear-gradient(92deg,rgba(165,218,244,.88),rgba(235,248,255,.92) 35%,rgba(255,255,255,.95) 61%,rgba(255,234,185,.94)),radial-gradient(circle at 10% 80%,#9dd1ed,transparent 40%);border-top:5px solid #0b8aaa;box-shadow:0 14px 32px #0c56771a}
+.absence-modern .absence-hero-v4::before{opacity:.35;background:repeating-linear-gradient(135deg,transparent 0 73px,rgba(255,255,255,.8) 74px 76px),radial-gradient(circle at 32% 75%,#fff 0 3px,transparent 4px)}
+.absence-modern .absence-hero-v4::after{content:"✦  ✧  ✦";position:absolute;left:15%;top:23px;font-size:28px;letter-spacing:25px;color:#65b5dc;opacity:.25;pointer-events:none}
+.absence-modern .absence-panel{background:rgba(255,255,255,.9);border-color:#bcdced;box-shadow:0 9px 30px #0c568215;backdrop-filter:blur(5px)}
+.absence-modern .absence-control-strip{background:linear-gradient(110deg,#e6f4ff 0%,#f0eeff 48%,#fff1d5 100%)}
+.absence-modern .absence-metric-card{box-shadow:0 5px 16px #164a6e0b;border-width:1px;transition:transform .18s ease,box-shadow .18s ease}
+@media(hover:hover){.absence-modern .absence-metric-card:hover,.absence-modern .absence-chart-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #164a6e1b}}
+.absence-modern .absence-roster-heading{background:linear-gradient(100deg,#d8efff,#f1ebff 55%,#ffefd2)}
+.absence-modern .roster-v2{background:linear-gradient(145deg,#f1f9ff,#f9fcff)}
+.absence-modern .absence-insights-title{background:linear-gradient(100deg,#d9eeff,#eee8ff 57%,#fff0d5)}
+@media(max-width:540px){.absence-modern .absence-hero-v4{min-height:135px}.absence-modern .absence-hero-v4::after{display:none}.absence-modern .absence-panel{backdrop-filter:none}}
+@media(prefers-reduced-motion:reduce){.absence-modern .absence-metric-card{transition:none}}
