@@ -234,3 +234,24 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse 58% 40% at 1%
 .absence-modern .absence-brand-school,.absence-modern .absence-brand-portal{box-shadow:0 5px 16px #0d55701c;background:#ffffffef}
 @media(max-width:900px){.absence-modern .absence-hero-v4{min-height:205px;background-size:100% 100%,auto 100%;background-image:linear-gradient(90deg,rgba(229,245,252,.12),rgba(255,255,255,.94) 58%,rgba(255,238,204,.97)),url("/images/absence-classroom-scene.svg")}}
 @media(max-width:540px){.absence-modern .absence-hero-v4{min-height:150px;padding:12px;background-size:100% 100%,auto 100%;background-position:center,left center}.absence-modern .absence-hero-copy h1{font-size:21px}.absence-modern .absence-hero-eyebrow{font-size:10px}.absence-modern .absence-hero-copy p{font-size:10px}}
+
+/* Report export panel — coordinated with the attendance portal identity. */
+.absence-modern .absence-reports{position:relative;overflow:hidden;padding:23px;border:1px solid #b8daeb;border-top:5px solid #0a86b5;border-radius:20px;background:linear-gradient(115deg,rgba(238,248,255,.98),rgba(255,255,255,.98) 50%,rgba(255,245,221,.96));box-shadow:0 10px 30px #12577e13}
+.absence-modern .absence-reports::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.28;background:radial-gradient(circle at 5% 7%,#9ad8f8,transparent 24%),repeating-linear-gradient(135deg,transparent 0 65px,#d4eafa 66px 67px,transparent 68px 132px)}
+.absence-modern .absence-reports>*{position:relative}
+.absence-modern .absence-reports h2{font-size:22px;font-weight:900;color:#073f65;margin:0 0 7px}
+.absence-modern .absence-reports>p{font-size:13px;line-height:1.9;color:#5c7c95;margin:0 0 15px}
+.absence-modern .absence-report-settings{padding:16px;border:1px solid #c7dfef;border-radius:15px;background:#ffffffd9;display:flex;align-items:end;gap:14px;box-shadow:0 3px 14px #12577e0b}
+.absence-modern .absence-report-settings label{color:#114e75;font-size:13px;font-weight:900}
+.absence-modern .absence-report-settings input,.absence-modern .absence-report-settings select{min-height:45px;min-width:165px;border-radius:11px;border:1px solid #b8d8e9;background:#fafdff;color:#103f60;padding:8px 11px;font-size:14px;font-weight:700}
+.absence-modern .absence-report-modes{padding:3px;border-radius:12px;background:#eaf4fb;border:1px solid #d3e7f2;gap:5px}
+.absence-modern .absence-report-modes button{min-height:43px;border-radius:9px;padding:9px 15px;font-size:13px;color:#195576;background:#fff;border:1px solid #d3e6f2}
+.absence-modern .absence-report-modes button.active{color:#fff;background:linear-gradient(120deg,#086fa9,#0d9dcb);border-color:#0c83ba;box-shadow:0 3px 10px #0673a530}
+.absence-modern .absence-export-actions{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:12px;margin-top:16px}
+.absence-modern .absence-export-actions button{min-height:48px;margin:0;border-radius:12px;padding:11px 20px;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.absence-modern .absence-export-actions .absence-generate-report{background:linear-gradient(120deg,#ffc34c,#ffe18c);border:1px solid #ecb640;color:#704408;box-shadow:0 4px 12px #b87b2022}
+.absence-modern .absence-export-actions .absence-export-excel{background:linear-gradient(120deg,#087b59,#1ca97b);border:1px solid #0c916a;color:#fff;box-shadow:0 4px 12px #087b5929}
+.absence-modern .absence-export-actions button:disabled{opacity:.6;cursor:wait}
+@media(hover:hover){.absence-modern .absence-export-actions button:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 7px 18px #12577e24}}
+@media(max-width:650px){.absence-modern .absence-reports{padding:14px}.absence-modern .absence-report-settings{align-items:stretch;flex-direction:column}.absence-modern .absence-report-settings label,.absence-modern .absence-report-settings input,.absence-modern .absence-report-settings select{width:100%}.absence-modern .absence-export-actions button{flex:1;min-width:145px}}
+@media(prefers-reduced-motion:reduce){.absence-modern .absence-export-actions button{transition:none}}
