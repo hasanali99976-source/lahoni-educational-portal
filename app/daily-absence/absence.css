@@ -275,3 +275,12 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse at 4% 5%,#c7e
 .absence-modern .absence-hero.absence-hero-v4>.absence-brand-school,.absence-modern .absence-hero.absence-hero-v4>.absence-brand-portal,.absence-modern .absence-hero.absence-hero-v4>.absence-hero-copy{display:none!important}
 @media(max-width:850px){.absence-modern .absence-hero.absence-hero-v4{aspect-ratio:16/6!important;border-radius:14px!important;background-size:contain!important}}
 @media(max-width:540px){.absence-modern .absence-hero.absence-hero-v4{aspect-ratio:16/8!important;background-size:contain!important;background-color:#eaf5fa!important;border-radius:11px!important}}
+
+/* Compact attendance banner and dedicated logout. */
+.absence-modern{max-width:100%!important;padding:8px 14px 30px!important}
+.absence-modern .absence-hero.absence-hero-v4{aspect-ratio:auto!important;height:clamp(205px,20vw,340px)!important;min-height:0!important;background-size:cover!important;background-position:center 47%!important;margin-bottom:12px!important;border-radius:15px!important}
+.absence-modern .absence-logout-button{display:inline-flex;align-items:center;justify-content:center;min-height:39px;padding:7px 16px;margin-bottom:10px;border-radius:10px;border:1px solid #bed9eb;background:#fff;color:#0a4b74;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 2px 8px #145b7c10}
+.absence-modern .absence-logout-button:hover{background:#eaf6ff;border-color:#77bbdb}
+.absence-modern .absence-logout-button:focus-visible{outline:3px solid #edbb48;outline-offset:2px}
+@media(max-width:850px){.absence-modern .absence-hero.absence-hero-v4{height:clamp(155px,25vw,230px)!important;background-size:cover!important;background-position:center!important}}
+@media(max-width:540px){.absence-modern{padding:7px 8px 20px!important}.absence-modern .absence-hero.absence-hero-v4{height:145px!important;background-size:cover!important;background-position:center!important}.absence-modern .absence-logout-button{font-size:12px;min-height:36px}}
