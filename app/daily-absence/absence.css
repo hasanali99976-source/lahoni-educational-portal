@@ -373,3 +373,17 @@
 .absence-modern .absence-summary-card{min-height:85px!important;padding:12px!important}
 @media(max-width:850px){.absence-modern .absence-insights-columns{grid-template-columns:1fr!important}}
 @media(max-width:420px){.absence-modern .absence-ranking-head,.absence-modern .absence-ranking-row{grid-template-columns:minmax(0,1fr) 76px 58px;gap:5px}.absence-modern .absence-ranking-person b{font-size:11px}.absence-modern .absence-ranking-grade{font-size:10px}}
+
+
+/* Unified full-page visual theme (not only header cards) */
+html:has(.absence-modern),body:has(.absence-modern){background:#eaf5fd!important}
+body:has(.absence-modern){background-image:radial-gradient(circle at 8% 12%,#cceaff 0,transparent 32%),radial-gradient(circle at 92% 8%,#fff0d0 0,transparent 34%),linear-gradient(160deg,#eaf5fd,#f7fbff 46%,#e5f3fa)!important;background-attachment:fixed!important}
+.absence-modern{position:relative;isolation:isolate;min-height:100vh!important;padding:12px clamp(10px,1.6vw,25px) 28px!important;background:transparent!important}
+.absence-modern:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.32;background-image:linear-gradient(135deg,transparent 47%,#c6e4f5 48%,transparent 49%);background-size:48px 48px;mask-image:linear-gradient(#000,transparent 72%)}
+.absence-modern .absence-hero-v4{background:linear-gradient(90deg,rgba(212,239,253,.92),rgba(246,252,255,.94) 52%,rgba(255,238,202,.92))!important;min-height:148px!important;border:1px solid #b9dced!important;border-top:5px solid #0b8ba5!important;box-shadow:0 10px 24px #235d8017!important}
+.absence-modern .absence-hero-v4:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(130deg,transparent 0 46px,#ffffff30 47px 48px);border-radius:inherit}
+.absence-modern .absence-hero-v4>*{position:relative;z-index:1}
+.absence-modern .absence-panel,.absence-modern .absence-toolbar,.absence-modern .absence-insights{background:rgba(255,255,255,.86)!important;backdrop-filter:blur(8px);border:1px solid #cce2f2!important;box-shadow:0 7px 23px #15577e12!important}
+.absence-modern .absence-summary-card{box-shadow:0 4px 12px #225d8112!important}
+.absence-modern .absence-home-link{display:inline-flex;padding:7px 12px;margin-bottom:9px;border:1px solid #c9dfec;border-radius:9px;background:#ffffffba!important;color:#135878!important;font-size:13px!important;text-decoration:none!important}
+@media(max-width:700px){.absence-modern .absence-hero-v4{min-height:115px!important}.absence-modern{padding:8px!important}}
