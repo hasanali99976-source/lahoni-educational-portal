@@ -15,7 +15,7 @@ body:has(.absence-modern){background-image:radial-gradient(circle at 5% 5%,#c8e8
 .absence-brand-school,.absence-brand-portal{display:grid;place-items:center;width:78px;height:78px;flex-shrink:0;background:#fff;border:1px solid #c6e2ef;border-radius:16px;box-shadow:0 5px 14px #144f7117}
 .absence-brand-school img,.absence-brand-portal img{max-width:65px;max-height:65px;object-fit:contain;border-radius:9px}
 .absence-panel{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:20px;background:#ffffffed;box-shadow:0 7px 20px #134a7210}
-.absence-dashboard-top{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:12px}
+.absence-dashboard-top{display:grid;grid-template-columns:235px minmax(0,1fr);gap:12px}
 .absence-control-strip{min-width:0;padding:13px 17px;border:1px solid #c8e0ee;border-radius:14px;background:linear-gradient(105deg,#e7f4ff,#f3efff 58%,#fff3dd)}
 .absence-picker-line{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
 .absence-picker-line>strong{font-size:14px;white-space:nowrap}
