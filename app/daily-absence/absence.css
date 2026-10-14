@@ -296,3 +296,25 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse at 4% 5%,#c7e
 @keyframes absenceWelcomeIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:550px){.absence-modern .absence-welcome-toast{padding:10px;gap:7px}.absence-modern .absence-welcome-toast strong{font-size:13px}.absence-modern .absence-welcome-toast small{font-size:11px}.absence-modern .absence-welcome-toast .absence-welcome-icon{flex-basis:30px;width:30px;height:30px;font-size:17px}.absence-modern .absence-welcome-toast button{flex-basis:29px;width:29px;height:29px}}
 @media(prefers-reduced-motion:reduce){.absence-modern .absence-welcome-toast{animation:none}}
+
+
+/* Mobile/app roster: display every Arabic student name in full, without truncation.
+   CSS-only; no listeners, queries or additional Firestore reads. */
+@media(max-width:800px){
+  .absence-modern .roster-v2{grid-template-columns:minmax(0,1fr)}
+  .absence-modern .roster-v2-row{grid-template-columns:minmax(0,1fr) minmax(122px,34%) 30px;min-width:0;height:auto;min-height:48px;align-items:center;gap:6px}
+  .absence-modern .roster-v2-person{min-width:0;align-items:flex-start}
+  .absence-modern .roster-v2-person strong{display:block;min-width:0;flex:1;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:break-word;word-break:normal;line-height:1.6;font-size:13px}
+  .absence-modern .roster-v2-index{margin-top:2px}
+  .absence-modern .absence-ranking-person{min-width:0;flex:1}
+  .absence-modern .absence-ranking-person b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:break-word;line-height:1.5}
+}
+@media(max-width:480px){
+  .absence-modern .roster-v2-row{grid-template-columns:minmax(0,1fr) 111px 26px;gap:4px;padding:6px 5px}
+  .absence-modern .roster-v2-person{gap:5px}
+  .absence-modern .roster-v2-person strong{font-size:12px;line-height:1.65}
+  .absence-modern .roster-v2-status{gap:3px}
+  .absence-modern .roster-v2-status button{font-size:10px;min-height:30px;padding:3px 1px}
+  .absence-modern .roster-v2-note{width:26px;max-width:100%}
+  .absence-modern .roster-v2-note:focus{width:26px}
+}
