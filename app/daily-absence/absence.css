@@ -318,3 +318,34 @@ body:has(.absence-modern){background-image:radial-gradient(ellipse at 4% 5%,#c7e
   .absence-modern .roster-v2-note{width:26px;max-width:100%}
   .absence-modern .roster-v2-note:focus{width:26px}
 }
+
+
+/* iOS Safari / Android WebView: restore native vertical page scrolling.
+   Keep the document in normal flow; never trap touch events in attendance panels. */
+@media (hover:none), (pointer:coarse) {
+  html:has(.absence-modern), body:has(.absence-modern) {
+    height:auto!important;
+    min-height:100%!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y pinch-zoom!important;
+    position:static!important;
+  }
+  body:has(.absence-modern) #__next,
+  body:has(.absence-modern) main,
+  .absence-modern {
+    height:auto!important;
+    max-height:none!important;
+    overflow-y:visible!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  .absence-modern .absence-panel,
+  .absence-modern .roster-v2,
+  .absence-modern .absence-insights,
+  .absence-modern .absence-reports {
+    touch-action:pan-y pinch-zoom!important;
+  }
+}
