@@ -25,7 +25,7 @@ function databaseUnavailable() {
 
 function buildWorkspaces(subjectIds: string[], assignments: ReturnType<typeof normalizeAssignments>) {
   const workspaces: Workspace[] = [];
-  subjectIds.forEach(subjectId => {
+  subjectIds.filter(subjectId => subjectId !== "daily-absence").forEach(subjectId => {
     const subjectAssignments = assignments.filter(item => item.subjectId === subjectId);
     const grades = [...new Set(subjectAssignments.map(item => gradeNumber(item.grade)).filter((item): item is 1 | 2 | 3 => !!item))].sort((a, b) => a - b);
     if (!grades.length) {
