@@ -30,12 +30,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "اسم المعلم أو الرقم السري غير صحيح" }, { status: 401 });
     }
     const absenceSettings = await adminDb().collection("portalV2Settings").doc("secondaryDailyAbsence").get();
-    const isAbsenceOfficer = absenceSettings.data()?.teacherId === user.id || (Array.isArray(user.subjectIds) && user.subjectIds.includes("daily-absence"));
-    if ((!Array.isArray(user.subjectIds) || user.subjectIds.length === 0) && !isAbsenceOfficer) {
+    const isAbsenceOfficer = absenceSettings.data()?.teacherId === user.id;
+    const teachingSubjects = (user.subjectIds || []).filter(id => id !== "daily-absence");
+    if (teachingSubjects.length === 0 && !isAbsenceOfficer) {
       return NextResponse.json({ ok: false, message: "لم تُربط مادة بحساب المعلم بعد. راجع إدارة البوابة." }, { status: 403 });
     }
 
-    const subjectId = isAbsenceOfficer ? "daily-absence" : user.subjectIds?.[0] || "";
+    const subjectId = isAbsenceOfficer ? "daily-absence" : teachingSubjects[0] || "";
     const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
     const response = NextResponse.json(
       { ok: true, teacherId: user.id, teacherName: user.name, subjectKey: subjectId, isAbsenceOfficer },
