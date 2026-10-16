@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CreativeExperience from "./CreativeExperience";
 import { preload } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
@@ -98,6 +99,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <nav className="tss-hero-shortcuts" aria-label="جميع خدمات بوابة المعلم">{allTabs.map(tab=><Link prefetch={false} key={tab.key} href={tab.href} className={pathname.startsWith(tab.href)?"active":""} aria-current={pathname.startsWith(tab.href)?"page":undefined}><span className="tss-hero-shortcut-icon"><TabIcon type={tab.key}/></span><b>{tab.label}</b></Link>)}</nav>
         </header>
         <div className="tss-content">{children}</div>
+        <CreativeExperience name={cleanTeacherName}/>
       </main>
     </div>
   </TeacherClientContext.Provider>;
