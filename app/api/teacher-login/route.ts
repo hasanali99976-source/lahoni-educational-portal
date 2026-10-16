@@ -30,10 +30,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "اسم المعلم أو الرقم السري غير صحيح" }, { status: 401 });
     }
     const absenceSettings = await adminDb().collection("portalV2Settings").doc("secondaryDailyAbsence").get();
-    const isAbsenceOfficer = absenceSettings.data()?.teacherId === user.id;
+    const configuredAbsenceTeacherId = String(absenceSettings.data()?.teacherId || "").trim();
+    const isAbsenceOfficer = configuredAbsenceTeacherId !== "" && configuredAbsenceTeacherId === user.id;
     const teachingSubjects = (user.subjectIds || []).filter(id => id !== "daily-absence");
     if (teachingSubjects.length === 0 && !isAbsenceOfficer) {
-      return NextResponse.json({ ok: false, message: "لم تُربط مادة بحساب المعلم بعد. راجع إدارة البوابة." }, { status: 403 });
+      return NextResponse.json({ ok: false, message: "هذا الحساب ليس له إسناد دراسي، ولم يُعتمد مسؤولًا للغياب. اطلب من مدير البوابة اختيار حسابك من: إدارة الغياب اليومي ← تعيين المعلم المسؤول ← حفظ المسؤول." }, { status: 403 });
     }
 
     const subjectId = isAbsenceOfficer ? "daily-absence" : teachingSubjects[0] || "";
