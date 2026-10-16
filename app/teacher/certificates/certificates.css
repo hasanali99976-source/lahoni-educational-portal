@@ -22,3 +22,15 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .cert-unit-picker{border:1px solid #9fc8cc;border-radius:13px;padding:10px 12px;min-width:0;background:#eff9fb;color:#123f53}.cert-unit-picker legend{font-weight:900;padding:0 8px}.cert-unit-options{display:flex;flex-wrap:wrap;gap:7px}.cert-unit-options label{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid #b6d6e0;border-radius:9px;background:white;color:#134d63;cursor:pointer;font-weight:750}.cert-unit-options input{width:17px;height:17px;accent-color:#087eaa}.cert-unit-picker small{display:block;margin-top:6px;color:#47768a}
 /* Preserve every student note in PDF instead of clipping after three. */
 @media print{.report-paper{height:auto!important;max-height:none!important;min-height:297mm!important;overflow:visible!important;break-inside:auto!important;page-break-inside:auto!important}.records>div{max-height:none!important;overflow:visible!important;break-inside:avoid}.records p{overflow-wrap:anywhere}.events{max-height:none!important;overflow:visible!important}.report-paper footer{break-inside:avoid}}
+
+/* Responsive full-width multi-unit selector: prevent inherited narrow grid columns */
+.cert-tools{grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch!important;gap:14px!important}
+.cert-tools>div:first-child{grid-column:1/-1}
+.cert-tools>.cert-unit-picker{grid-column:1/-2!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;padding:14px!important}
+.cert-tools>button{grid-column:4;align-self:end;min-height:48px}
+.cert-unit-picker legend{font-size:15px!important;line-height:1.6}
+.cert-unit-options{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important;gap:10px!important;align-items:stretch}
+.cert-tools .cert-unit-options label{display:flex!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;gap:10px!important;min-height:54px!important;padding:10px 12px!important;white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;line-height:1.65!important;font-size:14px!important;text-align:right!important;box-sizing:border-box!important}
+.cert-unit-options input[type=checkbox]{flex:0 0 19px!important;width:19px!important;height:19px!important;margin:0!important}
+@media(max-width:900px){.cert-tools{grid-template-columns:repeat(2,minmax(0,1fr))!important}.cert-tools>.cert-unit-picker{grid-column:1/-1!important}.cert-tools>button{grid-column:1/-1!important}}
+@media(max-width:560px){.cert-tools{grid-template-columns:minmax(0,1fr)!important}.cert-tools>div:first-child,.cert-tools>.cert-unit-picker,.cert-tools>button{grid-column:1/-1!important}.cert-unit-options{grid-template-columns:minmax(0,1fr)!important}}
