@@ -78,3 +78,27 @@ html:has(.absence-modern),body:has(.absence-modern){background:#e6f0f6!important
 .absence-modern .absence-hero-copy{isolation:isolate!important}
 @media(max-width:650px){html:has(.absence-modern),body:has(.absence-modern){background-attachment:scroll!important;background-position:center top!important}.absence-modern{padding:6px 6px 20px!important}.absence-modern .absence-hero.absence-hero-v4{min-height:110px!important}.absence-modern .absence-hero.absence-hero-v4>.absence-brand-school{width:44px!important;height:44px!important;flex-basis:44px!important}}
 @media print{html:has(.absence-modern),body:has(.absence-modern){background:#fff!important}.absence-modern .absence-panel{background:#fff!important;backdrop-filter:none!important;box-shadow:none!important}}
+
+/* Colored translucent glass surfaces: preserve full-page educational backdrop. */
+.absence-modern .absence-panel{background:rgba(246,251,255,.70)!important;border:1px solid rgba(255,255,255,.82)!important;backdrop-filter:blur(8px) saturate(125%)!important;-webkit-backdrop-filter:blur(8px) saturate(125%)!important}
+.absence-modern .absence-workspace-nav{background:rgba(228,245,252,.68)!important;backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important}
+.absence-modern .absence-workspace-nav button{background:rgba(255,255,255,.65)!important;border-color:#b5d7e8!important;color:#175477!important}
+.absence-modern .absence-workspace-nav button[aria-current=page]{background:linear-gradient(110deg,rgba(4,111,163,.94),rgba(7,152,173,.94))!important;color:#fff!important}
+.absence-modern .absence-dashboard-top{background:linear-gradient(110deg,rgba(214,237,252,.67),rgba(237,230,255,.65) 55%,rgba(255,240,209,.65))!important;border-color:rgba(167,207,231,.85)!important}
+.absence-modern .absence-date-card{background:rgba(210,235,251,.72)!important}
+.absence-modern .absence-grade-tabs button{background:rgba(255,255,255,.72)!important;color:#145779!important;border-color:#acd3e8!important}
+.absence-modern .absence-grade-tabs button.active,.absence-modern .absence-grade-tabs button[aria-pressed=true]{background:#0789b9!important;color:white!important}
+.absence-modern .absence-class-compact button{background:rgba(255,255,255,.72)!important;color:#145779!important;border-color:#acd3e8!important}
+.absence-modern .absence-class-compact button.active,.absence-modern .absence-class-compact button[aria-pressed=true]{background:#0789b9!important;color:white!important}
+.absence-modern .absence-metric-card{background:rgba(255,255,255,.68)!important;backdrop-filter:blur(4px)!important}
+.absence-modern .absence-operational-progress{background:rgba(211,238,251,.72)!important}
+.absence-modern .absence-insights{background:rgba(241,248,255,.70)!important}
+.absence-modern .absence-chart-card{background:rgba(255,255,255,.73)!important}
+.absence-modern .absence-summary-card{background:rgba(225,242,253,.72)!important}
+.absence-modern .absence-insights-block{background:rgba(247,239,255,.71)!important}
+.absence-modern .absence-report-settings{background:rgba(223,241,253,.68)!important}
+.absence-modern .roster-v2{background:rgba(246,252,255,.65)!important}
+.absence-modern .roster-v2-row{background:rgba(255,255,255,.76)!important}
+.absence-modern .roster-v2-row:nth-child(even){background:rgba(226,242,251,.77)!important}
+.absence-modern .roster-v2-row.is-absent{background:rgba(255,226,231,.88)!important}
+@media print{.absence-modern .absence-panel,.absence-modern .absence-chart-card,.absence-modern .roster-v2,.absence-modern .roster-v2-row{background:#fff!important;backdrop-filter:none!important}}
