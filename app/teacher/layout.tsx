@@ -35,6 +35,7 @@ const primaryTabs: TeacherTab[] = [
   { href: "/teacher/students", key: "students", label: "إدارة الطلاب", note: "الفصول وبيانات الدخول" },
 ];
 const moreTabs: TeacherTab[] = [
+  { href: "/teacher/time-journey", key: "journey", label: "رحلة عبر الزمن", note: "المعلم الافتراضي والرحلات التعليمية", badge: "جديد" },
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/discipline", key: "discipline", label: "الانضباط", note: "التأخر والاستئذان" },
@@ -48,7 +49,7 @@ const allTabs=[...primaryTabs,...moreTabs];
 const tabByHref=(href:string)=>allTabs.find(tab=>tab.href===href)!;
 const navGroups=[
   { title:"مساحة العمل", tabs:[tabByHref("/teacher/dashboard"),tabByHref("/teacher/timetable")] },
-  { title:"التدريس والمتابعة", tabs:[tabByHref("/teacher/attendance"),tabByHref("/teacher/grades"),tabByHref("/teacher/follow-up"),tabByHref("/teacher/diagnostics"),tabByHref("/teacher/grade-plan")] },
+  { title:"التدريس والمتابعة", tabs:[tabByHref("/teacher/attendance"),tabByHref("/teacher/grades"),tabByHref("/teacher/follow-up"),tabByHref("/teacher/diagnostics"),tabByHref("/teacher/grade-plan"),tabByHref("/teacher/time-journey")] },
   { title:"الطلاب والتواصل", tabs:[tabByHref("/teacher/students"),tabByHref("/teacher/discipline"),tabByHref("/teacher/notes")] },
   { title:"التقارير والإنجاز", tabs:[tabByHref("/teacher/certificates"),tabByHref("/teacher/reports"),tabByHref("/teacher/portfolio"),tabByHref("/teacher/ai")] },
 ];
@@ -67,6 +68,7 @@ function TabIcon({ type }: { type: string }) {
   if (type === "portfolio") return <svg {...common}><path d="M8 4h8l1 3h3v13H4V7h3zM9 11h6M9 15h6"/></svg>;
   if (type === "gradeplan") return <svg {...common}><rect x="4" y="4.5" width="16" height="16" rx="2"/><path d="M8 2.8v3.4M16 2.8v3.4M7.5 10h9M8 14h3M14 14h2M8 17h3"/></svg>;
   if (type === "follow") return <svg {...common}><path d="M12 3.5 20 7v5.5c0 4.8-3.3 7.6-8 8.8-4.7-1.2-8-4-8-8.8V7z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;
+  if (type === "journey") return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2M3 12h3M18 12h3"/></svg>;
   if (type === "ai") return <svg {...common}><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>;
   return <svg {...common}><path d="M16 20v-1.8a4.2 4.2 0 0 0-4.2-4.2H7.2A4.2 4.2 0 0 0 3 18.2V20"/><circle cx="9.5" cy="7" r="3.5"/><path d="M17 10.5a3.3 3.3 0 0 0 0-6.4M20.5 20v-1.8a4.2 4.2 0 0 0-3.1-4"/></svg>;
 }
