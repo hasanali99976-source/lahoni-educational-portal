@@ -38,6 +38,7 @@ const moreTabs: TeacherTab[] = [
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/discipline", key: "discipline", label: "الانضباط", note: "التأخر والاستئذان" },
+  { href: "/teacher/student-exits", key: "studentexits", label: "الاستئذان الذكي", note: "حركة الطلاب أثناء الحصة" },
   { href: "/teacher/notes", key: "notes", label: "الملاحظات", note: "الملاحظات التربوية" },
   { href: "/teacher/reports", key: "reports", label: "مركز التقارير", note: "التقارير والطباعة" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
@@ -49,7 +50,7 @@ const tabByHref=(href:string)=>allTabs.find(tab=>tab.href===href)!;
 const navGroups=[
   { title:"مساحة العمل", tabs:[tabByHref("/teacher/dashboard"),tabByHref("/teacher/timetable")] },
   { title:"التدريس والمتابعة", tabs:[tabByHref("/teacher/attendance"),tabByHref("/teacher/grades"),tabByHref("/teacher/follow-up"),tabByHref("/teacher/diagnostics"),tabByHref("/teacher/grade-plan")] },
-  { title:"الطلاب والتواصل", tabs:[tabByHref("/teacher/students"),tabByHref("/teacher/discipline"),tabByHref("/teacher/notes")] },
+  { title:"الطلاب والتواصل", tabs:[tabByHref("/teacher/students"),tabByHref("/teacher/discipline"),tabByHref("/teacher/student-exits"),tabByHref("/teacher/notes")] },
   { title:"التقارير والإنجاز", tabs:[tabByHref("/teacher/certificates"),tabByHref("/teacher/reports"),tabByHref("/teacher/portfolio"),tabByHref("/teacher/ai")] },
 ];
 
