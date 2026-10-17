@@ -38,7 +38,6 @@ const moreTabs: TeacherTab[] = [
   { href: "/teacher/diagnostics", key: "diagnostics", label: "الاختبارات التشخيصية", note: "النتائج والخطط العلاجية" },
   { href: "/teacher/follow-up", key: "follow", label: "الإتقان والمتابعة", note: "تحليل طلاب المعلم" },
   { href: "/teacher/discipline", key: "discipline", label: "الانضباط", note: "التأخر والاستئذان" },
-  { href: "/teacher/student-exits", key: "studentexits", label: "الاستئذان الذكي", note: "حركة الطلاب أثناء الحصة" },
   { href: "/teacher/notes", key: "notes", label: "الملاحظات", note: "الملاحظات التربوية" },
   { href: "/teacher/reports", key: "reports", label: "مركز التقارير", note: "التقارير والطباعة" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
@@ -50,7 +49,7 @@ const tabByHref=(href:string)=>allTabs.find(tab=>tab.href===href)!;
 const navGroups=[
   { title:"مساحة العمل", tabs:[tabByHref("/teacher/dashboard"),tabByHref("/teacher/timetable")] },
   { title:"التدريس والمتابعة", tabs:[tabByHref("/teacher/attendance"),tabByHref("/teacher/grades"),tabByHref("/teacher/follow-up"),tabByHref("/teacher/diagnostics"),tabByHref("/teacher/grade-plan")] },
-  { title:"الطلاب والتواصل", tabs:[tabByHref("/teacher/students"),tabByHref("/teacher/discipline"),tabByHref("/teacher/student-exits"),tabByHref("/teacher/notes")] },
+  { title:"الطلاب والتواصل", tabs:[tabByHref("/teacher/students"),tabByHref("/teacher/discipline"),tabByHref("/teacher/notes")] },
   { title:"التقارير والإنجاز", tabs:[tabByHref("/teacher/certificates"),tabByHref("/teacher/reports"),tabByHref("/teacher/portfolio"),tabByHref("/teacher/ai")] },
 ];
 
@@ -87,7 +86,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   async function changeSubject(next:string){if(next===workspaceKey||switchingSubject)return;try{setSwitchingSubject(true);const response=await fetch("/api/teacher-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceKey:next}),cache:"no-store",credentials:"same-origin"});if(!response.ok)throw new Error();const switched=await response.json();setSubjectKey(switched.subjectId as SubjectKey);setWorkspaceKey(switched.workspaceKey||next);setActiveGrade(switched.activeGrade||null);setActiveGradeLabel(switched.activeGradeLabel||"");setSubjectName(getSubjectConfig(switched.subjectId).label);window.location.replace(pathname);}finally{setSwitchingSubject(false);}}
   if(isLoginPage){if(entryChecking)return <main className="teacher-shell-loading">جارٍ فتح بوابة المعلم…</main>;return <>{children}</>;} if(!ready)return <main className="teacher-shell-loading">جارٍ تجهيز بوابة المعلم…</main>;
   const contextValue={authenticated:true,teacherId,teacherName,subjectKey,workspaceKey,activeGrade,activeGradeLabel,subject:subjectName,subjects,assignments,setSubject:changeSubject,refresh:async()=>{const response=await fetch("/api/teacher-session",{cache:"no-store",credentials:"same-origin"});if(response.ok)applySession(await response.json());}};
-  if(pathname==="/teacher/student-exits/scan")return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>{children}</TeacherClientContext.Provider>;
   const cleanTeacherName=teacherName.replace(/^أ\.?\s*/,"");
   return <TeacherClientContext.Provider key={`${teacherId||"teacher"}:${workspaceKey}`} value={contextValue}>
     <div className="teacher-student-shell" dir="rtl" data-subject={subjectKey} data-stage={(activeGradeLabel||"").includes("المتوسط")?"middle":"secondary"}>
