@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { preload } from "react-dom";
-import { FormEvent,useState } from "react";
+import { FormEvent,useEffect,useState } from "react";
 import { setGradePlanCurrentTeacher } from "../../lib/grade-plan-local";
 import "./teacher-entry.css";
 
@@ -9,6 +9,7 @@ const LOGO="/icons/lahooni-identity-320.jpg";
 
 export default function TeacherLoginPage(){
  preload("/api/teacher-entry-background",{as:"image",fetchPriority:"high"});
+ useEffect(()=>{try{const remembered=sessionStorage.getItem("lahooni:last-teacher-name");if(remembered)setName(remembered)}catch{}},[]);
  const[name,setName]=useState(""),[password,setPassword]=useState(""),[show,setShow]=useState(false),[error,setError]=useState(""),[loading,setLoading]=useState(false);
  async function submit(e:FormEvent){
    e.preventDefault();if(loading)return;setError("");setLoading(true);
@@ -17,8 +18,10 @@ export default function TeacherLoginPage(){
      const d=await r.json().catch(()=>null);
      if(!r.ok){setError(d?.message||"اسم المعلم أو الرقم السري غير صحيح");return;}
      if(d?.teacherId)setGradePlanCurrentTeacher(d.teacherId);
+     try{sessionStorage.setItem("lahooni:last-teacher-name",name.trim())}catch{}
      sessionStorage.setItem("lahooni:teacher-entry-complete","1");
-     window.location.replace(d?.isAbsenceOfficer ? "/daily-absence" : "/teacher/dashboard");
+     const next=new URLSearchParams(window.location.search).get("next");
+     window.location.replace(d?.isAbsenceOfficer ? "/daily-absence" : next&&next.startsWith("/teacher/")&&!next.startsWith("//")?next:"/teacher/dashboard");
    }catch{setError("تعذر تسجيل الدخول الآن. تحقق من الاتصال ثم حاول مرة أخرى.")}
    finally{setLoading(false)}
  }
