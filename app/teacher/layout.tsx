@@ -96,7 +96,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         <header className="tss-hero-header" aria-label="هوية بوابة المعلم">
           <div className="tss-hero-top">
             <div className="tss-hero-identity"><img src="/icons/teacher-avatar.png.png" alt="صورة المعلم" width="66" height="66"/><div><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"بوابة المعلم التعليمية"}</small></div></div>
-            <div className="tss-hero-intro"><span className="tss-hero-date">{todayLabel}</span><h1>بوابة المعلم <em>التعليمية</em></h1><p>مساحة عملك للتعليم والمتابعة والإنجاز</p></div>
+            <span className="tss-hero-date">{todayLabel}</span><div className="tss-hero-intro"><h1>بوابة المعلم <em>التعليمية</em></h1><p>مساحة عملك للتعليم والمتابعة والإنجاز</p></div>
             <div className="tss-hero-appearance"><TeacherThemeStudio teacherId={teacherId||"teacher"}/><button type="button" className="tss-hero-signout" onClick={logout} title="تسجيل الخروج">↪ خروج</button></div>
           </div>
           <div className="tss-hilal-fan-banner" aria-label="هوية نادي الهلال السعودي"><div className="tss-hilal-team-photo" role="img" aria-label="صورة حديثة للاعبي الهلال من تدريبات أكتوبر 2026"></div><div className="tss-hilal-brand"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Al_Hilal_SFC_Logo.svg" alt="شعار نادي الهلال السعودي" loading="lazy" referrerPolicy="no-referrer"/><span>الهلال <small>AL HILAL</small></span></div><div className="tss-hilal-motto"><strong>الهلال.. عشق لا ينتهي</strong><span>بروح الزعيم نواصل صناعة الإنجاز</span></div><div className="tss-hilal-stadium" aria-hidden="true"><span>★ ★ ★</span><b>الزعيم</b></div></div>
