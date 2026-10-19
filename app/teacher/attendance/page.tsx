@@ -8,6 +8,7 @@ import { useTeacherClient } from "../../../lib/teacher-client";
 import { canonicalClassName, gradeNumber as rosterGradeNumber, sectionNumber as rosterSectionNumber } from "../../../lib/school-roster";
 import { assignmentClassNames, classMatchesAssignments, clean, hasDetailedAssignments, loadDeletedCodes, loadLocalRoster, mergeStudents, normalizeClass, saveLocalRoster, studentCode, type UnifiedStudent } from "../../../lib/unified-roster";
 import "./attendance.css";
+import "./attendance-toolbar-refined.css";
 
 type AttendanceStatus="present"|"absent"|"late"|"excused"|"escaped";
 type AttendanceDocument={class?:string;date?:string;records?:Record<string,AttendanceStatus>;teacherId?:string;subjectKey?:string;updatedAt?:string};
