@@ -483,3 +483,62 @@
  .teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-brand{grid-column:1!important;grid-row:1!important}
  .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{min-height:250px!important;padding-bottom:55px!important}
 }
+
+/* 2026-10-19 structural repair: one unified hero, no overlapping teacher identity, date or heading */
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
+ gap:12px!important;min-height:390px!important;height:auto!important;
+ padding:18px 160px 64px!important;position:relative!important;overflow:hidden!important;
+ background-position:center 40%!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity{
+ position:relative!important;inset:auto!important;transform:none!important;float:none!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ width:auto!important;max-width:300px!important;height:auto!important;min-height:0!important;
+ padding:10px 20px!important;margin:0 auto!important;gap:6px!important;text-align:center!important;
+ background:rgba(3,29,91,.72)!important;border:1px solid rgba(243,207,122,.65)!important;border-radius:24px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity img{
+ width:72px!important;height:72px!important;object-fit:cover!important;border-radius:50%!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity>div{
+ display:flex!important;flex-direction:column!important;align-items:center!important;gap:2px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-intro{
+ position:static!important;inset:auto!important;transform:none!important;float:none!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ width:100%!important;max-width:900px!important;margin:0 auto!important;padding:0!important;
+ text-align:center!important;gap:4px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-intro h1{
+ position:static!important;margin:0!important;padding:0!important;line-height:1.3!important;
+ font-size:clamp(25px,3.4vw,46px)!important;white-space:normal!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-intro p{
+ position:static!important;margin:0!important;padding:0!important;line-height:1.6!important;
+ font-size:clamp(12px,1.4vw,17px)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-date{
+ position:absolute!important;top:16px!important;left:18px!important;right:auto!important;
+ margin:0!important;padding:5px 10px!important;transform:none!important;
+ font-size:13px!important;z-index:4!important;white-space:nowrap!important;
+ background:rgba(4,34,94,.65)!important;border-radius:9px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-appearance{
+ position:absolute!important;left:18px!important;right:auto!important;bottom:12px!important;top:auto!important;
+ transform:none!important;display:flex!important;flex-direction:row!important;z-index:6!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-header{overflow:visible!important}
+@media(max-width:700px){
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
+ min-height:350px!important;padding:48px 12px 56px!important;gap:12px!important
+ }
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity{
+ padding:8px 14px!important;max-width:240px!important
+ }
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity img{width:60px!important;height:60px!important}
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-date{
+ top:8px!important;left:8px!important;font-size:11px!important
+ }
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-appearance{left:8px!important;bottom:8px!important}
+}
