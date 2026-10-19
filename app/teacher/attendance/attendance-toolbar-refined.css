@@ -126,3 +126,86 @@
 @media print{
  .attendance-page .attendance-lesson-tabs,.attendance-page .attendance-setup-panel{display:none!important}
 }
+
+/* v2: dense action-oriented attendance cockpit — eliminate dead space */
+@media(min-width:1051px){
+ .attendance-page .attendance-hero{min-height:52px!important;padding:8px 14px!important}
+ .attendance-page .attendance-head-copy{flex:1!important}
+ .attendance-page .attendance-head-copy p{margin-inline-start:auto!important;font-size:11px!important;opacity:.82}
+ .attendance-page .attendance-lesson-tabs{
+   display:grid!important;grid-template-columns:190px minmax(0,1fr)!important;
+   align-items:center!important;gap:12px!important;padding:10px 14px!important;
+   min-height:78px!important;
+ }
+ .attendance-page .attendance-lesson-tabs-head{
+   width:190px!important;min-width:0!important;flex:none!important;
+   align-items:flex-start!important;justify-content:center!important;gap:3px!important;
+ }
+ .attendance-page .attendance-lesson-tabs-head strong{font-size:11px!important;line-height:1.35!important}
+ .attendance-page .attendance-lesson-tabs-head>span{font-size:10px!important;padding:3px 8px!important}
+ .attendance-page .attendance-lesson-tabs-list{
+   width:100%!important;display:grid!important;
+   grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;
+ }
+ .attendance-page .attendance-lesson-tabs-list button,
+ .attendance-page .attendance-lesson-tabs-list button:nth-child(n){
+   width:100%!important;max-width:none!important;min-width:0!important;
+   min-height:57px!important;flex:initial!important;
+ }
+ .attendance-page .attendance-setup-panel{padding:9px 14px!important}
+}
+.attendance-page .attendance-lesson-tabs{
+ background:linear-gradient(110deg,rgba(221,242,244,.96),rgba(229,238,250,.93))!important
+}
+.attendance-page .attendance-lesson-tabs-list button,
+.attendance-page .attendance-lesson-tabs-list button:nth-child(n){
+ position:relative!important;overflow:hidden!important;text-align:right!important;
+ border-right:4px solid #78b8c8!important;
+ background:linear-gradient(125deg,#ffffff,#eaf6fa)!important;
+ box-shadow:0 3px 12px rgba(14,82,106,.09)!important;
+}
+.attendance-page .attendance-lesson-tabs-list button:nth-child(3n+2){
+ border-right-color:#ad9ce1!important;
+ background:linear-gradient(125deg,#ffffff,#f0edfc)!important;
+}
+.attendance-page .attendance-lesson-tabs-list button:nth-child(3n){
+ border-right-color:#62bda1!important;
+ background:linear-gradient(125deg,#ffffff,#e8f9f2)!important;
+}
+.attendance-page .attendance-lesson-tabs-list button.active,
+.attendance-page .attendance-lesson-tabs-list button.active:nth-child(n){
+ border:1px solid #d7a246!important;border-right:5px solid #d7a246!important;
+ background:linear-gradient(120deg,#fff3d5,#fff9ec)!important;
+ box-shadow:0 4px 15px rgba(177,120,29,.18),inset 0 0 0 1px rgba(239,190,94,.25)!important;
+}
+.attendance-page .attendance-lesson-tabs-list button.active::after{
+ content:"✓"!important;position:absolute!important;left:12px!important;top:50%!important;
+ transform:translateY(-50%)!important;width:24px!important;height:24px!important;
+ display:grid!important;place-items:center!important;border-radius:8px!important;
+ background:#d99f3c!important;color:white!important;font-size:15px!important;font-weight:900!important
+}
+.attendance-page .attendance-lesson-tabs-list button b{font-size:11px!important;opacity:.8}
+.attendance-page .attendance-lesson-tabs-list button strong{font-size:14px!important}
+.attendance-page .attendance-lesson-tabs-head small{font-size:13px!important}
+.attendance-page .attendance-main-actions .attendance-save,
+.attendance-page .attendance-main-actions .attendance-save:nth-child(n){
+ background:linear-gradient(120deg,#0b8190,#0e6274)!important;
+ border-color:#0b7180!important;box-shadow:0 3px 9px rgba(5,98,117,.15)!important
+}
+.attendance-page .attendance-main-actions button:hover:not(:disabled){
+ filter:brightness(.96)!important;transform:translateY(-1px)!important
+}
+@media(min-width:1051px) and (max-width:1350px){
+ .attendance-page .attendance-lesson-tabs{grid-template-columns:160px minmax(0,1fr)!important}
+ .attendance-page .attendance-lesson-tabs-head{width:160px!important}
+}
+@media(max-width:1050px){
+ .attendance-page .attendance-lesson-tabs-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .attendance-page .attendance-lesson-tabs-list button,.attendance-page .attendance-lesson-tabs-list button:nth-child(n){
+   min-width:0!important;width:100%!important;flex:initial!important
+ }
+}
+@media(max-width:560px){
+ .attendance-page .attendance-lesson-tabs-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .attendance-page .attendance-head-copy p{display:none!important}
+}
