@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import CreativeExperience from "./CreativeExperience";
+import TeacherThemeStudio from "./TeacherThemeStudio";
 import { preload } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
@@ -96,7 +97,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           <div className="tss-hero-top">
             <div className="tss-hero-identity"><img src="/icons/teacher-avatar.png.png" alt="صورة المعلم" width="66" height="66"/><div><strong>أ. {cleanTeacherName}</strong><span>معلم {subjectName}</span><small>{activeGradeLabel||"بوابة المعلم التعليمية"}</small></div></div>
             <div className="tss-hero-intro"><span className="tss-hero-date">{todayLabel}</span><h1>بوابة المعلم <em>التعليمية</em></h1><p>مساحة عملك للتعليم والمتابعة والإنجاز</p></div>
-            <button type="button" className="tss-hero-signout" onClick={logout} title="تسجيل الخروج">↪ خروج</button>
+            <div className="tss-hero-appearance"><TeacherThemeStudio teacherId={teacherId||"teacher"}/><button type="button" className="tss-hero-signout" onClick={logout} title="تسجيل الخروج">↪ خروج</button></div>
           </div>
           <nav className="tss-hero-shortcuts" aria-label="جميع خدمات بوابة المعلم">{allTabs.map(tab=><Link prefetch={false} key={tab.key} href={tab.href} className={pathname.startsWith(tab.href)?"active":""} aria-current={pathname.startsWith(tab.href)?"page":undefined}><span className="tss-hero-shortcut-icon"><TabIcon type={tab.key}/></span><b>{tab.label}</b></Link>)}</nav>
         </header>
