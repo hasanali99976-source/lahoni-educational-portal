@@ -84,6 +84,8 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
   const ctx = await context(request, body); if ("error" in ctx) return ctx.error;
   const studentCode = clean(body.studentCode).toUpperCase();
+  // The roster defaults to present in the UI; persist those defaults on the first status change.
+  const studentCodes = Array.isArray(body.studentCodes) ? [...new Set(body.studentCodes.map(value => clean(value).toUpperCase()).filter(Boolean))].slice(0, 250) : [];
   const status = body.status as AttendanceStatus;
   if (!studentCode || !VALID_STATUS.has(status)) return NextResponse.json({ ok: false, message: "حالة الطالب غير صحيحة." }, { status: 400 });
   const updatedAt = new Date().toISOString();
@@ -93,7 +95,9 @@ export async function PATCH(request: Request) {
     await withTimeout(adminDb().runTransaction(async tx => {
       const snapshot = await tx.get(ctx.reference);
       const previous = snapshot.exists ? cleanRecords(snapshot.data()?.records) : {};
-      const records = { ...previous, [studentCode]: status };
+      const rosterDefaults = Object.fromEntries(studentCodes.map(code => [code, "present" as AttendanceStatus]));
+      // Preserve all previously recorded statuses; never overwrite an absence with a default.
+      const records = { ...rosterDefaults, ...previous, [studentCode]: status };
       saved = { ...(snapshot.exists ? snapshot.data() : {}), class: ctx.className, date: ctx.date, records, period: period || snapshot.data()?.period || null, teacherId: ctx.session.userId, teacherName: ctx.session.name || "", subjectKey: ctx.subjectId, manualEdited: true, updatedAt, savedThroughApiAt: updatedAt };
       tx.set(ctx.reference, saved, { merge: true });
     }));
