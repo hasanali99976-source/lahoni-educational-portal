@@ -1,0 +1,66 @@
+/* Teacher appearance studio: all rules scoped to teacher shell, never print */
+.teacher-student-shell{--tt-accent:#e9bb75;--tt-ink:#fff;--tt-surface:rgba(9,51,70,.79);--tt-border:rgba(158,214,229,.37);--tt-radius:14px;--tt-font:inherit;--tt-backdrop:none}
+.teacher-student-shell[data-teacher-theme="clouds"]{--tt-accent:#438bb3;--tt-ink:#17465f;--tt-surface:rgba(247,253,255,.94);--tt-border:#b6dbe9;--tt-radius:24px;--tt-font:"Tajawal","Arial",sans-serif;--tt-backdrop:radial-gradient(ellipse at 15% 20%,rgba(255,255,255,.85) 0 13%,transparent 30%),radial-gradient(ellipse at 85% 50%,rgba(255,255,255,.85) 0 12%,transparent 29%),linear-gradient(135deg,#b8e4f7,#eaf8ff)}
+.teacher-student-shell[data-teacher-theme="hilal"]{--tt-accent:#08764e;--tt-ink:#164a38;--tt-surface:rgba(248,255,250,.95);--tt-border:#a8d5be;--tt-radius:10px;--tt-font:"IBM Plex Sans Arabic","Arial",sans-serif;--tt-backdrop:repeating-linear-gradient(45deg,transparent 0 42px,rgba(14,116,76,.045) 43px 45px),linear-gradient(135deg,#d9f2e4,#f8fff9)}
+.teacher-student-shell[data-teacher-theme="islamic"]{--tt-accent:#aa843b;--tt-ink:#20585c;--tt-surface:rgba(255,252,244,.97);--tt-border:#d5c39c;--tt-radius:20px 20px 9px 9px;--tt-font:"Noto Naskh Arabic","Arial",sans-serif;--tt-backdrop:repeating-linear-gradient(45deg,transparent 0 30px,rgba(37,111,108,.045) 31px 32px),repeating-linear-gradient(-45deg,transparent 0 30px,rgba(37,111,108,.045) 31px 32px),linear-gradient(125deg,#e8f5f0,#fff8e9)}
+.teacher-student-shell[data-teacher-theme="diriyah"]{--tt-accent:#a36b3c;--tt-ink:#573f30;--tt-surface:rgba(255,249,239,.96);--tt-border:#d7b998;--tt-radius:6px;--tt-font:"Cairo","Arial",sans-serif;--tt-backdrop:repeating-linear-gradient(90deg,rgba(143,90,47,.035) 0 3px,transparent 3px 35px),linear-gradient(135deg,#e7cfad,#faf0e0)}
+.teacher-student-shell[data-teacher-theme="royal"]{--tt-accent:#f2c77d;--tt-ink:#f7f7ff;--tt-surface:rgba(10,39,65,.93);--tt-border:#bd995f;--tt-radius:15px;--tt-font:"Almarai","Arial",sans-serif;--tt-backdrop:radial-gradient(ellipse at 50% 0,rgba(201,156,75,.18),transparent 60%),linear-gradient(125deg,#102d49,#061b31)}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]){font-family:var(--tt-font)!important;background-image:var(--tt-backdrop)!important;background-attachment:fixed!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-header{
+ background:var(--tt-surface)!important;border:1px solid var(--tt-border)!important;border-radius:var(--tt-radius)!important;
+ backdrop-filter:blur(10px)!important;
+}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a,
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a:nth-child(n){
+ background:var(--tt-surface)!important;border:1px solid var(--tt-border)!important;
+ border-radius:var(--tt-radius)!important;box-shadow:0 3px 13px rgba(20,53,67,.10)!important
+}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a b{color:var(--tt-ink)!important;font-family:var(--tt-font)!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a.active,
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a.active:nth-child(n){
+ border:2px solid var(--tt-accent)!important;box-shadow:inset 0 0 0 1px var(--tt-accent),0 3px 14px rgba(20,53,67,.12)!important
+}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a.active b{color:var(--tt-accent)!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcut-icon{border-color:var(--tt-border)!important;color:var(--tt-accent)!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-intro h1,
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-identity strong{color:var(--tt-ink)!important;font-family:var(--tt-font)!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-intro h1 em{color:var(--tt-accent)!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-intro p,
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-identity span,
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-identity small{color:var(--tt-ink)!important;opacity:.82!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-content{font-family:var(--tt-font)!important}
+.teacher-student-shell[data-teacher-density="compact"] .tss-hero-shortcuts a{height:49px!important;min-height:49px!important;padding:6px 9px!important;gap:7px!important}
+.teacher-student-shell[data-teacher-density="compact"] .tss-hero-shortcut-icon{width:29px!important;height:29px!important;flex-basis:29px!important}
+.teacher-student-shell[data-teacher-density="compact"] .tss-hero-shortcut-icon svg{width:17px!important;height:17px!important}
+.teacher-theme-launch{border:1px solid rgba(237,204,141,.85);background:rgba(8,62,82,.87);color:#fff4dc;border-radius:12px;padding:9px 15px;font:800 13px/1.4 inherit;cursor:pointer;white-space:nowrap}
+.teacher-theme-launch:hover{background:#126a83}
+.teacher-theme-backdrop{position:fixed;inset:0;z-index:99999;background:rgba(3,20,30,.7);display:grid;place-items:center;padding:15px}
+.teacher-theme-panel{box-sizing:border-box;width:min(790px,100%);max-height:90dvh;overflow:auto;background:#f8fbfd;color:#173f54;border:1px solid #a7cbd8;border-radius:22px;padding:22px;box-shadow:0 25px 90px #001a2b88;font-family:"Tajawal","Arial",sans-serif}
+.teacher-theme-panel header{display:flex;justify-content:space-between;align-items:start;gap:15px;margin-bottom:18px}
+.teacher-theme-panel header span{font-size:12px;color:#34819a;font-weight:800}
+.teacher-theme-panel header h2{font-size:27px;color:#114b66;margin:3px 0}
+.teacher-theme-panel header p{font-size:13px;color:#547689;margin:0}
+.teacher-theme-panel header>button{border:1px solid #c7dce5;background:#fff;color:#28556c;border-radius:10px;padding:7px 12px;cursor:pointer}
+.teacher-theme-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.teacher-theme-choice{position:relative;min-height:140px;border:2px solid transparent;border-radius:16px;padding:13px;text-align:right;display:flex;flex-direction:column;align-items:start;gap:7px;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+.teacher-theme-choice:hover{transform:translateY(-2px)}
+.teacher-theme-choice.chosen{border-color:#dfad52;box-shadow:0 0 0 2px #dfad5240}
+.teacher-theme-choice strong{font-size:16px;font-weight:900}
+.teacher-theme-choice small{font-size:12px;opacity:.85}
+.teacher-theme-choice em{font-style:normal;font-size:11px;background:#e8bd68;color:#352300;border-radius:9px;padding:3px 9px;margin-top:auto}
+.teacher-theme-symbol{font-size:26px;line-height:1}
+.theme-preview-original{background:linear-gradient(130deg,#113f55,#245b72);color:white}
+.theme-preview-clouds{background:linear-gradient(130deg,#d3f0fc,#fff);color:#19506b}
+.theme-preview-hilal{background:linear-gradient(130deg,#d2f1de,#fafffb);color:#176543}
+.theme-preview-islamic{background:repeating-linear-gradient(45deg,#f6f1e5 0 16px,#e4f2ed 17px 18px);color:#23666b}
+.theme-preview-diriyah{background:linear-gradient(130deg,#e7c9a2,#fff0d9);color:#74482b}
+.theme-preview-royal{background:linear-gradient(130deg,#102f50,#071a2d);color:#f7d49b}
+.teacher-theme-density{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:20px 0;border-top:1px solid #d7e5ec;padding-top:15px}
+.teacher-theme-density>div{display:flex;gap:8px}
+.teacher-theme-density button,.teacher-theme-panel footer button{border:1px solid #bad3de;background:white;border-radius:10px;padding:9px 16px;cursor:pointer;color:#22536a;font-weight:800}
+.teacher-theme-density button[aria-pressed="true"]{background:#d8eff6;border-color:#3089a6}
+.teacher-theme-panel footer{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.teacher-theme-panel footer span{flex:1;min-width:190px;font-size:11px;color:#587689}
+.teacher-theme-panel footer .teacher-theme-done{background:#106d7f;color:white;border-color:#106d7f}
+@media(max-width:640px){.teacher-theme-panel{padding:15px}.teacher-theme-options{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-theme-choice{min-height:118px}.teacher-theme-panel header h2{font-size:22px}}
+@media print{.teacher-theme-launch,.teacher-theme-backdrop{display:none!important}.teacher-student-shell[data-teacher-theme]{background:none!important}}
