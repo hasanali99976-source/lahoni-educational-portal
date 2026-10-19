@@ -4,8 +4,9 @@ import "./teacher-themes.css";
 
 export const themeOptions=[
  {id:"original",name:"الأصلي",description:"هوية لحوني المعتمدة",mark:"◈"},
+ {id:"history",name:"التاريخ",description:"مخطوطات وخريطة زمنية وألوان تراثية",mark:"⌛"},
  {id:"clouds",name:"الغيوم",description:"سماوي وغيوم ناعمة",mark:"☁"},
- {id:"hilal",name:"الهلال السعودي",description:"أخضر وملامح وطنية",mark:"☪"},
+ {id:"hilal",name:"الهلال السعودي",description:"هلال وزخارف وطنية خضراء",mark:"☾"},
  {id:"islamic",name:"الإسلامي",description:"أقواس وزخارف هندسية",mark:"✧"},
  {id:"diriyah",name:"الدرعية",description:"رمال وعمارة نجدية",mark:"▦"},
  {id:"royal",name:"الملكي",description:"كحلي وذهبي",mark:"✦"},
