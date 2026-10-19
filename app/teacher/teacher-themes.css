@@ -425,9 +425,9 @@
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
  content:""!important;position:absolute!important;display:block!important;inset:0!important;z-index:0!important;
- background-image:linear-gradient(90deg,rgba(2,20,77,.1),rgba(2,22,77,.86) 35%,rgba(2,22,77,.86) 64%,rgba(2,20,77,.16)),url("https://contentfulproxy.stadion.io/eyc25wndlima/6gJv0UDhi1ZyuEjGwZYsv0/4ab3a8e08d543793c61c359bc49e3e78/9d68d22b-bfd4-42ca-9370-3f7966191029.jpg.jpeg?f=face&fit=fill&fm=webp&h=2969&w=3959"),url("/teacher-themes/hilal-stadium-2026.svg")!important;
- background-size:100% 100%,42% auto,cover!important;
- background-position:center,left center,center!important;
+ background-image:linear-gradient(90deg,rgba(3,21,78,.30) 0%,rgba(3,22,80,.56) 23%,rgba(3,23,84,.84) 44%,rgba(3,23,84,.86) 61%,rgba(3,24,85,.56) 82%,rgba(3,21,78,.36) 100%),url("https://contentfulproxy.stadion.io/eyc25wndlima/6gJv0UDhi1ZyuEjGwZYsv0/4ab3a8e08d543793c61c359bc49e3e78/9d68d22b-bfd4-42ca-9370-3f7966191029.jpg.jpeg?f=face&fit=fill&fm=webp&h=2969&w=3959")!important;
+ background-size:cover,cover!important;
+ background-position:center,center 38%!important;
  background-repeat:no-repeat!important;
  pointer-events:none!important;transform:none!important;opacity:1!important;
 }
