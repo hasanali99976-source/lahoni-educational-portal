@@ -64,3 +64,89 @@
 .teacher-theme-panel footer .teacher-theme-done{background:#106d7f;color:white;border-color:#106d7f}
 @media(max-width:640px){.teacher-theme-panel{padding:15px}.teacher-theme-options{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-theme-choice{min-height:118px}.teacher-theme-panel header h2{font-size:22px}}
 @media print{.teacher-theme-launch,.teacher-theme-backdrop{display:none!important}.teacher-student-shell[data-teacher-theme]{background:none!important}}
+
+/* Identity studio v2 — visibly distinct whole workspace and compact toolbar */
+.teacher-student-shell .tss-hero-appearance{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;align-self:center!important;min-height:0!important;margin:0!important;padding:0!important}
+.teacher-student-shell .tss-hero-top{align-items:center!important;min-height:0!important;gap:12px!important;padding-block:7px!important}
+.teacher-student-shell .tss-hero-appearance .teacher-theme-launch,
+.teacher-student-shell .tss-hero-appearance .tss-hero-signout{position:static!important;inset:auto!important;transform:none!important;min-height:32px!important;height:32px!important;line-height:1.2!important;padding:5px 10px!important;margin:0!important;font-size:12px!important;border-radius:9px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important}
+.teacher-student-shell .tss-hero-appearance .teacher-theme-launch{background:linear-gradient(120deg,#eac481,#bf8c42)!important;color:#213e4d!important;border:1px solid #eac481!important;box-shadow:0 3px 10px rgba(21,30,44,.12)!important}
+.teacher-student-shell .tss-hero-appearance .teacher-theme-launch:hover{filter:brightness(1.06)}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]){
+ --gold:var(--tt-accent);--primary:var(--tt-accent);--accent:var(--tt-accent);
+ background:var(--tt-backdrop)!important;background-attachment:fixed!important;
+}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-main{
+ background:transparent!important;background-image:none!important;
+}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-content{
+ background:transparent!important;background-image:none!important;
+}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-header{
+ position:relative!important;overflow:hidden!important;
+ box-shadow:0 9px 26px rgba(15,57,71,.14)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-header{
+ background:radial-gradient(ellipse at 22% 9%,#fff 0 10%,transparent 26%),radial-gradient(ellipse at 72% 15%,#fff 0 12%,transparent 31%),linear-gradient(135deg,#e4f7ff,#b5e2f4)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-header{
+ background:repeating-linear-gradient(135deg,transparent 0 39px,rgba(11,105,66,.06) 40px 43px),linear-gradient(125deg,#f1fff6,#c4e8d2)!important;
+ border-top:5px solid #137e52!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-header{
+ background:repeating-linear-gradient(45deg,transparent 0 29px,rgba(25,115,115,.07) 30px 32px),repeating-linear-gradient(-45deg,transparent 0 29px,rgba(25,115,115,.07) 30px 32px),linear-gradient(135deg,#f6f0dc,#dcefe9)!important;
+ border-top:5px solid #bd9b58!important;
+}
+.teacher-student-shell[data-teacher-theme="diriyah"] .tss-hero-header{
+ background:repeating-linear-gradient(90deg,transparent 0 32px,rgba(116,71,37,.06) 33px 36px),linear-gradient(130deg,#f8e8d2,#d9b48b)!important;
+ border-top:5px solid #9b673e!important;
+}
+.teacher-student-shell[data-teacher-theme="royal"] .tss-hero-header{
+ background:radial-gradient(ellipse at 70% -20%,rgba(224,173,83,.28),transparent 55%),linear-gradient(120deg,#173f63,#071d32)!important;
+ border-top:4px solid #d7aa62!important;
+}
+/* Make the workspace cards visibly follow the selected identity. Keep inputs legible. */
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]):not([data-teacher-theme="royal"]) .tss-content :is(.card,.panel,.box,.widget,.summary-card,.stat-card,.student-card,.lesson-card,.attendance-card,.timetable-card,.daily-premium,.daily-overview,.attendance-hero,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article,.daily-overview-ring>div){
+ border-color:var(--tt-border)!important;border-radius:var(--tt-radius)!important;
+ box-shadow:0 5px 17px rgba(24,78,92,.10)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article){
+ background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(219,244,253,.94))!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article){
+ background:linear-gradient(135deg,#ffffff,#e4f7e9)!important;
+ border-right:3px solid #279568!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article){
+ background:linear-gradient(135deg,#fffdf5,#e9f3ed)!important;
+ border-top:2px solid #c5a25d!important;
+}
+.teacher-student-shell[data-teacher-theme="diriyah"] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article){
+ background:linear-gradient(135deg,#fffaf0,#f0dcc2)!important;
+ border-right:3px solid #a8774a!important;
+}
+.teacher-student-shell[data-teacher-theme="royal"] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article){
+ background:linear-gradient(125deg,#133e5e,#1b3452)!important;
+ border-color:#bd995f!important;color:#f6f6ff!important;
+}
+.teacher-student-shell[data-teacher-theme="royal"] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card,.attendance-lesson-tabs,.attendance-setup-panel,.attendance-overview article) :is(h1,h2,h3,strong,span,small,p,label){
+ color:#f8f3e9!important;text-shadow:none!important;
+}
+.teacher-student-shell[data-teacher-theme="royal"] .tss-content :is(input,select,textarea,option){color:#153b52!important;background:#fff!important}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a{border-radius:26px!important}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a{border-radius:5px 18px 5px 18px!important}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-shortcuts a{border-radius:20px 20px 7px 7px!important;border-top:3px solid #c4a364!important}
+.teacher-student-shell[data-teacher-theme="diriyah"] .tss-hero-shortcuts a{border-radius:3px!important;border-right:4px solid #b58a61!important}
+.teacher-student-shell[data-teacher-theme="royal"] .tss-hero-shortcuts a{border-radius:10px!important;border-bottom:2px solid #b98e53!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-hero-shortcuts a.active b{color:var(--tt-ink)!important;font-weight:900!important}
+.teacher-student-shell[data-teacher-theme="royal"] .tss-hero-shortcuts a.active b{color:#ffe0a6!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-content :is(h1,h2,h3){font-family:var(--tt-font)!important}
+.teacher-student-shell[data-teacher-theme]:not([data-teacher-theme="original"]) .tss-content :is(button,input,select,textarea){font-family:var(--tt-font)!important}
+@media(max-width:700px){
+ .teacher-student-shell .tss-hero-appearance{gap:5px!important}
+ .teacher-student-shell .tss-hero-appearance .teacher-theme-launch,
+ .teacher-student-shell .tss-hero-appearance .tss-hero-signout{height:29px!important;min-height:29px!important;padding:4px 7px!important;font-size:11px!important}
+}
+@media print{
+ .teacher-student-shell[data-teacher-theme] .tss-content :is(.card,.panel,.widget,.attendance-card,.timetable-card){background:white!important;color:#111!important;border-color:#ddd!important}
+}
