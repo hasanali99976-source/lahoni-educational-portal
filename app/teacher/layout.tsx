@@ -99,6 +99,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             <div className="tss-hero-intro"><span className="tss-hero-date">{todayLabel}</span><h1>بوابة المعلم <em>التعليمية</em></h1><p>مساحة عملك للتعليم والمتابعة والإنجاز</p></div>
             <div className="tss-hero-appearance"><TeacherThemeStudio teacherId={teacherId||"teacher"}/><button type="button" className="tss-hero-signout" onClick={logout} title="تسجيل الخروج">↪ خروج</button></div>
           </div>
+          <div className="tss-hilal-fan-banner" aria-label="هوية نادي الهلال السعودي"><div className="tss-hilal-brand"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Al_Hilal_SFC_Logo.svg" alt="شعار نادي الهلال السعودي" loading="lazy" referrerPolicy="no-referrer"/><span>الهلال <small>AL HILAL</small></span></div><div className="tss-hilal-motto"><strong>الهلال.. عشق لا ينتهي</strong><span>بروح الزعيم نواصل صناعة الإنجاز</span></div><div className="tss-hilal-stadium" aria-hidden="true"><span>★ ★ ★</span><b>الزعيم</b></div></div>
           <nav className="tss-hero-shortcuts" aria-label="جميع خدمات بوابة المعلم">{allTabs.map(tab=><Link prefetch={false} key={tab.key} href={tab.href} className={pathname.startsWith(tab.href)?"active":""} aria-current={pathname.startsWith(tab.href)?"page":undefined}><span className="tss-hero-shortcut-icon"><TabIcon type={tab.key}/></span><b>{tab.label}</b></Link>)}</nav>
         </header>
         <div className="tss-content">{children}</div>
