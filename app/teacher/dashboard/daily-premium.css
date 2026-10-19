@@ -37,3 +37,34 @@
 .daily-activity-list>div{border:1px solid #dcecf5;background:linear-gradient(90deg,#f5fbff,#e7f4fc)!important;min-height:67px;padding:10px!important}.daily-activity-icon{width:39px!important;height:39px!important;font-size:19px;border:1px solid white}.daily-activity-list strong{font-size:13px!important}.daily-activity-list small{font-size:11px!important}.daily-activity-list a{background:#d9effd;padding:7px 12px;border-radius:20px;font-weight:900;font-size:11px!important}
 @media(max-width:950px){.daily-overview{grid-template-columns:1fr 105px}.daily-overview-stats{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))}.daily-work-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.daily-overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-work-grid{grid-template-columns:1fr}.daily-overview-title h2{font-size:19px!important}.daily-metric{min-height:85px}.daily-metric-icon{width:36px!important;height:36px!important}.daily-quick-grid strong{font-size:12px!important}}
+
+/* Clear attendance gauge for zero, empty and populated days */
+.daily-premium .daily-overview-ring{
+ position:relative!important;isolation:isolate!important;overflow:visible!important;
+ width:118px!important;height:118px!important;padding:7px!important;
+ background:conic-gradient(from 0deg,#11aa88 0 var(--studio-pct),#d4e4eb var(--studio-pct) 100%)!important;
+ box-shadow:0 0 0 5px rgba(255,255,255,.75),0 5px 15px rgba(17,74,95,.12)!important;
+}
+.daily-premium .daily-overview-ring.is-zero{
+ background:conic-gradient(#e8a2ad 0 100%)!important;
+}
+.daily-premium .daily-overview-ring.is-empty{
+ background:conic-gradient(#d4e4eb 0 100%)!important;
+}
+.daily-premium .daily-overview-ring>div{
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ padding:8px!important;background:#f8fcff!important;border-radius:50%!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:4px!important;text-align:center!important
+}
+.daily-premium .daily-overview-ring strong{
+ display:block!important;white-space:nowrap!important;direction:ltr!important;
+ font-size:25px!important;font-weight:900!important;line-height:1.2!important;
+ color:#11607a!important;font-variant-numeric:tabular-nums!important
+}
+.daily-premium .daily-overview-ring.is-zero strong{color:#a93250!important}
+.daily-premium .daily-overview-ring small{
+ display:block!important;font-size:10px!important;font-weight:800!important;
+ line-height:1.35!important;max-width:90px!important;color:#5c7d90!important
+}
+.daily-premium .daily-overview-ring.is-zero small{color:#a93250!important}
