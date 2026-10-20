@@ -672,3 +672,69 @@
  }
  .teacher-student-shell[data-teacher-theme="history"] .tss-hero-shortcuts a{min-width:0!important}
 }
+
+/* History hero structural repair: prevent absolute-position remnants clipping the teacher card. */
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-header::before,
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-header::after{
+ content:none!important;display:none!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top{
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:10px!important;min-height:325px!important;
+ height:auto!important;padding:52px 110px 60px!important;
+ box-sizing:border-box!important;overflow:hidden!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-identity{
+ position:relative!important;inset:auto!important;top:auto!important;right:auto!important;
+ bottom:auto!important;left:auto!important;transform:none!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ width:auto!important;max-width:min(250px,100%)!important;min-width:0!important;
+ height:auto!important;min-height:0!important;margin:0 auto!important;padding:10px 16px!important;
+ border-radius:20px!important;text-align:center!important;gap:6px!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-identity img{
+ width:68px!important;height:68px!important;object-fit:cover!important;border-radius:50%!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-intro{
+ position:relative!important;inset:auto!important;top:auto!important;right:auto!important;
+ bottom:auto!important;left:auto!important;transform:none!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ width:100%!important;max-width:900px!important;margin:0 auto!important;padding:0!important;
+ text-align:center!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-intro h1{
+ position:static!important;margin:0!important;padding:0!important;
+ font-size:clamp(24px,3vw,43px)!important;line-height:1.35!important;
+ white-space:normal!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-intro h1 em{
+ color:#915729!important;-webkit-text-fill-color:#915729!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-intro p{
+ position:static!important;margin:3px 0 0!important;line-height:1.5!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-date{
+ position:absolute!important;inset:auto!important;top:12px!important;right:14px!important;
+ left:auto!important;bottom:auto!important;transform:none!important;
+ display:inline-flex!important;width:max-content!important;max-width:calc(100% - 28px)!important;
+ font-size:13px!important;line-height:1.4!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-appearance{
+ position:absolute!important;top:auto!important;bottom:10px!important;left:12px!important;
+ right:auto!important;transform:none!important;z-index:5!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-shortcuts a.active b,
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-shortcuts a.active .tss-hero-shortcut-icon{
+ color:#fff7e9!important;-webkit-text-fill-color:#fff7e9!important;
+}
+@media(max-width:760px){
+ .teacher-student-shell[data-teacher-theme="history"] .tss-hero-top{
+  min-height:330px!important;padding:53px 12px 58px!important;gap:8px!important;
+ }
+ .teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-identity{
+  max-width:210px!important;padding:8px 12px!important;
+ }
+ .teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-intro h1{
+  font-size:clamp(22px,6vw,32px)!important;
+ }
+}
