@@ -426,18 +426,13 @@
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
  content:""!important;position:absolute!important;display:block!important;inset:0!important;z-index:0!important;
- background-image:linear-gradient(90deg,rgba(11,30,58,.03) 0%,rgba(15,35,65,.12) 23%,rgba(15,32,62,.43) 44%,rgba(15,32,62,.45) 61%,rgba(15,35,65,.13) 82%,rgba(11,30,58,.04) 100%),url("https://contentfulproxy.stadion.io/eyc25wndlima/6gJv0UDhi1ZyuEjGwZYsv0/4ab3a8e08d543793c61c359bc49e3e78/9d68d22b-bfd4-42ca-9370-3f7966191029.jpg.jpeg?f=face&fit=fill&fm=webp&h=2969&w=3959")!important;
+ background-image:linear-gradient(90deg,rgba(10,28,55,.03) 0%,rgba(12,31,59,.07) 23%,rgba(12,31,59,.24) 44%,rgba(12,31,59,.26) 61%,rgba(12,31,59,.08) 82%,rgba(10,28,55,.03) 100%),url("https://contentfulproxy.stadion.io/eyc25wndlima/6gJv0UDhi1ZyuEjGwZYsv0/4ab3a8e08d543793c61c359bc49e3e78/9d68d22b-bfd4-42ca-9370-3f7966191029.jpg.jpeg?f=face&fit=fill&fm=webp&h=2969&w=3959")!important;
  background-size:cover,cover!important;
  background-position:center,center 38%!important;
  background-repeat:no-repeat!important;
  pointer-events:none!important;transform:none!important;opacity:1!important;
 }
-.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::after{
- content:""!important;position:absolute!important;display:block!important;
- top:10px!important;right:4%!important;left:auto!important;bottom:10px!important;width:23%!important;
- background:url("/teacher-themes/hilal.svg") center/contain no-repeat!important;
- opacity:.18!important;z-index:1!important;pointer-events:none!important;transform:none!important;
-}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::after{content:none!important;display:none!important}
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-identity{
  position:relative!important;inset:auto!important;transform:none!important;z-index:2!important;
  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
