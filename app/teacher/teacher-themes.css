@@ -961,3 +961,29 @@
   background-repeat:no-repeat!important;
  }
 }
+
+/* Final approved image correction: original uploaded PNG is a 2046x769
+   whole-page mockup; its header occupies the first 392px (51%).
+   Show the ENTIRE header portion, not a zoomed/cropped portrait. */
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top{
+ background-image:url("/teacher-themes/islamic-approved-design.png.png")!important;
+ background-size:100% 196%!important;
+ background-position:center top!important;
+ background-repeat:no-repeat!important;
+ height:auto!important;
+ min-height:0!important;
+ aspect-ratio:2046/392!important;
+}
+@media screen and (max-width:760px){
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top{
+  aspect-ratio:2046/392!important;
+  height:auto!important;
+  min-height:0!important;
+  background-size:100% 196%!important;
+  background-position:center top!important;
+ }
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top>.tss-hero-appearance{
+  left:1%!important;bottom:2%!important;
+  transform:scale(.7)!important;transform-origin:bottom left!important;
+ }
+}
