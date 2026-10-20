@@ -1,0 +1,25 @@
+/* Mobile/PWA layout safeguards shared by all teacher pages. Avoid changing desktop or print. */
+@media screen and (max-width:760px){
+ .teacher-student-shell,.teacher-student-shell .tss-content{
+  min-width:0!important;max-width:100%!important;
+ }
+ .teacher-student-shell .tss-content{
+  box-sizing:border-box!important;overflow-x:clip!important;
+ }
+ .teacher-student-shell .tss-content :is(main,section,article,form,header,footer,nav){
+  min-width:0;max-width:100%;box-sizing:border-box;
+ }
+ .teacher-student-shell .tss-content :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  max-width:100%;box-sizing:border-box;font-size:max(16px,1em);
+ }
+ .teacher-student-shell .tss-content :is(.table-wrap,.gradebook-scroll,.gv11-table-wrap,.unit-table-scroll,.report-table-wrap,.student-table-scroll){
+  max-width:100%!important;min-width:0!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+ }
+ .teacher-student-shell .tss-content img,.teacher-student-shell .tss-content video{
+  max-width:100%;height:auto;
+ }
+}
+@media screen and (max-width:390px){
+ .teacher-student-shell .tss-content{padding-inline:8px!important}
+}
