@@ -738,3 +738,34 @@
   font-size:clamp(22px,6vw,32px)!important;
  }
 }
+
+/* Approved historical panorama replaces the placeholder open-book illustration. */
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top{
+ min-height:350px!important;
+ background:#ead0a8 url("/teacher-themes/history-fortress-panorama.svg") center 50%/cover no-repeat!important;
+ border:1px solid #bb8550!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top::before{
+ background:linear-gradient(90deg,rgba(255,245,224,.06),rgba(255,246,229,.67) 34%,rgba(255,247,231,.69) 66%,rgba(255,243,220,.03))!important;
+ opacity:1!important;z-index:0!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-identity{
+ background:rgba(255,248,235,.95)!important;box-shadow:0 5px 16px rgba(75,41,17,.19)!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-top>.tss-hero-intro h1{
+ text-shadow:0 2px 5px rgba(255,246,227,.9)!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-shortcuts a{
+ background:linear-gradient(115deg,rgba(255,250,241,.98),rgba(238,212,177,.95))!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-shortcuts a.active{
+ background:linear-gradient(125deg,#8b552f,#60361e)!important;
+}
+.teacher-student-shell[data-teacher-theme="history"] .tss-hero-shortcuts a.active b{
+ color:#fff7e8!important;-webkit-text-fill-color:#fff7e8!important;
+}
+@media(max-width:760px){
+ .teacher-student-shell[data-teacher-theme="history"] .tss-hero-top{
+  min-height:345px!important;background-position:50% center!important;
+ }
+}
