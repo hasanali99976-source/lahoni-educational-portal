@@ -949,3 +949,15 @@
   padding:6px 9px!important;font-size:12px!important;
  }
 }
+
+/* Restore the approved Islamic hero across the full width on narrow screens.
+   Do not use auto-height cover: it zooms into the profile and hides the scene. */
+@media screen and (max-width:760px){
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top{
+  min-height:220px!important;height:clamp(220px,48vw,360px)!important;
+  aspect-ratio:auto!important;
+  background-image:url("/teacher-themes/islamic-approved-design.png.png")!important;
+  background-size:100% 200%!important;background-position:center top!important;
+  background-repeat:no-repeat!important;
+ }
+}
