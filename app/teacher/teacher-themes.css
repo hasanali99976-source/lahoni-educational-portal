@@ -543,3 +543,35 @@
  .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-header{padding:6px!important}
  .teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner{min-height:115px!important}
 }
+
+/* Accessibility correction: keep white title and profile text over photographic hero. */
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity *,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-intro,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-intro *,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-date{
+ color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;
+ text-shadow:0 2px 8px rgba(0,13,34,.80)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity span,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-identity small,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top .tss-hero-intro p{
+ color:#f1f5fb!important;-webkit-text-fill-color:#f1f5fb!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-identity{
+ background:rgba(7,28,66,.90)!important;border-color:#e7c578!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-intro h1{
+ background:rgba(8,29,60,.28)!important;border-radius:12px!important;padding:1px 16px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-date{
+ background:#123d78!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner{
+ background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(246,251,255,.88) 54%,rgba(230,242,255,.74)),url("/teacher-themes/hilal-stadium-2026.svg") center 68%/cover no-repeat!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-brand,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-motto,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-stadium{
+ position:relative!important;z-index:2!important;
+}
