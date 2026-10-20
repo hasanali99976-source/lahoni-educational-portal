@@ -157,3 +157,23 @@
  .tss-content main.grades-v11 .gv11-section-tabs button>b{font-size:12px!important}
  .tss-content main.grades-v11 .gv11-section-tabs button .gv11-unit-name{font-size:10px!important}
 }
+
+/* Actual grade table container (gv11-table-wrap) must scroll, not stretch app viewport. */
+@media screen and (max-width:760px){
+ .tss-content main.grades-v11 .gv11-table-wrap{
+  display:block!important;max-width:100%!important;width:100%!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;
+  border-radius:0 0 12px 12px!important;
+ }
+ .tss-content main.grades-v11 .gv11-table-wrap table{
+  width:max-content!important;min-width:100%!important;table-layout:auto!important;
+ }
+ .tss-content main.grades-v11 .gv11-gradebook :is(th.name,td.name){
+  min-width:160px!important;width:160px!important;max-width:210px!important;
+  padding-inline:8px!important;
+ }
+ .tss-content main.grades-v11 .gv11-gradebook td input[type=number]{
+  min-width:56px!important;width:64px!important;max-width:75px!important;
+ }
+}
