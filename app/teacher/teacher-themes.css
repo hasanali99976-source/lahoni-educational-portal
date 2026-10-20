@@ -889,3 +889,63 @@
   font-size:clamp(22px,6vw,32px)!important;
  }
 }
+
+/* Islamic approved artwork: use the exact PNG uploaded by the portal owner.
+   The image includes the complete illustrated composition. Live navigation remains
+   separate for functional links and responsive accessibility. */
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top{
+ background-image:url("/teacher-themes/islamic-approved-design.png.png")!important;
+ background-color:#faf7eb!important;
+ background-size:100% auto!important;
+ background-position:center top!important;
+ background-repeat:no-repeat!important;
+ aspect-ratio:2048/395!important;
+ min-height:0!important;
+ height:auto!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:14px!important;
+ position:relative!important;
+ overflow:hidden!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top::before,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top::after{
+ display:none!important;content:none!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top>.tss-hero-intro,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top>.tss-hero-identity,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top>.tss-hero-date{
+ visibility:hidden!important;pointer-events:none!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top>.tss-hero-appearance{
+ position:absolute!important;bottom:2%!important;left:1.2%!important;right:auto!important;top:auto!important;
+ z-index:5!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .teacher-theme-launch,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .tss-hero-signout{
+ background:rgba(5,77,57,.06)!important;color:transparent!important;
+ -webkit-text-fill-color:transparent!important;border:0!important;
+ box-shadow:none!important;text-shadow:none!important;
+}
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .teacher-theme-launch:hover,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .tss-hero-signout:hover,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .teacher-theme-launch:focus-visible,
+.teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .tss-hero-signout:focus-visible{
+ outline:2px solid #cda653!important;background:rgba(255,255,255,.18)!important;
+}
+@media (max-width:760px){
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top{
+  aspect-ratio:auto!important;min-height:230px!important;
+  background-size:auto 100%!important;background-position:center!important;
+  padding:0!important;
+ }
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top>.tss-hero-appearance{
+  left:8px!important;bottom:8px!important;gap:5px!important;
+ }
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .teacher-theme-launch,
+ .teacher-student-shell[data-teacher-theme="islamic"] .tss-hero-top .tss-hero-signout{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  background:#09563f!important;border:1px solid #c7a868!important;
+  padding:6px 9px!important;font-size:12px!important;
+ }
+}
