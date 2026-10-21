@@ -18,6 +18,7 @@ const originalRows=Array.from(node.querySelectorAll("tbody tr")).map(row=>row.cl
 const tbody=node.querySelector("tbody");
 const heading=node.querySelector("section > div");
 if(!tbody)throw new Error("تعذر العثور على جدول الطلاب");
+tbody.replaceChildren();
 const maxPageHeight=1070; // 794px A4 width, conservative vertical safety margin
 const pages:HTMLTableRowElement[][]=[];
 if(!originalRows.length)pages.push([]);
