@@ -68,6 +68,7 @@ export default function ReportsPage() {
   const [attendanceMode, setAttendanceMode] = useState<AttendanceMode>("range");
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
+  const [gradeReportMode, setGradeReportMode] = useState<"summary"|"detailed">("summary");
   const [selectedDate, setSelectedDate] = useState(today);
   const [reportFrom, setReportFrom] = useState(addDays(today, -6));
   const [reportTo, setReportTo] = useState(today);
@@ -268,7 +269,7 @@ export default function ReportsPage() {
       if (reportType === "grades") {
         if (!activePlan) throw new Error("اعتمد الخطة الدراسية أولًا لإنشاء تقرير التحصيل.");
         const reports = selectedClasses.map(gradeClass).filter((item): item is GradebookPdfClass => !!item);
-        const result = await downloadGradebookPdfDocument({ portalName: "بوابة أستاذ لحوني التعليمية", teacherName: session.teacherName || "المعلم", subject: session.subject || "المادة", gradeLabel: session.activeGradeLabel || "", planLabel: GRADE_PLAN_MODE_LABELS[activePlan.mode], planVersion: activePlan.version, classes: reports, fileName: `تقرير-التحصيل-${safe(session.subject || "المادة")}-${safe(selectedSectionLabel)}.pdf` });
+        const result = await downloadGradebookPdfDocument({ portalName: "بوابة أستاذ لحوني التعليمية", teacherName: session.teacherName || "المعلم", subject: session.subject || "المادة", gradeLabel: session.activeGradeLabel || "", planLabel: GRADE_PLAN_MODE_LABELS[activePlan.mode], planVersion: activePlan.version, reportMode: gradeReportMode, classes: reports, fileName: `تقرير-التحصيل-${safe(session.subject || "المادة")}-${safe(selectedSectionLabel)}.pdf` });
         setMessage(`تم إنشاء تقرير ${selectedSectionLabel}: ${result.classCount} فصل و${result.studentCount} طالب.`);
       } else if (attendanceMode === "daily") {
         const reports = selectedClasses.map(attendanceClass).filter((item): item is AttendancePdfClass => !!item);
@@ -370,6 +371,6 @@ export default function ReportsPage() {
       </div>
     </section>
 
-    <section className="sr12-actions"><div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "طباعة / حفظ PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></section>
+    <section className="sr12-actions">{reportType === "grades" && <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:12}}><span>نوع تقرير التحصيل:</span><button type="button" className={gradeReportMode==="summary"?"active":""} onClick={()=>setGradeReportMode("summary")}>كشف موحد للوحدات (صفحة لكل فصل)</button><button type="button" className={gradeReportMode==="detailed"?"active":""} onClick={()=>setGradeReportMode("detailed")}>تقرير تفصيلي لبنود الدرجات</button></div>}<div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "طباعة / حفظ PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></section>
   </main>;
 }
