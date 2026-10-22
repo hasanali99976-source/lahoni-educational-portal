@@ -889,8 +889,8 @@
  position:relative!important;isolation:isolate!important;overflow:hidden!important;
  display:flex!important;flex-direction:column!important;align-items:center!important;
  justify-content:center!important;gap:9px!important;
- min-height:345px!important;height:auto!important;padding:48px 105px 55px!important;
- background:linear-gradient(180deg,#a9dcf5 0%,#d5f1ff 45%,#f8fdff 100%)!important;
+ min-height:365px!important;height:auto!important;padding:43px 105px 58px!important;
+ background:linear-gradient(180deg,#80c8ed 0%,#c5eafd 45%,#f6fcff 100%)!important;
  border:1px solid #9ed4ed!important;border-radius:21px!important;
  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
 }
@@ -898,28 +898,30 @@
  content:""!important;display:block!important;position:absolute!important;inset:0!important;
  z-index:0!important;opacity:1!important;pointer-events:none!important;transform:none!important;
  background:
- radial-gradient(ellipse 170px 55px at 13% 73%,#fff 0 75%,transparent 77%),
- radial-gradient(ellipse 105px 77px at 8% 67%,#fff 0 75%,transparent 77%),
- radial-gradient(ellipse 115px 72px at 19% 65%,#fff 0 75%,transparent 77%),
- radial-gradient(ellipse 195px 52px at 86% 68%,#fff 0 75%,transparent 77%),
- radial-gradient(ellipse 102px 75px at 79% 62%,#fff 0 75%,transparent 77%),
- radial-gradient(ellipse 110px 75px at 92% 59%,#fff 0 75%,transparent 77%),
- radial-gradient(ellipse 110px 29px at 22% 19%,rgba(255,255,255,.77) 0 72%,transparent 74%),
- radial-gradient(ellipse 120px 32px at 82% 17%,rgba(255,255,255,.75) 0 72%,transparent 74%),
- radial-gradient(circle at 89% 19%,#ffe5a2 0 26px,rgba(255,231,173,.37) 27px 58px,transparent 60px)!important;
+ radial-gradient(ellipse 110px 54px at 9% 69%,rgba(255,255,255,.98) 0 98%,transparent 100%),
+ radial-gradient(ellipse 91px 67px at 15% 65%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 73px 51px at 23% 72%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 157px 44px at 15% 80%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 110px 59px at 82% 65%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 87px 75px at 89% 65%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 84px 53px at 96% 74%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 154px 40px at 89% 82%,#fff 0 98%,transparent 100%),
+ radial-gradient(ellipse 90px 25px at 26% 24%,rgba(255,255,255,.72) 0 92%,transparent 100%),
+ radial-gradient(ellipse 130px 30px at 76% 22%,rgba(255,255,255,.74) 0 92%,transparent 100%),
+ radial-gradient(circle at 91% 16%,#fff2c6 0 28px,rgba(255,234,177,.43) 29px 64px,transparent 66px)!important;
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::after{
  content:""!important;display:block!important;position:absolute!important;
  inset:auto 0 0!important;height:38%!important;z-index:0!important;pointer-events:none!important;
- background:linear-gradient(0deg,rgba(255,255,255,.68),transparent)!important;
+ background:linear-gradient(0deg,rgba(245,252,255,.95),rgba(255,255,255,.12))!important;
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-identity{
  position:relative!important;inset:auto!important;transform:none!important;z-index:2!important;
  display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;
  width:auto!important;max-width:min(235px,100%)!important;height:auto!important;
  margin:0 auto!important;padding:9px 17px!important;text-align:center!important;
- background:rgba(255,255,255,.93)!important;border:2px solid #b4dfee!important;
- border-radius:28px!important;box-shadow:0 8px 20px rgba(36,112,155,.14)!important;
+ background:rgba(255,255,255,.97)!important;border:1px solid #a6d8ed!important;
+ border-radius:24px!important;box-shadow:0 9px 25px rgba(30,107,147,.16)!important;
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-identity img{
  width:67px!important;height:67px!important;object-fit:cover!important;
@@ -969,15 +971,15 @@
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a,
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a:nth-child(n){
- background:linear-gradient(150deg,#fff,#eaf8ff)!important;
- border:1px solid #a9d9ee!important;border-radius:19px!important;
+ background:linear-gradient(155deg,#ffffff,#effaff)!important;
+ border:1px solid #acd8ea!important;border-radius:17px!important;
  box-shadow:0 4px 10px rgba(43,129,170,.09)!important;
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a b{
  color:#185776!important;-webkit-text-fill-color:#185776!important;
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcut-icon{
- background:#d5effd!important;color:#197bb2!important;border:1px solid #a9d9ee!important;
+ background:#dff3fc!important;color:#187cad!important;border:1px solid #addbed!important;
  border-radius:14px!important;
 }
 .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a.active,
@@ -996,7 +998,7 @@
 @media(max-width:760px){
  .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-header{padding:6px!important}
  .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top{
-  min-height:335px!important;padding:52px 12px 56px!important;gap:8px!important;
+  min-height:340px!important;padding:49px 12px 55px!important;gap:8px!important;
  }
  .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-identity{
   max-width:205px!important;padding:7px 12px!important;
@@ -1006,8 +1008,10 @@
  }
  .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::before{
   background:
-  radial-gradient(ellipse 115px 40px at 12% 76%,#fff 0 75%,transparent 77%),
-  radial-gradient(ellipse 90px 55px at 86% 77%,#fff 0 75%,transparent 77%),
-  radial-gradient(circle at 87% 15%,#ffe5a2 0 20px,transparent 22px)!important;
+   radial-gradient(ellipse 88px 40px at 11% 77%,#fff 0 98%,transparent 100%),
+   radial-gradient(ellipse 67px 48px at 23% 80%,#fff 0 98%,transparent 100%),
+   radial-gradient(ellipse 91px 40px at 88% 76%,#fff 0 98%,transparent 100%),
+   radial-gradient(ellipse 68px 47px at 79% 80%,#fff 0 98%,transparent 100%),
+   radial-gradient(circle at 89% 15%,#ffefc1 0 21px,rgba(255,236,182,.42) 22px 38px,transparent 40px)!important;
  }
 }
