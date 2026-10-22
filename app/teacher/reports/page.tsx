@@ -67,7 +67,7 @@ export default function ReportsPage() {
   const [reportType, setReportType] = useState<ReportType>("attendance");
   const [attendanceMode, setAttendanceMode] = useState<AttendanceMode>("range");
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
-  const [selectedSection, setSelectedSection] = useState("all");
+  const [selectedSections, setSelectedSections] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [reportFrom, setReportFrom] = useState(addDays(today, -6));
   const [reportTo, setReportTo] = useState(today);
@@ -144,15 +144,15 @@ export default function ReportsPage() {
   }, [classes]);
   useEffect(() => {
     if (reportType !== "grades") return;
-    if (selectedSection !== "all" && !activePlan?.sections.some(section => section.id === selectedSection)) setSelectedSection("all");
-  }, [activePlan, reportType, selectedSection]);
+    if (selectedSections.some(id => !activePlan?.sections.some(section => section.id === id))) setSelectedSections(current => current.filter(id => activePlan?.sections.some(section => section.id === id)));
+  }, [activePlan, reportType, selectedSections]);
 
   const selectedStudents = useMemo(() => students.filter(student => selectedClasses.includes(String(student.className || student.class || ""))), [students, selectedClasses]);
   const rangeLength = inclusiveDays(reportFrom, reportTo);
   const rangeValid = rangeLength > 0 && rangeLength <= 31 && reportFrom <= reportTo && reportTo <= today;
   const attendanceReadyClasses = useMemo(() => new Set(selectedClasses.filter(className => attendanceDocs.some(item => item.class === className && item.date && (attendanceMode === "daily" ? item.date === selectedDate : attendanceMode === "all" ? true : item.date >= reportFrom && item.date <= reportTo)))), [attendanceDocs, attendanceMode, reportFrom, reportTo, selectedDate, selectedClasses]);
   const unsavedClasses = selectedClasses.filter(name => !attendanceReadyClasses.has(name));
-  const selectedSectionLabel = selectedSection === "all" ? "جميع الوحدات / الفترات" : activePlan?.sections.find(item => item.id === selectedSection)?.label || "—";
+  const selectedSectionLabel = selectedSections.length === 0 ? "جميع الوحدات / الفترات" : activePlan?.sections.filter(item => selectedSections.includes(item.id)).map(item => item.label).join("، ") || "—";
 
   function toggleClass(name: string) { setSelectedClasses(current => current.includes(name) ? current.filter(item => item !== name) : [...current, name]); }
   function chooseAll() { setSelectedClasses(classes); }
@@ -175,7 +175,7 @@ export default function ReportsPage() {
     if (!activePlan) return null;
     const roster = students.filter(student => String(student.className || student.class || "") === className);
     if (!roster.length) return null;
-    const planSections = activePlan.sections.filter(section => selectedSection === "all" || section.id === selectedSection);
+    const planSections = activePlan.sections.filter(section => selectedSections.length === 0 || selectedSections.includes(section.id));
     return {
       className,
       sections: planSections.map(section => ({
@@ -308,7 +308,7 @@ export default function ReportsPage() {
           XLSX.utils.book_append_sheet(workbook, sheet, sheetName(className, classIndex));
         });
       } else if (activePlan) {
-        const sections = activePlan.sections.filter(section => selectedSection === "all" || section.id === selectedSection);
+        const sections = activePlan.sections.filter(section => selectedSections.length === 0 || selectedSections.includes(section.id));
         selectedClasses.forEach((className, classIndex) => {
           const rows: Record<string, string | number>[] = [];
           students.filter(student => String(student.className || student.class || "") === className).forEach((student, index) => {
@@ -365,7 +365,7 @@ export default function ReportsPage() {
           {attendanceMode === "all" ? <p className="sr12-ok">سيشمل التقرير جميع سجلات الحضور والانضباط المحفوظة لهذه المادة.</p> : attendanceMode === "range" ? <div className="sr12-range"><label><span>من تاريخ</span><input type="date" max={today} value={reportFrom} onChange={event => setFrom(event.target.value)} /></label><label><span>إلى تاريخ</span><input type="date" min={reportFrom} max={reportFrom ? (addDays(reportFrom, 30) < today ? addDays(reportFrom, 30) : today) : today} value={reportTo} onChange={event => setTo(event.target.value)} /></label><div className={rangeValid ? "range-status good" : "range-status bad"}><b>{rangeLength > 0 ? `${rangeLength} يوم` : "—"}</b><small>{rangeValid ? "الفترة صالحة للطباعة" : "الحد الأقصى 31 يومًا"}</small></div></div> : <label className="sr12-single-date"><span>تاريخ المتابعة</span><input type="date" max={today} value={selectedDate} onChange={event => setSelectedDate(event.target.value)} /><small>{hijri(selectedDate)}</small></label>}
           {unsavedClasses.length ? <p className="sr12-warning">{unsavedClasses.length} من الفصول المختارة لا تحتوي سجلات محفوظة في النطاق الحالي، ولن تدخل في PDF حتى يوجد لها سجل.</p> : <p className="sr12-ok">كل الفصول المختارة لديها بيانات في النطاق الحالي.</p>}
         </>) : (<>
-          {planLoading ? <p>جارٍ تحميل الخطة…</p> : !activePlan ? <div className="sr12-warning-box"><b>لا توجد خطة درجات معتمدة</b><span>اعتمد الخطة أولًا ولن تتأثر أي درجات محفوظة.</span><Link href="/teacher/grade-plan">فتح الخطة الدراسية</Link></div> : <div className="sr12-section-grid"><button type="button" className={selectedSection === "all" ? "active" : ""} onClick={() => setSelectedSection("all")}><b>التقرير الكامل</b><small>جميع الوحدات / الفترات</small></button>{activePlan.sections.map(section => <button type="button" key={section.id} className={selectedSection === section.id ? "active" : ""} onClick={() => setSelectedSection(section.id)}><b>{section.label}</b><small>{section.max} درجة • {section.items.length} عناصر</small></button>)}</div>}
+          {planLoading ? <p>جارٍ تحميل الخطة…</p> : !activePlan ? <div className="sr12-warning-box"><b>لا توجد خطة درجات معتمدة</b><span>اعتمد الخطة أولًا ولن تتأثر أي درجات محفوظة.</span><Link href="/teacher/grade-plan">فتح الخطة الدراسية</Link></div> : <div className="sr12-section-grid"><button type="button" className={selectedSections.length === 0 ? "active" : ""} onClick={() => setSelectedSections([])}><b>التقرير الكامل</b><small>جميع الوحدات / الفترات</small></button>{activePlan.sections.map(section => <button type="button" key={section.id} className={selectedSections.includes(section.id) ? "active" : ""} onClick={() => setSelectedSections(current => current.includes(section.id) ? current.filter(id => id !== section.id) : [...current, section.id])}><b>{section.label}</b><small>{section.max} درجة • {section.items.length} عناصر</small></button>)}</div>}
         </>)}
       </div>
     </section>
