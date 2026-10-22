@@ -22,3 +22,75 @@
 .book-settings{display:grid;grid-template-columns:1.3fr 1fr auto;gap:12px;align-items:end;margin:20px 0;padding:16px;background:#f0f7f7;border:1px solid #d5e7e7;border-radius:13px}.book-settings label{display:grid;gap:7px;font-weight:700}.book-settings input{min-width:0;width:100%;padding:11px;border:1px solid #bfd6d8;border-radius:9px;background:white;color:#163d45}.book-settings button{border:0;border-radius:9px;background:#145d66;color:white;padding:12px 14px;font-weight:700;cursor:pointer}.book-reset{background:transparent;border:1px solid #17717a;color:#145d66;padding:8px 12px;border-radius:8px;cursor:pointer}@media(max-width:800px){.book-settings{grid-template-columns:1fr}}@media print{.book-settings,.book-reset{display:none!important}}
 
 .book-present-option{display:flex;align-items:center;gap:9px;margin:14px 0;font-weight:600;color:#245b62}.book-present-option input{width:17px;height:17px}@media print{.book-present-option{display:none!important}}
+
+/* Teacher booklet — refined workspace */
+.teacher-book{max-width:1250px;padding:24px 20px 55px;color:#193d48}
+.teacher-book .book-controls{padding:0;border:1px solid #d9e7e9;border-radius:22px;background:#fff;overflow:hidden;box-shadow:0 12px 40px rgba(15,64,76,.07)}
+.teacher-book .book-heading{padding:30px 35px 26px;background:linear-gradient(118deg,#073f4e,#0b6872 64%,#137b81);color:#fff;position:relative}
+.teacher-book .book-eyebrow{font-size:12px;letter-spacing:.2px;color:#c8e9e9;font-weight:750}
+.teacher-book .book-heading h1{font-size:clamp(25px,3vw,37px);line-height:1.5;margin:5px 0 8px;color:white;font-weight:850}
+.teacher-book .book-heading h1 em{font-style:normal;color:#c6e9e7;font-size:.7em;font-weight:600}
+.teacher-book .book-heading p{color:#e0f2f1;font-size:14px;margin:0;line-height:1.8}
+.teacher-book .book-summary{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.teacher-book .book-summary>div{min-width:125px;padding:10px 16px;border:1px solid #ffffff35;background:#ffffff15;border-radius:12px;display:flex;align-items:center;gap:11px}
+.teacher-book .book-summary strong{font-size:24px;color:#fff;font-variant-numeric:tabular-nums}
+.teacher-book .book-summary span{font-size:12px;color:#e2f2f0}
+.teacher-book .book-section-title{display:flex;gap:12px;align-items:center;margin:25px 30px 0}
+.teacher-book .book-section-title>span{display:grid;place-items:center;width:37px;height:37px;border-radius:11px;background:#e5f4f3;color:#096b71;font-weight:900}
+.teacher-book .book-section-title>div{display:grid;gap:3px}
+.teacher-book .book-section-title b{font-size:17px;color:#173f49}
+.teacher-book .book-section-title small{font-size:12px;color:#6d858b}
+.teacher-book .book-settings{margin:16px 30px 0;border:1px solid #e0eaeb;border-radius:14px;background:#f7fafb;padding:17px}
+.teacher-book .book-settings label,.teacher-book .book-fields label{font-size:13px;color:#315863;gap:8px}
+.teacher-book .book-settings input,.teacher-book .book-fields input,.teacher-book .book-fields select{border:1px solid #d3e1e5;background:#fff;border-radius:10px;padding:12px 13px;font-size:14px;min-height:44px;box-sizing:border-box}
+.teacher-book .book-settings button{min-height:44px;background:#0d6771;border-radius:10px;font-size:13px;padding:11px 15px;line-height:1.5}
+.teacher-book .book-fields{margin:15px 30px 8px;gap:12px}
+.teacher-book .book-reset{margin:5px 30px 0}
+.teacher-book .book-selection{margin:16px 30px 0;padding:18px;border-radius:14px;border:1px solid #dce9eb;background:#fff}
+.teacher-book .book-select-heading strong{font-size:14px;color:#224e59}
+.teacher-book .book-select-heading button{font-weight:700}
+.teacher-book .book-session-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:380px;padding:3px}
+.teacher-book .book-session{border-radius:11px;border:1px solid #e0e9eb;background:#fafcfc;transition:background .15s,border-color .15s}
+.teacher-book .book-session:has(input:checked){border-color:#94c9c9;background:#eef8f7}
+.teacher-book .book-session input{accent-color:#11747a;width:16px;height:16px}
+.teacher-book .book-session span{font-weight:700;font-size:13px}
+.teacher-book .book-session small{font-weight:500;font-size:11px}
+.teacher-book .book-bottom{padding:22px 30px 26px;margin-top:20px;background:#f6fafb;border-top:1px solid #e3edef}
+.teacher-book .book-bottom strong{color:#1c5760;font-size:15px}
+.teacher-book .book-bottom>button{background:#096a72;border-radius:11px;padding:14px 25px;box-shadow:0 5px 14px #096a7222}
+.teacher-book .book-alert{margin:16px 30px 0}
+@media(max-width:800px){.teacher-book .book-settings{grid-template-columns:1fr 1fr}.teacher-book .book-settings button{grid-column:1/-1}.teacher-book .book-heading{padding:25px 20px}.teacher-book .book-settings,.teacher-book .book-fields,.teacher-book .book-selection{margin-left:18px;margin-right:18px}.teacher-book .book-section-title{margin-left:18px;margin-right:18px}.teacher-book .book-bottom{padding:18px}}
+@media(max-width:600px){.teacher-book{padding:12px}.teacher-book .book-settings,.teacher-book .book-fields,.teacher-book .book-session-grid{grid-template-columns:1fr}.teacher-book .book-summary>div{min-width:calc(50% - 8px)}.teacher-book .book-heading h1 em{display:block}.teacher-book .book-select-heading{align-items:flex-start;flex-direction:column}}
+/* Formal A4 print document, independent of portal shell */
+@media print{
+ @page{size:A4 portrait;margin:9mm}
+ .teacher-book .book-page{max-height:none!important;overflow:visible!important;min-height:0!important;width:100%!important;break-inside:avoid!important;page-break-inside:avoid!important;font-family:Tahoma,Arial,sans-serif!important}
+ .teacher-book .book-page:not(:last-child){break-after:page!important;page-break-after:always!important}
+ .teacher-book .book-print-header{display:grid!important;grid-template-columns:1fr 1.5fr .72fr;gap:9px;align-items:center;background:#fff!important;padding:0 0 10px!important;border-bottom:2.5px solid #0b6872!important}
+ .teacher-book .book-print-identity{display:grid!important;gap:4px!important;text-align:right}
+ .teacher-book .book-print-identity b{font-size:10px!important;color:#1b5964!important}
+ .teacher-book .book-print-identity strong{font-size:15px!important;color:#123e48!important}
+ .teacher-book .book-print-identity small{font-size:10px!important;color:#3d6670!important}
+ .teacher-book .book-print-title{text-align:center;display:grid;gap:4px;justify-items:center}
+ .teacher-book .book-print-title>span{font-size:9px;color:#43848a;font-weight:bold}
+ .teacher-book .book-print-title h2{font-size:16px!important;line-height:1.4;color:#0a5260!important;font-weight:900}
+ .teacher-book .book-print-title small{color:#547b81}
+ .teacher-book .book-print-number{display:grid;justify-items:center;gap:2px;border:1px solid #c9e1e2;border-radius:8px;padding:6px!important;background:#f3f8f8!important}
+ .teacher-book .book-print-number>span,.teacher-book .book-print-number small{font-size:9px;color:#48757c}
+ .teacher-book .book-print-number strong{font-size:20px;line-height:1.2;color:#0c6470}
+ .teacher-book .book-meta{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important;margin:10px 0!important;font-size:10px!important}
+ .teacher-book .book-meta span{border:1px solid #d4e3e5!important;border-radius:4px;padding:7px 8px!important;background:#f8fbfb!important}
+ .teacher-book .book-meta b{font-weight:800;color:#123f4a}
+ .teacher-book .book-lesson{display:flex;gap:12px;align-items:center;border:1px solid #d4e3e5;border-radius:4px;padding:7px 9px;margin-bottom:9px!important}
+ .teacher-book .book-lesson b{color:#155865}
+ .teacher-book .book-page table{border:1px solid #b5cdd0}
+ .teacher-book .book-page th{font-size:10px!important;font-weight:800;color:#114c57!important;background:#e8f2f3!important;height:26px!important}
+ .teacher-book .book-page td{font-size:9.5px!important;height:19px!important;padding:3px 5px!important;color:#163c46}
+ .teacher-book .book-page tbody tr:nth-child(even) td{background:#f7fafa!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .teacher-book .book-page td:nth-child(2){font-weight:700}
+ .teacher-book .book-notes{margin-top:10px!important}
+ .teacher-book .book-notes>div{border:1px solid #c7dadd!important;border-radius:4px;min-height:40px!important;padding:8px!important}
+ .teacher-book .book-notes b{color:#155865}
+ .teacher-book .book-page footer{border-top:1px solid #d3e2e4;padding-top:9px;margin-top:12px!important;align-items:center;color:#42646c}
+ .teacher-book .book-footer-page{font-weight:800;color:#0e6570}
+}
