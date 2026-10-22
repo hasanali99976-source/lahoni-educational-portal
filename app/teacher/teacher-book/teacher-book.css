@@ -131,3 +131,53 @@
  .teacher-book .book-footer-brand{color:#0c6671!important;font-weight:800!important;font-size:9px!important}
 }
 @media screen{.teacher-book .book-brand-ribbon{display:none}}
+
+/* FINAL PRINT OVERRIDES — single high-contrast A4 sheet per lesson */
+@media print{
+ @page{size:A4 portrait;margin:7mm}
+ html,body{margin:0!important;padding:0!important;background:#fff!important}
+ .teacher-book .book-pages{display:block!important;margin:0!important;padding:0!important}
+ .teacher-book .book-page{box-sizing:border-box!important;width:100%!important;height:282mm!important;min-height:0!important;max-height:282mm!important;margin:0!important;padding:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;break-inside:auto!important;page-break-inside:auto!important;break-after:page!important;page-break-after:always!important;color:#101b20!important}
+ .teacher-book .book-page:last-child{break-after:auto!important;page-break-after:auto!important}
+ .teacher-book .book-brand-ribbon{flex:0 0 auto!important;padding:5px 10px!important;margin:0 0 5px!important;background:#e9f1f2!important;color:#092e38!important;border-bottom:2px solid #174e5a!important}
+ .teacher-book .book-brand-ribbon span:first-child{color:#092e38!important;font-size:11px!important}
+ .teacher-book .book-brand-ribbon span:last-child{color:#345963!important;font-size:7px!important}
+ .teacher-book .book-print-header{flex:0 0 auto!important;padding:2px 3px 6px!important;gap:6px!important;background:white!important}
+ .teacher-book .book-print-identity{gap:2px!important}
+ .teacher-book .book-print-identity b,.teacher-book .book-print-identity small,.teacher-book .book-print-title>span,.teacher-book .book-print-title small{color:#263c45!important}
+ .teacher-book .book-print-title h2{font-size:15px!important;color:#082f3b!important}
+ .teacher-book .book-print-identity strong{font-size:12px!important;color:#0b303b!important}
+ .teacher-book .book-print-number{padding:3px 6px!important;background:#f3f7f8!important}
+ .teacher-book .book-print-number strong{font-size:16px!important;color:#0b303b!important}
+ .teacher-book .book-meta{flex:0 0 auto!important;margin:6px 0!important}
+ .teacher-book .book-meta span{padding:4px 7px!important;font-size:9px!important;color:#182d35!important;background:#fff!important}
+ .teacher-book .book-meta b{font-size:10px!important;color:#071f28!important}
+ .teacher-book .book-lesson{flex:0 0 auto!important;margin:3px 0 6px!important;padding:5px 8px!important;background:#f4f7f7!important;color:#102b35!important}
+ .teacher-book .book-lesson b{color:#102b35!important}
+ .teacher-book .book-page table{flex:0 0 auto!important;width:100%!important;border-collapse:collapse!important;table-layout:fixed!important}
+ .teacher-book .book-page th{height:21px!important;padding:3px 4px!important;background:#dce9ec!important;color:#092b35!important;border:1px solid #748f97!important;font-size:9px!important}
+ .teacher-book .book-page td{height:17px!important;padding:2px 4px!important;font-size:9px!important;line-height:1.05!important;color:#111f26!important;border:1px solid #a6b9bf!important}
+ .teacher-book .book-page td:nth-child(1),.teacher-book .book-page td:nth-child(2),.teacher-book .book-page td:nth-child(3){color:#102832!important}
+ .teacher-book .book-page tbody tr:nth-child(even) td{background:#f7f9fa!important}
+ .teacher-book .book-notes{flex:0 0 auto!important;margin-top:6px!important;gap:6px!important}
+ .teacher-book .book-notes>div{min-height:29px!important;padding:5px!important;background:#fff!important;color:#122e36!important;font-size:9px!important}
+ .teacher-book .book-notes b{color:#102b35!important}
+ .teacher-book .book-page footer{flex:0 0 auto!important;margin-top:6px!important;padding-top:5px!important;gap:7px!important;font-size:8px!important;color:#172f39!important}
+ .teacher-book .book-footer-brand{color:#102b35!important;font-size:8px!important}
+ .teacher-book .book-page.book-compact .book-brand-ribbon{padding:3px 8px!important;margin-bottom:3px!important}
+ .teacher-book .book-page.book-compact .book-print-header{padding-bottom:4px!important}
+ .teacher-book .book-page.book-compact .book-meta{margin:4px 0!important}
+ .teacher-book .book-page.book-compact .book-meta span{padding:3px 6px!important}
+ .teacher-book .book-page.book-compact .book-lesson{margin:2px 0 4px!important;padding:3px 7px!important}
+ .teacher-book .book-page.book-compact td{height:15px!important;padding:1px 3px!important;font-size:8.5px!important}
+ .teacher-book .book-page.book-compact .book-notes>div{min-height:22px!important}
+ .teacher-book .book-page.book-dense .book-brand-ribbon{padding:2px 7px!important;margin-bottom:2px!important}
+ .teacher-book .book-page.book-dense .book-print-header{padding:0 2px 3px!important}
+ .teacher-book .book-page.book-dense .book-meta{margin:3px 0!important}
+ .teacher-book .book-page.book-dense .book-meta span{padding:2px 5px!important}
+ .teacher-book .book-page.book-dense .book-lesson{margin:2px 0 3px!important;padding:2px 6px!important}
+ .teacher-book .book-page.book-dense th{height:17px!important}
+ .teacher-book .book-page.book-dense td{height:13px!important;padding:1px 3px!important;font-size:8px!important}
+ .teacher-book .book-page.book-dense .book-notes>div{min-height:17px!important;padding:3px!important}
+ .teacher-book .book-page.book-dense footer{margin-top:3px!important;padding-top:3px!important}
+}
