@@ -199,3 +199,13 @@
  .teacher-ai-page .generated-plan .plan-students-table thead{display:table-header-group!important}
  .teacher-ai-page .generated-plan .plan-students-table tr{break-inside:avoid!important}
 }
+
+/* Multi-unit selection and compact academic controls */
+.ai-unit-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:10px;margin:12px 0;direction:rtl}
+.ai-unit-options label{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid #c7dce6;border-radius:12px;background:#f8fbfd;color:#163f55;font-weight:800;cursor:pointer;line-height:1.55;min-width:0}
+.ai-unit-options label:has(input:checked){border-color:#158b91;background:#eaf8f6;box-shadow:inset 0 0 0 1px #158b91}
+.ai-unit-options input{width:19px;height:19px;accent-color:#0b848a;flex:none}
+.ai-unit-options label span{min-width:0;overflow-wrap:anywhere}
+.ai-unit-options label small{display:block;font-size:.78em;color:#557381}
+.ai-all-units{border:1px solid #178a92;background:#e9f6f6;color:#075b65;border-radius:9px;padding:9px 15px;font-weight:800;cursor:pointer;margin-bottom:8px}
+@media print{.ai-unit-options,.ai-all-units{display:none!important}}
