@@ -304,3 +304,35 @@
  .teacher-ai-page .generated-plan .plan-students-table th,.teacher-ai-page .generated-plan .plan-students-table td{padding:4px!important;font-size:9px!important}
  .teacher-ai-page .generated-plan .plan-students-table tr{break-inside:avoid!important;page-break-inside:avoid!important}
 }
+
+/* Compact screen and print layout, with natural pagination between lesson cards. */
+.teacher-ai-page .generated-plan .ai-plan-outcome{margin:8px 20px 12px!important;padding:9px 12px;border-right:3px solid #168e94;border-radius:7px;background:#eff8f8;color:#22546a;font-size:12px}
+.teacher-ai-page .generated-plan .plan-steps article{padding:8px 10px!important;grid-template-columns:24px minmax(0,1fr)!important;gap:8px!important}
+.teacher-ai-page .generated-plan .plan-steps em{width:23px!important;height:23px!important;font-size:11px!important}
+.teacher-ai-page .generated-plan .plan-steps article b{font-size:12px!important}
+.teacher-ai-page .generated-plan .plan-steps article p{font-size:11px!important}
+.teacher-ai-page .generated-plan .ai-lessons article{padding:8px 10px!important}
+.teacher-ai-page .generated-plan .ai-lessons b{font-size:12px!important}
+.teacher-ai-page .generated-plan .ai-lessons p{font-size:11px!important;line-height:1.45!important}
+.teacher-ai-page .generated-plan .ai-lessons small{font-size:10px!important;margin:1px 0!important}
+.teacher-ai-page .generated-plan .ai-report-student-register>h3{font-size:14px!important;padding:7px 10px!important}
+.teacher-ai-page .generated-plan .plan-students-table th{font-size:11px!important;padding:7px!important}
+.teacher-ai-page .generated-plan .plan-students-table td{font-size:11px!important;padding:6px 7px!important}
+@media print{
+ .teacher-ai-page .generated-plan .ai-lessons{display:block!important;break-inside:auto!important;page-break-inside:auto!important;margin:5px 0!important}
+ .teacher-ai-page .generated-plan .ai-lessons h3{display:block!important;margin:7px 0 5px!important;font-size:12px!important;break-after:avoid!important;page-break-after:avoid!important}
+ .teacher-ai-page .generated-plan .ai-lessons article{display:inline-block!important;vertical-align:top!important;width:calc(50% - 4px)!important;box-sizing:border-box!important;margin:0 2px 5px!important;padding:6px 8px!important;break-inside:avoid!important;page-break-inside:avoid!important;min-height:0!important}
+ .teacher-ai-page .generated-plan .ai-lessons b{font-size:10px!important}
+ .teacher-ai-page .generated-plan .ai-lessons small{font-size:8px!important}
+ .teacher-ai-page .generated-plan .ai-lessons p{font-size:9px!important;line-height:1.35!important}
+ .teacher-ai-page .generated-plan .ai-plan-outcome{margin:6px 0!important;padding:6px 8px!important;font-size:10px!important;break-inside:avoid!important}
+ .teacher-ai-page .generated-plan .plan-steps{display:block!important;break-inside:auto!important;page-break-inside:auto!important}
+ .teacher-ai-page .generated-plan .plan-steps>h3{margin:5px 0!important;font-size:11px!important;break-after:avoid!important}
+ .teacher-ai-page .generated-plan .plan-steps article{display:flex!important;align-items:flex-start!important;gap:8px!important;padding:6px 8px!important;margin:4px 0!important;break-inside:avoid!important;page-break-inside:avoid!important}
+ .teacher-ai-page .generated-plan .plan-steps article b{font-size:10px!important}
+ .teacher-ai-page .generated-plan .plan-steps article p{font-size:9px!important}
+ .teacher-ai-page .generated-plan .ai-analytics{break-inside:auto!important;page-break-inside:auto!important}
+ .teacher-ai-page .generated-plan .ai-chart-grid{break-inside:avoid!important}
+ .teacher-ai-page .generated-plan .ai-report-student-register{break-before:page!important;page-break-before:always!important}
+ .teacher-ai-page .generated-plan .plan-students-table th,.teacher-ai-page .generated-plan .plan-students-table td{font-size:9px!important;padding:4px 6px!important;line-height:1.35!important}
+}
