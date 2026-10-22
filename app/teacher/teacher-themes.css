@@ -426,7 +426,7 @@
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
  content:""!important;position:absolute!important;display:block!important;inset:0!important;z-index:0!important;
- background-image:linear-gradient(90deg,rgba(10,28,55,.03) 0%,rgba(12,31,59,.07) 23%,rgba(12,31,59,.24) 44%,rgba(12,31,59,.26) 61%,rgba(12,31,59,.08) 82%,rgba(10,28,55,.03) 100%),url("https://contentfulproxy.stadion.io/eyc25wndlima/6gJv0UDhi1ZyuEjGwZYsv0/4ab3a8e08d543793c61c359bc49e3e78/9d68d22b-bfd4-42ca-9370-3f7966191029.jpg.jpeg?f=face&fit=fill&fm=webp&h=2969&w=3959")!important;
+ background-image:linear-gradient(90deg,rgba(10,28,55,.03) 0%,rgba(12,31,59,.07) 23%,rgba(12,31,59,.24) 44%,rgba(12,31,59,.26) 61%,rgba(12,31,59,.08) 82%,rgba(10,28,55,.03) 100%),url("https://images.ctfassets.net/eyc25wndlima/6fcN7akeXpsa2yNxhNLlZX/2ed7af62dbe75c1eddc8adf65841ac56/Al-Hilal_vs_Neom_Friendly.jpg?f=right&fit=fill&fm=webp&h=1080&q=75&w=1920")!important;
  background-size:cover,cover!important;
  background-position:center,center 38%!important;
  background-repeat:no-repeat!important;
@@ -509,7 +509,7 @@
  box-shadow:0 3px 12px rgba(15,55,110,.08)!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
- background:linear-gradient(90deg,rgba(5,25,50,.01) 0%,rgba(5,25,50,.01) 29%,rgba(5,25,50,.20) 43%,rgba(5,25,50,.20) 62%,rgba(5,25,50,.01) 82%,rgba(5,25,50,.01) 100%),url("https://contentfulproxy.stadion.io/eyc25wndlima/6gJv0UDhi1ZyuEjGwZYsv0/4ab3a8e08d543793c61c359bc49e3e78/9d68d22b-bfd4-42ca-9370-3f7966191029.jpg.jpeg?f=face&fit=fill&fm=webp&h=2969&w=3959") center 38%/cover no-repeat!important;
+ background:linear-gradient(90deg,rgba(5,25,50,.01) 0%,rgba(5,25,50,.01) 29%,rgba(5,25,50,.20) 43%,rgba(5,25,50,.20) 62%,rgba(5,25,50,.01) 82%,rgba(5,25,50,.01) 100%),url("https://images.ctfassets.net/eyc25wndlima/6fcN7akeXpsa2yNxhNLlZX/2ed7af62dbe75c1eddc8adf65841ac56/Al-Hilal_vs_Neom_Friendly.jpg?f=right&fit=fill&fm=webp&h=1080&q=75&w=1920") center 38%/cover no-repeat!important;
  filter:brightness(1.25) saturate(.76) contrast(.96)!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::after{display:none!important;content:none!important}
@@ -1044,5 +1044,57 @@
    radial-gradient(ellipse 91px 40px at 88% 76%,#fff 0 98%,transparent 100%),
    radial-gradient(ellipse 68px 47px at 79% 80%,#fff 0 98%,transparent 100%),
    radial-gradient(circle at 89% 15%,#ffefc1 0 21px,rgba(255,236,182,.42) 22px 38px,transparent 40px)!important;
+ }
+}
+
+/* Hilal presentation refinement — team photograph, brighter stadium, legible branding. */
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
+ background-image:linear-gradient(90deg,rgba(8,27,64,.22),rgba(7,30,74,.42) 35%,rgba(7,30,74,.46) 65%,rgba(8,27,64,.20)),url("https://images.ctfassets.net/eyc25wndlima/6fcN7akeXpsa2yNxhNLlZX/2ed7af62dbe75c1eddc8adf65841ac56/Al-Hilal_vs_Neom_Friendly.jpg?f=right&fit=fill&fm=webp&h=1080&q=75&w=1920")!important;
+ background-position:center 43%!important;background-size:cover!important;
+ filter:saturate(1.08) brightness(1.05)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
+ border-radius:19px!important;border:1px solid #b5ccef!important;
+ box-shadow:0 7px 22px rgba(24,71,139,.14)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-identity{
+ background:linear-gradient(160deg,rgba(10,36,82,.92),rgba(10,49,110,.86))!important;
+ border:1px solid #d9bc72!important;border-radius:21px!important;
+ box-shadow:0 7px 24px rgba(1,15,40,.3)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-intro h1{
+ font-size:clamp(27px,3.2vw,49px)!important;line-height:1.3!important;
+ text-shadow:0 3px 10px rgba(0,15,43,.85)!important;
+ background:transparent!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner{
+ background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(248,252,255,.91) 54%,rgba(225,239,255,.82)),url("/teacher-themes/hilal-stadium-2026.svg") center 68%/cover no-repeat!important;
+ min-height:165px!important;border:1px solid #b5cbee!important;
+ box-shadow:0 5px 16px rgba(27,75,143,.11)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-motto strong{
+ color:#1349a2!important;-webkit-text-fill-color:#1349a2!important;
+ font-size:clamp(21px,2.6vw,39px)!important;
+ text-shadow:0 2px 0 #fff!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-brand,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-stadium{
+ color:#124a9f!important;-webkit-text-fill-color:#124a9f!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a{
+ background:linear-gradient(150deg,#fff,#f0f6ff)!important;
+ border:1px solid #b3cbed!important;border-radius:15px!important;
+ box-shadow:0 3px 10px rgba(18,69,142,.10)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a.active{
+ background:linear-gradient(130deg,#e9f2ff,#fff)!important;
+ border:2px solid #1556b3!important;
+}
+@media(max-width:760px){
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
+  background-position:center 42%!important;
+ }
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner{
+  min-height:145px!important;
  }
 }
