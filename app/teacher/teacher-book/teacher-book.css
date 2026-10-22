@@ -94,3 +94,40 @@
  .teacher-book .book-page footer{border-top:1px solid #d3e2e4;padding-top:9px;margin-top:12px!important;align-items:center;color:#42646c}
  .teacher-book .book-footer-page{font-weight:800;color:#0e6570}
 }
+
+/* Editorial school-register redesign: a restrained branded publication */
+@media print{
+ .teacher-book .book-page{color:#182f3a!important;font-family:Tahoma,Arial,sans-serif!important}
+ .teacher-book .book-brand-ribbon{display:flex!important;align-items:center;justify-content:space-between;background:#083f50!important;color:white!important;padding:8px 13px!important;margin:0 0 9px!important;border-radius:0 0 5px 5px!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .teacher-book .book-brand-ribbon span:first-child{font-size:13px!important;font-weight:900!important;letter-spacing:.1px}
+ .teacher-book .book-brand-ribbon span:last-child{font-size:8px!important;letter-spacing:1.4px!important;color:#c7e5e6!important;font-family:Arial,sans-serif!important}
+ .teacher-book .book-print-header{grid-template-columns:1fr 1.45fr .45fr!important;gap:12px!important;border:0!important;border-bottom:1px solid #b8d0d4!important;padding:5px 4px 12px!important;background:white!important}
+ .teacher-book .book-print-identity{gap:5px!important}
+ .teacher-book .book-print-identity b{font-size:9px!important;color:#687d83!important;font-weight:600!important}
+ .teacher-book .book-print-identity strong{font-size:14px!important;color:#163d4b!important}
+ .teacher-book .book-print-identity small{font-size:11px!important;font-weight:800!important;color:#184e5c!important}
+ .teacher-book .book-print-title{gap:4px!important}
+ .teacher-book .book-print-title>span{font-size:9px!important;color:#62878d!important;letter-spacing:.1px!important}
+ .teacher-book .book-print-title h2{font-size:19px!important;color:#103d4b!important;line-height:1.35!important}
+ .teacher-book .book-print-title small{font-size:9px!important;color:#6d858b!important}
+ .teacher-book .book-print-number{border:0!important;border-right:3px solid #0c7480!important;border-radius:0!important;background:#f1f7f8!important;padding:6px 9px!important;gap:0!important}
+ .teacher-book .book-print-number>span,.teacher-book .book-print-number small{font-size:8px!important;color:#507781!important}
+ .teacher-book .book-print-number strong{font-size:21px!important;color:#0c5765!important}
+ .teacher-book .book-meta{margin:13px 0 9px!important;gap:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;border:1px solid #d6e4e7!important;border-radius:6px!important;overflow:hidden!important}
+ .teacher-book .book-meta span{border:0!important;border-bottom:1px solid #dce8e9!important;border-left:1px solid #dce8e9!important;border-radius:0!important;background:white!important;padding:8px 10px!important;font-size:10px!important;color:#617a80!important}
+ .teacher-book .book-meta span:nth-child(n+4){border-bottom:0!important;background:#f7fafb!important}
+ .teacher-book .book-meta b{font-size:11px!important;color:#123e4c!important}
+ .teacher-book .book-lesson{background:#f1f7f7!important;border:0!important;border-right:3px solid #167580!important;border-radius:2px!important;padding:9px 12px!important;margin:11px 0 12px!important}
+ .teacher-book .book-lesson b{font-size:10px!important;color:#185563!important}
+ .teacher-book .book-page table{border:1px solid #b9cfd3!important}
+ .teacher-book .book-page th{height:28px!important;background:#164f5e!important;color:#fff!important;border-color:#8daeb5!important;font-size:10px!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .teacher-book .book-page td{border-color:#cadadd!important;height:19px!important;font-size:10px!important;padding:3px 6px!important}
+ .teacher-book .book-page tbody tr:nth-child(even) td{background:#f3f8f9!important}
+ .teacher-book .book-page td:nth-child(1){font-weight:800!important;color:#48717a!important}
+ .teacher-book .book-page td:nth-child(2){font-weight:800!important;color:#1b3f4a!important}
+ .teacher-book .book-page td:nth-child(3){font-weight:700!important;color:#205e68!important}
+ .teacher-book .book-notes>div{border:1px solid #cbdcdf!important;background:#fafcfc!important;border-radius:4px!important}
+ .teacher-book .book-page footer{margin-top:12px!important;gap:12px!important;flex-wrap:wrap!important;border-top:1px solid #bfd4d7!important}
+ .teacher-book .book-footer-brand{color:#0c6671!important;font-weight:800!important;font-size:9px!important}
+}
+@media screen{.teacher-book .book-brand-ribbon{display:none}}
