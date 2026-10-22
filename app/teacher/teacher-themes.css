@@ -1177,59 +1177,49 @@
  .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{background-position:center 35%!important}
 }
 
-/* Hilal: show the whole squad image unobstructed, with title in a separate band. */
+/* Hilal compact hero: no obsolete squad photograph; stadium art is locally hosted. */
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
  display:flex!important;flex-direction:column!important;align-items:center!important;
- justify-content:flex-end!important;min-height:0!important;height:auto!important;
- --hilal-photo-height:min(56.25vw,1060px);
- padding:calc(var(--hilal-photo-height) + 12px) 18px 24px!important;
- background:linear-gradient(180deg,#f6faff,#e7f0ff)!important;
- border:1px solid #a3c1f1!important;
+ justify-content:center!important;min-height:365px!important;height:auto!important;
+ padding:35px 95px 50px!important;
+ background:linear-gradient(115deg,#061b55,#0a3caa 48%,#072767)!important;
+ border:1px solid #7ca5e7!important;border-radius:20px!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
- top:0!important;bottom:auto!important;left:0!important;right:0!important;
- height:var(--hilal-photo-height)!important;inset:0 0 auto!important;
- background-image:url("https://images.ctfassets.net/eyc25wndlima/6fcN7akeXpsa2yNxhNLlZX/2ed7af62dbe75c1eddc8adf65841ac56/Al-Hilal_vs_Neom_Friendly.jpg?f=right&fit=fill&fm=webp&h=1080&q=90&w=1920")!important;
- background-size:100% 100%!important;background-repeat:no-repeat!important;
- background-position:center center!important;background-color:#0c3276!important;
- filter:none!important;opacity:1!important;
+ content:""!important;position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;
+ background:linear-gradient(90deg,rgba(4,19,63,.68),rgba(8,48,130,.46),rgba(4,19,63,.7)),
+ url("/teacher-themes/hilal-stadium-2026.svg") center center/cover no-repeat!important;
+ opacity:1!important;filter:none!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::after{
- content:""!important;inset:var(--hilal-photo-height) 0 0!important;z-index:0!important;
- background:linear-gradient(145deg,#f8fbff,#e5efff)!important;
+ content:""!important;position:absolute!important;inset:0!important;
+ background:radial-gradient(ellipse at 50% 110%,rgba(80,142,255,.22),transparent 67%)!important;
+ pointer-events:none!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-identity{
- position:relative!important;inset:auto!important;transform:none!important;z-index:3!important;
- margin:0 auto 8px!important;max-width:240px!important;
- background:#0c357d!important;
+ position:relative!important;inset:auto!important;transform:none!important;
+ margin:0 auto 12px!important;z-index:3!important;
+ background:rgba(5,24,76,.86)!important;border:1px solid #dfbf76!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-intro{
- position:relative!important;inset:auto!important;transform:none!important;z-index:3!important;
- width:100%!important;text-align:center!important;margin:0 auto!important;
+ position:relative!important;inset:auto!important;transform:none!important;
+ z-index:3!important;margin:0 auto!important;text-align:center!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-intro h1{
- color:#124aab!important;-webkit-text-fill-color:#124aab!important;
- text-shadow:none!important;background:transparent!important;
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+ text-shadow:0 3px 10px rgba(0,10,40,.65)!important;
 }
 .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-intro p{
- color:#3e608f!important;-webkit-text-fill-color:#3e608f!important;
- text-shadow:none!important;
+ color:#f0f5ff!important;-webkit-text-fill-color:#f0f5ff!important;
 }
-.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-date{
- background:#0b387f!important;z-index:4!important;
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-date,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-appearance{
+ z-index:4!important;
 }
-.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-appearance{z-index:4!important}
 @media(max-width:760px){
  .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
-  --hilal-photo-height:56.25vw;min-height:0!important;padding:calc(var(--hilal-photo-height) + 10px) 9px 15px!important;
- }
- .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
-  height:var(--hilal-photo-height)!important;
- }
- .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::after{
-  inset:var(--hilal-photo-height) 0 0!important;
- }
- .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-identity{
-  margin:0 auto 6px!important;
+  min-height:345px!important;padding:58px 12px 50px!important;
  }
 }
