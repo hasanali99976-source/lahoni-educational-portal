@@ -73,3 +73,32 @@
  .mastery-table-wrap thead{display:table-header-group!important}
  .mastery-table-wrap tr{break-inside:avoid!important;page-break-inside:avoid!important}
 }
+
+/* Final compact one-sheet print layout for ordinary class reports. */
+@media print {
+ @page {size:A4 landscape;margin:5mm}
+ .mastery-dashboard{display:block!important;width:100%!important;padding:0!important;margin:0!important}
+ .mastery-panel{break-inside:auto!important;page-break-inside:auto!important}
+ .print-report-head{
+   grid-template-columns:minmax(0,1fr) 16mm!important;
+   grid-template-areas:"title logo" "meta meta"!important;
+   padding:2mm 3mm!important;margin-bottom:2mm!important;
+   row-gap:1.5mm!important;column-gap:3mm!important;
+   border-top-width:1.3mm!important
+ }
+ .print-report-head img{width:15mm!important;height:15mm!important;padding:.6mm!important}
+ .print-title strong{font-size:14pt!important;line-height:1.15!important}
+ .print-title span{font-size:7.5pt!important;margin-top:0!important}
+ .print-title .print-unit-names{font-size:7.3pt!important;line-height:1.2!important;margin-top:.7mm!important}
+ .print-meta{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1.2mm!important;padding-top:1.3mm!important}
+ .print-meta>div{min-height:8mm!important;height:8mm!important;padding:1mm 2mm!important;gap:1.3mm!important}
+ .print-meta small{font-size:7pt!important}
+ .print-meta b{font-size:8pt!important;line-height:1.15!important}
+ .mastery-table-wrap{margin:0!important;padding:0!important;overflow:visible!important}
+ .mastery-table-wrap table{width:100%!important;table-layout:fixed!important}
+ .mastery-table-wrap th{height:7.5mm!important;padding:1mm 1.2mm!important;font-size:8pt!important;line-height:1.15!important}
+ .mastery-table-wrap td{height:7mm!important;min-height:0!important;padding:.75mm 1.2mm!important;font-size:8pt!important;line-height:1.15!important}
+ .mastery-table-wrap .student b{font-size:8.3pt!important;line-height:1.15!important}
+ .score,.unit-full,.achieved,.status{font-size:7.5pt!important;padding:.65mm 1.2mm!important;line-height:1.1!important}
+ .mastery-table-wrap tbody tr{break-inside:avoid!important;page-break-inside:avoid!important}
+}
