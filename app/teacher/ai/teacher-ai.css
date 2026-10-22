@@ -336,3 +336,38 @@
  .teacher-ai-page .generated-plan .ai-report-student-register{break-before:page!important;page-break-before:always!important}
  .teacher-ai-page .generated-plan .plan-students-table th,.teacher-ai-page .generated-plan .plan-students-table td{font-size:9px!important;padding:4px 6px!important;line-height:1.35!important}
 }
+
+/* Pagination correction: never orphan section headers or reserve an entire lesson grid. */
+.teacher-ai-page .generated-plan .ai-part-title{background:#e5f3f9!important;color:#0c5474!important;border-right:5px solid #128ba3!important}
+.teacher-ai-page .generated-plan .ai-enrichment-section .ai-part-title{background:#e5f7ee!important;color:#0a7055!important;border-right-color:#169876!important}
+.teacher-ai-page .generated-plan .ai-lessons article:nth-of-type(3n+1){background:#eef8fc!important}
+.teacher-ai-page .generated-plan .ai-lessons article:nth-of-type(3n+2){background:#f1faf7!important}
+.teacher-ai-page .generated-plan .ai-lessons article:nth-of-type(3n){background:#fffaf0!important;border-right-color:#b88a34!important}
+@media print {
+ .teacher-ai-page .generated-plan .plan-steps,
+ .teacher-ai-page .generated-plan .ai-lessons,
+ .teacher-ai-page .generated-plan .ai-enrichment-section,
+ .teacher-ai-page .generated-plan .ai-analytics,
+ .teacher-ai-page .generated-plan .plan-meta,
+ .teacher-ai-page .generated-plan .ai-chart-grid{break-inside:auto!important;page-break-inside:auto!important}
+ .teacher-ai-page .generated-plan .plan-steps>h3,
+ .teacher-ai-page .generated-plan .ai-lessons>h3,
+ .teacher-ai-page .generated-plan .ai-part-title{break-after:avoid!important;page-break-after:avoid!important}
+ .teacher-ai-page .generated-plan .plan-steps article{display:flex!important;min-height:0!important;margin:3px 0!important;padding:5px 7px!important;break-inside:avoid!important}
+ .teacher-ai-page .generated-plan .ai-lessons article{display:block!important;width:100%!important;margin:3px 0!important;padding:5px 8px!important;break-inside:avoid!important}
+ .teacher-ai-page .generated-plan .ai-lessons article b,
+ .teacher-ai-page .generated-plan .ai-lessons article small,
+ .teacher-ai-page .generated-plan .ai-lessons article p{display:inline!important;margin:0 4px!important;font-size:9px!important;line-height:1.4!important}
+ .teacher-ai-page .generated-plan .ai-lessons article b{font-weight:800!important}
+ .teacher-ai-page .generated-plan .ai-lessons article small{color:#56758a!important}
+ .teacher-ai-page .generated-plan .ai-lessons article p:before{content:"— ";color:#1488a0}
+ .teacher-ai-page .generated-plan .ai-analytics{padding:7px!important;margin:6px 0!important}
+ .teacher-ai-page .generated-plan .ai-kpi-row article{padding:5px!important}
+ .teacher-ai-page .generated-plan .ai-chart-grid{margin-top:7px!important}
+ .teacher-ai-page .generated-plan .ai-chart{padding:6px!important}
+ .teacher-ai-page .generated-plan .ai-part-title{margin:9px 0 4px!important;padding:5px 9px!important}
+ .teacher-ai-page .generated-plan .plan-steps>h3{margin:3px 0!important}
+ .teacher-ai-page .generated-plan .ai-enrichment-section{margin:7px 0!important}
+ .teacher-ai-page .generated-plan .ai-plan-outcome{margin:4px 0!important;padding:5px 8px!important}
+ .teacher-ai-page .generated-plan .ai-report-student-register{break-before:page!important;page-break-before:always!important}
+}
