@@ -79,18 +79,30 @@ export default function ReportsPage() {
     const controller = new AbortController();
     const params = new URLSearchParams({ subjectId: subjectKey });
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
-    fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal })
-      .then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر تحميل الطلاب"); return data; })
-      .then(data => {
-        const list: Student[] = (Array.isArray(data.students) ? data.students : []).map((raw: Record<string, unknown>) => {
+    Promise.all([
+      fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal }),
+      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(subjectKey)}`, { cache: "no-store", signal: controller.signal }),
+    ])
+      .then(async ([rosterResponse, gradesResponse]) => {
+        const [roster, grades] = await Promise.all([rosterResponse.json().catch(() => ({})), gradesResponse.json().catch(() => ({}))]);
+        if (!rosterResponse.ok) throw new Error(roster.message || "تعذر تحميل الطلاب");
+        if (!gradesResponse.ok) throw new Error(grades.message || "تعذر تحميل درجات التحصيل المحفوظة");
+        return { roster, grades };
+      })
+      .then(({ roster, grades }) => {
+        const byCode: Record<string, Record<string, unknown>> = grades.byCode && typeof grades.byCode === "object" ? grades.byCode : {};
+        const list: Student[] = (Array.isArray(roster.students) ? roster.students : []).map((raw: Record<string, unknown>) => {
           const code = String(raw.code || raw.id || "").trim().toUpperCase();
           const className = String(raw.className || raw.class || "").trim();
-          return { ...(raw as unknown as Student), id: code, code, name: String(raw.name || "").trim(), class: className, className };
+          const academic = byCode[code] || {};
+          const gradeValues = academic.gradeValues && typeof academic.gradeValues === "object" ? academic.gradeValues as GradeValueMap : raw.gradeValues as GradeValueMap | undefined;
+          const gradePlanValues = academic.gradePlanValues && typeof academic.gradePlanValues === "object" ? academic.gradePlanValues as Record<string, GradeValueMap> : raw.gradePlanValues as Record<string, GradeValueMap> | undefined;
+          return { ...(raw as unknown as Student), id: code, code, name: String(raw.name || "").trim(), class: className, className, gradeValues, gradePlanValues };
         }).filter((student: Student) => student.id && student.name && student.className);
         list.sort((a, b) => String(a.className).localeCompare(String(b.className), "ar", { numeric: true }) || String(a.name).localeCompare(String(b.name), "ar"));
         setStudents(list); setMessage("");
       })
-      .catch(error => { if ((error as Error)?.name !== "AbortError") setMessage(error instanceof Error ? error.message : "تعذر تحميل الطلاب"); });
+      .catch(error => { if ((error as Error)?.name !== "AbortError") setMessage(error instanceof Error ? error.message : "تعذر تحميل درجات التقرير"); });
     return () => controller.abort();
   }, [teacherId, subjectKey, session.activeGrade]);
 
