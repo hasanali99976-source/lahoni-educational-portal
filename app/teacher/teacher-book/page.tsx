@@ -26,7 +26,7 @@ export default function TeacherBook(){
  const [loading,setLoading]=useState(true);
 
  const subjectKey=session.subjectKey||"history";
- useEffect(()=>{if(!session.teacherId)return;const k="teacher-book:"+session.teacherId;try{setSchoolName(localStorage.getItem(k+":school")||"");setSchoolStart("2026-08-23")}catch{}},[session.teacherId]);
+ useEffect(()=>{if(!session.teacherId)return;const k="teacher-book:"+session.teacherId;try{setSchoolName(localStorage.getItem(k+":school")||"");}catch{}},[session.teacherId]);
  function saveSchool(v:string){setSchoolName(v);try{localStorage.setItem("teacher-book:"+session.teacherId+":school",v)}catch{}}
  
  function selectSinceStart(){setMessage("");setAllClasses(true);setFrom("2026-08-23");setTo(iso(new Date()))}
