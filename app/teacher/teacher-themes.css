@@ -864,3 +864,150 @@
   transform:scale(.65)!important;transform-origin:bottom left!important;
  }
 }
+
+/* Clouds theme v2 — clear sky, floating white clouds, airy blue navigation.
+   All rules are scoped to clouds; no changes to data or other themes. */
+.teacher-student-shell[data-teacher-theme="clouds"]{
+ --tt-accent:#288fc4;--tt-ink:#174b6a;--tt-surface:rgba(255,255,255,.96);
+ --tt-border:#acd9ec;--tt-radius:19px;--tt-font:"Tajawal",Arial,sans-serif;
+ --tt-backdrop:linear-gradient(150deg,#e2f6ff,#f8fdff 55%,#d8f1fd);
+ background:#effaff!important;color:#174b6a!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"]::before{
+ background:radial-gradient(ellipse at 8% 14%,rgba(255,255,255,.85) 0 12%,transparent 32%),linear-gradient(145deg,#d7f0ff,#f8fdff 65%,#e5f7ff)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-header{
+ background:linear-gradient(180deg,#e8f8ff,#f7fcff)!important;
+ border:1px solid #a9d8ed!important;border-radius:24px!important;
+ box-shadow:0 9px 26px rgba(39,128,169,.11)!important;padding:11px!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-header::before,
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-header::after{
+ display:none!important;content:none!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:9px!important;
+ min-height:345px!important;height:auto!important;padding:48px 105px 55px!important;
+ background:linear-gradient(180deg,#a9dcf5 0%,#d5f1ff 45%,#f8fdff 100%)!important;
+ border:1px solid #9ed4ed!important;border-radius:21px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::before{
+ content:""!important;display:block!important;position:absolute!important;inset:0!important;
+ z-index:0!important;opacity:1!important;pointer-events:none!important;transform:none!important;
+ background:
+ radial-gradient(ellipse 170px 55px at 13% 73%,#fff 0 75%,transparent 77%),
+ radial-gradient(ellipse 105px 77px at 8% 67%,#fff 0 75%,transparent 77%),
+ radial-gradient(ellipse 115px 72px at 19% 65%,#fff 0 75%,transparent 77%),
+ radial-gradient(ellipse 195px 52px at 86% 68%,#fff 0 75%,transparent 77%),
+ radial-gradient(ellipse 102px 75px at 79% 62%,#fff 0 75%,transparent 77%),
+ radial-gradient(ellipse 110px 75px at 92% 59%,#fff 0 75%,transparent 77%),
+ radial-gradient(ellipse 110px 29px at 22% 19%,rgba(255,255,255,.77) 0 72%,transparent 74%),
+ radial-gradient(ellipse 120px 32px at 82% 17%,rgba(255,255,255,.75) 0 72%,transparent 74%),
+ radial-gradient(circle at 89% 19%,#ffe5a2 0 26px,rgba(255,231,173,.37) 27px 58px,transparent 60px)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::after{
+ content:""!important;display:block!important;position:absolute!important;
+ inset:auto 0 0!important;height:38%!important;z-index:0!important;pointer-events:none!important;
+ background:linear-gradient(0deg,rgba(255,255,255,.68),transparent)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-identity{
+ position:relative!important;inset:auto!important;transform:none!important;z-index:2!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;
+ width:auto!important;max-width:min(235px,100%)!important;height:auto!important;
+ margin:0 auto!important;padding:9px 17px!important;text-align:center!important;
+ background:rgba(255,255,255,.93)!important;border:2px solid #b4dfee!important;
+ border-radius:28px!important;box-shadow:0 8px 20px rgba(36,112,155,.14)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-identity img{
+ width:67px!important;height:67px!important;object-fit:cover!important;
+ border:3px solid #fff!important;border-radius:50%!important;
+ box-shadow:0 0 0 3px #8dcce9!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-intro{
+ position:relative!important;inset:auto!important;transform:none!important;z-index:2!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ width:100%!important;max-width:850px!important;margin:0 auto!important;padding:0!important;
+ text-align:center!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top .tss-hero-intro h1{
+ margin:0!important;font-size:clamp(26px,3.3vw,45px)!important;line-height:1.35!important;
+ color:#11567c!important;-webkit-text-fill-color:#11567c!important;
+ text-shadow:0 2px 0 #fff,0 5px 10px rgba(34,112,151,.14)!important;
+ white-space:normal!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top .tss-hero-intro h1 em{
+ color:#2d99cf!important;-webkit-text-fill-color:#2d99cf!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top .tss-hero-intro p,
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top .tss-hero-identity :is(strong,span,small){
+ color:#245e7e!important;-webkit-text-fill-color:#245e7e!important;
+ text-shadow:none!important;opacity:1!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-date{
+ position:absolute!important;inset:auto!important;top:12px!important;right:14px!important;
+ z-index:5!important;transform:none!important;width:max-content!important;
+ max-width:calc(100% - 28px)!important;
+ background:rgba(255,255,255,.89)!important;color:#185c82!important;
+ -webkit-text-fill-color:#185c82!important;border:1px solid #a8d6e9!important;
+ border-radius:13px!important;padding:8px 12px!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-appearance{
+ position:absolute!important;inset:auto!important;bottom:11px!important;left:12px!important;
+ z-index:5!important;transform:none!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .teacher-theme-launch,
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-signout{
+ background:#fff!important;color:#195e84!important;-webkit-text-fill-color:#195e84!important;
+ border:1px solid #9bd0e9!important;border-radius:12px!important;
+ box-shadow:0 3px 10px rgba(31,111,159,.11)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts{
+ background:transparent!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a,
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a:nth-child(n){
+ background:linear-gradient(150deg,#fff,#eaf8ff)!important;
+ border:1px solid #a9d9ee!important;border-radius:19px!important;
+ box-shadow:0 4px 10px rgba(43,129,170,.09)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a b{
+ color:#185776!important;-webkit-text-fill-color:#185776!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcut-icon{
+ background:#d5effd!important;color:#197bb2!important;border:1px solid #a9d9ee!important;
+ border-radius:14px!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a.active,
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a.active:nth-child(n){
+ background:linear-gradient(130deg,#248fca,#126b9e)!important;
+ border:1px solid #1b79ae!important;box-shadow:0 5px 13px rgba(25,113,166,.2)!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a.active b,
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts a.active .tss-hero-shortcut-icon{
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+.teacher-student-shell[data-teacher-theme="clouds"] .tss-content :is(.daily-overview,.daily-panel,.daily-class-section){
+ background:rgba(255,255,255,.95)!important;border-color:#b5dcec!important;
+ color:#225b7c!important;
+}
+@media(max-width:760px){
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-header{padding:6px!important}
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top{
+  min-height:335px!important;padding:52px 12px 56px!important;gap:8px!important;
+ }
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top>.tss-hero-identity{
+  max-width:205px!important;padding:7px 12px!important;
+ }
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top .tss-hero-intro h1{
+  font-size:clamp(22px,6vw,32px)!important;
+ }
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::before{
+  background:
+  radial-gradient(ellipse 115px 40px at 12% 76%,#fff 0 75%,transparent 77%),
+  radial-gradient(ellipse 90px 55px at 86% 77%,#fff 0 75%,transparent 77%),
+  radial-gradient(circle at 87% 15%,#ffe5a2 0 20px,transparent 22px)!important;
+ }
+}
