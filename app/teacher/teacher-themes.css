@@ -1223,3 +1223,84 @@
   min-height:345px!important;padding:58px 12px 50px!important;
  }
 }
+
+/* Hilal world-class arena identity — cohesive hero, banners, navigation and surfaces. */
+.teacher-student-shell[data-teacher-theme="hilal"]{
+ --tt-accent:#145cf0!important;--tt-ink:#0b327f!important;--tt-border:#8eb9ff!important;
+ background:linear-gradient(160deg,#e8f1ff 0%,#f8fbff 50%,#dfeaff 100%)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-header{
+ background:transparent!important;border:0!important;box-shadow:none!important;padding:5px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
+ min-height:370px!important;max-height:390px!important;padding:35px 95px 35px!important;
+ border:1px solid #73a8ff!important;border-bottom:4px solid #e4bf63!important;
+ box-shadow:0 12px 26px rgba(3,36,110,.22),inset 0 1px rgba(255,255,255,.2)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::before{
+ background:linear-gradient(90deg,rgba(1,13,54,.25),rgba(4,32,100,.05) 40%,rgba(1,13,54,.28)),
+ url("/teacher-themes/hilal-world-arena.svg") center center/cover no-repeat!important;
+ filter:none!important;opacity:1!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top::after{
+ background:linear-gradient(180deg,transparent 0%,rgba(0,17,67,.1) 60%,rgba(0,16,58,.5) 100%)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-identity{
+ background:linear-gradient(155deg,rgba(5,29,92,.91),rgba(11,72,163,.88))!important;
+ border:2px solid #e8c46d!important;border-radius:19px!important;
+ box-shadow:0 7px 25px rgba(0,12,47,.4),0 0 0 5px rgba(117,173,255,.14)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top>.tss-hero-intro h1{
+ font-size:clamp(29px,3.2vw,48px)!important;line-height:1.25!important;
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+ text-shadow:0 3px 12px rgba(0,8,42,.85)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner{
+ min-height:142px!important;display:flex!important;align-items:center!important;
+ background:linear-gradient(105deg,#082b80,#155bd0 47%,#082e88)!important;
+ border:1px solid #78a9f9!important;border-bottom:4px solid #d8b35f!important;
+ border-radius:17px!important;box-shadow:0 8px 20px rgba(9,56,146,.18)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner::before{
+ background:repeating-linear-gradient(115deg,transparent 0 60px,rgba(255,255,255,.04) 60px 62px)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-motto,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-motto strong,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-brand,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-stadium{
+ color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:0 2px 7px rgba(0,16,65,.4)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-motto strong{
+ font-size:clamp(21px,2.7vw,39px)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts{
+ background:linear-gradient(145deg,#e4efff,#f4f8ff)!important;
+ border:1px solid #a7c9fa!important;border-radius:18px!important;padding:10px!important;gap:9px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a:nth-child(n){
+ min-height:75px!important;background:linear-gradient(155deg,#fff,#e8f2ff)!important;
+ border:1px solid #a1c4fa!important;border-bottom:3px solid #2a66c8!important;
+ border-radius:14px!important;box-shadow:0 3px 10px rgba(15,67,147,.11)!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a.active,
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a.active:nth-child(n){
+ background:linear-gradient(135deg,#1c66e1,#082d83)!important;
+ border:1px solid #1250b9!important;border-bottom:3px solid #e3bf6a!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a.active b{
+ color:white!important;-webkit-text-fill-color:white!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts .tss-hero-shortcut-icon{
+ background:#dceaff!important;border:1px solid #a9c9f9!important;border-radius:12px!important;
+}
+.teacher-student-shell[data-teacher-theme="hilal"] .tss-content{
+ background:rgba(255,255,255,.78)!important;border-radius:18px!important;
+}
+@media(max-width:760px){
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-top{
+ min-height:340px!important;max-height:none!important;padding:55px 12px 35px!important;
+ }
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hilal-fan-banner{min-height:115px!important}
+ .teacher-student-shell[data-teacher-theme="hilal"] .tss-hero-shortcuts a{min-height:65px!important}
+}
