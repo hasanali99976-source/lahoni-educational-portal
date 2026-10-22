@@ -197,3 +197,5 @@
  .teacher-book .book-meta b{color:#092c37!important}
  .teacher-book .book-page footer{justify-content:space-between!important}
 }
+
+@media screen{.teacher-book .book-settings{grid-template-columns:minmax(220px,1.3fr) minmax(150px,.8fr) minmax(180px,1fr) minmax(180px,1fr)}.teacher-book .book-settings .book-future-btn{background:#e5f3f3;color:#125b65;border:1px solid #bddcdd}.teacher-book .book-settings .book-future-btn:hover{background:#d8ecec}}@media screen and (max-width:1050px){.teacher-book .book-settings{grid-template-columns:repeat(2,minmax(0,1fr))}}@media screen and (max-width:600px){.teacher-book .book-settings{grid-template-columns:1fr}.teacher-book .book-settings button{grid-column:auto}}
