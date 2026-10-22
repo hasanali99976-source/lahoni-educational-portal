@@ -43,6 +43,7 @@ const moreTabs: TeacherTab[] = [
   { href: "/teacher/discipline", key: "discipline", label: "الانضباط", note: "التأخر والاستئذان" },
   { href: "/teacher/notes", key: "notes", label: "الملاحظات", note: "الملاحظات التربوية" },
   { href: "/teacher/reports", key: "reports", label: "مركز التقارير", note: "التقارير والطباعة" },
+  { href: "/teacher/teacher-book", key: "teacherbook", label: "ملف المعلم", note: "كراسة الحصص اليومية" },
   { href: "/teacher/portfolio", key: "portfolio", label: "ملف الإنجاز", note: "الشواهد والطباعة" },
   { href: "/teacher/grade-plan", key: "gradeplan", label: "خطة رصد المعلم", note: "توزيع الدرجات والرصد" },
   { href: "/teacher/ai", key: "ai", label: "المساعد الذكي", note: "تحليل وخطط مقترحة", badge: "AI" },
