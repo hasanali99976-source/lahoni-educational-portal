@@ -69,6 +69,7 @@ export default function ReportsPage() {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
   const [gradeReportMode, setGradeReportMode] = useState<"summary"|"detailed">("summary");
+  const [examOnlyExport, setExamOnlyExport] = useState(false);
   const [selectedDate, setSelectedDate] = useState(today);
   const [reportFrom, setReportFrom] = useState(addDays(today, -6));
   const [reportTo, setReportTo] = useState(today);
@@ -286,6 +287,36 @@ export default function ReportsPage() {
     finally { setBusy(false); }
   }
 
+  function exportExamOnlyExcel() {
+    try {
+      validateSelection();
+      if (!activePlan) throw new Error("لا توجد خطة درجات معتمدة.");
+      const sections = activePlan.sections.filter(section => /الوحدة\\s*(الأولى|الاولى|الثانية|1|2)|الوحدة\\s*[١٢]/.test(section.label));
+      if (sections.length !== 2) throw new Error("لم أتمكن من تحديد الوحدتين الأولى والثانية في خطة الدرجات. تحقق من تسميتهما.");
+      const examItems = sections.map(section => ({
+        section,
+        items: section.items.filter(item => /اختبار/.test(item.label) && !/حضور|مشاركة|واجب|نشاط/.test(item.label)),
+      }));
+      if (examItems.some(entry => !entry.items.length)) throw new Error("لم أجد بند الاختبار في إحدى الوحدتين. راجع بنود خطة الدرجات.");
+      const workbook = XLSX.utils.book_new();
+      selectedClasses.forEach((className, classIndex) => {
+        const roster = students.filter(student => String(student.className || student.class || "") === className);
+        if (!roster.length) return;
+        const rows = roster.map((student, index) => {
+          const source = studentForPlan(student);
+          const values = examItems.map(entry => entry.items.reduce((sum, item) => sum + (Number(readGradeEntry(source, entry.section, item).value) || 0), 0));
+          return { "م": index + 1, "اسم الطالب": String(student.name || ""), "الفصل": className, "اختبار الوحدة الأولى": values[0], "اختبار الوحدة الثانية": values[1], "مجموع الاختبارين فقط": values[0] + values[1] };
+        });
+        const sheet = XLSX.utils.json_to_sheet(rows);
+        sheet["!cols"] = [{wch:6},{wch:40},{wch:20},{wch:23},{wch:23},{wch:24}];
+        XLSX.utils.book_append_sheet(workbook, sheet, sheetName(className, classIndex));
+      });
+      if (!workbook.SheetNames.length) throw new Error("لا توجد بيانات طلاب للفصول المختارة.");
+      XLSX.writeFile(workbook, "اختبارات-الوحدتين-الأولى-والثانية.xlsx");
+      setMessage(`تم تصدير درجات الاختبارين فقط لـ ${workbook.SheetNames.length} فصل، دون بقية بنود التحصيل.`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "تعذر تصدير الاختبارين."); }
+  }
+
   function exportExcel() {
     try {
       validateSelection();
@@ -338,7 +369,7 @@ export default function ReportsPage() {
   return <main className="smart-reports-v12" dir="rtl">
     <section className="sr12-head">
       <div><small>مركز التقارير</small><h2>تقارير المعلم</h2><p>اختر التقرير والفصل والفترة، ثم اطبع التقرير أو احفظه PDF.</p></div>
-      <div className="sr12-trust"><b>طباعة PDF</b><span>تصدير Excel</span><span>صفحة مستقلة لكل فصل</span></div>
+      <div className="sr12-trust"><button type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length}>طباعة PDF</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length}>تصدير Excel</button><span>صفحة مستقلة لكل فصل</span></div>
     </section>
 
     {message ? <p className="sr12-message">{message}</p> : null}
@@ -371,6 +402,6 @@ export default function ReportsPage() {
       </div>
     </section>
 
-    <section className="sr12-actions">{reportType === "grades" && <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:12}}><span>نوع تقرير التحصيل:</span><button type="button" className={gradeReportMode==="summary"?"active":""} onClick={()=>setGradeReportMode("summary")}>كشف موحد للوحدات (صفحة لكل فصل)</button><button type="button" className={gradeReportMode==="detailed"?"active":""} onClick={()=>setGradeReportMode("detailed")}>تقرير تفصيلي لبنود الدرجات</button></div>}<div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "طباعة / حفظ PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></section>
+    <section className="sr12-actions">{reportType === "grades" && <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}><button type="button" onClick={exportExamOnlyExcel} disabled={busy || !activePlan || !selectedClasses.length}>تصدير اختبار الوحدة الأولى والثانية فقط (Excel)</button></div>}{reportType === "grades" && <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:12}}><span>نوع تقرير التحصيل:</span><button type="button" className={gradeReportMode==="summary"?"active":""} onClick={()=>setGradeReportMode("summary")}>كشف موحد للوحدات (صفحة لكل فصل)</button><button type="button" className={gradeReportMode==="detailed"?"active":""} onClick={()=>setGradeReportMode("detailed")}>تقرير تفصيلي لبنود الدرجات</button></div>}<div><button className="primary" type="button" onClick={() => void generatePdf()} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>{busy ? "جارٍ الإنشاء…" : "طباعة / حفظ PDF"}</button><button type="button" onClick={exportExcel} disabled={busy || !selectedClasses.length || (reportType === "attendance" && attendanceMode === "range" && !rangeValid)}>تصدير Excel</button></div></section>
   </main>;
 }
