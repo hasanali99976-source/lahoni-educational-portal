@@ -209,3 +209,51 @@
 .ai-unit-options label small{display:block;font-size:.78em;color:#557381}
 .ai-all-units{border:1px solid #178a92;background:#e9f6f6;color:#075b65;border-radius:9px;padding:9px 15px;font-weight:800;cursor:pointer;margin-bottom:8px}
 @media print{.ai-unit-options,.ai-all-units{display:none!important}}
+
+/* Data-driven academic report — clean responsive and print-safe layout */
+.teacher-ai-page .generated-plan{max-width:1180px;margin-inline:auto!important;overflow:visible!important;isolation:isolate}
+.teacher-ai-page .generated-plan>header{flex-wrap:wrap;min-width:0}
+.teacher-ai-page .generated-plan>header>div{min-width:0;flex:1 1 320px}
+.teacher-ai-page .generated-plan h2,.teacher-ai-page .generated-plan p,.teacher-ai-page .generated-plan b{overflow-wrap:anywhere}
+.teacher-ai-page .ai-analytics{margin:18px 22px;padding:18px;border:1px solid #cfe2ed;border-radius:16px;background:#f9fcfe;break-inside:avoid}
+.teacher-ai-page .ai-analytics h3,.teacher-ai-page .ai-lessons h3{font-size:18px;color:#124c6b;margin:0 0 14px}
+.teacher-ai-page .ai-kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.teacher-ai-page .ai-kpi-row article{padding:14px;background:#fff;border:1px solid #d6e6ef;border-radius:11px;min-width:0}
+.teacher-ai-page .ai-kpi-row small{display:block;color:#52728a;font-size:12px}
+.teacher-ai-page .ai-kpi-row strong{display:block;color:#0c6887;font-size:25px;line-height:1.4}
+.teacher-ai-page .ai-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:14px}
+.teacher-ai-page .ai-chart{padding:16px;background:#fff;border:1px solid #d6e6ef;border-radius:12px;min-width:0}
+.teacher-ai-page .ai-chart h4{margin:0 0 12px;color:#155577;font-size:14px}
+.teacher-ai-page .ai-bar-line{display:grid;grid-template-columns:minmax(66px,1fr) minmax(70px,3fr) 24px;align-items:center;gap:9px;margin:10px 0;font-size:12px;color:#244b62}
+.teacher-ai-page .ai-bar-track{height:13px;border-radius:20px;background:#e9f0f5;overflow:hidden}
+.teacher-ai-page .ai-bar-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#168eaa,#2471ab)}
+.teacher-ai-page .ai-class-track i{background:linear-gradient(90deg,#18a78e,#12806e)}
+.teacher-ai-page .ai-data-note{font-size:11px;color:#60788b;margin:12px 0 0}
+.teacher-ai-page .ai-lessons{margin:15px 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.teacher-ai-page .ai-lessons h3{grid-column:1/-1;margin-bottom:0}
+.teacher-ai-page .ai-lessons article{padding:13px 15px;border:1px solid #d5e5ec;border-right:4px solid #1384a0;border-radius:10px;background:#f7fbfd;break-inside:avoid;min-width:0}
+.teacher-ai-page .ai-lessons b{display:block;color:#155475}
+.teacher-ai-page .ai-lessons small{display:block;color:#60798a;margin:4px 0}
+.teacher-ai-page .ai-lessons p{font-size:12px;line-height:1.7;color:#355569;margin:0}
+.teacher-ai-page .ai-enrich-lessons article{border-right-color:#14916f;background:#f7fcf9}
+@media(max-width:720px){.teacher-ai-page .ai-kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-ai-page .ai-chart-grid,.teacher-ai-page .ai-lessons{grid-template-columns:1fr}.teacher-ai-page .ai-analytics,.teacher-ai-page .ai-lessons{margin-inline:10px}}
+@media print{
+ @page{size:A4 portrait;margin:11mm}
+ .teacher-ai-page .generated-plan{max-width:none!important;overflow:visible!important}
+ .teacher-ai-page .generated-plan>header{display:block!important;padding:12px 15px!important}
+ .teacher-ai-page .generated-plan .ai-analytics{margin:9px 0!important;padding:10px!important;break-inside:avoid!important}
+ .teacher-ai-page .generated-plan .ai-kpi-row{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}
+ .teacher-ai-page .generated-plan .ai-kpi-row article{padding:6px!important}
+ .teacher-ai-page .generated-plan .ai-kpi-row strong{font-size:17px!important}
+ .teacher-ai-page .generated-plan .ai-chart-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ .teacher-ai-page .generated-plan .ai-chart{padding:7px!important}
+ .teacher-ai-page .generated-plan .ai-bar-line{margin:5px 0!important;font-size:9px!important}
+ .teacher-ai-page .generated-plan .ai-lessons{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:9px 0!important}
+ .teacher-ai-page .generated-plan .ai-lessons article{padding:7px!important}
+ .teacher-ai-page .generated-plan .ai-lessons p{font-size:10px!important}
+ .teacher-ai-page .generated-plan .ai-report-student-register{break-before:auto!important;page-break-before:auto!important;margin:10px 0!important}
+ .teacher-ai-page .generated-plan .ai-enrichment-section{break-before:auto!important;page-break-before:auto!important}
+ .teacher-ai-page .generated-plan .plan-students-table{table-layout:auto!important}
+ .teacher-ai-page .generated-plan .plan-students-table th,.teacher-ai-page .generated-plan .plan-students-table td{font-size:9px!important;padding:5px!important;overflow-wrap:anywhere}
+ .teacher-ai-page .generated-plan .ai-bar-track i{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
