@@ -66,24 +66,70 @@ function render(options:GradebookPdfDocumentOptions,report:GradebookPdfClass,sec
 
 export type GradebookSummaryRow={number:number;name:string;unitScores:number[];total:number;percentage:number};
 function renderSummary(options:GradebookPdfDocumentOptions,report:GradebookPdfClass,classIndex:number,logo:HTMLImageElement|null){
-  const {canvas,ctx}=createPrintCanvas();const accent=report.accentColor||PRINT_ACCENTS[classIndex%PRINT_ACCENTS.length]||PRINT_ACCENTS[0];
-  const sections=report.sections;const first=sections[0];const count=first?.rows.length||0;const max=sections.reduce((sum,s)=>sum+s.max,0);
-  const rows:GradebookSummaryRow[]=(first?.rows||[]).map((row,i)=>{const scores=sections.map(section=>section.rows.find(r=>r.number===row.number)?.sectionTotal||0);const total=round(scores.reduce((a,b)=>a+b,0));return{number:row.number,name:row.name,unitScores:scores,total,percentage:max?round(total/max*100):0};});
-  roundedRect(ctx,34,22,PRINT_WIDTH-68,100,16,"#fff","#d8e4e1");ctx.fillStyle=accent;ctx.fillRect(34,22,PRINT_WIDTH-68,8);
-  roundedRect(ctx,48,36,82,76,10,"#fff","#d6e3df");if(logo)drawImageContain(ctx,logo,53,41,72,66,2);
-  drawFittedText(ctx,options.portalName,148,52,{size:18,weight:850,color:"#647c81",align:"left",maxWidth:690});
-  drawFittedText(ctx,"كشف التحصيل الأكاديمي الموحد",148,85,{size:31,weight:900,color:"#153b49",align:"left",maxWidth:850});
-  drawFittedText(ctx,options.subject+" • "+report.className,148,109,{size:18,weight:850,color:accent,align:"left",maxWidth:760});
-  const meta=[["المعلم",options.teacherName],["المادة",options.subject],["الفصل",report.className],["الوحدات",String(sections.length)],["الدرجة الكاملة",String(max)]];
-  const gap=10,w=(PRINT_WIDTH-68-gap*4)/5;meta.forEach(([label,value],i)=>{const x=PRINT_WIDTH-34-w-i*(w+gap);roundedRect(ctx,x,135,w,55,10,"#f5faf9","#dce7e4");drawFixedText(ctx,label,x+w-12,153,{size:12,weight:800,color:"#70858a",maxWidth:w-24});drawFittedText(ctx,value,x+w-12,177,{size:18,weight:900,color:"#21464c",align:"right",maxWidth:w-24});});
-  const top=205,bottom=PRINT_HEIGHT-65,headH=54,tableW=PRINT_WIDTH-68,x=34;
-  const numW=55,nameW=sections.length>5?360:470,pctW=125,totalW=135,unitW=(tableW-numW-nameW-pctW-totalW)/sections.length;
-  roundedRect(ctx,x,top,tableW,bottom-top,12,"#fff","#d8e4e1");ctx.save();ctx.beginPath();ctx.rect(x,top,tableW,bottom-top);ctx.clip();ctx.fillStyle=accent;ctx.fillRect(x,top,tableW,headH);
-  let cursor=x+tableW;const head=(width:number,label:string,sub:string="")=>{const center=cursor-width/2;drawFittedText(ctx,label,center,top+19,{size:17,weight:900,color:"#fff",align:"center",maxWidth:width-12});if(sub)drawFittedText(ctx,sub,center,top+41,{size:12,weight:800,color:"#fff",align:"center",maxWidth:width-12});cursor-=width;};
-  head(numW,"م");head(nameW,"اسم الطالب");sections.forEach((sec,i)=>head(unitW,sec.label.split(/[-–]/)[0].trim()||"الوحدة "+(i+1),"من "+sec.max));head(totalW,"المجموع","من "+max);head(pctW,"النسبة","%");
-  const rowH=(bottom-top-headH)/Math.max(rows.length,1);
-  rows.forEach((row,i)=>{const y=top+headH+i*rowH;ctx.fillStyle=i%2?"#f4f8f7":"#fff";ctx.fillRect(x,y,tableW,rowH);printLine(ctx,x,y+rowH,x+tableW,y+rowH,"#e2e9e7");let right=x+tableW;const cell=(width:number,value:unknown,name=false,strong=false)=>{if(name)drawFittedText(ctx,String(value),right-12,y+rowH/2,{size:rowH<24?17:20,weight:850,color:"#163d4b",align:"right",maxWidth:width-24});else drawFixedText(ctx,value,right-width/2,y+rowH/2,{size:rowH<24?15:18,weight:strong?900:800,color:strong?accent:"#21464c",align:"center",maxWidth:width-12});right-=width;printLine(ctx,right,y,right,y+rowH);};cell(numW,row.number);cell(nameW,row.name,true);row.unitScores.forEach(score=>cell(unitW,score));cell(totalW,row.total,false,true);cell(pctW,row.percentage+"%",false,true);});ctx.restore();
-  const foot=PRINT_HEIGHT-33;printLine(ctx,34,foot-14,PRINT_WIDTH-34,foot-14,"#c8d7d3");drawFixedText(ctx,"اعتماد المعلم: __________________",PRINT_WIDTH-34,foot,{size:14,weight:800,color:"#60777f",maxWidth:420});drawFixedText(ctx,"النسبة = مجموع درجات الوحدات المختارة ÷ "+max+" × 100",34,foot,{size:14,weight:800,color:accent,align:"left",maxWidth:850});
+  const {canvas,ctx}=createPrintCanvas();
+  const accent=report.accentColor||PRINT_ACCENTS[classIndex%PRINT_ACCENTS.length]||PRINT_ACCENTS[0];
+  const sections=report.sections;
+  const max=sections.reduce((sum,section)=>sum+section.max,0);
+  const rows:GradebookSummaryRow[]=(sections[0]?.rows||[]).map(row=>{
+    const scores=sections.map(section=>section.rows.find(item=>item.number===row.number)?.sectionTotal??0);
+    const total=round(scores.reduce((sum,score)=>sum+score,0));
+    return{number:row.number,name:row.name,unitScores:scores,total,percentage:max>0?round(total/max*100):0};
+  });
+  const x=34,right=PRINT_WIDTH-34,full=PRINT_WIDTH-68;
+  roundedRect(ctx,x,20,full,96,13,"#ffffff","#d7e3e8");
+  ctx.fillStyle=accent;ctx.fillRect(x,20,full,7);
+  roundedRect(ctx,right-90,34,76,72,10,"#fff","#d7e3e8");
+  if(logo)drawImageContain(ctx,logo,right-85,39,66,62,2);
+  drawFittedText(ctx,options.portalName,right-111,47,{size:17,weight:850,color:"#657e89",align:"right",maxWidth:640});
+  drawFittedText(ctx,"كشف التحصيل الأكاديمي الموحد",right-111,77,{size:31,weight:900,color:"#143748",align:"right",maxWidth:930});
+  drawFittedText(ctx,options.subject+"  |  "+report.className,right-111,103,{size:17,weight:850,color:accent,align:"right",maxWidth:850});
+  roundedRect(ctx,x+15,38,360,59,10,"#eef5f9","#d7e3e8");
+  drawFixedText(ctx,"نتائج الوحدات المختارة",x+195,59,{size:15,weight:800,color:"#617b88",align:"center",maxWidth:335});
+  drawFixedText(ctx,String(sections.length)+" وحدات  •  الدرجة الكاملة "+max,x+195,83,{size:19,weight:900,color:accent,align:"center",maxWidth:335});
+  const meta=[["المعلم",options.teacherName],["المادة",options.subject],["الفصل",report.className],["عدد الطلاب",String(rows.length)]];
+  const gap=10,boxW=(full-gap*3)/4;
+  meta.forEach(([label,value],i)=>{
+    const bx=right-boxW-i*(boxW+gap);
+    roundedRect(ctx,bx,126,boxW,52,9,"#f7fafb","#dce6e9");
+    drawFixedText(ctx,label,bx+boxW-14,143,{size:12,weight:850,color:"#708792",align:"right",maxWidth:boxW-28});
+    drawFittedText(ctx,value,bx+boxW-14,166,{size:18,weight:900,color:"#183e4d",align:"right",maxWidth:boxW-28});
+  });
+  const top=190,bottom=PRINT_HEIGHT-57,headerH=56;
+  const numW=52,nameW=sections.length>5?380:510,totalW=140,pctW=130;
+  const unitW=(full-numW-nameW-totalW-pctW)/Math.max(sections.length,1);
+  roundedRect(ctx,x,top,full,bottom-top,10,"#fff","#d4e0e5");
+  ctx.save();ctx.beginPath();ctx.rect(x,top,full,bottom-top);ctx.clip();
+  ctx.fillStyle=accent;ctx.fillRect(x,top,full,headerH);
+  let cursor=right;
+  const heading=(width:number,label:string,sub="")=>{
+    const center=cursor-width/2;
+    drawFittedText(ctx,label,center,top+20,{size:17,weight:900,color:"#fff",align:"center",maxWidth:width-12});
+    if(sub)drawFittedText(ctx,sub,center,top+43,{size:12,weight:800,color:"#f2f7fb",align:"center",maxWidth:width-12});
+    cursor-=width;printLine(ctx,cursor,top,cursor,bottom,"#d7e1e7",1);
+  };
+  heading(numW,"م");heading(nameW,"اسم الطالب");
+  sections.forEach((section,i)=>heading(unitW,"الوحدة "+(i+1),"من "+section.max));
+  heading(totalW,"المجموع","من "+max);heading(pctW,"النسبة","%");
+  const rowH=(bottom-top-headerH)/Math.max(rows.length,1);
+  rows.forEach((row,index)=>{
+    const y=top+headerH+index*rowH;
+    ctx.fillStyle=index%2?"#f1f6f8":"#fff";ctx.fillRect(x,y,full,rowH);
+    printLine(ctx,x,y+rowH,right,y+rowH,"#e1e9ed",1);
+    let edge=right;
+    const cell=(width:number,value:unknown,isName=false,emphasis=false)=>{
+      if(isName)drawFittedText(ctx,String(value),edge-13,y+rowH/2,{size:rowH<25?17:20,weight:900,color:"#173b4c",align:"right",maxWidth:width-26});
+      else drawFixedText(ctx,value,edge-width/2,y+rowH/2,{size:rowH<25?15:18,weight:emphasis?900:800,color:emphasis?accent:"#274755",align:"center",maxWidth:width-12});
+      edge-=width;printLine(ctx,edge,y,edge,y+rowH,"#e1e9ed",1);
+    };
+    cell(numW,row.number);cell(nameW,row.name,true);
+    row.unitScores.forEach(score=>cell(unitW,score));
+    cell(totalW,row.total,false,true);cell(pctW,row.percentage+"%",false,true);
+  });
+  ctx.restore();
+  const foot=PRINT_HEIGHT-30;
+  printLine(ctx,x,foot-15,right,foot-15,"#cbdbe1",1);
+  drawFixedText(ctx,"اعتماد المعلم: __________________",right,foot,{size:14,weight:800,color:"#637d87",align:"right",maxWidth:430});
+  drawFixedText(ctx,"النسبة = مجموع الدرجات ÷ "+max+" × 100",x,foot,{size:14,weight:800,color:accent,align:"left",maxWidth:720});
   return canvas;
 }
 
