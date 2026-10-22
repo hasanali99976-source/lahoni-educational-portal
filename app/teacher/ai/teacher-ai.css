@@ -371,3 +371,41 @@
  .teacher-ai-page .generated-plan .ai-plan-outcome{margin:4px 0!important;padding:5px 8px!important}
  .teacher-ai-page .generated-plan .ai-report-student-register{break-before:page!important;page-break-before:always!important}
 }
+
+/* Four-page academic report: overview, remediation, enrichment, roster. */
+.teacher-ai-page .generated-plan .ai-print-page{display:flow-root;min-width:0}
+.teacher-ai-page .generated-plan .ai-print-register .plan-students-table th:nth-child(1),.teacher-ai-page .generated-plan .ai-print-register .plan-students-table td:nth-child(1){width:6%!important}
+.teacher-ai-page .generated-plan .ai-print-register .plan-students-table th:nth-child(2),.teacher-ai-page .generated-plan .ai-print-register .plan-students-table td:nth-child(2){width:51%!important}
+.teacher-ai-page .generated-plan .ai-print-register .plan-students-table th:nth-child(3),.teacher-ai-page .generated-plan .ai-print-register .plan-students-table td:nth-child(3){width:28%!important}
+.teacher-ai-page .generated-plan .ai-print-register .plan-students-table th:nth-child(4),.teacher-ai-page .generated-plan .ai-print-register .plan-students-table td:nth-child(4){width:15%!important}
+@media print {
+ @page{size:A4 portrait;margin:9mm}
+ .teacher-ai-page .generated-plan .ai-print-page{display:block!important;position:relative!important;break-inside:auto!important;page-break-inside:auto!important;min-height:0!important;overflow:visible!important}
+ .teacher-ai-page .generated-plan .ai-print-page+.ai-print-page{break-before:page!important;page-break-before:always!important}
+ .teacher-ai-page .generated-plan .ai-print-page:last-child{break-after:auto!important;page-break-after:auto!important}
+ .teacher-ai-page .generated-plan .ai-print-page .ai-part-title{margin:0 0 8px!important;padding:7px 10px!important;font-size:15px!important}
+ .teacher-ai-page .generated-plan .ai-print-overview>header{padding:12px 14px!important}
+ .teacher-ai-page .generated-plan .ai-print-overview .ai-report-byline{margin:8px 0!important}
+ .teacher-ai-page .generated-plan .ai-print-overview .plan-meta{margin:7px 0!important}
+ .teacher-ai-page .generated-plan .ai-print-overview .ai-analytics{margin:8px 0!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .plan-steps{margin:7px 0!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .plan-steps article{margin:5px 0!important;padding:7px 9px!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .ai-lessons,
+ .teacher-ai-page .generated-plan .ai-print-enrichment .ai-lessons{display:block!important;margin:9px 0!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .ai-lessons article,
+ .teacher-ai-page .generated-plan .ai-print-enrichment .ai-lessons article{display:block!important;width:100%!important;margin:5px 0!important;padding:8px 10px!important;line-height:1.35!important;min-height:0!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .ai-lessons article b,
+ .teacher-ai-page .generated-plan .ai-print-enrichment .ai-lessons article b{font-size:11px!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .ai-lessons article small,
+ .teacher-ai-page .generated-plan .ai-print-enrichment .ai-lessons article small{font-size:9px!important}
+ .teacher-ai-page .generated-plan .ai-print-remedial .ai-lessons article p,
+ .teacher-ai-page .generated-plan .ai-print-enrichment .ai-lessons article p{font-size:10px!important;line-height:1.45!important}
+ .teacher-ai-page .generated-plan .ai-print-enrichment .ai-enrichment-section{margin:0!important}
+ .teacher-ai-page .generated-plan .ai-print-register .ai-report-student-register{break-before:auto!important;page-break-before:auto!important;margin:0!important;padding:0!important}
+ .teacher-ai-page .generated-plan .ai-print-register .ai-report-student-register>h3{font-size:14px!important;padding:8px 10px!important;margin:0 0 9px!important}
+ .teacher-ai-page .generated-plan .ai-print-register .plan-students-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:9px!important}
+ .teacher-ai-page .generated-plan .ai-print-register .plan-students-table th{font-size:10px!important;height:8mm!important;padding:5px 7px!important}
+ .teacher-ai-page .generated-plan .ai-print-register .plan-students-table td{font-size:9.3px!important;height:7.6mm!important;min-height:0!important;padding:3px 7px!important;line-height:1.25!important;white-space:nowrap!important;overflow:visible!important}
+ .teacher-ai-page .generated-plan .ai-print-register .plan-students-table td:nth-child(2){font-weight:700!important;text-align:right!important}
+ .teacher-ai-page .generated-plan .ai-print-register .plan-students-table tr{break-inside:avoid!important;page-break-inside:avoid!important}
+}
