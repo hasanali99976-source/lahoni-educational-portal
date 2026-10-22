@@ -1036,7 +1036,8 @@
  .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top .tss-hero-intro h1{
   font-size:clamp(22px,6vw,32px)!important;
  }
- .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts .tss-hero-shortcut-icon{width:43px!important;height:39px!important}\n .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::before{
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-shortcuts .tss-hero-shortcut-icon{width:43px!important;height:39px!important}
+ .teacher-student-shell[data-teacher-theme="clouds"] .tss-hero-top::before{
   background:
    radial-gradient(ellipse 88px 40px at 11% 77%,#fff 0 98%,transparent 100%),
    radial-gradient(ellipse 67px 48px at 23% 80%,#fff 0 98%,transparent 100%),
