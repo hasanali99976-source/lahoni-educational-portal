@@ -22,12 +22,19 @@ function header(ctx:CanvasRenderingContext2D,options:GradebookPdfDocumentOptions
   roundedRect(ctx,48,42,116,96,17,"#fff","#d6e3df");if(logo)drawImageContain(ctx,logo,54,48,104,84,2);
   drawFittedText(ctx,options.portalName,182,59,{size:23,weight:900,color:"#60777f",align:"left",maxWidth:540});
   drawFittedText(ctx,"تقرير الرصد والتحصيل الأكاديمي",182,98,{size:34,weight:900,color:"#153b49",align:"left",maxWidth:800});
-  drawFittedText(ctx,isFinalSection?`${section.label} • النتيجة الشاملة`:section.label,182,132,{size:16,weight:850,color:accent,align:"left",maxWidth:650});
+  const unitTitle=section.label.replace(/ • صفحة \\d+$/,"");
+  const titleParts=unitTitle.split(/\s+-\s+/).map(part=>part.trim()).filter(Boolean);
+  if(titleParts.length>1){
+    drawFittedText(ctx,titleParts[0],182,119,{size:16,weight:850,color:accent,align:"left",maxWidth:700});
+    drawFittedText(ctx,titleParts.slice(1).join(" - "),182,139,{size:15,weight:850,color:accent,align:"left",maxWidth:700});
+  }else{
+    drawFittedText(ctx,unitTitle,182,132,{size:17,weight:850,color:accent,align:"left",maxWidth:700});
+  }
   roundedRect(ctx,PRINT_WIDTH-398,44,332,88,18,accent);drawFixedText(ctx,"التحصيل العلمي",PRINT_WIDTH-92,73,{size:28,weight:900,color:"#fff",maxWidth:278});drawFixedText(ctx,report.className,PRINT_WIDTH-92,109,{size:20,weight:900,color:"#e4f5f2",maxWidth:278});
 
-  const meta=[["المعلم",options.teacherName],["المادة",options.subject],["المرحلة",options.gradeLabel||"—"],["الفصل",report.className],["الوحدة / الفترة",section.label]];const gap=10,margin=34,top=166,boxW=(PRINT_WIDTH-margin*2-gap*4)/5;
+  const meta=[["المعلم",options.teacherName],["المادة",options.subject],["المرحلة",options.gradeLabel||"—"],["الفصل",report.className]];const gap=12,margin=34,top=166,boxW=(PRINT_WIDTH-margin*2-gap*3)/4;
   meta.forEach(([label,value],i)=>{const x=PRINT_WIDTH-margin-boxW-i*(boxW+gap);roundedRect(ctx,x,top,boxW,70,13,"#f7faf9","#dce7e4");drawFixedText(ctx,label,x+boxW-14,top+21,{size:14,weight:850,color:"#7a9095",maxWidth:boxW-28});drawFittedText(ctx,value,x+boxW-14,top+49,{size:17,weight:900,color:"#21464c",align:"right",maxWidth:boxW-28});});
-  const m=metrics(section.rows,section);const summary:Array<[string,string|number]>=[["متوسط الدرجة",`${m.averageSection} / ${section.max}`],["متوسط نسبة الوحدة",`${m.averageSectionRate}%`],[isFinalSection?"النسبة الشاملة":"نسبة هذه الوحدة",isFinalSection?`${m.averageOverall}%`:`${m.averageSectionRate}%`],["متميزون",m.excellent],["يحتاجون دعمًا",m.support],["الخطة",`نسخة ${options.planVersion}`]];const sw=(PRINT_WIDTH-68-gap*5)/6;
+  const m=metrics(section.rows,section);const summary:Array<[string,string|number]>=[["متوسط الدرجة",`${m.averageSection} / ${section.max}`],["متوسط نسبة الوحدة",`${m.averageSectionRate}%`],[isFinalSection?"النسبة الشاملة":"نسبة هذه الوحدة",isFinalSection?`${m.averageOverall}%`:`${m.averageSectionRate}%`],["متميزون",m.excellent],["يحتاجون دعمًا",m.support]];const sw=(PRINT_WIDTH-68-gap*4)/5;
   summary.forEach(([label,value],i)=>{const x=PRINT_WIDTH-34-sw-i*(sw+gap);const highlight=i===1||i===2;roundedRect(ctx,x,250,sw,64,13,highlight?"#e6f5ed":"#f7faf9","#dfe8e6");drawFixedText(ctx,value,x+sw/2,272,{size:22.5,weight:900,color:highlight?"#216c4c":"#244b51",align:"center",maxWidth:sw-20});drawFixedText(ctx,label,x+sw/2,299,{size:13,weight:850,color:"#6f858b",align:"center",maxWidth:sw-16});});
 }
 
@@ -41,7 +48,7 @@ function table(ctx:CanvasRenderingContext2D,section:GradebookPdfSection,rows:Gra
   let gradeW=(w-fixed)/Math.max(columns.length,1);
   if(gradeW<72){nameW=350;totalW=104;sectionPctW=96;overallW=isFinalSection?104:0;percentW=isFinalSection?94:0;fixed=numW+nameW+totalW+sectionPctW+overallW+percentW;gradeW=(w-fixed)/Math.max(columns.length,1);}
   roundedRect(ctx,x,top,w,bottom-top,14,"#fff","#cbdad6");ctx.save();ctx.beginPath();ctx.rect(x,top,w,bottom-top);ctx.clip();ctx.fillStyle=accent;ctx.fillRect(x,top,w,headerH);
-  let cursor=x+w;const head=(width:number,label:string,sub="")=>{const c=cursor-width/2;drawFittedText(ctx,label,c,top+20,{size:15.5,weight:900,color:"#fff",align:"center",maxWidth:width-8});if(sub)drawFittedText(ctx,sub,c,top+43,{size:11.5,weight:800,color:"#e1f2ef",align:"center",maxWidth:width-8});cursor-=width;printLine(ctx,cursor,top,cursor,bottom,"rgba(255,255,255,.26)",1);};
+  let cursor=x+w;const head=(width:number,label:string,sub="")=>{const c=cursor-width/2;const parts=label.includes("/")?label.split("/"):label.includes(" ")?label.split(" "):[label];const lines=parts.length>1&&label.length>12?[parts.slice(0,Math.ceil(parts.length/2)).join(" "),parts.slice(Math.ceil(parts.length/2)).join(" ")]:[label];lines.forEach((line,i)=>drawFittedText(ctx,line,c,top+(lines.length===2?12+i*16:20),{size:15.5,weight:900,color:"#fff",align:"center",maxWidth:width-10}));if(sub)drawFittedText(ctx,sub,c,top+43,{size:11.5,weight:800,color:"#e1f2ef",align:"center",maxWidth:width-8});cursor-=width;printLine(ctx,cursor,top,cursor,bottom,"rgba(255,255,255,.26)",1);};
   head(numW,"م");head(nameW,"اسم الطالب");columns.forEach(({column})=>head(gradeW,column.label,`من ${column.max}`));head(totalW,"مجموع الوحدة",`من ${section.max}`);head(sectionPctW,"نسبة الوحدة","%");if(isFinalSection){head(overallW,"المجموع الشامل","من 100");head(percentW,"النسبة الشاملة","%");}
   rows.forEach((row,index)=>{const y=top+headerH+index*rowH;ctx.fillStyle=index%2?"#f6faf9":"#fff";ctx.fillRect(x,y,w,rowH);printLine(ctx,x,y+rowH,x+w,y+rowH,"#e1e9e7");let r=x+w;
     const cell=(width:number,value:unknown,o:{name?:boolean;strong?:boolean;color?:string}={})=>{if(o.name)drawFittedText(ctx,String(value??""),r-13,y+rowH/2,{size:nameSize,weight:850,color:o.color,align:"right",maxWidth:width-26});else drawFixedText(ctx,value,r-width/2,y+rowH/2,{size:cellSize,weight:o.strong?900:800,color:o.color,align:"center",maxWidth:width-8});r-=width;printLine(ctx,r,y,r,y+rowH);};
