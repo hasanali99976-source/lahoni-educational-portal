@@ -20,3 +20,5 @@
 }
 
 .book-settings{display:grid;grid-template-columns:1.3fr 1fr auto;gap:12px;align-items:end;margin:20px 0;padding:16px;background:#f0f7f7;border:1px solid #d5e7e7;border-radius:13px}.book-settings label{display:grid;gap:7px;font-weight:700}.book-settings input{min-width:0;width:100%;padding:11px;border:1px solid #bfd6d8;border-radius:9px;background:white;color:#163d45}.book-settings button{border:0;border-radius:9px;background:#145d66;color:white;padding:12px 14px;font-weight:700;cursor:pointer}.book-reset{background:transparent;border:1px solid #17717a;color:#145d66;padding:8px 12px;border-radius:8px;cursor:pointer}@media(max-width:800px){.book-settings{grid-template-columns:1fr}}@media print{.book-settings,.book-reset{display:none!important}}
+
+.book-present-option{display:flex;align-items:center;gap:9px;margin:14px 0;font-weight:600;color:#245b62}.book-present-option input{width:17px;height:17px}@media print{.book-present-option{display:none!important}}
