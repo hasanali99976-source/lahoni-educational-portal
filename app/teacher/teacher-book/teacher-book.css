@@ -181,3 +181,19 @@
  .teacher-book .book-page.book-dense .book-notes>div{min-height:17px!important;padding:3px!important}
  .teacher-book .book-page.book-dense footer{margin-top:3px!important;padding-top:3px!important}
 }
+
+/* Clean register: no page numbering; legible and balanced print hierarchy */
+@media print{
+ .teacher-book .book-print-header{grid-template-columns:1fr 1.65fr .7fr!important;align-items:center!important;gap:10px!important;padding:5px 6px 8px!important;border-bottom:1.5px solid #829fa7!important}
+ .teacher-book .book-print-accent{display:grid!important;align-content:center!important;justify-items:center!important;gap:4px!important;padding:8px 6px!important;background:#edf4f5!important;border-radius:5px!important;border:1px solid #d6e4e7!important;text-align:center!important;color:#183e49!important}
+ .teacher-book .book-print-accent span{font-size:9px!important;color:#365d68!important}
+ .teacher-book .book-print-accent strong{font-size:12px!important;color:#102f3b!important}
+ .teacher-book .book-print-title h2{font-size:17px!important;font-weight:900!important}
+ .teacher-book .book-brand-ribbon{background:#e7eff1!important;border-bottom:2px solid #215765!important;color:#102d38!important}
+ .teacher-book .book-page th{background:#d8e7e9!important;color:#0b2b35!important;border-color:#829da5!important}
+ .teacher-book .book-page td{background:#fff!important;color:#142b34!important;border-color:#b3c6cb!important}
+ .teacher-book .book-page tbody tr:nth-child(even) td{background:#f6f9f9!important}
+ .teacher-book .book-meta span{color:#244650!important}
+ .teacher-book .book-meta b{color:#092c37!important}
+ .teacher-book .book-page footer{justify-content:space-between!important}
+}
