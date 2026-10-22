@@ -33,18 +33,18 @@ function header(ctx:CanvasRenderingContext2D,options:GradebookPdfDocumentOptions
 
 function table(ctx:CanvasRenderingContext2D,section:GradebookPdfSection,rows:GradebookPdfRow[],accent:string,isFinalSection:boolean){
   const x=34,top=330,w=PRINT_WIDTH-68,bottom=PRINT_HEIGHT-88,headerH=58;
-  const available=bottom-top-headerH;const rowH=Math.max(12.5,available/Math.max(rows.length,1));
-  const dense=rows.length>=38;const compact=rows.length>=32;const nameSize=dense?16:compact?18:21;const cellSize=dense?13.5:compact?15.5:17.5;
+  const available=bottom-top-headerH;const rowH=Math.min(31,available/Math.max(rows.length,1));
+  const dense=rows.length>=38;const compact=rows.length>=32;const nameSize=dense?17:compact?19:22;const cellSize=dense?14:compact?16:18;
   const columns=section.columns.map((column,originalIndex)=>({column,originalIndex}));
-  let numW=58,nameW=310,totalW=118,sectionPctW=110,overallW=isFinalSection?118:0,percentW=isFinalSection?108:0;
+  let numW=50,nameW=410,totalW=110,sectionPctW=105,overallW=isFinalSection?118:0,percentW=isFinalSection?108:0;
   let fixed=numW+nameW+totalW+sectionPctW+overallW+percentW;
   let gradeW=(w-fixed)/Math.max(columns.length,1);
-  if(gradeW<72){nameW=260;totalW=104;sectionPctW=96;overallW=isFinalSection?104:0;percentW=isFinalSection?94:0;fixed=numW+nameW+totalW+sectionPctW+overallW+percentW;gradeW=(w-fixed)/Math.max(columns.length,1);}
+  if(gradeW<72){nameW=330;totalW=104;sectionPctW=96;overallW=isFinalSection?104:0;percentW=isFinalSection?94:0;fixed=numW+nameW+totalW+sectionPctW+overallW+percentW;gradeW=(w-fixed)/Math.max(columns.length,1);}
   roundedRect(ctx,x,top,w,bottom-top,14,"#fff","#cbdad6");ctx.save();ctx.beginPath();ctx.rect(x,top,w,bottom-top);ctx.clip();ctx.fillStyle=accent;ctx.fillRect(x,top,w,headerH);
   let cursor=x+w;const head=(width:number,label:string,sub="")=>{const c=cursor-width/2;drawFittedText(ctx,label,c,top+20,{size:15.5,weight:900,color:"#fff",align:"center",maxWidth:width-8});if(sub)drawFittedText(ctx,sub,c,top+43,{size:11.5,weight:800,color:"#e1f2ef",align:"center",maxWidth:width-8});cursor-=width;printLine(ctx,cursor,top,cursor,bottom,"rgba(255,255,255,.26)",1);};
   head(numW,"م");head(nameW,"اسم الطالب");columns.forEach(({column})=>head(gradeW,column.label,`من ${column.max}`));head(totalW,"مجموع الوحدة",`من ${section.max}`);head(sectionPctW,"نسبة الوحدة","%");if(isFinalSection){head(overallW,"المجموع الشامل","من 100");head(percentW,"النسبة الشاملة","%");}
   rows.forEach((row,index)=>{const y=top+headerH+index*rowH;ctx.fillStyle=index%2?"#f6faf9":"#fff";ctx.fillRect(x,y,w,rowH);printLine(ctx,x,y+rowH,x+w,y+rowH,"#e1e9e7");let r=x+w;
-    const cell=(width:number,value:unknown,o:{name?:boolean;strong?:boolean;color?:string}={})=>{if(o.name)drawFixedText(ctx,value,r-13,y+rowH/2,{size:nameSize,weight:850,color:o.color,maxWidth:width-26});else drawFixedText(ctx,value,r-width/2,y+rowH/2,{size:cellSize,weight:o.strong?900:800,color:o.color,align:"center",maxWidth:width-8});r-=width;printLine(ctx,r,y,r,y+rowH);};
+    const cell=(width:number,value:unknown,o:{name?:boolean;strong?:boolean;color?:string}={})=>{if(o.name)drawFittedText(ctx,String(value??""),r-13,y+rowH/2,{size:nameSize,weight:850,color:o.color,align:"right",maxWidth:width-26});else drawFixedText(ctx,value,r-width/2,y+rowH/2,{size:cellSize,weight:o.strong?900:800,color:o.color,align:"center",maxWidth:width-8});r-=width;printLine(ctx,r,y,r,y+rowH);};
     cell(numW,row.number,{strong:true});cell(nameW,row.name,{name:true});columns.forEach(({originalIndex})=>cell(gradeW,row.values[originalIndex]??0));cell(totalW,row.sectionTotal,{strong:true,color:accent});cell(sectionPctW,`${sectionPercentage(row,section)}%`,{strong:true,color:"#17614a"});if(isFinalSection){cell(overallW,row.overallTotal,{strong:true,color:"#226e4d"});cell(percentW,`${row.percentage}%`,{strong:true,color:"#17614a"});}
   });ctx.restore();
 }
@@ -59,7 +59,7 @@ export async function downloadGradebookPdfDocument(options:GradebookPdfDocumentO
   const classes=options.classes.filter(item=>item.sections.some(section=>section.rows.length));if(!classes.length)throw new Error("gradebook_pdf_no_students");
   await ensurePrintFontsReady();const logo=await loadPortalPrintLogo();
   const pages:Array<{report:GradebookPdfClass;section:GradebookPdfSection;classIndex:number;isFinalSection:boolean}>=[];
-  classes.forEach((report,classIndex)=>{const sections=report.sections.filter(section=>section.rows.length);sections.forEach((section,sectionIndex)=>pages.push({report,section,classIndex,isFinalSection:sectionIndex===sections.length-1}));});
+  classes.forEach((report,classIndex)=>{const sections=report.sections.filter(section=>section.rows.length);sections.forEach((section,sectionIndex)=>{const rowsPerPage=28;for(let offset=0;offset<section.rows.length;offset+=rowsPerPage){const part=section.rows.slice(offset,offset+rowsPerPage);pages.push({report,section:{...section,rows:part,label:section.rows.length>rowsPerPage?`${section.label} • صفحة ${Math.floor(offset/rowsPerPage)+1}`:section.label},classIndex,isFinalSection:sectionIndex===sections.length-1});}});});
   const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4",compress:true});
   pages.forEach((item,index)=>{const canvas=render(options,item.report,item.section,item.classIndex,logo,item.isFinalSection);if(index)pdf.addPage("a4","landscape");pdf.addImage(canvas.toDataURL("image/png"),"PNG",0,0,297,210,undefined,"FAST");});
   pdf.save(options.fileName);return{pageCount:pages.length,classCount:classes.length,studentCount:classes.reduce((sum,item)=>sum+Math.max(0,...item.sections.map(section=>section.rows.length)),0)};
