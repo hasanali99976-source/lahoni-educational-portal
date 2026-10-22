@@ -58,7 +58,7 @@ function table(ctx:CanvasRenderingContext2D,section:GradebookPdfSection,rows:Gra
 }
 
 function footer(ctx:CanvasRenderingContext2D,options:GradebookPdfDocumentOptions,report:GradebookPdfClass,section:GradebookPdfSection,accent:string,isFinalSection:boolean){
-  const y=PRINT_HEIGHT-28;printLine(ctx,34,y-20,PRINT_WIDTH-34,y-20,"#c8d7d3",1.4);drawFixedText(ctx,"اعتماد المعلم: __________________________",PRINT_WIDTH-34,y,{size:14.5,weight:800,color:"#60777f",maxWidth:470});drawFixedText(ctx,isFinalSection?"النتيجة الشاملة بعد اكتمال الوحدات / الفترات":"نسبة هذه الوحدة / الفترة مستقلة",PRINT_WIDTH/2,y,{size:14.5,weight:900,color:"#60777f",align:"center",maxWidth:420});drawFixedText(ctx,`${report.className} • ${section.label} • ${options.planLabel}`,34,y,{size:14.5,weight:900,color:accent,align:"left",maxWidth:560});
+  const y=PRINT_HEIGHT-28;printLine(ctx,34,y-20,PRINT_WIDTH-34,y-20,"#c8d7d3",1.4);drawFixedText(ctx,"توقيع المعلم: ______________",PRINT_WIDTH-34,y,{size:14,weight:800,color:"#60777f",align:"right",maxWidth:400});drawFixedText(ctx,"اعتماد مدير المدرسة: الأستاذ جاسم آل براك  |  التوقيع: ______________",PRINT_WIDTH/2+320,y,{size:13.5,weight:800,color:"#60777f",align:"right",maxWidth:660});drawFixedText(ctx,isFinalSection?"النتيجة الشاملة بعد اكتمال الوحدات / الفترات":"نسبة هذه الوحدة / الفترة مستقلة",PRINT_WIDTH/2,y,{size:14.5,weight:900,color:"#60777f",align:"center",maxWidth:420});drawFixedText(ctx,`${report.className} • ${section.label} • ${options.planLabel}`,34,y,{size:14.5,weight:900,color:accent,align:"left",maxWidth:560});
 }
 
 function render(options:GradebookPdfDocumentOptions,report:GradebookPdfClass,section:GradebookPdfSection,classIndex:number,logo:HTMLImageElement|null,isFinalSection:boolean){const {canvas,ctx}=createPrintCanvas();const accent=report.accentColor||PRINT_ACCENTS[classIndex%PRINT_ACCENTS.length]||PRINT_ACCENTS[0];header(ctx,options,report,section,accent,logo,isFinalSection);table(ctx,section,section.rows,accent,isFinalSection);footer(ctx,options,report,section,accent,isFinalSection);return canvas;}
@@ -128,7 +128,8 @@ function renderSummary(options:GradebookPdfDocumentOptions,report:GradebookPdfCl
   ctx.restore();
   const foot=PRINT_HEIGHT-30;
   printLine(ctx,x,foot-15,right,foot-15,"#cbdbe1",1);
-  drawFixedText(ctx,"اعتماد المعلم: __________________",right,foot,{size:14,weight:800,color:"#637d87",align:"right",maxWidth:430});
+  drawFixedText(ctx,"توقيع المعلم: ____________",right,foot,{size:14,weight:800,color:"#637d87",align:"right",maxWidth:350});
+  drawFixedText(ctx,"اعتماد مدير المدرسة: الأستاذ جاسم آل براك  |  التوقيع: ____________",right-370,foot,{size:13.5,weight:850,color:"#637d87",align:"right",maxWidth:750});
   drawFixedText(ctx,"النسبة = مجموع الدرجات ÷ "+max+" × 100",x,foot,{size:14,weight:800,color:accent,align:"left",maxWidth:720});
   return canvas;
 }
