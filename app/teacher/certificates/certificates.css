@@ -45,3 +45,41 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .cert-unit-picker small{font-size:11px!important;line-height:1.4!important}
 @media(max-width:600px){.cert-unit-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.cert-tools .cert-unit-options label{font-size:11px!important;padding:7px!important}}
 @media(max-width:370px){.cert-unit-options{grid-template-columns:minmax(0,1fr)!important}}
+
+
+/* Print-only isolation: never print the teacher dashboard/portrait behind the report.
+   Keep the entire student report (including notes) on a single A4 sheet when it fits. */
+@media print {
+  @page { size: A4 portrait; margin: 0 !important; }
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body * { visibility: hidden !important; }
+  .report-stage, .report-stage * { visibility: visible !important; }
+  .report-stage {
+    position: absolute !important; inset: 0 auto auto 0 !important;
+    top: 0 !important; left: 0 !important; width: 210mm !important;
+    height: auto !important; min-height: 0 !important;
+    overflow: visible !important; z-index: 2147483647 !important;
+    background: #fff !important; margin: 0 !important; padding: 0 !important;
+  }
+  .report-stage .report-actions { display: none !important; }
+  .report-stage .report-pages {
+    width: 210mm !important; margin: 0 !important; padding: 0 !important;
+    display: block !important; background: #fff !important;
+  }
+  .report-stage .report-paper {
+    width: 210mm !important; height: auto !important;
+    min-height: 0 !important; max-height: none !important;
+    margin: 0 !important; padding: 6mm 8mm !important;
+    box-sizing: border-box !important; overflow: visible !important;
+    break-inside: avoid-page !important; page-break-inside: avoid !important;
+    break-after: page !important; page-break-after: always !important;
+    border: 0 !important; box-shadow: none !important;
+  }
+  .report-stage .report-paper:last-child {
+    break-after: auto !important; page-break-after: auto !important;
+  }
+  .report-stage .report-paper .records > div {
+    max-height: none !important; overflow: visible !important;
+  }
+  .report-stage .report-paper .events { max-height: none !important; overflow: visible !important; }
+}
