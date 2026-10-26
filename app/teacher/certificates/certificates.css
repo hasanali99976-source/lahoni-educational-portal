@@ -83,3 +83,43 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
   }
   .report-stage .report-paper .events { max-height: none !important; overflow: visible !important; }
 }
+
+
+/* Refined academic report: clear hierarchy, official barcode and one A4 sheet per student. */
+.report-paper{font-family:"Tajawal","Noto Sans Arabic",Arial,sans-serif;border-radius:4mm;border-color:#b9d3d2;background:linear-gradient(180deg,#f9fcfc 0,#fff 27mm);color:#153d4b}
+.report-paper header{border-bottom:1.2mm solid #087c85;padding-bottom:3mm}
+.report-paper header h2{font-weight:900;letter-spacing:-.3px;color:#124a60}
+.report-paper header em.report-page-number{padding:2mm 3mm;border-radius:2mm;background:#e8f4f3;color:#146b72;font-size:10pt}
+.report-paper .identity{grid-template-columns:minmax(0,2.4fr) minmax(0,1.15fr) minmax(0,1fr) minmax(0,1.15fr)}
+.report-paper .identity div{min-width:0;background:#f3f9f9;border:1px solid #d2e4e5;padding:2.4mm}
+.report-paper .identity b{display:block;font-size:9pt;line-height:1.4;overflow-wrap:anywhere}
+.report-paper .student-code{display:flex;gap:2mm;align-items:center;flex-wrap:wrap;margin-top:1mm;color:#466b75;font-size:7pt}
+.report-paper .student-code strong{font-family:Arial,sans-serif;font-size:9pt;letter-spacing:.4px;color:#0b6977;background:#e1f2f0;padding:.5mm 2mm;border-radius:1mm}
+.report-paper .scores{margin:2mm 0}
+.report-paper .scores div{background:#eaf5f3;border:1px solid #c9e4e0;border-radius:2.5mm}
+.report-paper .scores b{font-weight:900;color:#087b76}
+.report-paper h3{border-right:1mm solid #d5af5e;padding-right:2mm;font-weight:900}
+.report-paper .unit{border-color:#d8e4e3}
+.report-paper .unit-title{background:#f2f7f5;border-right:1mm solid #c5a05a}
+.report-paper .records>div{background:#fbfdfd}
+.report-paper footer{border-color:#c7a65d;color:#375763}
+@media print{
+ .report-paper{background:#fff!important;display:flex!important;flex-direction:column!important;gap:0!important;contain:layout!important;overflow:hidden!important;break-before:page!important;page-break-before:always!important;break-inside:avoid!important;page-break-inside:avoid!important}
+ .report-paper:first-child{break-before:auto!important;page-break-before:auto!important}
+ .report-paper:last-child{break-after:auto!important;page-break-after:auto!important}
+ .report-paper header,.report-paper .identity,.report-paper .scores,.report-paper .units,.report-paper .attendance,.report-paper .records,.report-paper footer{flex-shrink:0!important}
+ .report-paper header h2{font-size:13pt!important}
+ .report-paper .identity{grid-template-columns:2.3fr 1.2fr 1fr 1.2fr!important}
+ .report-paper .identity div{padding:1.5mm!important}
+ .report-paper .identity b{font-size:7pt!important}
+ .report-paper .student-code{font-size:5.5pt!important;margin-top:.4mm!important}
+ .report-paper .student-code strong{font-size:7pt!important;padding:.2mm 1mm!important}
+ .report-paper .scores{margin:1mm 0!important}
+ .report-paper .scores b{font-size:12pt!important}
+ .report-paper .unit{break-inside:avoid!important}
+ .report-paper .unit-title{font-size:6.5pt!important}
+ .report-paper .records{min-height:0!important}
+ .report-paper .records>div{min-height:0!important;max-height:29mm!important;overflow:hidden!important}
+ .report-paper .records p{font-size:5.5pt!important;line-height:1.18!important}
+ .report-paper footer{margin-top:auto!important;padding-top:1.5mm!important}
+}
