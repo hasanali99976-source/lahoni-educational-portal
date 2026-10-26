@@ -323,3 +323,50 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
  .report-paper .items{padding:.4mm!important}
  .report-paper .parent-followup{margin-top:.6mm!important}
 }
+
+
+/* Approved parent report: comparison infographic and actual assessment components */
+.report-paper .parent-kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:1.5mm!important}
+.report-paper .parent-kpis>div{min-height:18mm!important}
+.report-paper .parent-kpis b{font-size:17pt!important}
+.report-paper .parent-kpis small{font-size:7pt!important}
+.report-paper .score-class{background:#e7f1fc!important;box-shadow:inset 0 0 0 .35mm #a6c9eb!important}
+.report-paper .score-attendance{background:#fff4e1!important;box-shadow:inset 0 0 0 .35mm #e9cf93!important}
+.report-paper .chart-legend{display:flex;gap:4mm;font-size:7pt;margin-bottom:1mm}
+.report-paper .chart-legend span{display:flex;align-items:center;gap:1mm}
+.report-paper .chart-legend i{width:3mm;height:2.5mm;display:inline-block;border-radius:.5mm}
+.report-paper .student-key,.report-paper .student-bar{background:#12966e!important}
+.report-paper .class-key,.report-paper .class-bar{background:#448dd4!important}
+.report-paper .comparison-row{display:grid;grid-template-columns:28% 1fr;align-items:center;gap:2mm;margin:1.2mm 0}
+.report-paper .comparison-row>strong{font-size:7pt;line-height:1.15;overflow-wrap:anywhere}
+.report-paper .comparison-bars{display:grid;gap:.7mm}
+.report-paper .comparison-bars>div{position:relative;background:#e0eaf0;border-radius:1mm;height:4mm;overflow:hidden}
+.report-paper .comparison-bars i{display:block;height:100%;border-radius:1mm}
+.report-paper .comparison-bars small{position:absolute;left:1mm;top:.3mm;font-size:6pt;font-weight:900;color:#173b54;text-shadow:0 0 2px white}
+.report-paper .grade-detail-card{border:.3mm solid #a9d0e0;border-radius:2mm;overflow:hidden;background:white;margin:1mm 0 2mm}
+.report-paper .grade-detail-title{display:flex;justify-content:space-between;gap:2mm;align-items:center;padding:1.5mm 2mm;background:#e8f4fb;color:#124b69}
+.report-paper .grade-detail-title strong{font-size:8pt}
+.report-paper .grade-detail-title small{font-size:6pt}
+.report-paper .grade-detail-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7pt}
+.report-paper .grade-detail-table th{background:#d6e8f2;color:#124b69}
+.report-paper .grade-detail-table td,.report-paper .grade-detail-table th{padding:1.1mm 1.5mm;text-align:center;border:.2mm solid #d8e7ee}
+.report-paper .grade-detail-table td:first-child,.report-paper .grade-detail-table th:first-child{text-align:right;width:30%;font-weight:700}
+.report-paper .grade-detail-table tbody tr:nth-child(even){background:#f3f8fb}
+.report-paper .grade-detail-table td:last-child{background:#eaf4fc;font-weight:900;color:#25629c}
+@media print{
+ .report-paper .parent-kpis>div{min-height:12mm!important;padding:.6mm!important}
+ .report-paper .parent-kpis b{font-size:11pt!important}
+ .report-paper .parent-kpis small{font-size:5.5pt!important}
+ .report-paper .chart-legend{font-size:5pt!important;margin:0!important}
+ .report-paper .comparison-row{gap:.8mm!important;margin:.3mm 0!important}
+ .report-paper .comparison-row>strong{font-size:5.5pt!important}
+ .report-paper .comparison-bars{gap:.3mm!important}
+ .report-paper .comparison-bars>div{height:2.5mm!important}
+ .report-paper .comparison-bars small{font-size:4.5pt!important;top:0!important}
+ .report-paper .grade-detail-card{margin:.5mm 0!important}
+ .report-paper .grade-detail-title{padding:.6mm 1mm!important}
+ .report-paper .grade-detail-title strong{font-size:6pt!important}
+ .report-paper .grade-detail-title small{font-size:4.8pt!important}
+ .report-paper .grade-detail-table{font-size:5.5pt!important}
+ .report-paper .grade-detail-table td,.report-paper .grade-detail-table th{padding:.4mm .8mm!important}
+}
