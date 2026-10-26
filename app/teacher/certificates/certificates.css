@@ -522,3 +522,32 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .report-paper .unit-report-heading:after{height:2mm!important}
 .report-paper .visual-divider{padding:.5mm 1mm!important}
 }
+
+
+/* Printed illustrated parent report — clear Arabic hierarchy */
+.report-paper,.report-paper *{font-family:"Noto Sans Arabic","Tajawal","Cairo",Tahoma,Arial,sans-serif!important}
+.report-paper header h2{font-weight:900!important;letter-spacing:0!important}
+.report-paper .unit-report-heading{min-height:24mm!important;padding:0!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:0!important}
+.report-paper .unit-report-heading .unit-illustration{display:block!important;width:100%!important;height:13mm!important;background:none!important;border-radius:0!important;transform:none!important;overflow:hidden!important}
+.report-paper .unit-illustration img{display:block;width:100%;height:100%;object-fit:cover}
+.report-paper .unit-report-heading>strong{display:block!important;width:100%;padding:1.5mm 1mm!important;font-size:8pt!important;line-height:1.25!important;text-align:center!important}
+.report-paper .unit-report-heading:after{display:none!important}
+.report-paper .parent-kpis .kpi-symbol{font-family:Arial,"Segoe UI Symbol",sans-serif!important}
+.report-paper .report-actions button{font-size:12pt!important}
+.report-actions{z-index:9999999!important}
+@media print{
+ html,body{height:auto!important;overflow:visible!important}
+ body *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .report-stage{display:block!important;visibility:visible!important;overflow:visible!important}
+ .report-pages{display:block!important;visibility:visible!important}
+ .report-paper{display:block!important;visibility:visible!important;background:#fff!important;overflow:hidden!important}
+ .report-paper *{visibility:visible!important}
+ .report-paper .unit-report-heading{min-height:14mm!important;padding:0!important}
+ .report-paper .unit-report-heading .unit-illustration{height:7mm!important}
+ .report-paper .unit-report-heading>strong{font-size:5.8pt!important;padding:.4mm!important;line-height:1.15!important}
+ .report-paper .unit-report-heading:after{display:none!important}
+ .report-paper .unit-report-card{break-inside:avoid!important;page-break-inside:avoid!important}
+ .report-paper .parent-kpis{break-inside:avoid!important}
+ .report-paper .report-bottom-grid,.report-paper .report-recommendations,.report-paper .report-discipline{break-inside:avoid!important}
+ .report-actions,.cert-tools{display:none!important}
+}
