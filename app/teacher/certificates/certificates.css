@@ -202,3 +202,57 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
  .report-paper .parent-insights,.report-paper .parent-followup{flex-shrink:0!important;break-inside:avoid!important}
 }
 @media(max-width:650px){.report-paper .parent-insights{grid-template-columns:1fr}}
+
+
+/* Parent-friendly colorful infographic report: visual hierarchy survives color printing */
+.report-paper{background:#fff!important;border-top:3mm solid #086e89!important}
+.report-paper header{background:linear-gradient(90deg,#e7f6f9,#f5fbfc)!important;border-bottom:1mm solid #0b7590!important;border-radius:2mm;padding:2mm!important}
+.report-paper .identity div:nth-child(1){background:#eaf5fd!important;border-color:#a9d3e8!important}
+.report-paper .identity div:nth-child(2){background:#eef8f2!important;border-color:#b4ddc5!important}
+.report-paper .identity div:nth-child(3){background:#fff6e4!important;border-color:#ebd4a3!important}
+.report-paper .identity div:nth-child(4){background:#f3effb!important;border-color:#d9c9ed!important}
+.report-paper .scores div:nth-child(1){background:#e8f3fc!important;border-color:#a9d1ee!important}
+.report-paper .scores div:nth-child(2){background:#e6f6ed!important;border-color:#a6dabc!important}
+.report-paper .scores div:nth-child(3){background:#fff5df!important;border-color:#edd69a!important}
+.report-paper .scores .performance-score.needs{background:#fff0e7!important;border-color:#efb797!important}
+.report-paper .scores .performance-score.neutral{background:#f1f4f6!important;border-color:#cdd8de!important}
+.report-paper .performance-level{display:inline-block;margin-top:1mm;padding:.5mm 2mm;background:#ffffffb8;border-radius:2mm;font-size:8pt;font-weight:900;color:#175064}
+.report-paper .parent-insights{grid-template-columns:1.1fr 1fr!important;gap:3mm!important}
+.report-paper .parent-insight-chart{background:#eff7ff!important;border:1px solid #b3d8ef!important}
+.report-paper .parent-insight-summary{background:#f1f9ef!important;border:1px solid #b9dcba!important}
+.report-paper .parent-insights h3{font-size:10pt!important;color:#0b5575!important}
+.report-paper .progress-row{grid-template-columns:minmax(0,1fr) 27mm 11mm!important;gap:2mm!important;margin:1.7mm 0!important;font-size:7.3pt!important}
+.report-paper .progress-track{height:4mm!important;background:#d5e3ea!important}
+.report-paper .progress-track i.bar-strong{background:linear-gradient(90deg,#11a46b,#36c68d)!important}
+.report-paper .progress-track i.bar-steady{background:linear-gradient(90deg,#e3a226,#f5c759)!important}
+.report-paper .progress-track i.bar-needs{background:linear-gradient(90deg,#df6e40,#f39b5b)!important}
+.report-paper .parent-advice{margin-top:1.5mm;border-top:.3mm solid #b9d9c6;padding-top:1mm}
+.report-paper .parent-advice>strong{color:#157253;font-size:8pt}
+.report-paper .parent-advice ol{margin:1mm 0;padding-right:4mm;display:grid;gap:.7mm}
+.report-paper .parent-advice li{font-size:7pt;line-height:1.35}
+.report-paper .unit:nth-child(3n+1) .unit-title{background:#eaf4fc!important;border-right-color:#1b85ad!important}
+.report-paper .unit:nth-child(3n+2) .unit-title{background:#edf7ed!important;border-right-color:#29a078!important}
+.report-paper .unit:nth-child(3n) .unit-title{background:#fff5e2!important;border-right-color:#e1ac41!important}
+.report-paper .attendance div:nth-child(1){background:#e8f7ee!important}
+.report-paper .attendance div:nth-child(2){background:#fff0e8!important}
+.report-paper .attendance div:nth-child(3){background:#fff6e2!important}
+.report-paper .attendance div:nth-child(4){background:#eaf2ff!important}
+.report-paper .attendance div:nth-child(5){background:#f8ecf4!important}
+@media print{
+ .report-paper,.report-paper *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .report-paper{border-top:2mm solid #086e89!important;padding:5mm 7mm!important}
+ .report-paper .parent-insights{gap:1.5mm!important;margin-top:1mm!important}
+ .report-paper .parent-insights h3{font-size:7pt!important}
+ .report-paper .parent-insights p{font-size:5.5pt!important;line-height:1.12!important}
+ .report-paper .progress-row{grid-template-columns:minmax(0,1fr) 18mm 9mm!important;gap:.7mm!important;margin:.4mm 0!important;font-size:5.5pt!important}
+ .report-paper .progress-track{height:2mm!important}
+ .report-paper .parent-advice{margin-top:.6mm!important;padding-top:.6mm!important}
+ .report-paper .parent-advice>strong{font-size:6pt!important}
+ .report-paper .parent-advice ol{margin:.5mm 0!important;padding-right:3mm!important;gap:.3mm!important}
+ .report-paper .parent-advice li{font-size:5.3pt!important;line-height:1.13!important}
+ .report-paper .performance-level{font-size:6pt!important;margin-top:.2mm!important}
+ .report-paper .identity{margin:1mm 0!important}
+ .report-paper .unit-title{padding:.6mm 1mm!important}
+ .report-paper .items{padding:.5mm!important}
+ .report-paper h3{margin:1.2mm 0 .6mm!important}
+}
