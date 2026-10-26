@@ -551,3 +551,29 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
  .report-paper .report-bottom-grid,.report-paper .report-recommendations,.report-paper .report-discipline{break-inside:avoid!important}
  .report-actions,.cert-tools{display:none!important}
 }
+
+
+/* Typography and actual artwork visibility corrections */
+.report-paper,.report-paper *{font-family:Tahoma,"Noto Sans Arabic",Arial,sans-serif!important;letter-spacing:0!important}
+.report-paper .identity b{font-weight:800!important}
+.report-paper .parent-kpis .kpi-symbol{font-family:Arial,sans-serif!important;font-size:17pt!important;font-weight:900!important;background:#ffffffa9!important;border-radius:50%!important;width:8mm!important;height:8mm!important;display:grid!important;place-items:center!important}
+.report-paper .unit-report-heading{min-height:0!important;display:flex!important;flex-direction:column!important;padding:0!important;gap:0!important}
+.report-paper .unit-report-heading .unit-illustration{display:block!important;position:relative!important;width:100%!important;height:18mm!important;min-height:18mm!important;overflow:hidden!important;transform:none!important;border-radius:0!important;background:#d9eafb!important;z-index:1!important}
+.report-paper .unit-illustration img{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover!important;opacity:1!important;visibility:visible!important}
+.report-paper .unit-report-heading strong{display:block!important;min-height:11mm!important;width:100%!important;box-sizing:border-box!important;padding:1.5mm 1mm!important;font-size:7.5pt!important;font-weight:900!important;line-height:1.25!important;text-align:center!important;position:relative!important;z-index:2!important}
+.report-paper .unit-report-card{min-width:0!important}
+.report-paper .unit-assessment-grid .assessment-cell{min-height:5mm!important}
+.report-paper .assessment-cell span{font-weight:600!important}
+.report-paper .unit-report-card:nth-child(5n+2) .unit-score-ring{background:conic-gradient(#13956d var(--score),#d4e5df 0)!important}
+.report-paper .unit-report-card:nth-child(5n+3) .unit-score-ring{background:conic-gradient(#c88a27 var(--score),#f1e2c5 0)!important}
+.report-paper .unit-report-card:nth-child(5n+4) .unit-score-ring{background:conic-gradient(#8963bd var(--score),#e4d9ef 0)!important}
+.report-paper .unit-report-card:nth-child(5n+5) .unit-score-ring{background:conic-gradient(#c96980 var(--score),#f0dce2 0)!important}
+.report-paper .parent-kpis .score-primary,.report-paper .parent-kpis .performance-score,.report-paper .parent-kpis .score-class,.report-paper .parent-kpis .score-attendance{padding-right:5mm!important}
+@media print{
+.report-paper,.report-paper *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.report-paper .unit-report-heading .unit-illustration{height:9mm!important;min-height:9mm!important}
+.report-paper .unit-report-heading strong{min-height:6mm!important;font-size:5.8pt!important;padding:.4mm!important}
+.report-paper .unit-illustration img{height:100%!important;object-fit:cover!important}
+.report-paper .parent-kpis .kpi-symbol{font-size:9pt!important;width:4mm!important;height:4mm!important}
+.report-paper .unit-assessment-grid .assessment-cell{min-height:0!important}
+}
