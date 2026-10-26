@@ -370,3 +370,83 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
  .report-paper .grade-detail-table{font-size:5.5pt!important}
  .report-paper .grade-detail-table td,.report-paper .grade-detail-table th{padding:.4mm .8mm!important}
 }
+
+
+/* Streamlined A4 parent report — each unit owns its scores, no duplicate table */
+.report-paper{font-family:"Tajawal","Noto Sans Arabic","Cairo",Tahoma,Arial,sans-serif!important}
+.report-paper .unit-report-list{display:grid;gap:2mm}
+.report-paper .unit-report-card{border:.25mm solid #c8dde4;border-radius:2mm;overflow:hidden;background:#fff;break-inside:avoid}
+.report-paper .unit-report-heading{display:flex;justify-content:space-between;align-items:center;gap:3mm;background:#eaf4f8;padding:2mm 3mm;border-right:1.2mm solid #087d90}
+.report-paper .unit-report-card:nth-child(3n+2) .unit-report-heading{background:#edf7f0;border-right-color:#2c9b72}
+.report-paper .unit-report-card:nth-child(3n) .unit-report-heading{background:#fff6e6;border-right-color:#d4a043}
+.report-paper .unit-report-heading>strong{font-size:9pt;color:#17435c;line-height:1.3}
+.report-paper .unit-report-totals{display:flex;align-items:center;gap:2.5mm;white-space:nowrap}
+.report-paper .unit-report-totals b{font-size:11pt;color:#087d70}
+.report-paper .unit-report-totals span{font-size:7pt;color:#36566a}
+.report-paper .unit-report-totals small{font-size:7pt;color:#3a75a2}
+.report-paper .unit-comparison{display:grid;grid-template-columns:12mm 1fr 12mm 1fr;gap:1.5mm;align-items:center;padding:1.2mm 3mm}
+.report-paper .unit-comparison span{font-size:6pt;color:#516d7c}
+.report-paper .unit-comparison>div{height:2.8mm;background:#e1eaf0;border-radius:2mm;overflow:hidden}
+.report-paper .unit-comparison i{display:block;height:100%;border-radius:2mm}
+.report-paper .unit-assessment-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1mm;padding:0 2mm 2mm}
+.report-paper .assessment-cell{display:flex;align-items:center;justify-content:space-between;gap:1mm;border:.2mm solid #e2ebef;background:#f9fbfc;border-radius:1mm;padding:1.5mm;min-width:0}
+.report-paper .assessment-cell span{font-size:6.8pt;line-height:1.25;color:#456276}
+.report-paper .assessment-cell strong{font-size:7.3pt;white-space:nowrap;color:#143d53}
+.report-paper .report-bottom-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:2mm;margin-top:2.5mm}
+.report-paper .report-bottom-grid>section,.report-paper .report-recommendations,.report-paper .report-discipline{border:.25mm solid #d0e2e8;border-radius:2mm;overflow:hidden;background:#f8fbfd;break-inside:avoid}
+.report-paper .report-bottom-grid h3,.report-paper .report-recommendations h3,.report-paper .report-discipline h3{display:flex;align-items:center;gap:1.5mm;margin:0!important;padding:1.5mm 2.5mm!important;font-size:9pt!important;color:#134c64!important;background:#eaf4fa}
+.report-paper .report-bottom-grid h3 span,.report-paper .report-recommendations h3 span,.report-paper .report-discipline h3 span{display:grid;place-items:center;background:#126b85;color:#fff;width:5mm;height:5mm;border-radius:50%;font-size:6pt}
+.report-paper .report-bottom-grid h3 em{font-style:normal;margin-right:auto;color:#617b88;font-size:7pt}
+.report-paper .report-bottom-grid p{font-size:7.5pt;line-height:1.45;margin:1.5mm 2.5mm}
+.report-paper .report-counselor{background:#f6fbf8!important;border-color:#c5dfd0!important}
+.report-paper .report-counselor h3{background:#eaf5ef!important}
+.report-paper .counselor-clear{margin:2mm 3mm;padding:2mm;background:#e2f5e9;border-radius:1.5mm;font-size:8pt;font-weight:800;color:#1b7655}
+.report-paper .feedback-alerts{margin:1mm 2mm;padding:1mm;background:#fff6e6;border-radius:1mm;font-size:7pt}
+.report-paper .report-recommendations{margin-top:2mm;background:#f6fbf6!important;border-color:#b9dac4!important}
+.report-paper .report-recommendations h3{background:#e5f5e9!important;color:#16654e!important}
+.report-paper .report-tip-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5mm;padding:2mm}
+.report-paper .report-tip-grid>div{display:flex;gap:1.5mm;align-items:flex-start;background:#fff;border:.2mm solid #d5e8d9;border-radius:1.5mm;padding:1.5mm}
+.report-paper .report-tip-grid b{display:grid;place-items:center;flex:0 0 4mm;height:4mm;border-radius:50%;background:#168663;color:#fff;font-size:7pt}
+.report-paper .report-tip-grid p{margin:0;font-size:7pt;line-height:1.4;color:#2b4d40}
+.report-paper .report-discipline{margin-top:2mm;background:#fff!important}
+.report-paper .report-discipline h3{background:#eef3fa!important}
+.report-paper .report-discipline h3 small{margin-right:auto;font-size:7pt;color:#126b85}
+.report-paper .discipline-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1mm;padding:1.5mm}
+.report-paper .discipline-stats>div{display:flex;align-items:center;justify-content:center;gap:2mm;border-radius:1.2mm;background:#eaf5ed;padding:1.5mm}
+.report-paper .discipline-stats>div:nth-child(2){background:#fff0eb}
+.report-paper .discipline-stats>div:nth-child(3){background:#fff6e4}
+.report-paper .discipline-stats>div:nth-child(4){background:#edf3fc}
+.report-paper .discipline-stats>div:nth-child(5){background:#f5edf8}
+.report-paper .discipline-stats b{font-size:12pt;color:#16465c}
+.report-paper .discipline-stats span{font-size:7pt;color:#5a6d79}
+.report-paper .discipline-events{display:flex;gap:2mm;flex-wrap:wrap;padding:0 2mm 1mm}
+.report-paper .discipline-events span{font-size:6pt;background:#f7f0e9;padding:.6mm 1.5mm;border-radius:1mm}
+@media print{
+ .report-paper .unit-report-list{gap:.8mm!important}
+ .report-paper .unit-report-heading{padding:.6mm 1.2mm!important}
+ .report-paper .unit-report-heading>strong{font-size:6.5pt!important}
+ .report-paper .unit-report-totals{gap:1mm!important}
+ .report-paper .unit-report-totals b{font-size:7.5pt!important}
+ .report-paper .unit-report-totals span,.report-paper .unit-report-totals small{font-size:5.3pt!important}
+ .report-paper .unit-comparison{padding:.4mm 1.2mm!important;gap:.6mm!important;grid-template-columns:8mm 1fr 8mm 1fr!important}
+ .report-paper .unit-comparison>div{height:1.7mm!important}
+ .report-paper .unit-comparison span{font-size:4.5pt!important}
+ .report-paper .unit-assessment-grid{padding:0 1mm .7mm!important;gap:.5mm!important}
+ .report-paper .assessment-cell{padding:.6mm!important}
+ .report-paper .assessment-cell span{font-size:5.3pt!important}
+ .report-paper .assessment-cell strong{font-size:5.5pt!important}
+ .report-paper .report-bottom-grid{gap:1mm!important;margin-top:1mm!important}
+ .report-paper .report-bottom-grid h3,.report-paper .report-recommendations h3,.report-paper .report-discipline h3{font-size:6.5pt!important;padding:.5mm 1mm!important}
+ .report-paper .report-bottom-grid h3 span,.report-paper .report-recommendations h3 span,.report-paper .report-discipline h3 span{width:3mm!important;height:3mm!important;font-size:4pt!important}
+ .report-paper .report-bottom-grid p{font-size:5.5pt!important;line-height:1.2!important;margin:.6mm 1mm!important}
+ .report-paper .counselor-clear{font-size:5.5pt!important;margin:.6mm 1mm!important;padding:.8mm!important}
+ .report-paper .report-recommendations,.report-paper .report-discipline{margin-top:.8mm!important}
+ .report-paper .report-tip-grid{padding:.8mm!important;gap:.6mm!important}
+ .report-paper .report-tip-grid>div{padding:.6mm!important}
+ .report-paper .report-tip-grid p{font-size:5.5pt!important;line-height:1.15!important}
+ .report-paper .report-tip-grid b{flex-basis:3mm!important;height:3mm!important;font-size:5pt!important}
+ .report-paper .discipline-stats{padding:.5mm!important;gap:.5mm!important}
+ .report-paper .discipline-stats>div{padding:.5mm!important}
+ .report-paper .discipline-stats b{font-size:8pt!important}
+ .report-paper .discipline-stats span{font-size:5.5pt!important}
+}
