@@ -215,8 +215,7 @@ export default function ReportsPage() {
     const roster = students.filter(student => String(student.className || student.class || "") === className);
     const documents = attendanceDocs.filter(item => item.class === className && item.date && (attendanceMode === "all" || (item.date >= reportFrom && item.date <= reportTo))).sort((a, b) => String(a.date).localeCompare(String(b.date)));
     const days = [...new Set(documents.map(item => String(item.date || "")).filter(Boolean))];
-    const codes = [...new Set(documents.flatMap(item => Object.keys(item.records || {})))];
-    const reportRoster = roster.length ? roster : codes.map((code, index) => ({ id: code, code, name: `طالب ${index + 1}`, className } as Student));
+    const reportRoster = roster; // Never invent students from historical attendance codes; the live administration roster is authoritative.
     const rows: RangeRow[] = reportRoster.map((student, index) => {
       const absentDates: string[] = [], lateDates: string[] = [], excusedDates: string[] = [], escapedDates: string[] = [];
       let present = 0;
