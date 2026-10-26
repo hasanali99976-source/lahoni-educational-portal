@@ -655,7 +655,6 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 
 
 /* Clean final typography and scoring layout — prevent collisions */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
 .report-paper,.report-paper *{font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif!important}
 .report-paper .unit-report-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3mm!important}
 .report-paper .unit-report-card{border:1px solid #d8e3e9!important;border-radius:3mm!important;overflow:hidden!important}
