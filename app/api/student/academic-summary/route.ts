@@ -3,6 +3,7 @@ import { calculateGradePlanResult, roundGrade } from "../../../../lib/grade-plan
 import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { adminDb } from "../../../../lib/server/firebase-admin";
 import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
+import { normalizeStudentRecord, SCHOOL_STUDENTS_COLLECTION } from "../../../../lib/school-roster";
 
 type TokenRow = { subjectKey?: unknown; accessToken?: unknown };
 type GradeDeduction = {
@@ -74,10 +75,13 @@ export async function POST(request: Request) {
       const subjectKey = String(row.subjectKey || access.subjectId).trim();
       if (!subjectKey || subjectKey !== access.subjectId) return null;
 
-      const [studentSnapshot, planState] = await Promise.all([
+      const [studentSnapshot, planState, officialSnapshot] = await Promise.all([
         adminDb().collection(`portalV2Data/${access.teacherId}/subjects/${access.subjectId}/students`).doc(access.studentId).get(),
         readActiveGradePlanForSubject(access.teacherId, access.subjectId),
+        adminDb().collection(SCHOOL_STUDENTS_COLLECTION).doc(access.studentId).get(),
       ]);
+      const official = officialSnapshot.exists ? normalizeStudentRecord(officialSnapshot.data() as Record<string,unknown>, officialSnapshot.id) : null;
+      if (!official || official.active === false) return null;
       if (!studentSnapshot.exists || !planState.activePlan) {
         return {
           subjectKey: access.subjectId,
