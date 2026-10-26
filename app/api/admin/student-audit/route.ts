@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "../../../../../lib/server/firebase-admin";
-import { requireSession } from "../../../../../lib/server/portal-auth";
-import { SCHOOL_STUDENTS_COLLECTION, normalizeStudentRecord, normalizeArabic } from "../../../../../lib/school-roster";
-import { normalizeAssignments } from "../../../../../lib/teacher-assignments";
+import { adminDb } from "../../../../lib/server/firebase-admin";
+import { requireSession } from "../../../../lib/server/portal-auth";
+import { SCHOOL_STUDENTS_COLLECTION, normalizeStudentRecord, normalizeArabic } from "../../../../lib/school-roster";
+import { normalizeAssignments } from "../../../../lib/teacher-assignments";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
