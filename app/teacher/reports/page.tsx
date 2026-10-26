@@ -79,7 +79,7 @@ export default function ReportsPage() {
   useEffect(() => {
     if (!teacherId || !subjectKey) return;
     const controller = new AbortController();
-    const params = new URLSearchParams({ subjectId: subjectKey });
+    const params = new URLSearchParams({ subjectId: subjectKey, fresh: "1" });
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
     Promise.all([
       fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal }),
