@@ -33,6 +33,8 @@ export default function TeacherReportPage(){
   const [students,setStudents]=useState<Student[]>([]);
   const [attendance,setAttendance]=useState<AttendanceRecord[]>([]);
   const [noteRows,setNoteRows]=useState<NoteRow[]>([]);
+  const [masterySectionId,setMasterySectionId]=useState("");
+  const [masteryThreshold,setMasteryThreshold]=useState(80);
   const [mode,setMode]=useState<ScopeMode>("classes");
   const [selectedClasses,setSelectedClasses]=useState<string[]>([]);
   const [selectedStudents,setSelectedStudents]=useState<string[]>([]);
@@ -84,6 +86,8 @@ export default function TeacherReportPage(){
     return()=>controller.abort();
   },[session?.subjectKey]);
 
+  const masterySections=activePlan?.sections||[];
+  const masterySection=masterySections.find(section=>section.id===masterySectionId)||masterySections[0];
   const classes=useMemo(()=>[...new Set(students.map(student=>student.class).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ar",{numeric:true})),[students]);
   useEffect(()=>{if(!classes.length){setSelectedClasses([]);return;}setSelectedClasses(current=>current.length?current.filter(item=>classes.includes(item)):[classes[0]]);},[classes.join("|")]);
 
@@ -97,8 +101,11 @@ export default function TeacherReportPage(){
     const total=statuses.length;
     const attendanceRate=total?Math.round((present+late*.5)/total*100):100;
     const noteCount=noteRows.find(row=>String(row.studentCode).trim().toUpperCase()===student.code)?.notes.length||0;
-    return{...student,average,absent,late,attendanceRate,noteCount,completion:result?.completion||0};
-  }),[students,attendance,activePlan,noteRows]);
+    const section=result?.sections.find(item=>item.id===masterySection?.id);
+    const masteryPercentage=section&&section.recordedMaximum>0?Math.round(section.percentage):null;
+    const masteryStatus=masteryPercentage===null?"غير مرصود":masteryPercentage>=masteryThreshold?"متقن":"يحتاج دعمًا";
+    return{...student,average,absent,late,attendanceRate,noteCount,completion:result?.completion||0,masteryPercentage,masteryStatus};
+  }),[students,attendance,activePlan,noteRows,masterySection?.id,masteryThreshold]);
 
   const studentCandidates=useMemo(()=>analyses.filter(student=>!studentClassFilter||student.class===studentClassFilter).sort((a,b)=>a.name.localeCompare(b.name,"ar")),[analyses,studentClassFilter]);
   const selected=useMemo(()=>mode==="classes"?analyses.filter(student=>selectedClasses.includes(student.class)):analyses.filter(student=>selectedStudents.includes(student.id)),[analyses,mode,selectedClasses,selectedStudents]);
@@ -115,6 +122,10 @@ export default function TeacherReportPage(){
   const support=selected.filter(student=>student.average>0&&student.average<60).length;
   const excellent=selected.filter(student=>student.average>=90).length;
   const totalNotes=selected.reduce((sum,student)=>sum+student.noteCount,0);
+  const masteryRecorded=selected.filter(student=>student.masteryPercentage!==null);
+  const masteryAverage=masteryRecorded.length?Math.round(masteryRecorded.reduce((sum,student)=>sum+(student.masteryPercentage||0),0)/masteryRecorded.length):null;
+  const masteryAchieved=selected.filter(student=>student.masteryStatus==="متقن").length;
+  const masterySupport=selected.filter(student=>student.masteryStatus==="يحتاج دعمًا").length;
   const completionAverage=selected.length?Math.round(selected.reduce((sum,student)=>sum+student.completion,0)/selected.length):0;
 
   function toggleClass(name:string){setSelectedClasses(current=>current.includes(name)?current.filter(item=>item!==name):[...current,name]);}
@@ -124,7 +135,7 @@ export default function TeacherReportPage(){
   function exportExcel(){
     if(!selected.length)return setMessage("حدد عناصر التقرير أولًا.");
     const workbook=XLSX.utils.book_new();
-    if(mode==="classes")selectedClasses.forEach(className=>{const rows=selected.filter(student=>student.class===className).map((student,index)=>({م:index+1,"اسم الطالب":student.name,"الفصل":student.class,"التحصيل %":student.average,"الحضور %":student.attendanceRate,"الغياب":student.absent,"الملاحظات":student.noteCount}));const sheet=XLSX.utils.json_to_sheet(rows);sheet["!cols"]=[{wch:6},{wch:32},{wch:16},{wch:13},{wch:13},{wch:10},{wch:12}];XLSX.utils.book_append_sheet(workbook,sheet,className.slice(0,31));});
+    if(mode==="classes")selectedClasses.forEach(className=>{const rows=selected.filter(student=>student.class===className).map((student,index)=>({م:index+1,"اسم الطالب":student.name,"الفصل":student.class,"التحصيل %":student.average,"الحضور %":student.attendanceRate,"الغياب":student.absent,"الملاحظات":student.noteCount,"الإتقان %":student.masteryPercentage??"غير مرصود","حالة الإتقان":student.masteryStatus}));const sheet=XLSX.utils.json_to_sheet(rows);sheet["!cols"]=[{wch:6},{wch:32},{wch:16},{wch:13},{wch:13},{wch:10},{wch:12}];XLSX.utils.book_append_sheet(workbook,sheet,className.slice(0,31));});
     else{const rows=selected.map((student,index)=>({م:index+1,"اسم الطالب":student.name,"الفصل":student.class,"التحصيل %":student.average,"اكتمال الرصد %":student.completion,"الحضور %":student.attendanceRate,"الغياب":student.absent,"التأخر":student.late,"الملاحظات":student.noteCount}));const sheet=XLSX.utils.json_to_sheet(rows);sheet["!cols"]=[{wch:6},{wch:32},{wch:16},{wch:13},{wch:16},{wch:13},{wch:10},{wch:10},{wch:12}];XLSX.utils.book_append_sheet(workbook,sheet,"الطلاب المختارون");}
     XLSX.writeFile(workbook,`ملخص-عمل-${session?.subject||"المادة"}.xlsx`);
   }
@@ -142,6 +153,7 @@ export default function TeacherReportPage(){
 
     <section className="trv9-mode"><button className={mode==="classes"?"active":""} onClick={()=>chooseMode("classes")}><span>▦</span><div><b>تقرير فصول</b><small>مقارنة فصل أو عدة فصول</small></div></button><button className={mode==="students"?"active":""} onClick={()=>chooseMode("students")}><span>◎</span><div><b>تقرير طلاب</b><small>طالب واحد أو مجموعة محددة</small></div></button></section>
 
+    <section className="trv9-scope"><header><div><small>مؤشرات الإتقان</small><h2>المهارة أو الفترة ومعيار الإتقان</h2></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><select aria-label="فترة الإتقان" value={masterySection?.id||""} onChange={event=>setMasterySectionId(event.target.value)}>{masterySections.map(section=><option key={section.id} value={section.id}>{section.label}</option>)}</select><select aria-label="نسبة معيار الإتقان" value={masteryThreshold} onChange={event=>setMasteryThreshold(Number(event.target.value))}>{[60,70,80,90].map(value=><option key={value} value={value}>معيار {value}٪</option>)}</select></div></header></section>
     <section className="trv9-scope">
       {mode==="classes"?<><header><div><small>الفصول داخل التقرير</small><h2>اختر ما تريد مقارنته</h2></div><button onClick={()=>setSelectedClasses(classes)}>تحديد الكل</button></header><div className="trv9-class-picker">{classes.map((name,index)=><button key={name} className={selectedClasses.includes(name)?"active":""} style={{"--tone":palette[index%palette.length]} as React.CSSProperties} onClick={()=>toggleClass(name)}><b>{name}</b><small>{analyses.filter(student=>student.class===name).length} طالب</small></button>)}</div></>:<><header><div><small>الطلاب داخل التقرير</small><h2>اختر الأسماء المطلوبة</h2></div><label>تصفية حسب الفصل<select value={studentClassFilter} onChange={event=>setStudentClassFilter(event.target.value)}><option value="">جميع الفصول</option>{classes.map(name=><option key={name}>{name}</option>)}</select></label></header><div className="trv9-student-picker">{studentCandidates.map(student=><button key={student.id} className={selectedStudents.includes(student.id)?"active":""} onClick={()=>toggleStudent(student.id)}><span>{selectedStudents.includes(student.id)?"✓":"+"}</span><div><b>{student.name}</b><small>{student.class} • {student.average?`${student.average}٪`:"غير مرصود"}</small></div></button>)}</div></>}
       <footer><span>المحدد: <b>{mode==="classes"?selectedClasses.length:selectedStudents.length}</b></span><div><button onClick={exportExcel}>Excel</button><button className="primary" disabled={busy} onClick={()=>void exportPdf()}>{busy?"جارٍ التجهيز…":"PDF"}</button></div></footer>
@@ -149,12 +161,12 @@ export default function TeacherReportPage(){
 
     <section id="teacher-report-v9-print" className="trv9-report">
       <header className="trv9-print-head"><div><small>بوابة أستاذ لحوني التعليمية</small><h2>{mode==="classes"?"تقرير مقارنة الفصول":"تقرير الطلاب المختارين"}</h2><p>{session?.subject||"المادة"} • {session?.activeGradeLabel||""} • المعلم: {session?.teacherName||"المعلم"}</p></div><img src="/icons/lahooni-identity-320.jpg" alt="هوية البوابة"/></header>
-      <section className="trv9-kpis"><article><small>{mode==="classes"?"الطلاب داخل الفصول":"الطلاب المختارون"}</small><b>{ar(selected.length)}</b></article><article><small>متوسط التحصيل</small><b>{ar(overall)}٪</b></article><article><small>متوسط الحضور</small><b>{ar(attendanceAverage)}٪</b></article><article><small>متميزون</small><b>{ar(excellent)}</b></article><article><small>يحتاجون دعمًا</small><b>{ar(support)}</b></article><article><small>الملاحظات</small><b>{ar(totalNotes)}</b></article></section>
+      <section className="trv9-kpis"><article><small>{mode==="classes"?"الطلاب داخل الفصول":"الطلاب المختارون"}</small><b>{ar(selected.length)}</b></article><article><small>متوسط التحصيل</small><b>{ar(overall)}٪</b></article><article><small>متوسط الحضور</small><b>{ar(attendanceAverage)}٪</b></article><article><small>متميزون</small><b>{ar(excellent)}</b></article><article><small>يحتاجون دعمًا</small><b>{ar(support)}</b></article><article><small>الملاحظات</small><b>{ar(totalNotes)}</b></article><article><small>متوسط الإتقان</small><b>{masteryAverage===null?"غير مرصود":`${ar(masteryAverage)}٪`}</b></article><article><small>متقنون</small><b>{ar(masteryAchieved)}</b></article><article><small>غير متقنين</small><b>{ar(masterySupport)}</b></article></section>
       <section className="trv9-graphs">
         <article><header><div><small>المقارنة الرئيسية</small><h3>{mode==="classes"?"متوسط التحصيل بين الفصول":"تحصيل الطلاب المختارين"}</h3></div></header><Bars rows={chartRows}/></article>
-        <article className="trv9-donuts"><header><small>صورة عامة</small><h3>التحصيل والحضور واكتمال الرصد</h3></header><div><Donut value={overall} label="التحصيل"/><Donut value={attendanceAverage} label="الحضور"/><Donut value={completionAverage} label="اكتمال الرصد"/></div></article>
+        <article className="trv9-donuts"><header><small>صورة عامة</small><h3>التحصيل والحضور واكتمال الرصد</h3></header><div><Donut value={overall} label="التحصيل"/><Donut value={attendanceAverage} label="الحضور"/><Donut value={completionAverage} label="اكتمال الرصد"/><Donut value={masteryAverage||0} label={`إتقان ${masterySection?.label||""}`}/></div></article>
       </section>
-      {mode==="classes"?<section className="trv9-comparison"><header><h3>مقارنة مؤشرات الفصول</h3></header><div>{classStats.map(item=><article key={item.name} style={{borderTopColor:item.color}}><header><b>{item.name}</b><span>{ar(item.average)}٪</span></header><dl><div><dt>الحضور</dt><dd>{ar(item.attendance)}٪</dd></div><div><dt>متميزون</dt><dd>{ar(item.excellent)}</dd></div><div><dt>دعم</dt><dd>{ar(item.support)}</dd></div><div><dt>ملاحظات</dt><dd>{ar(item.notes)}</dd></div></dl></article>)}</div></section>:<section className="trv9-student-summary"><header><h3>الطلاب داخل التقرير</h3></header><div>{selected.map(student=><article key={student.id}><div><b>{student.name}</b><small>{student.class}</small></div><span>{ar(student.average)}٪<small>تحصيل</small></span><span>{ar(student.attendanceRate)}٪<small>حضور</small></span><span>{ar(student.completion)}٪<small>رصد</small></span></article>)}</div></section>}
+      {mode==="classes"?<section className="trv9-comparison"><header><h3>مقارنة مؤشرات الفصول</h3></header><div>{classStats.map(item=><article key={item.name} style={{borderTopColor:item.color}}><header><b>{item.name}</b><span>{ar(item.average)}٪</span></header><dl><div><dt>الحضور</dt><dd>{ar(item.attendance)}٪</dd></div><div><dt>متميزون</dt><dd>{ar(item.excellent)}</dd></div><div><dt>دعم</dt><dd>{ar(item.support)}</dd></div><div><dt>ملاحظات</dt><dd>{ar(item.notes)}</dd></div><div><dt>متقنون</dt><dd>{ar(analyses.filter(student=>student.class===item.name&&student.masteryStatus==="متقن").length)}</dd></div></dl></article>)}</div></section>:<section className="trv9-student-summary"><header><h3>الطلاب داخل التقرير</h3></header><div>{selected.map(student=><article key={student.id}><div><b>{student.name}</b><small>{student.class}</small></div><span>{ar(student.average)}٪<small>تحصيل</small></span><span>{ar(student.attendanceRate)}٪<small>حضور</small></span><span>{ar(student.completion)}٪<small>رصد</small></span><span>{student.masteryPercentage===null?"—":`${ar(student.masteryPercentage)}٪`}<small>{student.masteryStatus}</small></span><span>{ar(student.noteCount)}<small>ملاحظات</small></span></article>)}</div></section>}
     </section>
   </main>;
 }
