@@ -52,7 +52,7 @@ export default function TeacherNotesPage(){
 
   async function load(){
     if(!subjectId)return;
-    const params=new URLSearchParams({subjectId});
+    const params=new URLSearchParams({subjectId,fresh:"1"});
     if(grade)params.set("grade",String(grade));
     const [studentsResponse,notesResponse]=await Promise.all([
       fetch(`/api/teacher/students?${params}`,{cache:"no-store"}),
@@ -73,7 +73,7 @@ export default function TeacherNotesPage(){
       setStudents(list);
       setClassName(current=>current&&list.some((student:Student)=>student.className===current)?current:(list[0]?.className||""));
     }
-    if(notesResponse.ok)setRows(Array.isArray(notesData.rows)?notesData.rows:[]);
+    if(notesResponse.ok){const validCodes=new Set((Array.isArray(studentData.students)?studentData.students:[]).map((student:Record<string,unknown>)=>String(student.code||student.id||"").trim().toUpperCase()));setRows((Array.isArray(notesData.rows)?notesData.rows:[]).filter((row:NoteRow)=>validCodes.has(String(row.studentCode||"").trim().toUpperCase())));}
   }
 
   useEffect(()=>{void load();},[subjectId,grade]);
