@@ -9,6 +9,7 @@ import TeacherCompetitionProgress from "../competition-progress";
 import "./report-v9.css";
 
 type Student = GradeStudentLike & { id:string;code:string;name:string;class:string;className:string;teacherNotes?:unknown[] };
+type NoteRow = {studentCode:string;notes:Array<{message?:string;label?:string;createdAt?:string}>};
 type AttendanceStatus = "present"|"absent"|"late"|"excused"|"escaped";
 type AttendanceRecord = { class?:string;date?:string;records?:Record<string,AttendanceStatus> };
 type ScopeMode = "classes" | "students";
@@ -31,6 +32,7 @@ export default function TeacherReportPage(){
   const {activePlan}=useGradePlan(true);
   const [students,setStudents]=useState<Student[]>([]);
   const [attendance,setAttendance]=useState<AttendanceRecord[]>([]);
+  const [noteRows,setNoteRows]=useState<NoteRow[]>([]);
   const [mode,setMode]=useState<ScopeMode>("classes");
   const [selectedClasses,setSelectedClasses]=useState<string[]>([]);
   const [selectedStudents,setSelectedStudents]=useState<string[]>([]);
@@ -42,11 +44,30 @@ export default function TeacherReportPage(){
     if(!session?.subjectKey)return;
     const params=new URLSearchParams({subjectId:session.subjectKey});
     if(session.activeGrade)params.set("grade",String(session.activeGrade));
-    fetch(`/api/teacher/students?${params}`,{cache:"no-store"}).then(response=>response.json().then(data=>({ok:response.ok,data}))).then(({ok,data})=>{
-      if(!ok)throw new Error(data.message||"تعذر تحميل الطلاب");
-      const list=(Array.isArray(data.students)?data.students:[]).map((value:Record<string,unknown>)=>{const code=String(value.code||value.id||"").trim().toUpperCase();const className=String(value.className||value.class||"").trim();return{...(value as unknown as Student),id:code,code,name:String(value.name||"").trim(),class:className,className} as Student;}).filter((student:Student)=>student.id&&student.name&&student.class);
-      setStudents(list);
-    }).catch(error=>setMessage(error instanceof Error?error.message:"تعذر تحميل الطلاب"));
+    params.set("fresh","1");
+    const controller=new AbortController();
+    Promise.all([
+      fetch(`/api/teacher/students?${params}`,{cache:"no-store",signal:controller.signal}),
+      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(session.subjectKey)}`,{cache:"no-store",signal:controller.signal}),
+      fetch(`/api/teacher/notes?subjectId=${encodeURIComponent(session.subjectKey)}`,{cache:"no-store",signal:controller.signal}),
+    ]).then(async ([rosterResponse,gradesResponse,notesResponse])=>{
+      const [roster,grades,notes]=await Promise.all([rosterResponse.json(),gradesResponse.json(),notesResponse.json()]);
+      if(!rosterResponse.ok||!gradesResponse.ok||!notesResponse.ok)throw new Error(roster.message||grades.message||notes.message||"تعذر تحميل بيانات التقرير");
+      const byCode=grades.byCode&&typeof grades.byCode==="object"?grades.byCode as Record<string,Record<string,unknown>>:{};
+      const list=(Array.isArray(roster.students)?roster.students:[]).map((value:Record<string,unknown>)=>{
+        const code=String(value.code||value.id||"").trim().toUpperCase();
+        const className=String(value.className||value.class||"").trim();
+        const academic=byCode[code]||{};
+        return{...(value as unknown as Student),...academic,id:code,code,name:String(value.name||"").trim(),class:className,className} as Student;
+      }).filter((student:Student)=>student.id&&student.name&&student.class);
+      const codes=new Set(list.map((student:Student)=>student.code));
+      if(!controller.signal.aborted){
+        setStudents(list);
+        setNoteRows((Array.isArray(notes.rows)?notes.rows:[]).filter((row:NoteRow)=>codes.has(String(row.studentCode||"").trim().toUpperCase())));
+        setMessage("");
+      }
+    }).catch(error=>{if(!controller.signal.aborted)setMessage(error instanceof Error?error.message:"تعذر تحميل الطلاب");});
+    return()=>controller.abort();
   },[session?.subjectKey,session?.activeGrade]);
 
   useEffect(()=>{
@@ -75,9 +96,9 @@ export default function TeacherReportPage(){
     const present=statuses.filter(status=>status==="present"||status==="excused").length;
     const total=statuses.length;
     const attendanceRate=total?Math.round((present+late*.5)/total*100):100;
-    const noteCount=Array.isArray(student.teacherNotes)?student.teacherNotes.length:0;
+    const noteCount=noteRows.find(row=>String(row.studentCode).trim().toUpperCase()===student.code)?.notes.length||0;
     return{...student,average,absent,late,attendanceRate,noteCount,completion:result?.completion||0};
-  }),[students,attendance,activePlan]);
+  }),[students,attendance,activePlan,noteRows]);
 
   const studentCandidates=useMemo(()=>analyses.filter(student=>!studentClassFilter||student.class===studentClassFilter).sort((a,b)=>a.name.localeCompare(b.name,"ar")),[analyses,studentClassFilter]);
   const selected=useMemo(()=>mode==="classes"?analyses.filter(student=>selectedClasses.includes(student.class)):analyses.filter(student=>selectedStudents.includes(student.id)),[analyses,mode,selectedClasses,selectedStudents]);
