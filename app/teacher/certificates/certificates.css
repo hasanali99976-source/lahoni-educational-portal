@@ -577,3 +577,41 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .report-paper .parent-kpis .kpi-symbol{font-size:9pt!important;width:4mm!important;height:4mm!important}
 .report-paper .unit-assessment-grid .assessment-cell{min-height:0!important}
 }
+
+
+/* Rebuilt assessment gallery: compact, readable, without repeated decorative images */
+.report-paper .unit-report-list{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(42mm,1fr))!important;gap:2mm!important;align-items:start!important}
+.report-paper .unit-report-card{display:flex!important;flex-direction:column!important;min-width:0!important;border-radius:2mm!important;box-shadow:none!important;overflow:hidden!important}
+.report-paper .unit-report-heading{display:flex!important;justify-content:center!important;align-items:center!important;min-height:11mm!important;padding:1.5mm 2mm!important;background:#dcecfb!important;border-bottom:.25mm solid #c5d9e9!important}
+.report-paper .unit-report-heading strong{font-family:Tahoma,Arial,sans-serif!important;font-size:8pt!important;font-weight:700!important;line-height:1.35!important;min-height:0!important;padding:0!important;text-align:center!important}
+.report-paper .unit-report-card:nth-child(5n+2) .unit-report-heading{background:#dff3e8!important}
+.report-paper .unit-report-card:nth-child(5n+3) .unit-report-heading{background:#ffedce!important}
+.report-paper .unit-report-card:nth-child(5n+4) .unit-report-heading{background:#ebe2fa!important}
+.report-paper .unit-report-card:nth-child(5n+5) .unit-report-heading{background:#fbe4e8!important}
+.report-paper .unit-visual-score{justify-content:space-evenly!important;padding:2mm!important}
+.report-paper .unit-assessment-grid{padding:0 2mm 1.5mm!important}
+.report-paper .assessment-cell{min-height:0!important;padding:1.1mm 0!important}
+.report-paper .assessment-cell span,.report-paper .assessment-cell strong{font-family:Tahoma,Arial,sans-serif!important;font-size:7pt!important;font-weight:500!important;line-height:1.35!important}
+.report-paper .assessment-cell strong{font-weight:700!important}
+.report-paper .unit-class-average{margin-top:auto!important}
+.report-paper .unit-unrecorded{opacity:.82!important}
+.report-paper .unit-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1mm;min-height:21mm;padding:2mm;text-align:center;color:#6d7884}
+.report-paper .unit-empty-icon{font-size:16pt;line-height:1;color:#9caab4}
+.report-paper .unit-empty-state strong{font-size:8pt;color:#4b6170}
+.report-paper .unit-empty-state small{font-size:6.5pt}
+.report-paper .unit-unrecorded .unit-class-average{padding:1mm 2mm!important}
+.report-paper .unit-unrecorded .unit-class-average>div{display:none!important}
+.report-paper .unit-report-heading .unit-illustration{display:none!important}
+@media print{
+ .report-paper .unit-report-list{grid-template-columns:repeat(auto-fit,minmax(38mm,1fr))!important;gap:1mm!important}
+ .report-paper .unit-report-heading{min-height:7mm!important;padding:.6mm 1mm!important}
+ .report-paper .unit-report-heading strong{font-size:6.2pt!important;line-height:1.15!important}
+ .report-paper .unit-visual-score{padding:.6mm!important}
+ .report-paper .unit-assessment-grid{padding:0 1mm .6mm!important}
+ .report-paper .assessment-cell{padding:.4mm 0!important}
+ .report-paper .assessment-cell span,.report-paper .assessment-cell strong{font-size:5.5pt!important;line-height:1.2!important}
+ .report-paper .unit-empty-state{min-height:13mm!important;padding:1mm!important;gap:.4mm!important}
+ .report-paper .unit-empty-icon{font-size:10pt!important}
+ .report-paper .unit-empty-state strong{font-size:6pt!important}
+ .report-paper .unit-empty-state small{font-size:5pt!important}
+}
