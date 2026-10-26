@@ -615,3 +615,39 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
  .report-paper .unit-empty-state strong{font-size:6pt!important}
  .report-paper .unit-empty-state small{font-size:5pt!important}
 }
+
+
+/* Clean academic report: one purposeful card per graded unit, no repeated placeholders */
+.report-paper .unit-report-list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:2.5mm!important;align-items:stretch!important}
+.report-paper .unit-report-card{background:#fff!important;border:1px solid #d2e2e9!important;border-radius:2mm!important;box-shadow:none!important}
+.report-paper .unit-report-card:nth-child(even){background:#fff!important}
+.report-paper .unit-report-heading,.report-paper .unit-report-card:nth-child(n) .unit-report-heading{min-height:0!important;padding:2mm 2.5mm!important;background:#eaf3f8!important;border-bottom:1px solid #d1e2ea!important}
+.report-paper .unit-report-heading strong{font-size:8.5pt!important;font-weight:700!important;color:#14435c!important;line-height:1.4!important}
+.report-paper .unit-visual-score{justify-content:flex-start!important;padding:1.5mm 2.5mm!important}
+.report-paper .unit-score-ring{width:13mm!important;height:13mm!important}
+.report-paper .unit-assessment-grid{padding:0 2.5mm 1.5mm!important}
+.report-paper .assessment-cell{padding:1.1mm 0!important}
+.report-paper .assessment-cell span,.report-paper .assessment-cell strong{font-size:7.5pt!important}
+.report-paper .unit-class-average,.report-paper .unit-report-card:nth-child(n) .unit-class-average{background:#f0f6fa!important;padding:1.5mm 2.5mm!important;color:#195579!important}
+.report-paper .unrecorded-summary{margin-top:2mm;padding:2mm 2.5mm;border:1px solid #d9e4e8;border-radius:2mm;background:#f7fafb}
+.report-paper .unrecorded-summary>strong{display:block;font-size:8pt;color:#486575;margin-bottom:1.5mm}
+.report-paper .unrecorded-summary>div{display:flex;flex-wrap:wrap;gap:1.5mm}
+.report-paper .unrecorded-summary span{background:white;border:1px solid #d7e2e8;border-radius:1.5mm;padding:1mm 2mm;font-size:7pt;color:#536c7a}
+.report-paper .parent-kpis>div{padding:2mm!important}
+.report-paper .parent-kpis .kpi-symbol{position:static!important;width:6mm!important;height:6mm!important;font-size:11pt!important;margin-bottom:1mm!important}
+@media print{
+.report-paper .unit-report-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1mm!important}
+.report-paper .unit-report-heading,.report-paper .unit-report-card:nth-child(n) .unit-report-heading{padding:.7mm 1.2mm!important}
+.report-paper .unit-report-heading strong{font-size:6.5pt!important}
+.report-paper .unit-visual-score{padding:.5mm 1mm!important}
+.report-paper .unit-score-ring{width:9mm!important;height:9mm!important}
+.report-paper .unit-assessment-grid{padding:0 1mm .5mm!important}
+.report-paper .assessment-cell{padding:.35mm 0!important}
+.report-paper .assessment-cell span,.report-paper .assessment-cell strong{font-size:5.5pt!important}
+.report-paper .unit-class-average,.report-paper .unit-report-card:nth-child(n) .unit-class-average{padding:.5mm 1mm!important}
+.report-paper .unrecorded-summary{margin-top:.8mm!important;padding:.7mm 1mm!important}
+.report-paper .unrecorded-summary>strong{font-size:6pt!important;margin-bottom:.5mm!important}
+.report-paper .unrecorded-summary>div{gap:.5mm!important}
+.report-paper .unrecorded-summary span{padding:.4mm .8mm!important;font-size:5.3pt!important}
+.report-paper .parent-kpis .kpi-symbol{width:4mm!important;height:4mm!important;font-size:8pt!important;margin:0!important}
+}
