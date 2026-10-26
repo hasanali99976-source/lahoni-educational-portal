@@ -83,9 +83,10 @@ async function readLiveReport(code: string) {
         cache: "no-store",
       });
       const payload = await response.json().catch(() => ({}));
-      return { match, data: response.ok && payload.data ? payload.data as ProfileData : (match.data || {}) as ProfileData };
+      if (!response.ok || !payload.data) throw new Error("تعذر التحقق من بيانات الطالب الرسمية.");
+      return { match, data: payload.data as ProfileData };
     } catch {
-      return { match, data: (match.data || {}) as ProfileData };
+      throw new Error("تعذر التحقق من بيانات الطالب الحالية؛ لم يُنشأ تقرير من بيانات قديمة.");
     }
   }));
 
