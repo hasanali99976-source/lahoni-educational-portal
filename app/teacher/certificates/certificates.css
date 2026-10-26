@@ -256,3 +256,70 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
  .report-paper .items{padding:.5mm!important}
  .report-paper h3{margin:1.2mm 0 .6mm!important}
 }
+
+
+/* Premium parent meeting edition — strong visual dashboard and clearly prioritized advice */
+.report-paper{--navy:#123d56;--teal:#087e90;--gold:#e2b756;--soft:#edf7fa;position:relative!important;color:var(--navy)!important;background:#fff!important;border:1px solid #bfd6dc!important;border-top:4mm solid #0b6f88!important;border-radius:3mm!important}
+.report-paper header{background:linear-gradient(100deg,#0c4765,#16859a)!important;color:#fff!important;border:0!important;border-radius:2.5mm!important;padding:3mm 4mm!important;margin-bottom:2mm!important}
+.report-paper header h2{color:#fff!important;font-size:18pt!important;margin:0!important}
+.report-paper header small,.report-paper header p{color:#e0f4f8!important}
+.report-paper header em.report-page-number{background:#ffffff26!important;color:#fff!important}
+.report-paper header img{border:1mm solid #fff!important;background:#fff!important}
+.report-paper .identity{margin:2.5mm 0!important}
+.report-paper .identity>div{border:0!important;border-radius:2mm!important;padding:2mm 3mm!important;box-shadow:inset 0 0 0 .25mm #b5d6dd!important}
+.report-paper .student-identity b{font-size:11pt!important;color:#123b58!important}
+.report-paper .scores{grid-template-columns:1.05fr 1.2fr 1fr!important;gap:2.5mm!important;margin:2mm 0 3mm!important}
+.report-paper .scores>div{min-height:21mm!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:.5mm!important;border:0!important;border-radius:3mm!important;padding:2mm!important}
+.report-paper .scores b{font-size:22pt!important;line-height:1.1!important}
+.report-paper .scores .performance-score{background:linear-gradient(110deg,#d6f3ed,#eaf9f5)!important;box-shadow:inset 0 0 0 .4mm #89ccb7!important}
+.report-paper .scores .performance-score.needs{background:linear-gradient(110deg,#ffe9db,#fff4eb)!important;box-shadow:inset 0 0 0 .4mm #eab18b!important}
+.report-paper .scores .performance-score.neutral{background:#eef3f5!important;box-shadow:inset 0 0 0 .4mm #b8cbd4!important}
+.report-paper .performance-level{background:#fff!important;padding:.5mm 3mm!important;border-radius:5mm!important;color:#0d5b6b!important}
+.report-paper .visual-divider{display:flex;align-items:center;gap:2mm;margin:3mm 0 1.5mm!important;font-size:9pt;font-weight:900;color:#134e64!important}
+.report-paper .visual-divider>span{display:grid;place-items:center;width:6mm;height:6mm;background:#0b7990;color:white;border-radius:50%;font:700 7pt Arial}
+.report-paper .visual-divider>small{margin-right:auto;color:#708c97;font-size:6.5pt;font-weight:600}
+.report-paper .parent-insights{grid-template-columns:1.08fr 1fr!important;gap:2.5mm!important;margin-top:0!important}
+.report-paper .parent-insights>div{border-radius:2.5mm!important;padding:3mm!important;box-shadow:inset 0 0 0 .2mm #ffffff!important}
+.report-paper .parent-insight-chart{background:linear-gradient(160deg,#eaf5ff,#f7fbff)!important;border-color:#acd1e9!important}
+.report-paper .parent-insight-summary{background:linear-gradient(160deg,#eaf8ee,#f9fdf9)!important;border-color:#a7d9b8!important}
+.report-paper .parent-insights h3{font-size:9pt!important;margin:0 0 2mm!important;padding:0!important;border:0!important}
+.report-paper .progress-row{grid-template-columns:minmax(0,1fr) 29mm 12mm!important;margin:2mm 0!important;gap:2mm!important}
+.report-paper .progress-track{height:4.5mm!important;background:#d8e7f0!important;box-shadow:inset 0 1px 2px #0001}
+.report-paper .progress-row>b{font-size:8pt!important}
+.report-paper .parent-advice{background:#fff!important;border:.3mm solid #b8dbc7!important;border-radius:2mm!important;padding:2mm!important;margin-top:2mm!important}
+.report-paper .parent-advice>strong{display:block!important;font-size:8pt!important;margin-bottom:1mm!important}
+.report-paper .parent-advice ol{gap:1mm!important}
+.report-paper .parent-advice li{font-size:7pt!important}
+.report-paper .section-heading{margin:1.5mm 0 1mm!important;font-size:8.5pt!important;color:#31596a!important}
+.report-paper .units{gap:1.3mm!important}
+.report-paper .unit{border-color:#c9dfe4!important;border-radius:1.5mm!important}
+.report-paper .unit-title{padding:1mm 2mm!important}
+.report-paper .items{padding:1mm!important;gap:.7mm!important}
+.report-paper .items>div{background:#fff!important;border-color:#dbe8eb!important}
+.report-paper .attendance div{border:0!important;border-radius:2mm!important;padding:1.5mm!important}
+.report-paper .attendance b{font-size:13pt!important}
+.report-paper .records>div{background:#f8fbfc!important;border-color:#d2e5e8!important;border-radius:2mm!important}
+.report-paper .parent-followup{background:#fff9ec!important;border-color:#e4c77e!important}
+.report-paper footer{border-color:#e1b451!important;margin-top:2mm!important}
+@media print{
+ .report-paper{height:297mm!important;min-height:297mm!important;max-height:297mm!important;padding:5mm 7mm!important;overflow:hidden!important;box-sizing:border-box!important}
+ .report-paper header{padding:1.5mm 2mm!important;margin-bottom:1mm!important}
+ .report-paper header h2{font-size:13pt!important}
+ .report-paper .identity{margin:1mm 0!important}
+ .report-paper .scores{margin:1mm 0!important;gap:1mm!important}
+ .report-paper .scores>div{min-height:14mm!important;padding:1mm!important}
+ .report-paper .scores b{font-size:14pt!important}
+ .report-paper .visual-divider{margin:1mm 0 .5mm!important;font-size:7pt!important}
+ .report-paper .visual-divider>span{width:4mm!important;height:4mm!important;font-size:5pt!important}
+ .report-paper .visual-divider>small{font-size:5pt!important}
+ .report-paper .parent-insights>div{padding:1mm!important}
+ .report-paper .parent-insights h3{font-size:7pt!important;margin:0 0 .5mm!important}
+ .report-paper .progress-row{grid-template-columns:minmax(0,1fr) 18mm 9mm!important;margin:.45mm 0!important;gap:.7mm!important}
+ .report-paper .progress-track{height:2mm!important}
+ .report-paper .parent-advice{padding:.7mm!important;margin-top:.5mm!important}
+ .report-paper .parent-advice li{font-size:5.3pt!important;line-height:1.1!important}
+ .report-paper .section-heading{font-size:6.5pt!important;margin:.5mm 0!important}
+ .report-paper .unit-title{padding:.5mm 1mm!important}
+ .report-paper .items{padding:.4mm!important}
+ .report-paper .parent-followup{margin-top:.6mm!important}
+}
