@@ -25,7 +25,11 @@ async function readLiveGradeData(teacherId:string,subjectId:string){
     // Older student documents may hold real grades while a newly synced barcode
     // document contains only identity. Merge assessment fields without replacing
     // recorded marks with blank values from the newer document.
-    rows.sort((a,b)=>String(a.data.updatedAt||"").localeCompare(String(b.data.updatedAt||"")));
+    rows.sort((a,b)=>{
+      const aCanonical=a.id.toUpperCase()===code?1:0;
+      const bCanonical=b.id.toUpperCase()===code?1:0;
+      return aCanonical-bCanonical||String(a.data.updatedAt||"").localeCompare(String(b.data.updatedAt||""));
+    });
     const merged:Record<string,unknown>={};
     for(const row of rows){
       const previousValues=merged.gradeValues&&typeof merged.gradeValues==="object"?merged.gradeValues as Record<string,unknown>:{};
@@ -37,7 +41,15 @@ async function readLiveGradeData(teacherId:string,subjectId:string){
         const source=row.data[field];
         if(!source||typeof source!=="object"||Array.isArray(source))continue;
         const current=merged[field]&&typeof merged[field]==="object"?merged[field] as Record<string,unknown>:{};
-        merged[field]={...current,...source as Record<string,unknown>};
+        if(field==="gradePlanValues"){
+          const next:Record<string,unknown>={...current};
+          for(const [planId,values] of Object.entries(source as Record<string,unknown>)){
+            const existing=next[planId];
+            next[planId]=values&&typeof values==="object"&&!Array.isArray(values)&&existing&&typeof existing==="object"&&!Array.isArray(existing)
+              ?{...(existing as Record<string,unknown>),...(values as Record<string,unknown>)}:values;
+          }
+          merged[field]=next;
+        }else merged[field]={...current,...source as Record<string,unknown>};
       }
     }
     const canonical=rows.find(row=>row.id.toUpperCase()===code);
