@@ -83,7 +83,7 @@ export default function ReportsPage() {
     if (session.activeGrade) params.set("grade", String(session.activeGrade));
     Promise.all([
       fetch(`/api/teacher/students?${params.toString()}`, { cache: "no-store", signal: controller.signal }),
-      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(subjectKey)}`, { cache: "no-store", signal: controller.signal }),
+      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(subjectKey)}&fresh=1`, { cache: "no-store", signal: controller.signal }),
     ])
       .then(async ([rosterResponse, gradesResponse]) => {
         const [roster, grades] = await Promise.all([rosterResponse.json().catch(() => ({})), gradesResponse.json().catch(() => ({}))]);
