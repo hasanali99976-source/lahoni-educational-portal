@@ -28,7 +28,11 @@ async function readLiveGradeData(teacherId:string,subjectId:string){
     rows.sort((a,b)=>String(a.data.updatedAt||"").localeCompare(String(b.data.updatedAt||"")));
     const merged:Record<string,unknown>={};
     for(const row of rows){
+      const previousValues=merged.gradeValues&&typeof merged.gradeValues==="object"?merged.gradeValues as Record<string,unknown>:{};
+      const previousPlans=merged.gradePlanValues&&typeof merged.gradePlanValues==="object"?merged.gradePlanValues as Record<string,unknown>:{};
       Object.assign(merged,row.data);
+      merged.gradeValues=previousValues;
+      merged.gradePlanValues=previousPlans;
       for(const field of ["gradeValues","gradePlanValues"]){
         const source=row.data[field];
         if(!source||typeof source!=="object"||Array.isArray(source))continue;
