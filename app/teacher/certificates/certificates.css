@@ -175,3 +175,30 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 @media(min-width:1000px){.cert-page:not(.paper-mode) .cert-tools>label{grid-column:span 4!important}}
 @media(max-width:740px){.cert-page:not(.paper-mode) .cert-tools>label{grid-column:1/-1!important}.cert-page:not(.paper-mode) .cert-unit-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:480px){.cert-page:not(.paper-mode) .cert-unit-options{grid-template-columns:1fr!important}.cert-page:not(.paper-mode) .cert-tools{padding:12px!important}.cert-page:not(.paper-mode) .cert-tools>div:first-child{padding:12px!important}}
+
+
+/* Parent meeting enhancements within the existing one-page academic report */
+.report-paper .parent-insights{display:grid;grid-template-columns:1.2fr 1fr;gap:2.5mm;margin-top:3mm}
+.report-paper .parent-insights>div{background:#f4faf9;border:.3mm solid #cde0df;border-radius:2mm;padding:2mm;min-width:0}
+.report-paper .parent-insights h3{margin:0 0 1.5mm;font-size:9pt}
+.report-paper .parent-insights p{margin:1mm 0;font-size:7pt;line-height:1.45}
+.report-paper .progress-row{display:grid;grid-template-columns:minmax(0,1fr) 23mm 11mm;gap:2mm;align-items:center;margin:1mm 0;font-size:7pt}
+.report-paper .progress-row>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.report-paper .progress-track{height:2.5mm;border-radius:3mm;background:#d7e8e8;overflow:hidden}
+.report-paper .progress-track i{display:block;height:100%;background:#0b8590;border-radius:3mm}
+.report-paper .progress-row>b{font-size:7pt;color:#116478;text-align:left}
+.report-paper .parent-followup{display:grid;gap:1.5mm;margin-top:3mm;padding:2mm 3mm;border:.3mm dashed #c7aa69;border-radius:2mm;background:#fffdf7;font-size:7.5pt;color:#38545c}
+.report-paper .parent-followup>strong{color:#0b6470}
+.report-paper .parent-followup>div{display:flex;justify-content:space-between;gap:4mm}
+@media print{
+ .report-paper .parent-insights{gap:1.5mm!important;margin-top:1.5mm!important}
+ .report-paper .parent-insights>div{padding:1mm!important}
+ .report-paper .parent-insights h3{font-size:7pt!important;margin:0 0 .5mm!important}
+ .report-paper .parent-insights p{font-size:5.7pt!important;margin:.4mm 0!important;line-height:1.2!important}
+ .report-paper .progress-row{grid-template-columns:minmax(0,1fr) 19mm 10mm!important;gap:1mm!important;margin:.35mm 0!important;font-size:5.7pt!important}
+ .report-paper .progress-track{height:1.8mm!important}
+ .report-paper .progress-row>b{font-size:5.5pt!important}
+ .report-paper .parent-followup{gap:.6mm!important;margin-top:1mm!important;padding:1mm 2mm!important;font-size:6pt!important}
+ .report-paper .parent-insights,.report-paper .parent-followup{flex-shrink:0!important;break-inside:avoid!important}
+}
+@media(max-width:650px){.report-paper .parent-insights{grid-template-columns:1fr}}
