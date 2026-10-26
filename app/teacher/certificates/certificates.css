@@ -493,3 +493,32 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .report-paper .unit-class-average span,.report-paper .unit-class-average strong{font-size:5pt!important}
 .report-paper .unit-class-average>div{height:1mm!important}
 }
+
+
+/* Final approved infographic accents */
+.report-paper header{background:linear-gradient(110deg,#093654,#0a6382,#0c415e)!important;border-bottom:1mm solid #d8af55!important}
+.report-paper .parent-kpis>div{position:relative!important;overflow:hidden!important;padding-right:10mm!important}
+.report-paper .parent-kpis .kpi-symbol{position:absolute;right:2mm;top:3mm;font-size:17pt;line-height:1;color:#197d9d}
+.report-paper .parent-kpis .score-primary .kpi-symbol{color:#b78421}
+.report-paper .parent-kpis .score-class .kpi-symbol{color:#8551b2}
+.report-paper .parent-kpis .score-attendance .kpi-symbol{color:#158363}
+.report-paper .unit-report-heading{position:relative!important;overflow:hidden!important;min-height:18mm!important;flex-direction:column!important;gap:1mm!important}
+.report-paper .unit-report-heading:after{content:"";position:absolute;bottom:0;left:0;right:0;height:5mm;opacity:.35;background:linear-gradient(160deg,transparent 20%,#aa8957 21%,#aa8957 25%,transparent 26%),linear-gradient(15deg,transparent 40%,#bd985d 41%,#bd985d 45%,transparent 46%)}
+.report-paper .unit-illustration{display:grid;place-items:center;width:7mm;height:7mm;border-radius:50%;background:#ffffff9c;color:#146c95;font-size:14pt;line-height:1;transform:rotate(-12deg)}
+.report-paper .unit-report-card:nth-child(5n+2) .unit-illustration{color:#0a8b67}
+.report-paper .unit-report-card:nth-child(5n+3) .unit-illustration{color:#bd8123}
+.report-paper .unit-report-card:nth-child(5n+4) .unit-illustration{color:#8a5cba}
+.report-paper .unit-report-card:nth-child(5n+5) .unit-illustration{color:#b45b70}
+.report-paper .unit-report-heading strong{position:relative;z-index:1}
+.report-paper .visual-divider{background:linear-gradient(90deg,#0b5878,#073c5c)!important;color:#fff!important;border-radius:2mm!important;padding:1.5mm 2mm!important}
+.report-paper .visual-divider>span{background:#cba14d!important;color:#12374c!important}
+.report-paper .report-bottom-grid>section{box-shadow:0 1mm 2mm #154f7110!important}
+.report-paper .report-tip-grid>div{background:#fff!important}
+@media print{
+.report-paper .parent-kpis>div{padding-right:5mm!important}
+.report-paper .parent-kpis .kpi-symbol{font-size:9pt!important;right:1mm!important;top:2mm!important}
+.report-paper .unit-report-heading{min-height:10mm!important;gap:.2mm!important}
+.report-paper .unit-illustration{width:4mm!important;height:4mm!important;font-size:8pt!important}
+.report-paper .unit-report-heading:after{height:2mm!important}
+.report-paper .visual-divider{padding:.5mm 1mm!important}
+}
