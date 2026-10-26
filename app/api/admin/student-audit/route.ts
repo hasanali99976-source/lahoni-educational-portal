@@ -35,8 +35,8 @@ export async function GET(request:Request){
      const notes=Array.isArray(d.teacherNotes)&&d.teacherNotes.length>0;
      let issue="";
      if(!officialStudent)issue=archived.has(code)?"طالب مؤرشف في الإدارة":"كود غير موجود في قائمة الإدارة";
-     else if(nameOf(studentName)!==nameOf(officialStudent.name))issue="اختلاف الاسم مع كود الإدارة";
-     else if(doc.id.toUpperCase()!==code)issue="مستند قديم لا يطابق الباركود";
+     else if(studentName&&nameOf(studentName)!==nameOf(officialStudent.name))issue="اختلاف الاسم مع كود الإدارة";
+     else if(doc.id.toUpperCase()!==code)issue="مستند إضافي مرتبط بنفس الباركود";
      if(!issue&&!grade&&!notes)continue;
      if(filter&&code!==filter&&codeOf(doc.id)!==filter&&!nameOf(studentName).includes(nameOf(filter)))continue;
      const key=`${t.id}|${t.subject}|${doc.id}`;
