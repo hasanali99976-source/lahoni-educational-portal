@@ -80,7 +80,7 @@ export default function GradesPage(){
       refreshing=true;
       controller?.abort();
       controller=new AbortController();
-      const params=new URLSearchParams({subjectId:tenant.subjectKey});
+      const params=new URLSearchParams({subjectId:tenant.subjectKey,fresh:"1"});
       if(session.activeGrade)params.set("grade",String(session.activeGrade));
       setLoading(true);setMessage("");
       try{
