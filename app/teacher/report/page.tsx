@@ -50,7 +50,7 @@ export default function TeacherReportPage(){
     const controller=new AbortController();
     Promise.all([
       fetch(`/api/teacher/students?${params}`,{cache:"no-store",signal:controller.signal}),
-      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(session.subjectKey)}`,{cache:"no-store",signal:controller.signal}),
+      fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(session.subjectKey)}&fresh=1`,{cache:"no-store",signal:controller.signal}),
       fetch(`/api/teacher/notes?subjectId=${encodeURIComponent(session.subjectKey)}`,{cache:"no-store",signal:controller.signal}),
     ]).then(async ([rosterResponse,gradesResponse,notesResponse])=>{
       const [roster,grades,notes]=await Promise.all([rosterResponse.json(),gradesResponse.json(),notesResponse.json()]);
