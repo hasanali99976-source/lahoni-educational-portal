@@ -4,6 +4,7 @@ import { adminDb } from "../../../../lib/server/firebase-admin";
 import { readStudentAccessToken } from "../../../../lib/server/portal-auth";
 import { readActiveGradePlanForSubject } from "../../../../lib/server/grade-plan-store";
 import { normalizeClass } from "../../../../lib/unified-roster";
+import { normalizeStudentRecord, SCHOOL_STUDENTS_COLLECTION } from "../../../../lib/school-roster";
 
 type AttendanceStatus = "present" | "absent" | "late" | "excused" | "escaped";
 type AttendanceEntry = { status: AttendanceStatus; updatedAt: string; period?: number };
@@ -45,6 +46,13 @@ export async function GET(request: Request) {
   const access = readStudentAccessToken(header.startsWith("Bearer ") ? header.slice(7) : "");
   if (!access) return NextResponse.json({ ok: false, message: "انتهت جلسة الطالب." }, { status: 401 });
 
+  // The administrator's live central roster is authoritative even for an existing student token.
+  // Do not allow a deleted student to keep viewing stale teacher-side records.
+  const officialSnapshot = await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).doc(access.studentId).get();
+  const official = officialSnapshot.exists ? normalizeStudentRecord(officialSnapshot.data() as Record<string, unknown>, officialSnapshot.id) : null;
+  if (!official || official.active === false) {
+    return NextResponse.json({ ok: false, message: "الطالب غير موجود في قائمة الإدارة الحالية." }, { status: 404, headers: { "Cache-Control": "no-store" } });
+  }
   const root = `portalV2Data/${access.teacherId}/subjects/${access.subjectId}`;
   const students = adminDb().collection(`${root}/students`);
   const candidateMap = new Map<string, StudentSnapshot>();
@@ -62,6 +70,8 @@ export async function GET(request: Request) {
   if (!candidates.length) return NextResponse.json({ ok: false, message: "لم يعد سجل الطالب متاحًا." }, { status: 404 });
   const student = [...candidates].sort((a, b) => studentRichness((b.data() || {}) as Record<string, unknown>) - studentRichness((a.data() || {}) as Record<string, unknown>))[0]!;
   const studentData = student.data() as Record<string, unknown>;
+  // Keep the official student identity and class current; preserve teacher assessment fields.
+  const officialClass = `${official.grade} ${official.section}`;
   const studentClass = normalizeClass(studentData.class || studentData.className || `${String(studentData.grade || "")} ${String(studentData.section || "")}`);
   const studentStage = /المتوسط|middle/i.test(String(studentData.stage || studentData.className || studentData.class || "")) ? "middle" : /الثانوي|secondary/i.test(String(studentData.stage || studentData.className || studentData.class || "")) ? "secondary" : "";
   const classMatchesStudent = (value: unknown) => { const raw = String(value || ""); const lessonStage = /المتوسط|middle/i.test(raw) ? "middle" : /الثانوي|secondary/i.test(raw) ? "secondary" : ""; return Boolean(studentClass) && normalizeClass(value) === studentClass && !(studentStage && lessonStage && studentStage !== lessonStage); };
@@ -234,5 +244,5 @@ export async function GET(request: Request) {
     referralCount: counselorReferrals.length,
   };
 
-  return NextResponse.json({ ok: true, data: { ...studentData, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, events: attendanceEvents, automaticThrough: today, attendanceMode: "scheduled_default_with_teacher_override", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
+  return NextResponse.json({ ok: true, data: { ...studentData, name: official.name, code: official.code, accessCode: official.code, studentCode: official.code, grade: official.grade, section: official.section, stage: official.stage, class: officialClass, className: officialClass, counselorReferrals, parentCounselorLastNotice, parentCounselorNoticeCount: counselorReferrals.length || (parentCounselorLastNotice ? 1 : 0), absences: counts.absent, late: counts.late, attendanceSummary: { ...counts, automaticPresent, disciplineRate, latestDate, latestDayCounts, events: attendanceEvents, automaticThrough: today, attendanceMode: "scheduled_default_with_teacher_override", attendanceSource }, timetableLessons, gradePlan: activePlan, gradePlanSource: gradePlanState.source, followUpSummary }, attendanceSource, expectedWeekdays: [...expectedWeekdays], timetableLessons, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" } });
 }
