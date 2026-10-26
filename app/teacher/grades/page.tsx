@@ -86,7 +86,7 @@ export default function GradesPage(){
       try{
         const [data,academicData]=await Promise.all([
           fetch(`/api/teacher/students?${params.toString()}`,{signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل الطلاب");return data;}),
-          fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(tenant.subjectKey)}`,{signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل التحصيل المحفوظ");return data;}),
+          fetch(`/api/teacher/grade-data?subjectId=${encodeURIComponent(tenant.subjectKey)}&fresh=1`,{signal:controller.signal}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"تعذر تحميل التحصيل المحفوظ");return data;}),
         ]);
         if(disposed)return;
         const byCode=academicData.byCode&&typeof academicData.byCode==="object"?academicData.byCode as Record<string,Record<string,unknown>>:{};
