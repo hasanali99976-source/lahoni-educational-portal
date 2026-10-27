@@ -691,3 +691,55 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .report-paper .unit-class-average span,.report-paper .unit-class-average strong{font-size:5.3pt!important}
 .report-paper .unit-class-average>div{height:1mm!important}
 }
+
+
+/* Unified colorful academic report v3 */
+.report-paper,.report-paper *{font-family:"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif!important;box-sizing:border-box}
+.report-paper .identity>div{border:1px solid #bdd4df!important;border-radius:7px!important;background:#eff8fb!important}
+.report-paper .identity>div:nth-child(2){background:#eaf7ef!important}.report-paper .identity>div:nth-child(3){background:#fff5e4!important}.report-paper .identity>div:nth-child(4){background:#f3effb!important}
+.report-paper .identity b{font-size:10pt!important;font-weight:700!important}
+.report-paper .parent-kpis>div{border:1px solid #b8d5df!important;border-radius:8px!important;padding:2mm!important}
+.report-paper .parent-kpis>div:nth-child(1){background:#e8f4fc!important;border-top:3px solid #3483b5!important}
+.report-paper .parent-kpis>div:nth-child(2){background:#e8f7f0!important;border-top:3px solid #26936b!important}
+.report-paper .parent-kpis>div:nth-child(3){background:#fff4df!important;border-top:3px solid #c99b3c!important}
+.report-paper .parent-kpis>div:nth-child(4){background:#f1eefb!important;border-top:3px solid #9073b9!important}
+.report-paper .parent-kpis .kpi-symbol{display:none!important}
+.report-paper .parent-kpis b{font-size:14pt!important;font-weight:700!important;color:#0b7180!important}
+.report-paper .visual-divider{background:#0d526e!important;border-right:4px solid #d7ac4e!important;border-radius:6px!important}
+.report-paper .unit-report-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:2.5mm!important}
+.report-paper .unit-report-card,.report-paper .unit-report-card:nth-child(n){background:#fff!important;border:1px solid #b5d1df!important;border-radius:7px!important;overflow:hidden!important;box-shadow:none!important}
+.report-paper .unit-report-card:nth-child(2n){border-color:#b4d8c7!important}
+.report-paper .unit-report-heading,.report-paper .unit-report-card:nth-child(n) .unit-report-heading{min-height:0!important;background:#e9f3fa!important;border-bottom:1px solid #c0d8e4!important;padding:2mm!important}
+.report-paper .unit-report-card:nth-child(2n) .unit-report-heading{background:#e7f5ec!important}
+.report-paper .unit-report-heading strong{font-size:9pt!important;font-weight:700!important;line-height:1.45!important;color:#164760!important}
+.report-paper .unit-visual-score{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:4mm!important;padding:2mm 3mm!important;background:#f8fbfd!important}
+.report-paper .unit-visual-score>strong{order:2!important;font-size:10pt!important;white-space:nowrap!important}
+.report-paper .unit-score-ring{order:1!important;flex:0 0 13mm!important;width:13mm!important;height:13mm!important;min-width:13mm!important;min-height:13mm!important}
+.report-paper .unit-score-ring:before{inset:2.3mm!important}.report-paper .unit-score-ring b{font-size:7.5pt!important}
+.report-paper .unit-assessment-grid{display:block!important;margin:0 2.5mm 1.5mm!important;padding:0!important;border:1px solid #c6dce5!important;border-radius:5px!important;overflow:hidden!important}
+.report-paper .assessment-cell{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:2mm!important;min-height:0!important;margin:0!important;padding:1.2mm 2mm!important;border:0!important;border-bottom:1px solid #d5e5ec!important;border-radius:0!important;background:#fff!important}
+.report-paper .assessment-cell:nth-child(odd){background:#edf6fa!important}.report-paper .assessment-cell:last-child{border-bottom:0!important}
+.report-paper .assessment-cell span{font-size:7.8pt!important;font-weight:500!important;color:#31556a!important;line-height:1.35!important}
+.report-paper .assessment-cell strong{font-size:8pt!important;font-weight:700!important;color:#15445d!important;white-space:nowrap!important}
+.report-paper .unit-class-average,.report-paper .unit-report-card:nth-child(n) .unit-class-average{display:grid!important;grid-template-columns:1fr auto!important;gap:1mm!important;padding:1.5mm 2.5mm!important;background:#e8f2f7!important;border-top:1px solid #c7dce5!important}
+.report-paper .unit-class-average span{font-size:7.3pt!important}.report-paper .unit-class-average strong{font-size:8.5pt!important}
+.report-paper .unit-class-average>div{grid-column:1/-1!important}
+.report-paper .unrecorded-summary{background:#f4f9fb!important;border:1px solid #c9dde6!important;border-radius:7px!important}
+.report-paper .unrecorded-summary span{background:#fff!important;border:1px solid #c5dbe5!important}
+.report-paper .report-bottom-grid>section,.report-paper .report-recommendations,.report-paper .report-discipline{border:1px solid #c1d8e2!important;border-radius:7px!important;background:#fff!important}
+.report-paper .report-bottom-grid h3,.report-paper .report-recommendations h3,.report-paper .report-discipline h3,.report-paper .report-counselor h3{background:#e9f3f8!important;color:#154c68!important;border-bottom:1px solid #c1d8e2!important}
+@media print{
+.report-paper .unit-report-list{gap:1mm!important}
+.report-paper .unit-report-heading,.report-paper .unit-report-card:nth-child(n) .unit-report-heading{padding:.6mm 1mm!important}
+.report-paper .unit-report-heading strong{font-size:6.2pt!important}
+.report-paper .unit-visual-score{padding:.5mm 1mm!important}
+.report-paper .unit-visual-score>strong{font-size:7pt!important}
+.report-paper .unit-score-ring{flex-basis:9mm!important;width:9mm!important;height:9mm!important;min-width:9mm!important;min-height:9mm!important}
+.report-paper .unit-score-ring:before{inset:1.5mm!important}.report-paper .unit-score-ring b{font-size:5.5pt!important}
+.report-paper .unit-assessment-grid{margin:0 1mm .5mm!important}
+.report-paper .assessment-cell{padding:.4mm .8mm!important}
+.report-paper .assessment-cell span,.report-paper .assessment-cell strong{font-size:5.4pt!important}
+.report-paper .unit-class-average,.report-paper .unit-report-card:nth-child(n) .unit-class-average{padding:.5mm 1mm!important}
+.report-paper .unit-class-average span,.report-paper .unit-class-average strong{font-size:5.3pt!important}
+.report-paper .parent-kpis b{font-size:9pt!important}
+}
