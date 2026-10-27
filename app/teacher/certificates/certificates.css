@@ -796,3 +796,43 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .report-paper .unit-class-average strong{font-size:6.2pt!important}
 .report-paper .unit-class-average>div{height:1mm!important}
 }
+
+
+/* Refined identity and KPI layout: proportional widths, crisp Arabic labels */
+.report-paper .identity{display:grid!important;grid-template-columns:1.65fr 1fr 1fr 1fr!important;gap:2.5mm!important;align-items:stretch!important}
+.report-paper .identity>div{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;gap:1mm!important;min-width:0!important;min-height:20mm!important;padding:2.5mm 3mm!important;border:1px solid #c3d9e4!important;border-radius:2.5mm!important;box-shadow:none!important;text-align:right!important}
+.report-paper .identity>div:first-child{background:#e8f3fc!important;border-right:3px solid #2c83ba!important}
+.report-paper .identity>div:nth-child(2){background:#eaf7f0!important;border-right:3px solid #27996f!important}
+.report-paper .identity>div:nth-child(3){background:#fff5e5!important;border-right:3px solid #d5a342!important}
+.report-paper .identity>div:nth-child(4){background:#f3effb!important;border-right:3px solid #8d72bd!important}
+.report-paper .identity small{font-size:8.5pt!important;line-height:1.3!important;color:#5a7281!important;font-weight:500!important}
+.report-paper .identity b{font-size:10.5pt!important;line-height:1.4!important;color:#123d55!important;font-weight:700!important;overflow-wrap:anywhere!important}
+.report-paper .identity .student-code{font-size:9pt!important;font-weight:700!important;white-space:nowrap!important}
+.report-paper .parent-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:2.5mm!important;align-items:stretch!important}
+.report-paper .parent-kpis>div{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1.2mm!important;min-height:23mm!important;padding:2.5mm 1.5mm!important;text-align:center!important;border:1px solid #c5d9e3!important;border-radius:2.5mm!important;box-shadow:none!important}
+.report-paper .parent-kpis>div:nth-child(1){background:#eaf4fd!important;border-top:3px solid #2b82b8!important}
+.report-paper .parent-kpis>div:nth-child(2){background:#e7f6ee!important;border-top:3px solid #23976c!important}
+.report-paper .parent-kpis>div:nth-child(3){background:#fff5e4!important;border-top:3px solid #d3a043!important}
+.report-paper .parent-kpis>div:nth-child(4){background:#f2eefb!important;border-top:3px solid #9176bc!important}
+.report-paper .parent-kpis small{font-size:8.2pt!important;line-height:1.3!important;font-weight:500!important;color:#526e7c!important}
+.report-paper .parent-kpis b{display:block!important;font-size:16pt!important;font-weight:700!important;line-height:1.15!important;white-space:nowrap!important;color:#087483!important;font-variant-numeric:tabular-nums!important}
+.report-paper .parent-kpis .performance-level{font-size:8pt!important;font-weight:700!important;margin-top:.5mm!important}
+.report-paper .parent-kpis .kpi-symbol{display:none!important}
+@media(max-width:700px) and (not print){
+.report-paper .identity{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.report-paper .parent-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.report-paper .identity>div{min-height:16mm!important}
+.report-paper .parent-kpis>div{min-height:18mm!important}
+}
+@media print{
+.report-paper .identity{grid-template-columns:1.65fr 1fr 1fr 1fr!important;gap:1mm!important}
+.report-paper .identity>div{min-height:10mm!important;padding:.6mm 1mm!important;gap:.2mm!important;border-right-width:1px!important}
+.report-paper .identity small{font-size:5.5pt!important}
+.report-paper .identity b{font-size:7pt!important;line-height:1.2!important}
+.report-paper .identity .student-code{font-size:6pt!important}
+.report-paper .parent-kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:1mm!important}
+.report-paper .parent-kpis>div{min-height:12mm!important;padding:.7mm!important;gap:.2mm!important;border-top-width:1.5px!important}
+.report-paper .parent-kpis small{font-size:5.5pt!important}
+.report-paper .parent-kpis b{font-size:9.5pt!important}
+.report-paper .parent-kpis .performance-level{font-size:5.5pt!important;margin:0!important}
+}
