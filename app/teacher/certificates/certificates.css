@@ -595,3 +595,13 @@ body>.report-stage .report-paper .unit-class-average{display:grid!important;grid
 body>.report-stage .report-paper .unit-class-average>div{grid-column:1/-1!important}
 body>.report-stage .report-paper header,body>.report-stage .report-paper .identity,body>.report-stage .report-paper .parent-kpis,body>.report-stage .report-paper .unit-report-list,body>.report-stage .report-paper .report-bottom-grid{break-inside:avoid!important}
 }
+
+
+/* Fit full report content to one A4 sheet without clipping */
+.report-stage .report-paper-content{display:block;width:100%;min-width:0;transform-origin:top right}
+@media print{
+body>.report-stage .report-paper-content{display:block!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;overflow:visible!important;transform:scale(var(--print-fit,1))!important;transform-origin:top right!important;position:relative!important}
+body>.report-stage .report-paper{overflow:hidden!important}
+body>.report-stage .report-paper-content .unit-report-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body>.report-stage .report-paper-content .unit-report-card{break-inside:avoid!important}
+}
