@@ -743,3 +743,56 @@ html,body{margin:0!important;padding:0!important;background:#fff!important;backg
 .report-paper .unit-class-average span,.report-paper .unit-class-average strong{font-size:5.3pt!important}
 .report-paper .parent-kpis b{font-size:9pt!important}
 }
+
+
+/* Parent report: consistent card proportions, readable score hierarchy */
+.report-paper .parent-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:2.5mm!important;align-items:stretch!important}
+.report-paper .parent-kpis>div{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:1mm!important;min-height:24mm!important;padding:2.5mm 1.5mm!important;border-radius:2.5mm!important}
+.report-paper .parent-kpis small{font-size:8.5pt!important;line-height:1.3!important;font-weight:500!important;text-align:center!important}
+.report-paper .parent-kpis b{font-size:16pt!important;font-weight:700!important;line-height:1.15!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important}
+.report-paper .parent-kpis b i{font-size:11pt!important;font-style:normal!important}
+.report-paper .parent-kpis .performance-level{font-size:8pt!important;padding:0.5mm 2.5mm!important;line-height:1.35!important}
+.report-paper .unit-report-list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:2.5mm!important;align-items:stretch!important}
+.report-paper .unit-report-card{display:flex!important;flex-direction:column!important;min-width:0!important}
+.report-paper .unit-report-heading,.report-paper .unit-report-card:nth-child(n) .unit-report-heading{display:flex!important;align-items:center!important;justify-content:center!important;min-height:13mm!important;padding:1.8mm 3mm!important;text-align:center!important}
+.report-paper .unit-report-heading strong{font-size:9pt!important;font-weight:700!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+.report-paper .unit-visual-score{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:3mm!important;padding:2.5mm 3mm!important}
+.report-paper .unit-visual-score>strong{font-size:12pt!important;line-height:1.2!important;font-variant-numeric:tabular-nums!important}
+.report-paper .unit-score-ring{flex:0 0 16mm!important;width:16mm!important;height:16mm!important;min-width:16mm!important;min-height:16mm!important;display:grid!important;place-items:center!important}
+.report-paper .unit-score-ring:before{inset:2.7mm!important}
+.report-paper .unit-score-ring b{font-size:9pt!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important}
+.report-paper .unit-assessment-grid{margin:0 2.5mm 2mm!important;border-radius:1.5mm!important}
+.report-paper .assessment-cell{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(15mm,auto)!important;align-items:center!important;gap:2mm!important;padding:1.4mm 2.5mm!important;min-height:7mm!important}
+.report-paper .assessment-cell span{font-size:8.2pt!important;font-weight:500!important;line-height:1.35!important;overflow-wrap:normal!important}
+.report-paper .assessment-cell strong{font-size:9pt!important;font-weight:700!important;line-height:1.25!important;white-space:nowrap!important;text-align:left!important;direction:ltr!important;font-variant-numeric:tabular-nums!important}
+.report-paper .unit-class-average,.report-paper .unit-report-card:nth-child(n) .unit-class-average{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:1.5mm!important;padding:2mm 3mm!important;margin-top:auto!important}
+.report-paper .unit-class-average span{font-size:7.8pt!important;line-height:1.3!important;font-weight:600!important}
+.report-paper .unit-class-average strong{font-size:10pt!important;line-height:1.2!important;font-weight:700!important;font-variant-numeric:tabular-nums!important}
+.report-paper .unit-class-average>div{grid-column:1/-1!important;height:2mm!important}
+.report-paper .unrecorded-summary{padding:2mm 3mm!important}
+.report-paper .unrecorded-summary>div{display:flex!important;gap:1.5mm!important;flex-wrap:wrap!important}
+.report-paper .unrecorded-summary span{font-size:7.5pt!important;line-height:1.4!important;padding:1mm 2mm!important}
+@media print{
+.report-paper .parent-kpis{gap:1mm!important}
+.report-paper .parent-kpis>div{min-height:13mm!important;padding:.7mm!important;gap:.2mm!important}
+.report-paper .parent-kpis small{font-size:5.5pt!important}
+.report-paper .parent-kpis b{font-size:9pt!important}
+.report-paper .parent-kpis b i{font-size:6pt!important}
+.report-paper .parent-kpis .performance-level{font-size:5.3pt!important;padding:0 .7mm!important}
+.report-paper .unit-report-list{gap:1mm!important}
+.report-paper .unit-report-heading,.report-paper .unit-report-card:nth-child(n) .unit-report-heading{min-height:6mm!important;padding:.6mm 1mm!important}
+.report-paper .unit-report-heading strong{font-size:6pt!important;line-height:1.2!important}
+.report-paper .unit-visual-score{padding:.6mm 1mm!important;gap:1mm!important}
+.report-paper .unit-visual-score>strong{font-size:7pt!important}
+.report-paper .unit-score-ring{flex-basis:9mm!important;width:9mm!important;height:9mm!important;min-width:9mm!important;min-height:9mm!important}
+.report-paper .unit-score-ring:before{inset:1.5mm!important}
+.report-paper .unit-score-ring b{font-size:5.5pt!important}
+.report-paper .unit-assessment-grid{margin:0 1mm .6mm!important}
+.report-paper .assessment-cell{min-height:0!important;padding:.5mm .8mm!important;gap:.5mm!important;grid-template-columns:minmax(0,1fr) minmax(9mm,auto)!important}
+.report-paper .assessment-cell span{font-size:5.6pt!important;line-height:1.15!important}
+.report-paper .assessment-cell strong{font-size:6pt!important;line-height:1.15!important}
+.report-paper .unit-class-average,.report-paper .unit-report-card:nth-child(n) .unit-class-average{padding:.5mm 1mm!important;gap:.4mm!important}
+.report-paper .unit-class-average span{font-size:5.3pt!important}
+.report-paper .unit-class-average strong{font-size:6.2pt!important}
+.report-paper .unit-class-average>div{height:1mm!important}
+}
