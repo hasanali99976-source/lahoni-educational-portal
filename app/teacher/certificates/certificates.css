@@ -600,7 +600,7 @@ body>.report-stage .report-paper header,body>.report-stage .report-paper .identi
 /* Fit full report content to one A4 sheet without clipping */
 .report-stage .report-paper-content{display:block;width:100%;min-width:0;transform-origin:top right}
 @media print{
-body>.report-stage .report-paper-content{display:block!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;overflow:visible!important;transform:scale(var(--print-fit,1))!important;transform-origin:top right!important;position:relative!important}
+body>.report-stage .report-paper-content{display:block!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;overflow:visible!important;transform:none!important;transform-origin:top right!important;position:relative!important;zoom:var(--print-fit,1)!important}
 body>.report-stage .report-paper{overflow:hidden!important}
 body>.report-stage .report-paper-content .unit-report-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 body>.report-stage .report-paper-content .unit-report-card{break-inside:avoid!important}
