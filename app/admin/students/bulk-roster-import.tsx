@@ -16,6 +16,7 @@ function ar(value: number) { return new Intl.NumberFormat("ar-SA-u-nu-arab").for
 
 export default function BulkRosterImport() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const requestInFlight = useRef(false);
   const [file, setFile] = useState<File | null>(null);
   const [defaultGrade, setDefaultGrade] = useState("");
   const [defaultSection, setDefaultSection] = useState("");
@@ -33,6 +34,8 @@ export default function BulkRosterImport() {
 
   async function preview() {
     if (!file) return setMessage("اختر ملف القائمة من جهازك أولًا.");
+    if (requestInFlight.current) return;
+    requestInFlight.current = true;
     setBusy(true); setMessage("");
     try {
       const form = new FormData(); form.set("file", file); if (defaultGrade) form.set("defaultGrade", defaultGrade); if (defaultSection) form.set("defaultSection", defaultSection);
@@ -40,11 +43,12 @@ export default function BulkRosterImport() {
       const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || "تعذر قراءة الملف");
       setRows(Array.isArray(data.rows) ? data.rows : []); setMessage(`تمت قراءة ${ar(Number(data.count || data.rows?.length || 0))} اسمًا. راجع المعاينة ثم اعتمد القائمة.`);
     } catch (error) { setRows([]); setMessage(error instanceof Error ? error.message : "تعذر قراءة الملف."); }
-    finally { setBusy(false); }
+    finally { requestInFlight.current = false; setBusy(false); }
   }
 
   async function commit() {
-    if (!preparedRows.length) return; if (incomplete) return setMessage(`يوجد ${ar(incomplete)} طالب بدون صف أو فصل. اختر الصف والفصل الافتراضيين ثم أعد الاعتماد.`);
+    if (!preparedRows.length || requestInFlight.current) return; if (incomplete) return setMessage(`يوجد ${ar(incomplete)} طالب بدون صف أو فصل. اختر الصف والفصل الافتراضيين ثم أعد الاعتماد.`);
+    requestInFlight.current = true;
     setBusy(true); setMessage("");
     try {
       const response = await fetch("/api/admin/students/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rows: preparedRows }), cache: "no-store" });
