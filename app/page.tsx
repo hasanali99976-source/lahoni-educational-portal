@@ -37,6 +37,10 @@ return <main className="lahoni-home" dir="rtl">
 @media(max-width:1050px){.lahoni-person{display:none}}
 @media(prefers-reduced-motion:reduce){.lahoni-card-action{transition:none}}
 
+/* Official portrait logo, overlaying the old baked-in badge. */
+.lahoni-official-logo{position:absolute;z-index:5;top:0.5%;right:0.6%;width:7.3%;aspect-ratio:1;border-radius:22%;object-fit:cover;box-shadow:0 0 0 2px #ffda67,0 5px 15px #132f6180;pointer-events:none}
+.lahoni-old-logo-mask{position:absolute;z-index:4;top:0;right:0;width:25.4%;height:12.3%;background:linear-gradient(110deg,#e7dcff,#f9f9ff 57%,#e0edff);border-radius:0 0 0 34px;pointer-events:none}
+@media(max-width:650px){.lahoni-old-logo-mask{border-radius:0 0 0 10px}.lahoni-official-logo{box-shadow:0 0 0 1px #ffda67}}
 /* One artwork, one interface. Clickable transparent overlays follow the visible buttons. */
 .lahoni-home{background:linear-gradient(145deg,#e5efff,#f0eaff);min-height:100dvh}
 .lahoni-home:before{display:none}
@@ -54,6 +58,8 @@ return <main className="lahoni-home" dir="rtl">
 `}</style>
 <div className="lahoni-wrap">
 <section className="lahoni-hero" id="home" aria-label="لحوني التعليمية — الصفحة الرئيسية">
+  <span className="lahoni-old-logo-mask" aria-hidden="true" />
+  <img className="lahoni-official-logo" src="/WhatsApp%20Image%202026-10-08%20at%2011.21.46%20PM.jpeg" alt="الشعار الرسمي لبوابة لحوني التعليمية" />
   <Link className="art-hotspot art-login" href="/portal" aria-label="تسجيل الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">تسجيل الدخول</span></Link>
   <Link className="art-hotspot art-teacher" href="/portal" aria-label="الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">الدخول إلى بوابة أستاذ لحوني</span></Link>
   <Link className="art-hotspot art-school" href="/school" aria-label="استعراض بوابة المدرسة"><span className="sr-only">استعراض بوابة المدرسة</span></Link>
