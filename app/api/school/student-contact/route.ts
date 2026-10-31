@@ -1,4 +1,5 @@
 import {NextResponse} from "next/server";
+import {revalidateTag} from "next/cache";
 import {adminDb} from "../../../../lib/server/firebase-admin";
 import {requireSession} from "../../../../lib/server/portal-auth";
 import {SCHOOL_STUDENTS_COLLECTION} from "../../../../lib/school-roster";
@@ -21,6 +22,9 @@ export async function PATCH(request:Request){
   const snap=await ref.get();
   if(!snap.exists||snap.data()?.active===false||snap.data()?.stage!=="secondary")return NextResponse.json({ok:false,message:"الطالب غير موجود في المرحلة الثانوية"},{status:404});
   await ref.update({...changes,updatedAt:new Date().toISOString()});
+  revalidateTag("admin-school-roster",{expire:0});
+  revalidateTag("teacher-central-roster",{expire:0});
   return NextResponse.json({ok:true,changes},{headers:{"Cache-Control":"private, no-store"}});
  }catch{return NextResponse.json({ok:false,message:"تعذر حفظ بيانات التواصل"},{status:500})}
 }
+export async function GET(request:Request){if(!await requireSession("admin"))return NextResponse.json({ok:false},{status:403});const code=String(new URL(request.url).searchParams.get("code")||"").trim().toUpperCase();if(!/^TH[123][0-9]{3}$/.test(code))return NextResponse.json({ok:false},{status:400});const snap=await adminDb().collection(SCHOOL_STUDENTS_COLLECTION).doc(code).get();if(!snap.exists)return NextResponse.json({ok:false},{status:404});const data=snap.data()||{};return NextResponse.json({ok:true,contact:{guardianName:String(data.guardianName||data.parentName||""),guardianPhone:String(data.guardianPhone||data.parentPhone||""),parentPhone2:String(data.parentPhone2||""),emergencyPhone:String(data.emergencyPhone||"")}},{headers:{"Cache-Control":"private, no-store"}})}
