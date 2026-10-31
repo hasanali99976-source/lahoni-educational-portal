@@ -3,9 +3,14 @@
 import { useEffect } from "react";
 
 const ROSTER_SESSION_PREFIX="lahooni-roster-session-";
+const MIN_REFRESH_INTERVAL_MS=5*60*1000;
+let lastRefresh=0;
 
 function restoreSharedCloudSource(){
-  if(typeof window==="undefined"||!navigator.onLine)return;
+  if(typeof window==="undefined"||!navigator.onLine||document.visibilityState==="hidden")return;
+  const now=Date.now();
+  if(now-lastRefresh<MIN_REFRESH_INTERVAL_MS)return;
+  lastRefresh=now;
   try{
     const rosterKeys:string[]=[];
     for(let i=0;i<window.sessionStorage.length;i+=1){
