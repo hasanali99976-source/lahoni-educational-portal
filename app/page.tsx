@@ -39,6 +39,7 @@ return <main className="lahoni-home" dir="rtl">
 
 /* One artwork, one interface. Clickable transparent overlays follow the visible buttons. */
 .lahoni-home{background:linear-gradient(145deg,#e5efff,#f0eaff);min-height:100dvh}
+@media(hover:none),(max-width:800px){.lahoni-nav,.lahoni-card{backdrop-filter:none!important}.lahoni-person{animation:none!important}.art-hotspot{transition:none!important}.art-hotspot:hover{transform:none!important}}
 .lahoni-home:before{display:none}
 .lahoni-wrap{width:min(1776px,100%);padding:0;margin:0 auto}
 .lahoni-hero{position:relative;display:block;width:100%;height:auto;min-height:0;aspect-ratio:1776/864;padding:0;margin:0;border:0;border-radius:0;background:url("/lahoni-education-.png") center top/100% 100% no-repeat;box-shadow:none;overflow:hidden}
