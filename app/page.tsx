@@ -55,6 +55,18 @@ return <main className="lahoni-home" dir="rtl">
 .art-school{left:22%;top:71%;width:27%;height:8.5%}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:650px){.lahoni-wrap{width:100%}.lahoni-hero{aspect-ratio:1776/864;border-radius:0}.art-hotspot{border-radius:9px}}
+
+/* Lightweight, fully client-side interactive image hotspots; zero Firebase reads. */
+.art-hotspot{z-index:6;touch-action:manipulation;transition:background-color .2s,box-shadow .2s,transform .2s}
+.art-hotspot:hover{background:#ffffff27;box-shadow:0 0 0 2px #fff9,inset 0 0 18px #ffffff55;transform:translateY(-2px)}
+.art-hotspot:active{transform:scale(.98);background:#ffffff40}
+.art-hotspot:focus-visible{outline:3px solid #ffca38;outline-offset:2px}
+.art-login{display:none!important}
+.art-teacher{left:53%;top:70%;width:28%;height:8%}
+.art-school{left:21%;top:70%;width:28%;height:8%}
+.art-service{top:82%;height:14.2%;border-radius:16px}
+.art-service-1{left:79%;width:15%}.art-service-2{left:63.2%;width:15%}.art-service-3{left:47.4%;width:15%}.art-service-4{left:31.6%;width:15%}.art-service-5{left:15.8%;width:15%}.art-service-6{left:0%;width:15%}
+@media(prefers-reduced-motion:reduce){.art-hotspot{transition:none}.art-hotspot:hover,.art-hotspot:active{transform:none}}
 `}</style>
 <div className="lahoni-wrap">
 <section className="lahoni-hero" id="home" aria-label="لحوني التعليمية — الصفحة الرئيسية">
@@ -63,6 +75,12 @@ return <main className="lahoni-home" dir="rtl">
   <Link className="art-hotspot art-login" href="/portal" aria-label="تسجيل الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">تسجيل الدخول</span></Link>
   <Link className="art-hotspot art-teacher" href="/portal" aria-label="الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">الدخول إلى بوابة أستاذ لحوني</span></Link>
   <Link className="art-hotspot art-school" href="/school" aria-label="استعراض بوابة المدرسة"><span className="sr-only">استعراض بوابة المدرسة</span></Link>
+  <Link className="art-hotspot art-service art-service-1" href="/portal" aria-label="المساعد الذكي في بوابة أستاذ لحوني"><span className="sr-only">المساعد الذكي</span></Link>
+  <Link className="art-hotspot art-service art-service-2" href="/portal" aria-label="شهادات الطلاب في بوابة أستاذ لحوني"><span className="sr-only">شهادات الطلاب</span></Link>
+  <Link className="art-hotspot art-service art-service-3" href="/portal" aria-label="سجل الانضباط في بوابة أستاذ لحوني"><span className="sr-only">سجل الانضباط</span></Link>
+  <Link className="art-hotspot art-service art-service-4" href="/portal" aria-label="متابعة التحصيل في بوابة أستاذ لحوني"><span className="sr-only">متابعة التحصيل</span></Link>
+  <Link className="art-hotspot art-service art-service-5" href="/portal" aria-label="إدارة الفصول في بوابة أستاذ لحوني"><span className="sr-only">إدارة الفصول</span></Link>
+  <Link className="art-hotspot art-service art-service-6" href="/portal" aria-label="التقارير الشاملة في بوابة أستاذ لحوني"><span className="sr-only">تقارير شاملة</span></Link>
 </section>
 </div></main>;
 }
