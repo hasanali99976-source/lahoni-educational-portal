@@ -183,3 +183,35 @@ html:has(.absence-modern),body:has(.absence-modern){background:#f1f5fa!important
 @media(max-width:760px){.absence-workspace-layout{display:block!important;min-height:100dvh!important}.absence-workspace-content{padding:12px!important;gap:12px!important}.absence-mobile-toolbar{display:flex!important;order:-1;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #dce6ed;border-radius:14px;padding:10px 12px!important}.absence-mobile-toolbar button{background:#135d80!important;border:0!important;color:#fff!important;border-radius:10px!important;padding:10px 14px!important}.absence-sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;width:min(295px,85vw)!important;height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;padding:23px 12px!important;transform:translateX(110%)!important;transition:transform .23s ease!important;z-index:1100!important}.absence-sidebar.is-open{transform:translateX(0)!important}.absence-sidebar-close{display:block!important;background:#ffffff20!important;border:0!important;border-radius:8px!important;color:#fff!important;font-size:23px!important}.absence-sidebar-backdrop:not([hidden]){display:block!important;position:fixed!important;inset:0!important;background:#061f39a6!important;z-index:1090!important}.absence-modern .absence-hero{padding:12px!important;min-height:90px!important}.absence-modern .absence-hero-copy h1{font-size:20px!important}.absence-modern .absence-brand-school img,.absence-modern .absence-brand-portal img{width:42px!important;height:42px!important}.absence-modern .absence-panel,.absence-modern .absence-insights,.absence-modern .absence-reports{padding:11px!important}.absence-school-calendar{min-width:0!important;width:100%!important}}
 @media(prefers-reduced-motion:reduce){.absence-sidebar{transition:none!important}.absence-sidebar-nav button{transition:none!important}}
 @media print{.absence-sidebar,.absence-mobile-toolbar,.absence-sidebar-backdrop{display:none!important}.absence-workspace-layout{display:block!important}.absence-workspace-content{padding:0!important;background:#fff!important}}
+
+
+/* Legible, colorful identity and analytics controls */
+.absence-modern .absence-hero,.absence-modern .absence-hero-v4{background:linear-gradient(110deg,#123e62 0%,#176a83 60%,#218f9e 100%)!important;border:1px solid #3e98a9!important;box-shadow:0 12px 30px #123e6230!important}
+.absence-modern .absence-hero-copy h1{color:#fff!important;text-shadow:0 2px 4px #092d4350!important;font-weight:900!important}
+.absence-modern .absence-hero-copy p{color:#e2f5fa!important;font-weight:700!important;opacity:1!important}
+.absence-modern .absence-hero-eyebrow{background:#ffffff22!important;color:#fff!important;border:1px solid #ffffff35!important;padding:7px 12px!important;border-radius:99px!important}
+.absence-modern .absence-brand-school,.absence-modern .absence-brand-portal{background:#fff!important;border:3px solid #ffffff9c!important;box-shadow:0 5px 16px #0a2f4650!important}
+.absence-modern .absence-dashboard-metrics .metric-students{border-top:4px solid #287bb7!important;background:linear-gradient(180deg,#eef7ff,#fff)!important}
+.absence-modern .absence-dashboard-metrics .metric-present{border-top:4px solid #1da779!important;background:linear-gradient(180deg,#effdf6,#fff)!important}
+.absence-modern .absence-dashboard-metrics .metric-absent{border-top:4px solid #e47777!important;background:linear-gradient(180deg,#fff1f1,#fff)!important}
+.absence-modern .absence-dashboard-metrics .metric-note{border-top:4px solid #bb8cdb!important;background:linear-gradient(180deg,#f8f2ff,#fff)!important}
+.absence-modern .absence-summary-card.grade-total{background:linear-gradient(145deg,#164f79,#237da1)!important;color:#fff!important}
+.absence-modern .absence-summary-card.grade-1{background:linear-gradient(145deg,#eaf7ff,#fff)!important;border:1px solid #b9dff5!important;color:#12517b!important}
+.absence-modern .absence-summary-card.grade-2{background:linear-gradient(145deg,#f4efff,#fff)!important;border:1px solid #d6c5f4!important;color:#69468c!important}
+.absence-modern .absence-summary-card.grade-3{background:linear-gradient(145deg,#fff6e8,#fff)!important;border:1px solid #f1d7a5!important;color:#845719!important}
+.absence-modern .absence-summary-card.grade-total strong,.absence-modern .absence-summary-card.grade-total span,.absence-modern .absence-summary-card.grade-total small,.absence-modern .absence-summary-card.grade-total b{color:#fff!important}
+.absence-modern .absence-analytics-v3{display:block}
+.absence-modern .absence-analytics-v3[hidden]{display:none!important}
+.absence-modern .absence-section-eyebrow{font-size:12px;font-weight:900;color:#1786a0}
+.absence-modern .absence-insights-period{font-size:12px!important;color:#2b6381!important;background:#eaf6fa!important;border:1px solid #d4eaf2!important;padding:9px 12px!important;border-radius:12px!important}
+.absence-analytics-filters{display:flex;align-items:center;flex-wrap:wrap;gap:14px;padding:15px;margin:17px 0 22px;background:linear-gradient(115deg,#f0f7fb,#f9fbff);border:1px solid #dbe8f0;border-radius:16px}
+.absence-period-switch{display:flex;gap:5px;padding:5px;border-radius:12px;background:#e2edf4}
+.absence-period-switch button{padding:10px 18px;border:0;border-radius:9px;background:transparent;color:#345f78;font:inherit;font-weight:900;cursor:pointer}
+.absence-period-switch button[aria-pressed=true]{background:#145e86;color:white;box-shadow:0 3px 10px #1a5b822b}
+.absence-analytics-filters label{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:900;color:#265371}
+.absence-analytics-filters select{min-width:180px;max-width:100%;padding:10px 13px;border:1px solid #bfd8e5;border-radius:10px;background:#fff;color:#214e69;font:inherit}
+.absence-filter-context{color:#6c8293;font-size:11px;margin-inline-start:auto}
+.absence-period-summary{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:190px;gap:9px;text-align:center;background:radial-gradient(circle at top,#e7f7fb,#fff 72%);border-radius:15px}
+.absence-period-summary>strong{font-size:56px;color:#12658c;line-height:1.2}
+.absence-period-summary>span{font-weight:800;color:#315c77}.absence-period-summary p{font-size:12px;color:#647c8e}
+@media(max-width:760px){.absence-analytics-filters{padding:10px;gap:10px}.absence-period-switch{width:100%}.absence-period-switch button{flex:1;padding:9px 8px}.absence-analytics-filters label{width:100%;justify-content:space-between}.absence-analytics-filters select{min-width:0;flex:1}.absence-filter-context{margin:0}.absence-modern .absence-hero-eyebrow{font-size:9px!important}.absence-modern .absence-hero-copy p{font-size:11px!important}}
