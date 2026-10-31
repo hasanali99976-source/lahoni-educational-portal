@@ -62,6 +62,22 @@ return <main className="lahoni-home" dir="rtl">
 .art-school{left:21%;top:70%;width:28%;height:8%}
 .art-service{top:82%;height:14.2%;border-radius:16px}
 .art-service-1{left:79%;width:15%}.art-service-2{left:63.2%;width:15%}.art-service-3{left:47.4%;width:15%}.art-service-4{left:31.6%;width:15%}.art-service-5{left:15.8%;width:15%}.art-service-6{left:0%;width:15%}
+
+/* Align transparent clickable areas to the 16:9 artwork; accessible pointer and focus feedback. */
+.lahoni-hero{aspect-ratio:16/9!important;background-size:100% 100%!important}
+.art-hotspot{display:block!important;position:absolute!important;z-index:10!important;pointer-events:auto!important;cursor:pointer!important;border:2px solid transparent!important;border-radius:22px!important}
+.art-hotspot:hover,.art-hotspot:focus-visible{background:rgba(255,255,255,.22)!important;box-shadow:inset 0 0 0 3px rgba(255,255,255,.85),0 0 18px #47b5ff88!important;transform:scale(1.015)}
+.art-hotspot:active{background:#ffffff66!important;transform:scale(.98)}
+.art-teacher{left:52.7%!important;top:62%!important;width:26.5%!important;height:8.5%!important}
+.art-school{left:22.5%!important;top:62%!important;width:26.5%!important;height:8.5%!important}
+.art-service{top:74.5%!important;height:17%!important;border-radius:18px!important}
+.art-service-1{left:78.3%!important;width:14.2%!important}
+.art-service-2{left:64.2%!important;width:13.6%!important}
+.art-service-3{left:50.1%!important;width:13.6%!important}
+.art-service-4{left:36%!important;width:13.6%!important}
+.art-service-5{left:21.9%!important;width:13.6%!important}
+.art-service-6{left:7.8%!important;width:13.6%!important}
+@media(max-width:650px){.art-hotspot{border-radius:8px!important}.art-service{border-radius:8px!important}}
 @media(prefers-reduced-motion:reduce){.art-hotspot{transition:none}.art-hotspot:hover,.art-hotspot:active{transform:none}}
 `}</style>
 <div className="lahoni-wrap">
