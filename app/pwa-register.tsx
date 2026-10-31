@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 const CURRENT_CACHE = "ostadh-lahooni-v129-background-sync";
 const SERVICE_WORKER_VERSION = "129-background-sync";
+const UPDATE_CHECK_INTERVAL_MS=6*60*60*1000;
 
 export default function PwaRegister() {
   useEffect(() => {
@@ -14,7 +15,8 @@ export default function PwaRegister() {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key.startsWith("ostadh-lahooni-") && key !== CURRENT_CACHE).map(key => caches.delete(key)));
         const registration = await navigator.serviceWorker.register(`/sw.js?v=${SERVICE_WORKER_VERSION}`, { scope: "/", updateViaCache: "none" });
-        await registration.update();
+        const lastCheck=Number(window.localStorage.getItem("lahooni-sw-last-update")||0);
+        if(Date.now()-lastCheck>UPDATE_CHECK_INTERVAL_MS){await registration.update();window.localStorage.setItem("lahooni-sw-last-update",String(Date.now()))}
         if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
       } catch {
         // The portal remains usable if PWA registration is unavailable.
