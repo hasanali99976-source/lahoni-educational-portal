@@ -99,3 +99,36 @@ html:has(.absence-modern),body:has(.absence-modern){background-color:#dceef4!imp
 .absence-modern #absence-register .roster-v2-row.is-absent{background:rgba(255,226,231,.87)!important}
 .absence-modern #absence-register .roster-v2-person strong{color:#123e5b!important;text-shadow:0 1px #ffffff90!important}
 @media print{.absence-modern #absence-register,.absence-modern #absence-register .roster-v2,.absence-modern #absence-register .roster-v2-row{background:white!important;backdrop-filter:none!important}}
+
+
+/* 2026 school-day command center: restrained visual hierarchy and responsive side navigation. */
+.absence-modern{max-width:1760px!important;padding:16px 20px 36px!important;background:transparent}
+.absence-modern .absence-hero{border-radius:24px!important;box-shadow:0 14px 36px #163e651a!important}
+.absence-workspace-layout{display:grid;grid-template-columns:244px minmax(0,1fr);gap:18px;align-items:start;margin-top:18px}
+.absence-workspace-content{min-width:0;display:flex;flex-direction:column;gap:14px}
+.absence-sidebar{position:sticky;top:16px;min-height:420px;border:1px solid #cce2f0;border-radius:22px;padding:17px 12px;background:linear-gradient(160deg,#103e68,#145c7b 75%,#197e91);box-shadow:0 18px 35px #0d426522;color:#fff;z-index:12}
+.absence-sidebar-head{display:flex;gap:10px;align-items:center;padding:8px 8px 18px;border-bottom:1px solid #ffffff30}
+.absence-sidebar-symbol{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#ffffff27;font-size:25px}
+.absence-sidebar-head strong{display:block;font-size:18px}.absence-sidebar-head small{display:block;color:#d5ebf4;font-size:11px;margin-top:4px}
+.absence-sidebar-nav{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+.absence-sidebar-nav button{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:12px;border:1px solid transparent;border-radius:14px;background:transparent;color:#f2faff;text-align:right;cursor:pointer;font:inherit;font-weight:900;transition:background .18s,transform .18s}
+.absence-sidebar-nav button>span:first-child{font-size:24px;flex:0 0 28px;text-align:center}
+.absence-sidebar-nav button small{display:block;font-size:10px;color:#d5e9f3;margin-top:4px;font-weight:500}
+.absence-sidebar-nav button.active,.absence-sidebar-nav button:hover{background:#ffffff24;border-color:#ffffff58;transform:translateX(-2px)}
+.absence-sidebar-nav button:focus-visible{outline:3px solid #ffce6d}
+.absence-sidebar-foot{display:grid;gap:8px;margin-top:34px;padding:15px 9px;border-top:1px solid #ffffff38;font-size:12px}.absence-sidebar-foot small{color:#d5e9f3}
+.absence-sidebar-close,.absence-mobile-toolbar,.absence-sidebar-backdrop{display:none}
+.absence-workspace-content>.absence-panel,.absence-workspace-content>.absence-insights,.absence-workspace-content>.absence-reports{margin-top:0!important;max-width:100%;min-width:0}
+.absence-workspace-content .absence-panel{border-radius:20px!important;box-shadow:0 8px 25px #18496c12!important}
+.absence-school-calendar{display:flex;flex-direction:column;gap:8px;min-width:290px;flex:1}
+.absence-calendar-header{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#15466a;font-size:13px}
+.absence-calendar-header>div{display:flex;gap:5px}
+.absence-calendar-header button{background:#e9f5fc;border:1px solid #bcd9e8;border-radius:9px;padding:5px 11px;color:#125a81;font-weight:800;cursor:pointer}
+.absence-school-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.absence-school-days button{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:57px;border:1px solid #c8e0ee;background:#f6fbff;border-radius:12px;padding:7px 3px;color:#20516f;cursor:pointer}
+.absence-school-days button small{font-size:10px}.absence-school-days button strong{font-size:19px}
+.absence-school-days button.selected{background:linear-gradient(140deg,#0d83b6,#0c638f);border-color:#0a638e;color:white;box-shadow:0 6px 15px #137da344}
+.absence-school-days button:focus-visible,.absence-calendar-header button:focus-visible{outline:3px solid #e6a523;outline-offset:2px}
+@media(max-width:1050px){.absence-workspace-layout{grid-template-columns:205px minmax(0,1fr);gap:10px}.absence-sidebar{padding:12px 8px}.absence-school-calendar{min-width:240px}}
+@media(max-width:760px){.absence-modern{padding:10px!important}.absence-workspace-layout{display:block;margin-top:10px}.absence-mobile-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #cde2ef;border-radius:14px;padding:10px 13px}.absence-mobile-toolbar button{border:0;border-radius:10px;padding:10px 13px;background:#0f668f;color:#fff;font-weight:900}.absence-sidebar{position:fixed;top:0;right:0;bottom:0;width:min(290px,86vw);height:100dvh;min-height:0;overflow-y:auto;border-radius:0;transform:translateX(105%);transition:transform .22s;z-index:1100}.absence-sidebar.is-open{transform:translateX(0)}.absence-sidebar-close{display:block;margin-right:auto;background:#ffffff24;border:0;border-radius:9px;color:#fff;font-size:22px;width:34px;height:34px}.absence-sidebar-backdrop:not([hidden]){display:block;position:fixed;inset:0;background:#0b27466b;z-index:1090}.absence-school-calendar{min-width:0;width:100%}.absence-school-days button{min-height:51px}.absence-school-days button small{font-size:9px}}
+@media print{.absence-sidebar,.absence-mobile-toolbar,.absence-sidebar-backdrop{display:none!important}.absence-workspace-layout{display:block}.absence-workspace-content{display:block}}
