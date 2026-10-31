@@ -1,3 +1,4 @@
+export const metadata = { title: "بوابة أستاذ لحوني التعليمية" };
 import Link from "next/link";
 import { preload } from "react-dom";
 
