@@ -9,9 +9,9 @@ import MobileAppEnhancer from "./mobile-app-enhancer";
 const tajawal=Tajawal({subsets:["arabic"],weight:["400","500","700","800","900"],display:"swap"});
 
 export const metadata:Metadata={
-  title:{default:"بوابة أستاذ لحوني التعليمية",template:"%s | أستاذ لحوني"},
+  title:{default:"لحوني التعليمية",template:"%s | لحوني التعليمية"},
   description:"منصة تعليمية مدرسية موحدة للإدارة والمعلمين والطلاب",
-  applicationName:"بوابة أستاذ لحوني التعليمية",
+  applicationName:"لحوني التعليمية",
   manifest:"/manifest.webmanifest?v=2026-mobile-v129",
   appleWebApp:{capable:true,title:"أستاذ لحوني",statusBarStyle:"default"},
   formatDetection:{telephone:false},
