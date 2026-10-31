@@ -66,9 +66,6 @@ return <main className="lahoni-home" dir="rtl">
 `}</style>
 <div className="lahoni-wrap">
 <section className="lahoni-hero" id="home" aria-label="لحوني التعليمية — الصفحة الرئيسية">
-  <span className="lahoni-old-logo-mask" aria-hidden="true" />
-  <img className="lahoni-official-logo" src="/WhatsApp%20Image%202026-10-08%20at%2011.21.46%20PM.jpeg" alt="الشعار الرسمي لبوابة لحوني التعليمية" />
-  <Link className="art-hotspot art-login" href="/portal" aria-label="تسجيل الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">تسجيل الدخول</span></Link>
   <Link className="art-hotspot art-teacher" href="/portal" aria-label="الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">الدخول إلى بوابة أستاذ لحوني</span></Link>
   <Link className="art-hotspot art-school" href="/school" aria-label="استعراض بوابة المدرسة"><span className="sr-only">استعراض بوابة المدرسة</span></Link>
   <Link className="art-hotspot art-service art-service-1" href="/portal" aria-label="المساعد الذكي في بوابة أستاذ لحوني"><span className="sr-only">المساعد الذكي</span></Link>
