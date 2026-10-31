@@ -73,7 +73,7 @@ export async function GET() {
       resetClassScopes: [],
       legacyRestore: { restored: 0, alreadyChecked: true, skipped: "session_read_safety" },
     }, { headers: { "Cache-Control": "no-store" } });
-    if (currentWorkspace) response.cookies.set(SUBJECT_COOKIE, currentWorkspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
+    if (currentWorkspace) response.cookies.set(SUBJECT_COOKIE, currentWorkspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
     return response;
   } catch (error) {
     console.warn("teacher session temporarily unavailable", error);
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     const workspace = workspaces.find(item => item.workspaceKey === requested) || workspaces.find(item => item.subjectId === requested);
     if (!workspace) return NextResponse.json({ ok: false, error: "subject_not_assigned" }, { status: 403 });
     const response = NextResponse.json({ ok: true, subjectId: workspace.subjectId, workspaceKey: workspace.workspaceKey, activeGrade: workspace.grade, activeGradeLabel: workspace.gradeLabel }, { headers: { "Cache-Control": "no-store" } });
-    response.cookies.set(SUBJECT_COOKIE, workspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
+    response.cookies.set(SUBJECT_COOKIE, workspace.workspaceKey, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
     return response;
   } catch (error) {
     console.warn("teacher subject switch temporarily unavailable", error);
