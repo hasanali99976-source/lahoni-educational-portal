@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { adminDb } from "../../../lib/server/firebase-admin";
 import { createSessionToken, findUserByUsername, PORTAL_SESSION_COOKIE, SESSION_MAX_AGE, type PortalUser } from "../../../lib/server/portal-auth";
 import { findLegacyTeacherByCredentials } from "../../../lib/server/legacy-teacher-auth";
@@ -63,7 +64,9 @@ export async function POST(request: Request) {
         maxAge: SESSION_MAX_AGE,
       },
     );
-    response.cookies.set("lahooni_active_subject", subjectId, {
+    const previousSubject=(await cookies()).get("lahooni_active_subject")?.value||"";
+    const rememberedSubject=teachingSubjects.find(id=>previousSubject===id||previousSubject.startsWith(id+"--"));
+    response.cookies.set("lahooni_active_subject", !isAbsenceOfficer&&rememberedSubject?previousSubject:subjectId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
