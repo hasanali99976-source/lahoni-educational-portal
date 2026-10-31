@@ -37,19 +37,26 @@ return <main className="lahoni-home" dir="rtl">
 @media(max-width:1050px){.lahoni-person{display:none}}
 @media(prefers-reduced-motion:reduce){.lahoni-card-action{transition:none}}
 
-/* Final visual layer: the uploaded artwork is displayed, not covered by later overrides. */
-.lahoni-home{background:linear-gradient(145deg,#e6f3ff,#f2eaff)}
-.lahoni-hero{height:clamp(420px,52vw,690px);min-height:0;display:block;padding:0;border-radius:28px;background-image:url("/lahoni-education-.png");background-position:center;background-size:contain;background-repeat:no-repeat;background-color:#e9f2ff;box-shadow:0 18px 50px #5479ac33;overflow:hidden}
-.lahoni-hero>.lahoni-person,.lahoni-hero>.lahoni-pill,.lahoni-hero>h1,.lahoni-hero>p,.lahoni-hero>.lahoni-benefits{display:none}
+/* One artwork, one interface. Clickable transparent overlays follow the visible buttons. */
+.lahoni-home{background:linear-gradient(145deg,#e5efff,#f0eaff);min-height:100dvh}
+.lahoni-home:before{display:none}
+.lahoni-wrap{width:min(1776px,100%);padding:0;margin:0 auto}
+.lahoni-hero{position:relative;display:block;width:100%;height:auto;min-height:0;aspect-ratio:1776/864;padding:0;margin:0;border:0;border-radius:0;background:url("/lahoni-education-.png") center top/100% 100% no-repeat;box-shadow:none;overflow:hidden}
 .lahoni-hero:before,.lahoni-hero:after{display:none}
-.lahoni-nav{background:#fffffff2}
-@media(max-width:650px){.lahoni-hero{height:clamp(240px,66vw,440px);background-size:contain;background-position:center top;border-radius:18px}.lahoni-wrap{width:98%}}
+.art-hotspot{position:absolute;z-index:3;display:block;border-radius:28px;cursor:pointer;transition:background .2s,box-shadow .2s}
+.art-hotspot:hover{background:#ffffff1c;box-shadow:inset 0 0 0 3px #ffffff99}
+.art-hotspot:focus-visible{outline:4px solid #f8b800;outline-offset:2px;background:#ffffff33}
+.art-login{left:6.5%;top:1.6%;width:13%;height:7.4%}
+.art-teacher{left:52%;top:71%;width:27%;height:8.5%}
+.art-school{left:22%;top:71%;width:27%;height:8.5%}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:650px){.lahoni-wrap{width:100%}.lahoni-hero{aspect-ratio:1776/864;border-radius:0}.art-hotspot{border-radius:9px}}
 `}</style>
 <div className="lahoni-wrap">
-<header className="lahoni-nav"><div className="lahoni-brand"><span className="lahoni-mark" aria-hidden="true">✦</span><div><strong>لحوني التعليمية</strong><small>منصة تعليمية متكاملة</small></div></div><nav className="lahoni-menu" aria-label="القائمة الرئيسية"><a href="#home">⌂ الرئيسية</a><a href="#about">عن البوابة</a><a href="#features">المميزات</a><a href="#portals">البوابات</a></nav><Link className="lahoni-login" href="/portal">تسجيل الدخول ←</Link></header>
-<section className="lahoni-hero" id="home"><div className="lahoni-person teacher" aria-label="رسم معلم"><span className="avatar" aria-hidden="true">👨🏻‍🏫</span><b>المعلم</b></div><div className="lahoni-person student" aria-label="رسم طالب"><span className="avatar" aria-hidden="true">👨🏻‍🎓</span><b>الطالب</b></div><span className="lahoni-pill">✦ مرحبًا بك في عالم التعليم</span><h1>لحوني التعليمية</h1><p id="about">منصة تعليمية تجمع المعلم والطالب والمدرسة في تجربة رقمية منظمة، واضحة ومتكاملة.</p><div className="lahoni-benefits"><span>✧ تعليم ذكي</span><span>◈ إدارة متكاملة</span><span>▤ سهولة الاستخدام</span><span>✦ تقارير شاملة</span></div></section>
-<nav className="lahoni-portals" id="portals" aria-label="بوابات المنظومة"><Link className="lahoni-card teacher" href="/portal"><div className="lahoni-card-head"><span className="lahoni-card-icon" aria-hidden="true">👨🏻‍🏫</span><span className="lahoni-number">01</span></div><h2>بوابة أستاذ لحوني</h2><p>مساحة الإدارة والمعلم والطالب وولي الأمر، بكامل الخدمات والسجلات التعليمية الحالية.</p><span className="lahoni-card-action">الدخول إلى البوابة <span aria-hidden="true">←</span></span></Link><Link className="lahoni-card school" href="/school"><div className="lahoni-card-head"><span className="lahoni-card-icon" aria-hidden="true">🏫</span><span className="lahoni-number">02</span></div><h2>بوابة المدرسة</h2><p>مساحة مستقلة لتنظيم الفصول والمعلمين والطلاب والخدمات المدرسية، يجري تطويرها تدريجيًا.</p><span className="lahoni-card-action">استعراض بوابة المدرسة <span aria-hidden="true">←</span></span></Link></nav>
-<section className="lahoni-features" id="features" aria-label="خدمات تعليمية">{features.map(f=><div className={`lahoni-feature ${f.tone}`} key={f.title}><i aria-hidden="true">{f.icon}</i><strong>{f.title}</strong><small>{f.detail}</small></div>)}</section>
-<footer className="lahoni-footer">لحوني التعليمية © 2026 — البوابة الحالية محفوظة بخدماتها وسجلاتها كما هي</footer>
+<section className="lahoni-hero" id="home" aria-label="لحوني التعليمية — الصفحة الرئيسية">
+  <Link className="art-hotspot art-login" href="/portal" aria-label="تسجيل الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">تسجيل الدخول</span></Link>
+  <Link className="art-hotspot art-teacher" href="/portal" aria-label="الدخول إلى بوابة أستاذ لحوني"><span className="sr-only">الدخول إلى بوابة أستاذ لحوني</span></Link>
+  <Link className="art-hotspot art-school" href="/school" aria-label="استعراض بوابة المدرسة"><span className="sr-only">استعراض بوابة المدرسة</span></Link>
+</section>
 </div></main>;
 }
