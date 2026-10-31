@@ -37,10 +37,6 @@ return <main className="lahoni-home" dir="rtl">
 @media(max-width:1050px){.lahoni-person{display:none}}
 @media(prefers-reduced-motion:reduce){.lahoni-card-action{transition:none}}
 
-/* Official portrait logo, overlaying the old baked-in badge. */
-.lahoni-official-logo{position:absolute;z-index:5;top:0.5%;right:0.6%;width:7.3%;aspect-ratio:1;border-radius:22%;object-fit:cover;box-shadow:0 0 0 2px #ffda67,0 5px 15px #132f6180;pointer-events:none}
-.lahoni-old-logo-mask{position:absolute;z-index:4;top:0;right:0;width:25.4%;height:12.3%;background:linear-gradient(110deg,#e7dcff,#f9f9ff 57%,#e0edff);border-radius:0 0 0 34px;pointer-events:none}
-@media(max-width:650px){.lahoni-old-logo-mask{border-radius:0 0 0 10px}.lahoni-official-logo{box-shadow:0 0 0 1px #ffda67}}
 /* One artwork, one interface. Clickable transparent overlays follow the visible buttons. */
 .lahoni-home{background:linear-gradient(145deg,#e5efff,#f0eaff);min-height:100dvh}
 .lahoni-home:before{display:none}
