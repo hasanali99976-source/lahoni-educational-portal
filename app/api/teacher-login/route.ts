@@ -30,8 +30,17 @@ export async function POST(request: Request) {
     if (!user || user.role !== "teacher" || !user.active || !user.updatedAt) {
       return NextResponse.json({ ok: false, message: "اسم المعلم أو الرقم السري غير صحيح" }, { status: 401 });
     }
-    const absenceSettings = await adminDb().collection("portalV2Settings").doc("secondaryDailyAbsence").get();
-    const configuredAbsenceTeacherId = String(absenceSettings.data()?.teacherId || "").trim();
+    // A non-critical absence-officer settings read must never block ordinary teacher login.
+    let configuredAbsenceTeacherId = "";
+    try {
+      const absenceSettings = await Promise.race([
+        adminDb().collection("portalV2Settings").doc("secondaryDailyAbsence").get(),
+        new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("absence_settings_timeout")),2500)),
+      ]);
+      configuredAbsenceTeacherId = String(absenceSettings.data()?.teacherId || "").trim();
+    } catch (error) {
+      console.warn("absence settings unavailable during teacher login; continuing with regular teacher access",error);
+    }
     const isAbsenceOfficer = configuredAbsenceTeacherId !== "" && configuredAbsenceTeacherId === user.id;
     const teachingSubjects = (user.subjectIds || []).filter(id => id !== "daily-absence");
     if (teachingSubjects.length === 0 && !isAbsenceOfficer) {
