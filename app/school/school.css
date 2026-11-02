@@ -66,3 +66,45 @@
 @keyframes school-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}@keyframes school-sparkle{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.2)}}
 @media(max-width:700px){.school-header{padding:17px!important}.school-hero{padding:24px 20px!important;min-height:175px}.school-hero-symbol{width:75px;height:90px;font-size:52px}.school-hero-symbol span:first-child,.school-hero-symbol span:last-child{font-size:17px}.school-hero h2{font-size:clamp(23px,5.5vw,30px)}.school-hero p{font-size:13px}.school-main-nav button{min-height:46px;padding:9px 7px!important;font-size:12px!important}}
 @media(prefers-reduced-motion:reduce){.school-system *, .school-system *:before,.school-system *:after{animation:none!important;transition:none!important}}
+
+
+/* Future School: approved pastel / glass dashboard */
+.school-system{max-width:none!important;padding:20px clamp(14px,2vw,32px)!important;background:radial-gradient(circle at 90% 3%,#d4f2ff 0,transparent 34%),radial-gradient(circle at 10% 18%,#eee6ff 0,transparent 36%),#edf6ff!important}
+.future-header{margin-bottom:17px!important;background:#ffffffd9!important;backdrop-filter:blur(12px);border-radius:24px!important}
+.future-shell{display:grid;grid-template-columns:222px minmax(0,1fr);gap:19px;align-items:stretch;direction:rtl}
+.future-sidebar{min-height:720px;position:relative;overflow:hidden;border-radius:34px;background:linear-gradient(166deg,#5035a4 0%,#253c94 51%,#127f9e 100%);box-shadow:0 15px 32px #364e9830;color:#fff;padding:25px 13px}
+.future-sidebar:before{content:"";position:absolute;bottom:-70px;left:-70px;width:270px;height:230px;border-radius:50%;background:radial-gradient(circle,#b7b0ff6b,transparent 70%);pointer-events:none}
+.future-sidebar-logo{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:15px 6px 30px;border-bottom:1px solid #ffffff30}
+.future-sidebar-logo>span{font-size:57px;filter:drop-shadow(0 6px 9px #0a246c60)}
+.future-sidebar-logo strong{font-size:19px;color:white}.future-sidebar-logo small{background:#ffffff1d;padding:5px 14px;border-radius:30px;color:#e6e3ff}
+.future-sidebar nav{display:grid;gap:10px;padding-top:23px;position:relative;z-index:1}
+.future-sidebar nav button{display:flex;align-items:center;gap:12px;text-align:right;background:transparent;border:1px solid transparent;color:#f5f6ff;border-radius:17px;padding:15px 12px;font:inherit;font-weight:900;cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s}
+.future-sidebar nav button span{font-size:23px;min-width:27px;text-align:center}
+.future-sidebar nav button:hover{background:#ffffff1d;transform:translateX(-3px)}
+.future-sidebar nav button.active{background:linear-gradient(110deg,#0cc3c7,#16a4b3);box-shadow:0 7px 18px #062c7459;color:white}
+.future-sidebar-foot{position:absolute;bottom:35px;left:0;right:0;text-align:center;display:grid;gap:8px;opacity:.9}.future-sidebar-foot span{font-size:28px;color:#b8faff}.future-sidebar-foot small{color:#e6f7ff}
+.future-workspace{min-width:0}
+.future-hero{min-height:198px!important;background:linear-gradient(115deg,#dbf5ff,#f3f2ff 54%,#e5fbff)!important;color:#1b3577!important;border:2px solid #fff!important;box-shadow:0 9px 22px #6d9cbe2a!important;border-radius:26px!important}
+.future-hero:before{border-color:#81cde92b!important;box-shadow:0 0 0 65px #c6a8f91a,0 0 0 125px #78d3e718!important}
+.future-hero .school-eyebrow{color:#7d56b8;background:#ffffffa8;border-color:#dcd4ff}
+.future-hero h2{color:#233e93!important;text-shadow:none!important}.future-hero p{color:#42688e!important}
+.future-hero .school-hero-symbol{font-size:91px}.future-hero .school-hero-symbol span:first-child,.future-hero .school-hero-symbol span:last-child{color:#9a72e5}
+.future-dashboard{display:grid;gap:17px;margin-top:18px}
+.future-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.future-kpis article{min-width:0;min-height:132px;position:relative;overflow:hidden;border:2px solid #fff;border-radius:23px;display:grid;align-content:center;justify-items:center;gap:4px;box-shadow:0 7px 16px #416c9b1d;background:linear-gradient(145deg,#d5f2ff,#bfe7ff)}
+.future-kpis article:nth-child(2){background:linear-gradient(145deg,#e7d6ff,#d4b9fa)}.future-kpis article:nth-child(3){background:linear-gradient(145deg,#d8f8f4,#a7ede5)}.future-kpis article:nth-child(4){background:linear-gradient(145deg,#d7e6ff,#bad4ff)}
+.future-kpis article:before{content:"";position:absolute;width:120px;height:120px;border-radius:50%;background:#ffffff45;top:-65px;right:-35px}
+.future-kpis article>span{font-size:31px}.future-kpis article strong{font-size:34px;line-height:1.15;color:#243c91;font-weight:900}.future-kpis article small{font-size:12px;font-weight:900;color:#31527b;text-align:center;padding:0 8px}
+.future-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.future-actions button{border:2px solid #fff;background:linear-gradient(155deg,#fff,#f0f1ff);border-radius:22px;padding:15px 9px;min-height:120px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;cursor:pointer;box-shadow:0 7px 17px #5375a21a;transition:transform .2s,box-shadow .2s;font:inherit;color:#203f85}
+.future-actions button:hover{transform:translateY(-4px);box-shadow:0 13px 22px #5375a233}.future-actions button:first-child{background:linear-gradient(145deg,#f3e7ff,#e3e1ff);border-color:#d7baf7}
+.future-actions button>span{font-size:31px;color:#7961cb}.future-actions button strong{font-size:16px;font-weight:900}.future-actions button small{color:#66809c;font-size:11px;text-align:center}
+.future-bottom{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.future-bottom article{border-radius:25px;border:2px solid white;box-shadow:0 8px 20px #557da41a;min-height:240px;padding:24px;overflow:hidden}
+.future-welcome{background:linear-gradient(110deg,#d7edff,#e7e6ff);position:relative}.future-welcome>span,.future-info>span{color:#7654c2;font-weight:900}.future-welcome h3,.future-info h3{color:#203e83;font-size:22px;margin:12px 0}.future-welcome p{max-width:62%;color:#527091;line-height:1.8}
+.future-welcome-art{position:absolute;left:16px;bottom:5px;font-size:85px;filter:drop-shadow(0 10px 10px #5d70a82b)}.future-welcome-art span{font-size:60px}
+.future-info{background:linear-gradient(145deg,#fff,#e8f7ff)}.future-info>div{margin:11px 0;padding:8px 12px;background:#ffffffb5;border-radius:12px;color:#486487;font-weight:700}.future-info b{color:#15a9a2;margin-left:8px}
+.future-workspace .school-grade-nav,.future-workspace .school-directory{margin-top:17px}
+@media(max-width:1050px){.future-shell{grid-template-columns:175px minmax(0,1fr)}.future-sidebar{padding:16px 8px}.future-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.future-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.future-bottom{grid-template-columns:1fr}}
+@media(max-width:700px){.future-shell{display:block}.future-sidebar{min-height:auto;border-radius:20px;padding:10px;margin-bottom:12px}.future-sidebar-logo,.future-sidebar-foot{display:none}.future-sidebar nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:0}.future-sidebar nav button{flex-direction:column;justify-content:center;gap:2px;padding:8px 3px;text-align:center;font-size:11px;border-radius:12px}.future-sidebar nav button span{font-size:21px}.future-hero{min-height:160px!important}.future-hero .school-hero-symbol{font-size:52px}.future-kpis article{min-height:112px}.future-kpis article strong{font-size:28px}.future-actions button{min-height:105px}.future-welcome p{max-width:100%;padding-bottom:80px}.future-welcome-art{font-size:65px}.future-welcome-art span{font-size:42px}}
+@media(prefers-reduced-motion:reduce){.future-sidebar *, .future-actions *, .future-hero *{animation:none!important;transition:none!important}}
