@@ -320,3 +320,26 @@
 @media(max-width:1100px){.school-teacher-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:680px){.school-teacher-grid{grid-template-columns:1fr!important;gap:12px!important}.school-teacher-card-top{padding:14px!important}.school-teacher-card-subjects{padding:0 12px 10px!important}.school-card-assign{margin:0 12px 12px!important;width:calc(100% - 24px)!important}}
 @media(prefers-reduced-motion:reduce){.school-teacher-card{transition:none!important}}
+
+/* Compact school chooser: presentation only, no data fetching */
+.school-chooser{padding-top:16px;padding-bottom:24px}
+.school-chooser .school-header{padding:16px 20px;margin-bottom:15px;border-radius:20px;background:#fff;box-shadow:0 5px 22px #17416c10}
+.school-chooser .school-brand-icon{width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,#087d9e,#073b65);color:#fff;font-size:0}
+.school-brand-icon svg{width:72%;height:72%}
+.school-chooser .school-brand h1{margin:2px 0;font-size:24px}
+.school-chooser .school-brand p{font-size:13px}
+.school-chooser .school-hero{padding:20px 26px;border-radius:20px;min-height:125px}
+.school-chooser .school-hero h2{font-size:27px;margin:4px 0}
+.school-chooser .school-hero p{font-size:14px;line-height:1.5}
+.school-chooser .school-hero-symbol{font-size:52px;color:#b9e8f4}
+.school-chooser .school-chooser-grid{gap:14px;margin:16px 0;grid-template-columns:repeat(2,minmax(0,1fr))}
+.school-chooser .school-chooser-tile{min-height:205px;padding:19px 22px;border-radius:19px;gap:5px}
+.school-chooser .school-chooser-illustration{width:60px;height:60px;border-radius:16px;font-size:38px;margin:0 0 3px}
+.school-chooser .school-chooser-school-logo{color:#006b8d;background:#e5f6fb}
+.school-chooser-school-logo svg{width:78%;height:78%}
+.school-chooser .school-chooser-tile h2{font-size:22px;margin:4px 0 0}
+.school-chooser .school-chooser-tile h3{font-size:16px}
+.school-chooser .school-chooser-tile p{font-size:13px;line-height:1.5;margin:3px 0}
+.school-chooser .school-chooser-tile strong{font-size:13px}
+.school-chooser .school-chooser-label{padding:4px 9px;font-size:11px}
+@media(max-width:680px){.school-chooser .school-header{padding:13px}.school-chooser .school-hero{padding:18px}.school-chooser .school-chooser-grid{grid-template-columns:1fr}.school-chooser .school-chooser-tile{min-height:190px}}
