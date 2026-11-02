@@ -169,3 +169,22 @@
 @media(max-width:1050px){.future-shell{grid-template-columns:185px minmax(0,1fr)}}
 @media(max-width:700px){.future-shell{display:block}.future-sidebar{min-height:0;border-radius:18px}.future-sidebar nav{grid-template-columns:repeat(3,minmax(0,1fr))}.future-sidebar nav button{min-height:66px;font-size:11px;padding:7px 3px}.future-hero .school-hero-symbol span:nth-child(2){font-size:48px}}
 @media(prefers-reduced-motion:reduce){.future-welcome-art{animation:none!important}.future-kpis article,.future-actions button{transition:none!important}}
+
+
+/* Final dashboard polish: responsive, real-data charts, lightweight animations */
+.future-school-masthead{background:radial-gradient(ellipse at 22% 25%,#bce9ff88,transparent 38%),linear-gradient(100deg,#e4f7ff,#fff 48%,#e9f5ff)!important}
+.future-school-masthead .school-brand h1{font-weight:950!important;text-shadow:0 2px 0 #ffffff}
+.future-hero{border:2px solid #fff!important;background:radial-gradient(circle at 15% 50%,#bfeeffa8,transparent 36%),linear-gradient(115deg,#e4f6ff,#eeeaff 55%,#e4fbff)!important}
+.future-hero:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,transparent 30%,#ffffff55 45%,transparent 60%);background-size:200% 100%;animation:future-light-sweep 12s ease-in-out infinite}
+@keyframes future-light-sweep{0%,35%{background-position:100% 0}70%,100%{background-position:-100% 0}}
+.future-kpis article[role=button]{cursor:pointer}
+.future-kpis article[role=button]:focus-visible{outline:3px solid #3e92ca;outline-offset:3px}
+.future-kpis article strong{font-variant-numeric:tabular-nums}
+.future-subject-meter{display:flex;height:15px;overflow:hidden;border-radius:30px;gap:3px;background:#d9e5f8;border:2px solid #fff;box-shadow:0 3px 10px #1e568a22;margin:13px 0 18px}
+.future-subject-meter i{min-width:5px;border-radius:20px;transition:flex .3s ease}
+.future-sidebar nav button{transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.future-sidebar nav button:hover{transform:translateX(-3px)}
+.future-welcome{background:linear-gradient(115deg,#e1f5ff,#f0e8ff)!important}
+.future-info{background:linear-gradient(115deg,#f4faff,#e7f3ff)!important}
+@media(max-width:700px){.future-subject-meter{height:12px}.future-school-masthead .school-brand h1{line-height:1.3!important}}
+@media(prefers-reduced-motion:reduce){.future-hero:after{animation:none!important}.future-subject-meter i{transition:none!important}}
