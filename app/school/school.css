@@ -142,3 +142,30 @@
 .future-school-masthead .future-masthead-stage{background:linear-gradient(100deg,#075678,#0c8ba4)!important;color:#fff!important;box-shadow:0 5px 14px #0d789b24!important}
 .future-masthead-art{opacity:.12!important;left:20%;font-size:40px!important}.future-masthead-building{font-size:75px!important}
 @media(max-width:750px){.school-system .future-school-masthead{padding:16px 13px!important;min-height:150px!important}.future-school-masthead .future-school-logo{width:66px!important;height:68px!important;padding:8px!important;border-radius:15px!important}.future-school-masthead .school-brand h1{font-size:clamp(20px,5vw,29px)!important}.future-masthead-art{display:none}}
+
+
+/* Future school interactive visual system, no new network traffic */
+.school-system{background:radial-gradient(ellipse at 60% 0%,#c6ebff,transparent 46%),linear-gradient(155deg,#eaf5ff,#e7f0ff 53%,#e5faff)!important}
+.future-shell{grid-template-columns:245px minmax(0,1fr);gap:14px}
+.future-sidebar{background:linear-gradient(165deg,#064c78 0%,#162d78 43%,#40369b 73%,#008aa1 100%);border:2px solid #ffffffb8;box-shadow:0 12px 28px #12518a36;border-radius:30px;min-height:810px}
+.future-sidebar:after{content:"";position:absolute;left:-40px;right:-40px;bottom:-50px;height:190px;border-radius:50%;background:repeating-radial-gradient(ellipse at bottom,#ffffff2b 0 1px,transparent 2px 22px);opacity:.35;pointer-events:none}
+.future-sidebar-logo{padding-bottom:25px}.future-sidebar-mark{display:grid;place-items:center;margin:auto;width:90px;height:90px;border-radius:26px;background:linear-gradient(140deg,#087da1,#023e71);border:2px solid #ffffff72;box-shadow:0 8px 26px #022c6b55;color:#e7fdff;font-size:54px!important}
+.future-sidebar nav button{min-height:54px;font-size:14px}.future-sidebar nav button.active{background:linear-gradient(100deg,#00c6c9,#00a4ba);box-shadow:0 0 0 1px #9dfff9,0 5px 20px #00b6e66b}
+.future-school-masthead{background:linear-gradient(105deg,#e5f9ff,#fff 40%,#e3f5ff)!important}
+.future-hero{background:radial-gradient(ellipse at 20% 70%,#c7efff 0,transparent 43%),linear-gradient(110deg,#d7f2ff,#e8eaff 58%,#e1fcff)!important;box-shadow:0 10px 24px #2873a82d!important}
+.future-hero .school-hero-symbol span:nth-child(2){font-size:90px;filter:drop-shadow(0 10px 13px #385c9e45)}
+.future-kpis article{transition:transform .25s ease,box-shadow .25s ease;border-color:#ffffffed;box-shadow:0 7px 16px #2477ac22, inset 0 0 0 1px #ffffff6e}
+.future-kpis article:hover{transform:translateY(-4px);box-shadow:0 13px 24px #2477ac36}
+.future-actions button{background:linear-gradient(145deg,#ffffffed,#eaf4ff);box-shadow:0 7px 15px #376da026,inset 0 1px 0 #fff}
+.future-actions button:first-child{border:2px dashed #9956df;background:linear-gradient(145deg,#f8f0ff,#eee5ff)}
+.future-actions button:focus-visible,.future-sidebar nav button:focus-visible{outline:3px solid #ffcd6a;outline-offset:3px}
+.future-bottom article{background:linear-gradient(130deg,#e0f4ff,#f1eaff);border:2px solid white;box-shadow:0 9px 21px #286b9b22}
+.future-info{background:linear-gradient(145deg,#e9faff,#f8f4ff)!important}
+.future-subject-summary{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 15px}
+.future-subject-summary span{display:flex;align-items:center;gap:9px;background:#ffffffcf;border:1px solid #d6e4f9;border-radius:99px;padding:7px 11px;font-size:12px;color:#365f85;font-weight:800}
+.future-subject-summary b{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:#d9f3fa;color:#136d90}
+.future-info-secondary{font-size:17px!important;margin:8px 0!important}
+.future-welcome-art{animation:school-float 7s ease-in-out infinite}
+@media(max-width:1050px){.future-shell{grid-template-columns:185px minmax(0,1fr)}}
+@media(max-width:700px){.future-shell{display:block}.future-sidebar{min-height:0;border-radius:18px}.future-sidebar nav{grid-template-columns:repeat(3,minmax(0,1fr))}.future-sidebar nav button{min-height:66px;font-size:11px;padding:7px 3px}.future-hero .school-hero-symbol span:nth-child(2){font-size:48px}}
+@media(prefers-reduced-motion:reduce){.future-welcome-art{animation:none!important}.future-kpis article,.future-actions button{transition:none!important}}
