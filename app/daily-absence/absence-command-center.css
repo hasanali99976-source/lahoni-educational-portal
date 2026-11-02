@@ -301,3 +301,39 @@ html:has(.absence-modern),body:has(.absence-modern){background:#f1f5fa!important
 @media(max-width:1050px){.absence-complete-report.absence-analytics-compact .absence-cumulative-panel ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:740px){.absence-chart-grid.absence-analytics-compact,.absence-insights-columns.absence-analytics-compact{grid-template-columns:minmax(0,1fr)}.absence-complete-report.absence-analytics-compact .absence-cumulative-panel ol{grid-template-columns:minmax(0,1fr)}.absence-complete-report.absence-analytics-compact .absence-cumulative-head{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.absence-analytics-compact *{animation:none!important;transition:none!important}}
+
+
+/* Compact attendance register: remove wasted vertical space and duplicate oversized panels */
+.absence-dashboard-top{display:grid!important;grid-template-columns:minmax(175px,.25fr) minmax(0,1fr)!important;gap:12px!important;align-items:stretch!important}
+.absence-date-card{min-height:0!important;padding:14px!important;border-radius:16px!important;gap:10px!important}
+.absence-date-card .absence-date-symbol{font-size:24px!important;width:43px!important;height:43px!important}
+.absence-date-card small{font-size:12px!important}.absence-date-card strong{font-size:16px!important;line-height:1.5!important}
+.absence-control-strip{min-width:0;padding:12px 15px!important;border-radius:16px!important}
+.absence-class-picker{padding:0!important;min-height:0!important}
+.absence-picker-line{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;flex-wrap:wrap}
+.absence-picker-line>strong{font-size:15px!important;white-space:nowrap}
+.absence-grade-tabs{display:flex!important;gap:6px!important;flex-wrap:wrap}
+.absence-grade-tabs button{min-height:36px!important;padding:6px 13px!important;font-size:14px!important;border-radius:9px!important}
+.absence-class-compact{display:flex!important;gap:5px!important;flex-wrap:wrap!important;margin-top:7px!important;padding:0!important}
+.absence-class-compact button{width:35px!important;height:35px!important;min-height:35px!important;padding:0!important;font-size:14px!important;border-radius:9px!important}
+.absence-control-footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex-wrap:wrap!important;margin-top:10px!important;padding-top:10px!important}
+.absence-school-calendar{flex:1 1 390px!important;max-width:570px!important;min-height:0!important;padding:9px 11px!important;border-radius:13px!important}
+.absence-calendar-header{margin-bottom:7px!important}.absence-calendar-header strong{font-size:14px!important}
+.absence-school-days{gap:5px!important}.absence-school-days button{min-height:48px!important;padding:5px!important;border-radius:9px!important}
+.absence-school-days button small{font-size:11px!important}.absence-school-days button strong{font-size:16px!important}
+.absence-stats{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important}
+.absence-stats>div{display:flex!important;align-items:center!important;gap:7px!important;padding:7px 10px!important;min-height:0!important;border-radius:9px!important}
+.absence-stats span{font-size:12px!important}.absence-stats strong{font-size:17px!important}
+.absence-date-inline{display:none!important}
+.absence-operational-progress{min-height:0!important;margin:10px 0!important;padding:10px 14px!important;border-radius:13px!important;gap:12px!important}
+.absence-operational-progress>div:first-child b{font-size:14px!important}.absence-operational-progress small{font-size:12px!important}
+.absence-dashboard-metrics{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important;margin:10px 0!important}
+.absence-metric-card{min-height:0!important;padding:11px 13px!important;border-radius:14px!important;gap:9px!important}
+.absence-metric-card .metric-icon{width:42px!important;height:42px!important;font-size:22px!important}
+.absence-metric-card small{font-size:13px!important}.absence-metric-card strong{font-size:25px!important;line-height:1.1!important}
+.absence-metric-card span:not(.metric-icon){font-size:12px!important}
+.absence-action-strip{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important;padding:9px 0!important}
+.absence-action-strip button{min-height:38px!important;padding:8px 13px!important;font-size:13px!important}
+.absence-auto-state{flex:1 1 320px!important;font-size:13px!important;padding:8px 11px!important}
+@media(max-width:950px){.absence-dashboard-top{grid-template-columns:1fr!important}.absence-date-card{display:flex!important;flex-direction:row!important;align-items:center!important}.absence-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:600px){.absence-control-strip{padding:10px!important}.absence-control-footer{flex-direction:column!important;align-items:stretch!important}.absence-school-calendar{flex-basis:auto!important;width:100%!important}.absence-dashboard-metrics{gap:7px!important}.absence-metric-card{padding:10px!important}.absence-metric-card .metric-icon{width:34px!important;height:34px!important;font-size:18px!important}.absence-metric-card strong{font-size:22px!important}.absence-stats{justify-content:center!important}}
