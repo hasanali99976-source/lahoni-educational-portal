@@ -254,3 +254,20 @@ html:has(.absence-modern),body:has(.absence-modern){background:#f1f5fa!important
 .absence-cumulative-panel li:nth-child(-n+3) .absence-cumulative-rank{background:#efe1ff;color:#7236b6}
 .absence-cumulative-panel li>b{font-size:15px}
 .absence-school-week button:disabled,.absence-calendar-header button:disabled{opacity:.3;cursor:not-allowed}
+
+
+/* Period report first; cumulative archive below period analysis */
+.absence-period-report{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:15px 0 20px;padding:18px 22px;border:1px solid #a6d8e8;border-radius:19px;background:linear-gradient(115deg,#effaff,#e8f0ff 58%,#f5efff);box-shadow:0 6px 20px #196e9814;direction:rtl}
+.absence-period-report-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+.absence-period-report-copy>span{font-size:13px;font-weight:800;color:#078aa3}
+.absence-period-report-copy>strong{font-size:22px;font-weight:900;color:#124c85}
+.absence-period-report-copy>small{font-size:13px;color:#547c9b}
+.absence-period-report>button{border:0;border-radius:12px;background:linear-gradient(110deg,#075e96,#159ca4);padding:14px 21px;color:white;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 6px 12px #0e709025}
+.absence-period-report>button:disabled{opacity:.55;cursor:not-allowed}
+.absence-complete-report{margin-top:28px;padding:19px;border-radius:22px;background:linear-gradient(135deg,#f6f9ff,#eef8fc);border:1px solid #d4e6f3}
+.absence-complete-report-heading{direction:rtl;margin-bottom:12px}
+.absence-complete-report-heading span{font-size:13px;font-weight:900;color:#7054b9}
+.absence-complete-report-heading h3{font-size:21px;color:#194c7c;margin:7px 0}
+.absence-complete-report-heading p{font-size:13px;color:#617e96;margin:0}
+.absence-complete-report .absence-cumulative-panel{margin:0}
+@media(max-width:700px){.absence-period-report{padding:15px}.absence-period-report>button{width:100%}.absence-complete-report{padding:12px}}
