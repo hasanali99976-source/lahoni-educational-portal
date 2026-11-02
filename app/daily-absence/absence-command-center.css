@@ -241,3 +241,16 @@ html:has(.absence-modern),body:has(.absence-modern){background:#f1f5fa!important
 .absence-cumulative-panel li>div{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.absence-cumulative-panel li>div strong{color:#16477b;font-size:14px;overflow-wrap:anywhere}.absence-cumulative-panel li>div small{color:#6987a2;font-size:11px}.absence-cumulative-panel li>b{color:#aa3674;background:#fbeaf3;border-radius:10px;padding:6px 9px;white-space:nowrap;font-size:13px}
 .absence-cumulative-note{display:block;margin-top:13px;font-size:12px}
 @media(max-width:740px){.absence-cumulative-panel ol{grid-template-columns:1fr}.absence-cumulative-panel{padding:14px}}
+
+
+/* Cumulative absence ranking: compact, printable, readable */
+.absence-cumulative-panel{border:2px solid #b9dceb;background:linear-gradient(145deg,#f4fcff,#eef1ff);box-shadow:0 10px 28px #185d9220}
+.absence-cumulative-head{border-bottom:1px solid #d3e4f3;padding-bottom:14px}
+.absence-cumulative-head h3{font-size:24px;line-height:1.5}
+.absence-ranking-export{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;background:linear-gradient(110deg,#086a9b,#168da4);color:white;font-weight:800;padding:10px 14px;margin-top:10px;cursor:pointer;font-size:13px}
+.absence-ranking-export:disabled{opacity:.5;cursor:wait}
+.absence-cumulative-panel ol{gap:11px}
+.absence-cumulative-panel li{min-height:65px;border-radius:15px;box-shadow:0 3px 9px #185d920c}
+.absence-cumulative-panel li:nth-child(-n+3) .absence-cumulative-rank{background:#efe1ff;color:#7236b6}
+.absence-cumulative-panel li>b{font-size:15px}
+.absence-school-week button:disabled,.absence-calendar-header button:disabled{opacity:.3;cursor:not-allowed}
