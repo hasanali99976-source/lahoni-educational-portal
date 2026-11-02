@@ -128,3 +128,17 @@
 @media(max-width:1150px){.future-masthead-art{left:16%;opacity:.6}.future-school-masthead .school-brand-icon{width:78px;height:78px;font-size:40px}}
 @media(max-width:750px){.school-system .future-school-masthead{min-height:170px!important;padding:17px 16px!important;align-items:flex-start;flex-direction:column;gap:12px}.future-school-masthead .school-brand{gap:10px}.future-school-masthead .school-brand-icon{width:58px;height:58px;font-size:30px;border-radius:17px}.future-school-masthead .school-brand h1{font-size:clamp(21px,5.1vw,30px)!important}.future-school-masthead .future-masthead-kicker{font-size:11px;padding:3px 9px}.future-school-masthead .future-masthead-stage{font-size:12px;padding:5px 12px}.future-school-masthead .school-header-actions{align-self:flex-start;margin-top:0}.future-school-masthead .school-header-actions a{padding:7px 11px;font-size:12px}.future-masthead-art{left:5px;bottom:10px;transform:scale(.6);transform-origin:bottom left;opacity:.28}}
 @media(prefers-reduced-motion:reduce){.future-masthead-art *{animation:none!important}}
+
+
+/* Tahdheeb school masthead: compact institutional identity */
+.school-system .future-school-masthead{min-height:151px!important;padding:20px 30px!important;background:linear-gradient(108deg,#e8f8fc 0%,#ffffff 44%,#f4faff 100%)!important;border:1px solid #d4eaf1!important;box-shadow:0 10px 26px #14678717!important}
+.school-system .future-school-masthead:before{height:14px!important;bottom:0!important;top:auto!important;left:0!important;right:0!important;border:0!important;border-radius:0!important;background:linear-gradient(90deg,#0c6385,#0eabc0,#0d5576)!important}
+.school-system .future-school-masthead:after{width:37%;opacity:.45}
+.future-school-masthead .school-brand{gap:18px}
+.future-school-masthead .future-school-logo{width:110px!important;height:105px!important;flex-shrink:0;border:1px solid #dcebf1!important;background:#fff!important;border-radius:22px!important;box-shadow:0 9px 22px #0e62841b!important;padding:15px;transform:none!important}
+.future-school-logo svg{width:100%;height:100%;display:block}
+.future-school-masthead .school-brand h1{font-size:clamp(24px,2.7vw,39px)!important;color:#064e6b!important;margin:6px 0 10px!important;letter-spacing:0!important}
+.future-school-masthead .future-masthead-kicker{background:#e6f5f9!important;color:#146a8b!important;box-shadow:none!important;border:1px solid #c5e8f1!important}
+.future-school-masthead .future-masthead-stage{background:linear-gradient(100deg,#075678,#0c8ba4)!important;color:#fff!important;box-shadow:0 5px 14px #0d789b24!important}
+.future-masthead-art{opacity:.12!important;left:20%;font-size:40px!important}.future-masthead-building{font-size:75px!important}
+@media(max-width:750px){.school-system .future-school-masthead{padding:16px 13px!important;min-height:150px!important}.future-school-masthead .future-school-logo{width:66px!important;height:68px!important;padding:8px!important;border-radius:15px!important}.future-school-masthead .school-brand h1{font-size:clamp(20px,5vw,29px)!important}.future-masthead-art{display:none}}
