@@ -229,3 +229,15 @@ html:has(.absence-modern),body:has(.absence-modern){background:#f1f5fa!important
 .absence-analytics-export button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
 .absence-analytics-export span{font-size:12px;color:#416b80;font-weight:700}
 @media(max-width:760px){.absence-analytics-export button{width:100%}}
+
+
+/* All-time absence leaderboard — no polling, no extra reads on filter changes */
+.absence-cumulative-panel{background:linear-gradient(135deg,#f6fbff,#e9f5ff);border:1px solid #b9dff3;border-radius:20px;padding:20px 22px;margin:16px 0 22px;box-shadow:0 7px 20px #1b659115;direction:rtl}
+.absence-cumulative-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:15px;flex-wrap:wrap}
+.absence-cumulative-head span{font-size:13px;color:#058eaa;font-weight:800}.absence-cumulative-head h3{font-size:22px;color:#124e7c;margin:5px 0}.absence-cumulative-head small,.absence-cumulative-note{color:#64819a}.absence-cumulative-head>strong{background:#d6f5ef;color:#087f73;border-radius:30px;padding:9px 15px;white-space:nowrap}
+.absence-cumulative-panel ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.absence-cumulative-panel li{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #d9e9f7;border-radius:13px;padding:12px 14px;min-width:0}
+.absence-cumulative-rank{background:#e4efff;color:#215cb3;border-radius:10px;width:30px;height:30px;display:grid;place-items:center;font-weight:900;flex-shrink:0}
+.absence-cumulative-panel li>div{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.absence-cumulative-panel li>div strong{color:#16477b;font-size:14px;overflow-wrap:anywhere}.absence-cumulative-panel li>div small{color:#6987a2;font-size:11px}.absence-cumulative-panel li>b{color:#aa3674;background:#fbeaf3;border-radius:10px;padding:6px 9px;white-space:nowrap;font-size:13px}
+.absence-cumulative-note{display:block;margin-top:13px;font-size:12px}
+@media(max-width:740px){.absence-cumulative-panel ol{grid-template-columns:1fr}.absence-cumulative-panel{padding:14px}}
