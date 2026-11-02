@@ -291,3 +291,32 @@
 @media(min-width:1450px){.school-teacher-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
 @media(max-width:980px){.school-teacher-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:600px){.school-teacher-grid{grid-template-columns:1fr!important}.school-teacher-card-top{padding:10px 12px 7px!important}}
+
+
+/* Teacher directory refinement: readable editorial cards, balanced density */
+.school-teacher-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:17px!important}
+.school-teacher-card{min-height:0!important;border-radius:22px!important;border:1px solid #d4e5f4!important;background:#fff!important;box-shadow:0 7px 19px #164b7a17!important;overflow:hidden!important;transition:box-shadow .2s ease,transform .2s ease!important}
+.school-teacher-card:nth-child(3n+1){background:linear-gradient(180deg,#e7f7fc 0,#fff 145px)!important}
+.school-teacher-card:nth-child(3n+2){background:linear-gradient(180deg,#f0eafd 0,#fff 145px)!important}
+.school-teacher-card:nth-child(3n+3){background:linear-gradient(180deg,#e4f8f2 0,#fff 145px)!important}
+.school-teacher-card:before{display:none!important}
+.school-teacher-card-top{display:grid!important;grid-template-columns:52px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:12px!important;row-gap:12px!important;padding:17px 18px 14px!important;min-height:0!important;flex-wrap:nowrap!important}
+.school-teacher-avatar{grid-column:1;grid-row:1;width:52px!important;height:52px!important;min-width:52px!important;border-radius:16px!important;font-size:25px!important;box-shadow:none!important;background:#fff!important;color:var(--teacher-accent)!important;border:1px solid #d7e5f4!important}
+.school-teacher-identity{grid-column:2;grid-row:1;min-width:0!important;align-self:center!important}
+.school-teacher-identity h3{font-family:inherit!important;font-size:clamp(18px,1.5vw,23px)!important;line-height:1.5!important;letter-spacing:0!important;font-weight:800!important;overflow-wrap:normal!important;word-break:normal!important;white-space:normal!important;margin:0 0 3px!important}
+.school-teacher-identity small{font-size:13px!important;font-weight:650!important;line-height:1.5!important;color:#6d84a0!important}
+.school-assigned-tag,.school-pending-tag{grid-column:1/-1;grid-row:2;justify-self:start;max-width:100%;white-space:normal!important;font-size:12px!important;line-height:1.5!important;padding:5px 12px!important;border-radius:999px!important;box-shadow:none!important}
+.school-assigned-tag{background:#d8f6e9!important;color:#067f68!important;border:1px solid #bce8d5!important}
+.school-pending-tag{background:#eef1f6!important;color:#64758d!important;border:1px solid #dce3ec!important}
+.school-teacher-card-subjects{padding:0 15px 12px!important;gap:9px!important;flex:1!important}
+.school-teacher-card-subject{background:#fff!important;border:1px solid #e0e9f5!important;border-radius:14px!important;padding:12px 13px!important;box-shadow:0 2px 6px #1d57820b!important}
+.school-teacher-card-subject>div:first-child{margin-bottom:8px!important}
+.school-teacher-card-subject strong{font-size:15px!important;line-height:1.6!important;font-weight:800!important}
+.school-teacher-card-subject button{flex-shrink:0!important}
+.school-class-chips{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;max-height:none!important;gap:6px!important}
+.school-class-chips span{font-size:12px!important;padding:5px 8px!important;line-height:1.4!important}
+.school-card-assign{margin:0 15px 15px!important;width:calc(100% - 30px)!important;min-height:43px!important;padding:10px 12px!important;font-size:13px!important;border:0!important;border-radius:12px!important;box-shadow:none!important}
+@media(min-width:1600px){.school-teacher-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:1100px){.school-teacher-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:680px){.school-teacher-grid{grid-template-columns:1fr!important;gap:12px!important}.school-teacher-card-top{padding:14px!important}.school-teacher-card-subjects{padding:0 12px 10px!important}.school-card-assign{margin:0 12px 12px!important;width:calc(100% - 24px)!important}}
+@media(prefers-reduced-motion:reduce){.school-teacher-card{transition:none!important}}
