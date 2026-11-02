@@ -271,3 +271,33 @@ html:has(.absence-modern),body:has(.absence-modern){background:#f1f5fa!important
 .absence-complete-report-heading p{font-size:13px;color:#617e96;margin:0}
 .absence-complete-report .absence-cumulative-panel{margin:0}
 @media(max-width:700px){.absence-period-report{padding:15px}.absence-period-report>button{width:100%}.absence-complete-report{padding:12px}}
+
+
+/* Compact analytics: use available width instead of tall empty cards */
+.absence-chart-grid.absence-analytics-compact{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.8fr);gap:14px;align-items:stretch}
+.absence-analytics-compact .absence-chart-card{min-height:0!important;padding:16px 18px!important;border-radius:17px}
+.absence-analytics-compact .absence-grade-chart{gap:10px}
+.absence-analytics-compact .absence-grade-chart-row{min-height:34px}
+.absence-analytics-compact .absence-period-summary{padding:8px 12px!important;min-height:0!important}
+.absence-analytics-compact .absence-period-summary>strong{font-size:44px;line-height:1.1}
+.absence-insights-columns.absence-analytics-compact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.absence-insights-columns.absence-analytics-compact:has(>.absence-insights-block:only-child){grid-template-columns:minmax(0,1fr)}
+.absence-analytics-compact .absence-insights-block{min-height:0!important;padding:14px 16px!important;border-radius:17px}
+.absence-analytics-compact .absence-leader-list{gap:6px}
+.absence-analytics-compact .absence-leader{min-height:38px;padding:6px 10px;gap:9px}
+.absence-complete-report.absence-analytics-compact{margin-top:16px;padding:15px}
+.absence-complete-report.absence-analytics-compact .absence-complete-report-heading{margin-bottom:8px}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel{padding:15px!important}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:10px}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-head h3{font-size:20px;margin:0 0 6px}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-head small{display:block}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;margin:10px 0;padding:0}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel li{display:flex;align-items:center;gap:9px;min-height:0;padding:11px;border:1px solid #d7e6f4;background:#fff;border-radius:12px;box-shadow:none;min-width:0}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel li>div{flex:1;min-width:0}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel li strong{font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel li small{font-size:11px}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-panel li>b{font-size:12px;white-space:nowrap}
+.absence-complete-report.absence-analytics-compact .absence-cumulative-rank{flex:0 0 auto}
+@media(max-width:1050px){.absence-complete-report.absence-analytics-compact .absence-cumulative-panel ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:740px){.absence-chart-grid.absence-analytics-compact,.absence-insights-columns.absence-analytics-compact{grid-template-columns:minmax(0,1fr)}.absence-complete-report.absence-analytics-compact .absence-cumulative-panel ol{grid-template-columns:minmax(0,1fr)}.absence-complete-report.absence-analytics-compact .absence-cumulative-head{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.absence-analytics-compact *{animation:none!important;transition:none!important}}
