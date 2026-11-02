@@ -24,3 +24,45 @@
 
 /* Compact full-width student analytics, no redundant sidebar */
 .school-workspace-full{display:block!important;grid-template-columns:minmax(0,1fr)!important;width:100%;max-width:100%;padding:0!important;gap:0!important;background:transparent!important;border:0!important;box-shadow:none!important}.school-workspace-full>.school-content{width:100%;min-width:0;max-width:none!important;padding:24px!important;border:1px solid #e1eaf2;border-radius:22px;background:#fff;box-shadow:0 9px 28px #244e710d}.school-compact-selector{margin:2px 0 22px;padding:16px 18px;border-radius:17px;background:linear-gradient(110deg,#f3f9fc,#f7f5ff);border:1px solid #e1e9f3}.school-compact-selector-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.school-compact-selector-head strong{color:#225b75;font-size:15px}.school-compact-selector-head small{color:#8094a5;font-size:12px}.school-compact-selector-buttons{display:flex;flex-wrap:wrap;gap:7px}.school-compact-selector-buttons button{padding:9px 13px;min-width:55px;background:#fff;border:1px solid #d9e5ef;border-radius:10px;color:#426680;font:inherit;font-size:13px;font-weight:900;cursor:pointer;transition:.15s}.school-compact-selector-buttons button.active{background:#176b85;color:#fff;border-color:#176b85;box-shadow:0 5px 12px #1a66862b}.school-compact-selector-buttons button:hover:not(.active){background:#e6f3f8;border-color:#81b8c9}.school-grade-nav{padding:16px 19px!important;margin:14px 0!important;border-radius:17px!important}.school-grade-nav h2{font-size:20px!important;margin:0 0 4px!important}.school-grade-nav p{font-size:13px!important;margin:0!important}.school-grade-nav>div{margin-top:12px!important;gap:7px!important}.school-grade-nav button{font-size:13px!important;padding:10px 13px!important;border-radius:10px!important}.school-main-nav{gap:6px!important}.school-main-nav button{font-size:14px!important;padding:12px 15px!important}.school-overview-heading{padding:0!important}.school-overview-heading h2{font-size:clamp(22px,2vw,29px)!important}.school-overview-heading p{font-size:13px}.school-overview-kpis article{min-height:126px!important;padding:17px 20px!important}.school-overview-kpis strong{font-size:32px!important}.school-overview-grades article{padding:15px!important}.school-overview-section{padding:18px!important}.school-overview-class-grid{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))!important}.school-overview-class-grid button{padding:14px!important}.school-overview-class-grid button b{font-size:26px!important}@media(max-width:700px){.school-workspace-full>.school-content{padding:14px!important}.school-compact-selector-head{align-items:flex-start;flex-direction:column;gap:3px}.school-compact-selector-buttons button{flex:1 0 55px}.school-grade-nav>div{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))}.school-grade-nav button{min-width:0!important}.school-overview-heading p{font-size:12px}}
+
+
+/* School workspace visual refresh — CSS-only, no network requests or polling */
+.school-system{--school-ink:#163955;--school-ocean:#137b91;--school-blue:#245d9a;--school-violet:#7155bc;--school-border:#dce8f3;background:radial-gradient(ellipse at 90% 0%,#e3efff 0,transparent 42%),radial-gradient(ellipse at 4% 40%,#edf2ff 0,transparent 45%),#f4f8fd;color:var(--school-ink)}
+.school-header{background:linear-gradient(120deg,#fff,#fafdff);border:1px solid #e3eaf5;border-radius:27px;padding:21px 26px;box-shadow:0 12px 34px #1e4b7510;position:relative;overflow:hidden}
+.school-header:before{content:"";position:absolute;right:0;top:0;width:6px;height:100%;background:linear-gradient(#7b5bd1,#31b6b6)}
+.school-brand-icon{background:linear-gradient(135deg,#233f82,#198fa5);border-radius:22px;box-shadow:0 12px 28px #247b9d35;transform:rotate(-5deg);transition:transform .35s ease}
+.school-brand-icon:hover{transform:rotate(0) scale(1.06)}
+.school-brand h1{font-weight:900;letter-spacing:-.45px}.school-brand h1 em{color:#7258c2}
+.school-header-actions a{transition:transform .2s,background .2s,border-color .2s}.school-header-actions a:hover{transform:translateY(-2px);background:#eef8fc;border-color:#b4dce7}
+.school-hero{min-height:220px;padding:32px 43px;background:linear-gradient(115deg,#173a69 0%,#1c6c91 56%,#32a5a6 100%);box-shadow:0 19px 38px #194f7930;border:1px solid #ffffff35;isolation:isolate}
+.school-hero:before{content:"";position:absolute;inset:-55% auto auto -10%;width:490px;height:490px;border:1px solid #ffffff24;border-radius:50%;box-shadow:0 0 0 65px #ffffff08,0 0 0 125px #ffffff08;pointer-events:none}
+.school-hero:after{background:radial-gradient(circle at 75% 0%,#ffffff2b,transparent 40%);z-index:-1}
+.school-eyebrow{display:inline-flex;padding:7px 14px;background:#ffffff1a;border:1px solid #ffffff30;border-radius:999px;color:#c8f9fa;letter-spacing:.15px}
+.school-hero h2{font-size:clamp(27px,3.15vw,43px);line-height:1.4;text-wrap:balance;margin:14px 0 8px;text-shadow:0 3px 13px #082b3540}
+.school-hero p{font-size:clamp(14px,1.25vw,17px);color:#e8faff;max-width:800px}
+.school-hero-symbol{width:190px;height:150px;display:grid;place-items:center;position:relative;flex-shrink:0;font-size:88px;filter:none}
+.school-hero-symbol span:nth-child(2){filter:drop-shadow(0 15px 12px #072c4645);animation:school-float 5s ease-in-out infinite}
+.school-hero-symbol span:first-child,.school-hero-symbol span:last-child{position:absolute;font-size:30px;color:#b4fcf6;animation:school-sparkle 4s ease-in-out infinite}
+.school-hero-symbol span:first-child{right:5px;top:8px}.school-hero-symbol span:last-child{left:8px;bottom:4px;animation-delay:1.3s}
+.school-main-nav{padding:8px!important;border:1px solid #e0e9f4!important;border-radius:22px!important;background:#ffffffed!important;box-shadow:0 10px 24px #1c547610;gap:9px!important}
+.school-main-nav button{border-radius:15px!important;min-height:53px;transition:background .2s,transform .2s,box-shadow .2s!important}
+.school-main-nav button:hover:not(.active){background:#eef7fb!important;transform:translateY(-2px)}
+.school-main-nav button.active{background:linear-gradient(115deg,#204b80,#16889c)!important;color:white!important;box-shadow:0 8px 17px #1b749438}
+.school-grade-nav,.school-directory,.school-landing,.school-overview-section{border:1px solid #e0eaf4!important;box-shadow:0 10px 26px #1d52730e!important;border-radius:23px!important}
+.school-grade-nav{background:linear-gradient(120deg,#fff 55%,#f1f9fd)!important}
+.school-grade-nav h2{color:#1d466c!important;font-weight:900}
+.school-grade-nav>div button{transition:background .2s,border-color .2s,transform .2s}
+.school-grade-nav>div button:hover:not(.active){transform:translateY(-2px);background:#eff8ff}
+.school-directory-top{background:linear-gradient(115deg,#f2faff,#f7f4ff)!important;border-radius:18px;padding:18px!important}
+.school-directory-top h2{color:#1c4d77!important}
+.school-directory-top>button,.school-directory-save{background:linear-gradient(110deg,#196b94,#16a1a0)!important;color:white!important;box-shadow:0 8px 17px #167f9a2a;transition:transform .2s,filter .2s}
+.school-directory-top>button:hover,.school-directory-save:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.school-teacher-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease!important}
+.school-teacher-card:hover{transform:translateY(-4px);box-shadow:0 16px 28px #1c60851b!important;border-color:#9acbdc!important}
+.school-teacher-avatar{background:linear-gradient(135deg,#d9eaff,#dcf9f4)!important;color:#205b85!important}
+.school-landing-cards button{transition:transform .22s,box-shadow .22s!important}
+.school-landing-cards button:hover{transform:translateY(-5px);box-shadow:0 16px 30px #1c5a861c!important}
+.school-system button:focus-visible,.school-system a:focus-visible,.school-system input:focus-visible{outline:3px solid #4c9bd0!important;outline-offset:3px}
+@keyframes school-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}@keyframes school-sparkle{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.2)}}
+@media(max-width:700px){.school-header{padding:17px!important}.school-hero{padding:24px 20px!important;min-height:175px}.school-hero-symbol{width:75px;height:90px;font-size:52px}.school-hero-symbol span:first-child,.school-hero-symbol span:last-child{font-size:17px}.school-hero h2{font-size:clamp(23px,5.5vw,30px)}.school-hero p{font-size:13px}.school-main-nav button{min-height:46px;padding:9px 7px!important;font-size:12px!important}}
+@media(prefers-reduced-motion:reduce){.school-system *, .school-system *:before,.school-system *:after{animation:none!important;transition:none!important}}
