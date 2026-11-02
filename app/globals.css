@@ -63,3 +63,16 @@
     font-weight: 800 !important;
   }
 }
+
+/* iOS Safari/PWA: paint the overscroll and safe-area surfaces to match each portal. */
+@media screen {
+  html { min-height: 100%; min-height: 100dvh; background: #061d2b; }
+  body { min-height: 100%; min-height: 100dvh; margin: 0; }
+  html:has(.lahoni-home),body:has(.lahoni-home) { background: #edf6ff; }
+  html:has(.school-system),body:has(.school-system) { background: #edf4ff; }
+  html:has(.teacher-entry-page),body:has(.teacher-entry-page) { background: #061d2b; }
+  @supports (padding: env(safe-area-inset-bottom)) {
+    body:has(.teacher-entry-page) { padding-bottom: env(safe-area-inset-bottom,0px); }
+    body:has(.school-system) { padding-bottom: env(safe-area-inset-bottom,0px); }
+  }
+}
