@@ -54,7 +54,6 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
 
-    const { passwordHash: _passwordHash, ...userSnapshot } = user;
     response.cookies.set(
       PORTAL_SESSION_COOKIE,
       createSessionToken({
@@ -63,7 +62,6 @@ export async function POST(request: Request) {
         name: user.name,
         authVersion: user.updatedAt,
         expiresAt,
-        userSnapshot,
       }),
       {
         httpOnly: true,
