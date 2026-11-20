@@ -67,3 +67,54 @@
   .report-sign { text-align:center !important; }.report-sign b { display:block !important; margin:.5mm 0 !important; color:#103e48 !important; font-size:6.8pt !important; }.report-sign span,.report-sign em { display:block !important; color:#5c7378 !important; font-size:5.2pt !important; line-height:1.1 !important; }.report-sign em { margin-top:.7mm !important; font-style:normal !important; }
   .print-single-report,.print-single-report .print-class-page { break-inside:avoid !important; page-break-inside:avoid !important; break-after:avoid !important; page-break-after:avoid !important; }
 }
+
+
+/* Reliable multi-page report printing (desktop + iOS Safari).
+   Keep the print action in the original click gesture and never crop long reports. */
+@media print {
+  @page { size: A4 landscape; margin: 9mm; }
+  html, body {
+    width:auto !important; height:auto !important; min-height:0 !important;
+    margin:0 !important; padding:0 !important; overflow:visible !important;
+    background:#fff !important;
+  }
+  .discipline-safe {
+    display:block !important; width:100% !important; height:auto !important;
+    min-height:0 !important; overflow:visible !important;
+  }
+  .discipline-safe .discipline-print {
+    position:static !important; inset:auto !important; display:block !important;
+    width:100% !important; height:auto !important; min-height:0 !important;
+    margin:0 !important; padding:0 !important; overflow:visible !important;
+    box-sizing:border-box !important; background:#fffdf8 !important;
+  }
+  .discipline-safe .discipline-print::before { display:none !important; }
+  .discipline-safe .report-watermark { display:none !important; }
+  .discipline-safe .screen { display:none !important; }
+  .discipline-safe .report-cert-head,
+  .discipline-safe .report-identity,
+  .discipline-safe .report-hero,
+  .discipline-safe .report-kpis { break-inside:avoid !important; page-break-inside:avoid !important; }
+  .discipline-safe .report-table-section {
+    display:block !important; width:100% !important; overflow:visible !important;
+    break-inside:auto !important; page-break-inside:auto !important;
+  }
+  .discipline-safe .discipline-report-table {
+    width:100% !important; min-width:0 !important; border-collapse:collapse !important;
+    table-layout:fixed !important; overflow:visible !important;
+  }
+  .discipline-safe .discipline-report-table thead { display:table-header-group !important; }
+  .discipline-safe .discipline-report-table tfoot { display:table-footer-group !important; }
+  .discipline-safe .discipline-report-table tr {
+    break-inside:avoid !important; page-break-inside:avoid !important;
+  }
+  .discipline-safe .report-cert-footer {
+    height:auto !important; min-height:22mm !important; margin-top:5mm !important;
+    break-inside:avoid !important; page-break-inside:avoid !important;
+  }
+  .discipline-safe .print-single-report,
+  .discipline-safe .print-single-report .print-class-page {
+    break-inside:auto !important; page-break-inside:auto !important;
+    break-after:auto !important; page-break-after:auto !important;
+  }
+}
