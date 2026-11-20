@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTeacherClient } from "../../../lib/teacher-client";
 import "./discipline-safe.css";
+import "./discipline-print.css";
 
 type AttendanceStatus="present"|"absent"|"late"|"excused"|"escaped";
 type AttendanceRecord={class?:string;date?:string;records?:Record<string,AttendanceStatus>};
